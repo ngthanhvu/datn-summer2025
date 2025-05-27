@@ -8,6 +8,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -68,38 +69,42 @@ class AuthController extends Controller
 
     public function redirectToGoogle()
     {
-        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+        $url = Socialite::driver('google')
+            ->stateless()
+            ->redirectUrl('http://127.0.0.1:8000/api/google/callback') // NHỚ thêm dòng này
+            ->redirect()
+            ->getTargetUrl();
+
         return response()->json(['url' => $url]);
     }
 
-    // Phương thức đăng nhập Google
-
-    public function handleGoogleCallback()
+    public function handleGoogleCallback(Request $request)
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $googleUser = Socialite::driver('google')
+                ->stateless()
+                ->redirectUrl('http://127.0.0.1:8000/api/google/callback') // PHẢI KHỚP y chang bước 1
+                ->user();
 
             $user = User::updateOrCreate(
                 ['email' => $googleUser->getEmail()],
                 [
                     'username' => $googleUser->getName(),
-                    'password' => null,
+                    'password' => Hash::make(uniqid()),
                     'oauth_provider' => 'google',
                     'oauth_id' => $googleUser->getId(),
                 ]
             );
 
-            // Tạo JWT token
             $token = JWTAuth::fromUser($user);
 
             return response()->json([
-                'message' => 'Đăng nhập thành công.',
                 'token' => $token,
-                'user' => $user,
+                'user' => $user
             ]);
         } catch (\Exception $e) {
-            \Log::error($e);
-            return response()->json(['message' => 'Lỗi đăng nhập Google'], 500);
+            Log::error('Google login failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Đăng nhập Google thất bại.'], 500);
         }
     }
 }
