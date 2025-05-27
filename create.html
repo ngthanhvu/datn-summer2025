@@ -1,0 +1,203 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Add New Product</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-[#F9FAFB] min-h-screen p-6">
+  <main class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
+    <section class="flex-1 space-y-6">
+      <h1 class="text-gray-900 text-xl font-semibold">Add New Product</h1>
+
+      <form class="space-y-6" action="#" method="POST" enctype="multipart/form-data" novalidate>
+        <div class="bg-white rounded-lg p-4 space-y-4 shadow-sm">
+          <div>
+            <label for="product-title" class="block text-xs font-medium text-gray-500 mb-1">Product title</label>
+            <input
+              type="text"
+              id="product-title"
+              name="product-title"
+              placeholder="Type here"
+              class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 text-xs px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-3 gap-4 text-xs text-gray-500">
+            <div>
+              <label for="sku" class="block font-medium mb-1">SKU</label>
+              <input
+                type="text"
+                id="sku"
+                name="sku"
+                placeholder="Type here"
+                class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label for="color" class="block font-medium mb-1">Color</label>
+              <input
+                type="text"
+                id="color"
+                name="color"
+                placeholder="Type here"
+                class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label for="size" class="block font-medium mb-1">Size</label>
+              <input
+                type="text"
+                id="size"
+                name="size"
+                placeholder="Type here"
+                class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="brand" class="block text-xs font-medium text-gray-500 mb-1">Brand</label>
+            <input
+              type="text"
+              id="brand"
+              name="brand"
+              placeholder="Type here"
+              class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 text-xs px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="description" class="block text-xs font-medium text-gray-500 mb-1">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="3"
+            placeholder="Type here"
+            class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 text-xs px-3 py-2 resize-y focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+          ></textarea>
+        </div>
+
+        <div>
+          <label for="images" class="block text-xs font-medium text-gray-500 mb-1">Images</label>
+          <input
+            type="file"
+            id="images"
+            name="images"
+            class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 text-xs px-3 py-1 cursor-pointer"
+          />
+        </div>
+      </form>
+    </section>
+
+    <aside class="w-full max-w-xs bg-white rounded-lg p-4 shadow-sm space-y-4 text-xs text-gray-500">
+      <div class="flex justify-end gap-2 mb-2">
+        <button
+          type="button"
+          class="text-gray-400 text-[10px] font-normal border border-gray-300 rounded px-3 py-[6px] hover:bg-gray-100"
+        >
+          Save to draft
+        </button>
+        <button
+          type="button"
+          class="bg-[#047857] text-white text-[10px] font-normal rounded px-3 py-[6px] hover:bg-[#065f46]"
+        >
+          Publish
+        </button>
+      </div>
+
+      <div>
+        <label for="price" class="block font-semibold text-gray-700 mb-1 text-[11px]">Price</label>
+        <input
+          type="text"
+          id="price"
+          name="price"
+          placeholder="Type here"
+          class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 text-xs px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
+      <div>
+        <label for="status" class="block font-semibold text-gray-700 mb-1 text-[11px]">Status</label>
+        <select
+          id="status"
+          name="status"
+          class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 text-xs px-3 py-2 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option selected>Published</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="tags" class="block font-semibold text-gray-700 mb-1 text-[11px]">Tags</label>
+        <input
+          type="text"
+          id="tags"
+          name="tags"
+          placeholder="Type here"
+          class="w-full rounded-md border border-gray-200 bg-gray-100 text-gray-500 text-xs px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+        />
+        <div class="flex flex-wrap gap-2 mt-1 text-[10px] text-[#047857] font-semibold">
+          <span class="flex items-center gap-1 cursor-pointer select-none">
+            <span>×</span> Tech
+          </span>
+          <span class="flex items-center gap-1 cursor-pointer select-none">
+            <span>×</span> Mobile
+          </span>
+          <span class="flex items-center gap-1 cursor-pointer select-none">
+            <span>×</span> Apple
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <p class="font-semibold text-gray-700 mb-1 text-[11px]">Categories</p>
+        <div class="flex flex-col gap-1 text-[10px] text-gray-600">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="category" value="shirt" class="cursor-pointer" />
+            Shirt
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="category" value="t-shirt" class="cursor-pointer" />
+            T-Shirt
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="category" value="sneakers" class="cursor-pointer" />
+            Sneakers
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="category" value="joggers" class="cursor-pointer" />
+            Joggers
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="category" value="vests" class="cursor-pointer" />
+            Vests
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="category" value="knitwear" class="cursor-pointer" />
+            Knitwear
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="category" value="shorts" class="cursor-pointer" />
+            Shorts
+          </label>
+        </div>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>

@@ -17,9 +17,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
 });
 
-// Content routes
 Route::apiResource('categories', CategoriesController::class);
 Route::apiResource('brands', BrandsController::class);
 Route::apiResource('products', ProductsController::class);
 Route::apiResource('attributes', AttributeController::class);
 Route::apiResource('attributes.values', AttributeValueController::class);
+
+Route::get('/google', [AuthController::class, 'redirectToGoogle']);
+Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);

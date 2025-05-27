@@ -62,66 +62,17 @@
           <div class="auth-toggle tw-bg-transparent tw-border-0 tw-text-gray-700 tw-relative tw-cursor-pointer">
             <i class="bi bi-person tw-text-2xl"></i>
           </div>
-          <AuthMenu />
+          <div v-if="!token" class="tw-absolute tw-top-full tw-left-0 tw-w-full">
+            <AuthMenu />
+          </div>
+          <div v-else class="tw-absolute tw-top-full tw-left-0 tw-w-full">
+            <UserMenu />
+          </div>
         </div>
       </div>
 
-      <!-- Mobile Navigation -->
-      <div class="mobile-menu" :class="{ 'tw-block': isMobileMenuOpen, 'tw-hidden': !isMobileMenuOpen }">
-        <div class="tw-flex tw-justify-between tw-items-center tw-p-4 tw-border-b">
-          <h3 class="tw-m-0 tw-font-medium">Menu</h3>
-          <button class="tw-bg-transparent tw-border-0" @click="closeMobileMenu">
-            <i class="bi bi-x-lg tw-text-xl"></i>
-          </button>
-        </div>
-
-        <!-- Mobile Icons -->
-        <div class="tw-flex tw-justify-around tw-items-center tw-p-4 tw-border-b">
-          <NuxtLink to="/search" class="tw-text-gray-700" @click="closeMobileMenu">
-            <i class="bi bi-search tw-text-xl"></i>
-          </NuxtLink>
-          <NuxtLink to="/wishlist" class="tw-text-gray-700 tw-relative" @click="closeMobileMenu">
-            <i class="bi bi-heart tw-text-xl"></i>
-            <span
-              class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">2</span>
-          </NuxtLink>
-          <NuxtLink to="/cart" class="tw-text-gray-700 tw-relative" @click="closeMobileMenu">
-            <i class="bi bi-cart tw-text-xl"></i>
-            <span
-              class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">2</span>
-          </NuxtLink>
-          <NuxtLink to="/login" class="tw-text-gray-700" @click="closeMobileMenu">
-            <i class="bi bi-person tw-text-xl"></i>
-          </NuxtLink>
-        </div>
-
-        <ul class="tw-list-none tw-p-0 tw-m-0">
-          <li class="tw-py-3 tw-border-b">
-            <NuxtLink to="/" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="closeMobileMenu">Trang chủ
-            </NuxtLink>
-          </li>
-          <li class="tw-py-3 tw-border-b">
-            <NuxtLink to="/product" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="closeMobileMenu">
-              Sản phẩm</NuxtLink>
-          </li>
-          <li class="tw-py-3 tw-border-b">
-            <NuxtLink to="/about" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="closeMobileMenu">Giới
-              thiệu</NuxtLink>
-          </li>
-          <li class="tw-py-3 tw-border-b">
-            <NuxtLink to="/blogs" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="closeMobileMenu">Tin
-              tức</NuxtLink>
-          </li>
-          <li class="tw-py-3 tw-border-b">
-            <NuxtLink to="/contact" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="closeMobileMenu">
-              Liên hệ</NuxtLink>
-          </li>
-          <li class="tw-py-3 tw-border-b">
-            <NuxtLink to="/order-tracking" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block"
-              @click="closeMobileMenu">Kiểm tra đơn hàng</NuxtLink>
-          </li>
-        </ul>
-      </div>
+      <!-- Mobile Menu Component -->
+      <MobileMenu :is-open="isMobileMenuOpen" @close="closeMobileMenu" />
     </div>
   </nav>
 </template>
@@ -131,9 +82,13 @@ import TopBar from './TopBar.vue'
 import MegaMenu from './MegaMenu.vue'
 import CartPanel from './CartPanel.vue'
 import AuthMenu from './AuthMenu.vue'
+import UserMenu from './UserMenu.vue'
+import MobileMenu from './MobileMenu.vue'
 
 const isCartOpen = ref(false)
 const isMobileMenuOpen = ref(false)
+const token = useCookie('token')
+const userInfo = useCookie('user')
 
 const toggleCart = () => {
   isCartOpen.value = !isCartOpen.value
@@ -195,29 +150,5 @@ const closeMobileMenu = () => {
   visibility: visible;
   opacity: 1;
   transform: translateY(0);
-}
-
-.mobile-menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  background: white;
-  z-index: 1000;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out;
-}
-
-.mobile-menu.tw-block {
-  transform: translateX(0);
-}
-
-@media (min-width: 992px) {
-  .mobile-menu {
-    display: none !important;
-  }
 }
 </style>

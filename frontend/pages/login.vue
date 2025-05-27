@@ -5,12 +5,14 @@
       <div class="mb-3">
         <label for="loginEmail" class="form-label">Email</label>
         <input v-model="form.email" type="email" class="form-control" name="email" id="loginEmail"
-          placeholder="Nhập email của bạn">
+          placeholder="Nhập email của bạn" :class="{ 'is-invalid': error.email }">
+        <div class="invalid-feedback" v-if="error.email">{{ error.email }}</div>
       </div>
       <div class="mb-3">
         <label for="loginPassword" class="form-label">Mật khẩu</label>
         <input v-model="form.password" type="password" class="form-control" name="password" id="loginPassword"
-          placeholder="Nhập mật khẩu">
+          placeholder="Nhập mật khẩu" :class="{ 'is-invalid': error.password }">
+        <div class="invalid-feedback" v-if="error.password">{{ error.password }}</div>
       </div>
       <div class="mb-3 form-check">
         <input type="checkbox" class="form-check-input" id="rememberMe">
@@ -44,6 +46,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  layout: 'default',
+  middleware: 'guest'
+})
 useHead({
   title: 'Đăng Nhập - DEVGANG',
   meta: [
@@ -52,6 +58,7 @@ useHead({
 });
 import { ref, reactive } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import Swal from 'sweetalert2'
 
 const { login } = useAuth()
 
@@ -60,14 +67,80 @@ const form = reactive({
   password: ''
 })
 
-const error = ref('')
+const error = reactive({
+  email: '',
+  password: ''
+})
+
+const isLoading = ref(false)
+
+const resetErrors = () => {
+  error.email = ''
+  error.password = ''
+}
 
 const handleLogin = async () => {
+  resetErrors()
+  isLoading.value = true
+
   try {
-    await login(form.email, form.password)
-    alert('Đăng nhập thành công')
+    let hasError = false
+
+    // Validate email
+    if (!form.email) {
+      error.email = 'Vui lòng nhập email'
+      hasError = true
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      error.email = 'Email không hợp lệ'
+      hasError = true
+    }
+
+    // Validate password
+    if (!form.password) {
+      error.password = 'Vui lòng nhập mật khẩu'
+      hasError = true
+    } else if (form.password.length < 6) {
+      error.password = 'Mật khẩu phải có ít nhất 6 ký tự'
+      hasError = true
+    }
+
+    if (hasError) {
+      isLoading.value = false
+      return
+    }
+
+    const success = await login({
+      email: form.email,
+      password: form.password
+    })
+
+    if (success) {
+      isLoading.value = false
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+
+      Toast.fire({
+        icon: 'success',
+        title: 'Đăng nhập thành công!'
+      })
+
+      navigateTo('/')
+    }
   } catch (err) {
-    error.value = err.message
+    isLoading.value = false
+    console.error('Login error:', err.response?.data || err.message)
+
+    const errorMessage = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.'
+    Swal.fire({
+      icon: 'error',
+      title: 'Lỗi!',
+      text: errorMessage
+    })
   }
 }
 </script>
