@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: laravel_api
+    volumes:
+      - ./backend:/var/www
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=http://localhost:8000
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=laravel
+      - DB_USERNAME=laravel_user
+      - DB_PASSWORD=laravel_password
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin123
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_BUCKET=laravel-bucket
+      - AWS_ENDPOINT=http://minio:9000
+      - AWS_USE_PATH_STYLE_ENDPOINT=true
+    depends_on:
+      - mysql
+      - minio
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_web
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nuxt_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NUXT_PUBLIC_API_BASE=http://nginx:80
+    command: npm run dev
+    depends_on:
+      - nginx
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel_user
+      MYSQL_PASSWORD: laravel_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=root_password
+      - UPLOAD_LIMIT=300M
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+    restart: always
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio_storage
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  minio_data:

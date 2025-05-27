@@ -1,0 +1,121 @@
+<template>
+    <div class="cart-panel" :class="{ 'cart-panel-open': isOpen }">
+        <div class="cart-panel-content">
+            <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
+                <h6 class="tw-font-bold tw-m-0">Giỏ hàng (2)</h6>
+                <button @click="$emit('close')" class="tw-text-gray-500 hover:tw-text-gray-700">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <!-- Cart Items -->
+            <div class="tw-space-y-4 tw-max-h-[calc(100vh-200px)] tw-overflow-y-auto">
+                <!-- Cart Item 1 -->
+                <div class="tw-flex tw-gap-4 tw-pb-4 tw-border-b">
+                    <img src="https://placehold.co/20" alt="Product" class="tw-w-20 tw-h-20 tw-object-cover tw-rounded">
+                    <div class="tw-flex-1">
+                        <h6 class="tw-font-medium tw-mb-1">Áo Thun Nam Basic</h6>
+                        <p class="tw-text-sm tw-text-gray-600 tw-mb-1">Size: L | Màu: Trắng</p>
+                        <div class="tw-flex tw-justify-between tw-items-center">
+                            <div class="tw-flex tw-items-center tw-gap-2">
+                                <button class="tw-px-2 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-100">-</button>
+                                <span class="tw-text-sm">1</span>
+                                <button class="tw-px-2 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-100">+</button>
+                            </div>
+                            <span class="tw-font-medium">299,000₫</span>
+                        </div>
+                    </div>
+                    <button class="tw-text-gray-400 hover:tw-text-red-500"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <!-- Cart Item 2 -->
+                <div class="tw-flex tw-gap-4 tw-pb-4 tw-border-b">
+                    <img src="https://placehold.co/20" alt="Product" class="tw-w-20 tw-h-20 tw-object-cover tw-rounded">
+                    <div class="tw-flex-1">
+                        <h6 class="tw-font-medium tw-mb-1">Quần Jean Nam Slim Fit</h6>
+                        <p class="tw-text-sm tw-text-gray-600 tw-mb-1">Size: 32 | Màu: Xanh</p>
+                        <div class="tw-flex tw-justify-between tw-items-center">
+                            <div class="tw-flex tw-items-center tw-gap-2">
+                                <button class="tw-px-2 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-100">-</button>
+                                <span class="tw-text-sm">1</span>
+                                <button class="tw-px-2 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-100">+</button>
+                            </div>
+                            <span class="tw-font-medium">599,000₫</span>
+                        </div>
+                    </div>
+                    <button class="tw-text-gray-400 hover:tw-text-red-500"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            <!-- Cart Summary -->
+            <div class="tw-mt-4 tw-pt-4 tw-border-t">
+                <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
+                    <span class="tw-font-medium">Tổng tiền:</span>
+                    <span class="tw-font-bold tw-text-lg">898,000₫</span>
+                </div>
+                <div class="tw-space-y-2">
+                    <NuxtLink to="/cart"
+                        class="tw-block tw-w-full tw-border tw-border-[#81AACC] tw-text-[#81AACC] hover:tw-bg-[#81AACC] hover:tw-text-white tw-text-center tw-py-2 tw-rounded-md tw-transition-colors">
+                        Xem chi tiết giỏ hàng
+                    </NuxtLink>
+                    <NuxtLink to="/checkout"
+                        class="tw-block tw-w-full tw-bg-[#81AACC] hover:tw-bg-[#6B8FA8] tw-text-white tw-text-center tw-py-2 tw-rounded-md tw-transition-colors">
+                        Thanh toán
+                    </NuxtLink>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="cart-overlay" :class="{ 'cart-overlay-open': isOpen }" @click="$emit('close')"></div>
+</template>
+
+<script setup>
+defineProps({
+    isOpen: {
+        type: Boolean,
+        default: false
+    }
+})
+
+defineEmits(['close'])
+</script>
+
+<style scoped>
+.cart-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background-color: white;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: right 0.3s ease;
+}
+
+.cart-panel-open {
+    right: 0;
+}
+
+.cart-panel-content {
+    height: 100%;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.cart-overlay-open {
+    opacity: 1;
+    visibility: visible;
+}
+</style>
