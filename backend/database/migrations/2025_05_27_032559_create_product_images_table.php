@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_images', function (Blueprint $table) {
+        Schema::create('products_images', function (Blueprint $table) {
             $table->id();
             $table->boolean('is_main')->default(false);
             $table->string('sub_image')->nullable();
-            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->foreignId('products_id')->constrained('products')->onDelete('cascade');
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.
@@ -28,4 +27,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('products_images');
     }
-};
+}; 

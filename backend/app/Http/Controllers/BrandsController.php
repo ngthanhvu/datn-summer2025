@@ -31,15 +31,15 @@ class BrandsController extends Controller
         }
 
 
-        $brandss = $query->paginate(10);
-        if ($brandss ->isEmpty()) {
+        $Brands = $query->paginate(10);
+        if ($Brands ->isEmpty()) {
             return response()->json([
                 'status' => 'success',
                 'message' => 'Danh sách thương hiệu trống, thêm thương hiệu mới để bắt đầu!',
                 'data' => []
             ], 200);
         }
-        return response()->json($brandss);
+        return response()->json($Brands);
     }
 
 
@@ -51,14 +51,14 @@ class BrandsController extends Controller
                     'required',
                     'string',
                     'max:255',
-                    Rule::unique('Brandss', 'name')->where(function ($query) {
+                    Rule::unique('Brands', 'name')->where(function ($query) {
                         return $query->where('is_active', true);
                     })
                 ],
                 'description' => 'nullable|string',
                 'parent_id' => [
                     'nullable',
-                    Rule::exists('Brandss', 'id')->where(function ($query) {
+                    Rule::exists('Brands', 'id')->where(function ($query) {
                         return $query->where('is_active', true);
                     }),
                 ],
@@ -136,15 +136,15 @@ class BrandsController extends Controller
                     'required',
                     'string',
                     'max:255',
-                    Rule::unique('Brandss', 'name')->where(function ($query) {
+                    Rule::unique('Brands', 'name')->where(function ($query) {
                         return $query->where('is_active', true);
                     })->ignore($id)
                 ],
-                'slug' => 'required|string|max:255|unique:Brandss,slug,' . $id,
+                'slug' => 'required|string|max:255|unique:Brands,slug,' . $id,
                 'description' => 'nullable|string',
                 'parent_id' => [
                     'nullable',
-                    Rule::exists('Brandss', 'id')->where(function ($query) use ($id) {
+                    Rule::exists('Brands', 'id')->where(function ($query) use ($id) {
                         return $query->where('is_active', true)
                             ->where('id', '!=', $id);
                     }),
