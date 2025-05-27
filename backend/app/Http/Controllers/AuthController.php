@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -62,5 +64,42 @@ class AuthController extends Controller
         return response()->json([
             'token' => Auth::refresh(),
         ]);
+    }
+
+    public function redirectToGoogle()
+    {
+        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+        return response()->json(['url' => $url]);
+    }
+
+    // Phương thức đăng nhập Google
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+
+            $user = User::updateOrCreate(
+                ['email' => $googleUser->getEmail()],
+                [
+                    'username' => $googleUser->getName(),
+                    'password' => null,
+                    'oauth_provider' => 'google',
+                    'oauth_id' => $googleUser->getId(),
+                ]
+            );
+
+            // Tạo JWT token
+            $token = JWTAuth::fromUser($user);
+
+            return response()->json([
+                'message' => 'Đăng nhập thành công.',
+                'token' => $token,
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error($e);
+            return response()->json(['message' => 'Lỗi đăng nhập Google'], 500);
+        }
     }
 }
