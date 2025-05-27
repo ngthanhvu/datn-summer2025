@@ -12,3 +12,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
 });
+
+
+// Google login
+Route::get('/google', [AuthController::class, 'redirectToGoogle']);
+Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
