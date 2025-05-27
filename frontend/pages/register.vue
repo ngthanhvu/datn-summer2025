@@ -50,6 +50,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  layout: 'default',
+  middleware: 'guest'
+})
 useHead({
   title: 'Đăng Ký - DEVGANG',
   meta: [

@@ -47,10 +47,17 @@
 </template>
 
 <script setup>
-definePageMeta({
-  middleware: 'admin'
-})
+const { isAuthenticated, isAdmin, checkAuth, checkAdmin } = useAuth()
 import SidebarAdmin from '~/components/admin/SidebarAdmin.vue'
+
+onMounted(async () => {
+  if (!isAuthenticated.value) {
+    await checkAuth()
+  }
+  if (isAuthenticated.value && !isAdmin.value) {
+    checkAdmin()
+  }
+})
 </script>
 
 <style scoped>
