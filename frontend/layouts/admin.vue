@@ -47,6 +47,9 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: 'admin'
+})
 import SidebarAdmin from '~/components/admin/SidebarAdmin.vue'
 </script>
 

@@ -89,6 +89,9 @@
 </template>
 
 <script setup>
+defindePageMeta({
+  middleware: 'auth'
+})
 import Card from '~/components/home/Card.vue'
 import { ref } from 'vue'
 

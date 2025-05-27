@@ -52,6 +52,7 @@ useHead({
 });
 import { ref, reactive } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import Swal from 'sweetalert2'
 
 const { login } = useAuth()
 
@@ -60,14 +61,72 @@ const form = reactive({
   password: ''
 })
 
-const error = ref('')
+const error = reactive({
+  email: '',
+  password: ''
+})
+
+const isLoading = ref(false)
+
+const resetErrors = () => {
+  error.email = ''
+  error.password = ''
+}
 
 const handleLogin = async () => {
+  resetErrors()
+  isLoading.value = true
+
   try {
-    await login(form.email, form.password)
-    alert('Đăng nhập thành công')
+    let hasError = false
+
+    if (!form.email) {
+      error.email = 'Vui lòng nhập email'
+      hasError = true
+    }
+
+    if (!form.password) {
+      error.password = 'Vui lòng nhập mật khẩu'
+      hasError = true
+    }
+
+    if (hasError) {
+      isLoading.value = false
+      return
+    }
+
+    const success = await login({
+      email: form.email,
+      password: form.password
+    })
+
+    if (success) {
+      isLoading.value = false
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+
+      Toast.fire({
+        icon: 'success',
+        title: 'Đăng nhập thành công!'
+      })
+
+      navigateTo('/')
+    }
   } catch (err) {
-    error.value = err.message
+    isLoading.value = false
+    console.error('Login error:', err.response?.data || err.message)
+
+    const errorMessage = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.'
+    Swal.fire({
+      icon: 'error',
+      title: 'Lỗi!',
+      text: errorMessage
+    })
   }
 }
 </script>

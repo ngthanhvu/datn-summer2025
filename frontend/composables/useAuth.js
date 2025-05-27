@@ -3,6 +3,7 @@ import axios from 'axios'
 
 export const useAuth = () => {
     const token = useCookie('token')
+    const userInfo = useCookie('user')
     const config = useRuntimeConfig()
     const user = ref(null)
 
@@ -19,43 +20,68 @@ export const useAuth = () => {
         return req
     })
 
-    const login = async (email, password) => {
+    const login = async (credentials) => {
         try {
-            const res = await API.post('/api/login', { email, password })
-            token.value = res.data.token
-            await getUser()
-            return true
+            const res = await API.post('/api/login', credentials)
+            if (res.data.token) {
+                token.value = res.data.token
+                // Fetch user data after getting token
+                await getUser()
+                return true
+            }
+            return false
         } catch (err) {
             console.error('Login error:', err.response?.data || err.message)
-            return false
+            throw err
         }
     }
 
     const register = async (data) => {
         try {
             const res = await API.post('/api/register', data)
-            token.value = res.data.token
-            await getUser()
-            return true
-        } catch (err) {
-            console.log('Register error:', err.response?.data || err.message)
+            if (res.data.token) {
+                token.value = res.data.token
+                if (res.data.user) {
+                    userInfo.value = res.data.user
+                    user.value = res.data.user
+                }
+                return true
+            }
             return false
+        } catch (err) {
+            console.error('Register error:', err.response?.data || err.message)
+            throw err
         }
     }
 
     const logout = () => {
+        const tokenCookie = useCookie('token')
+        const userInfoCookie = useCookie('user')
+
+        tokenCookie.value = null
+        userInfoCookie.value = null
+
         token.value = null
+        userInfo.value = null
         user.value = null
+
+        navigateTo('/login')
     }
 
     const getUser = async () => {
         if (!token.value) return
         try {
-            const res = await API.get('/api/user')
+            const res = await API.get('/api/me')
             user.value = res.data
+            userInfo.value = res.data
         } catch (err) {
             console.error('Get user error:', err.response?.data || err.message)
         }
+    }
+
+    // Initialize user from cookie if exists
+    if (userInfo.value) {
+        user.value = userInfo.value
     }
 
     return {

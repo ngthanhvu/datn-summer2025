@@ -25,7 +25,7 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'role' => $request->role
+            'role' => 'user'
         ]);
 
         $token = JWTAuth::fromUser($user);
@@ -71,7 +71,7 @@ class AuthController extends Controller
     {
         $url = Socialite::driver('google')
             ->stateless()
-            ->redirectUrl('http://127.0.0.1:8000/api/google/callback') // NHỚ thêm dòng này
+            ->redirectUrl('http://127.0.0.1:8000/api/google/callback')
             ->redirect()
             ->getTargetUrl();
 
@@ -83,7 +83,7 @@ class AuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')
                 ->stateless()
-                ->redirectUrl('http://127.0.0.1:8000/api/google/callback') // PHẢI KHỚP y chang bước 1
+                ->redirectUrl('http://127.0.0.1:8000/api/google/callback')
                 ->user();
 
             $user = User::updateOrCreate(
