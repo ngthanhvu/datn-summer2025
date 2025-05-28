@@ -76,6 +76,14 @@ export const useAuth = () => {
         }
     }
 
+    const facebookLogin = async () => {
+        Swal.fire({
+            title: "Tính năng đang phát triển",
+            icon: "info",
+            confirmButtonText: "OK"
+        })
+    }
+
     const checkAuth = async () => {
         if (token.value) {
             try {
@@ -190,6 +198,7 @@ export const useAuth = () => {
         checkAuth,
         checkAdmin,
         googleLogin,
-        handleGoogleCallback
+        handleGoogleCallback,
+        facebookLogin
     }
 }

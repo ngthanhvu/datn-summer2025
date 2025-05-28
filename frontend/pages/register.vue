@@ -16,15 +16,30 @@
       </div>
       <div class="mb-2">
         <label for="registerPassword" class="form-label">Mật khẩu</label>
-        <input v-model="form.password" type="password" :class="['form-control', { 'is-invalid': error.password }]"
-          id="registerPassword" name="password" placeholder="Nhập mật khẩu">
+        <div class="position-relative">
+          <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
+            :class="['form-control', { 'is-invalid': error.password }]" id="registerPassword" name="password"
+            placeholder="Nhập mật khẩu">
+          <button type="button"
+            class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+            @click="showPassword = !showPassword">
+            <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+          </button>
+        </div>
         <div class="invalid-feedback" v-if="error.password">{{ error.password }}</div>
       </div>
       <div class="mb-2">
         <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
-        <input v-model="form.confirm_password" type="password"
-          :class="['form-control', { 'is-invalid': error.confirm_password }]" id="confirmPassword"
-          name="confirm_password" placeholder="Xác nhận mật khẩu">
+        <div class="position-relative">
+          <input v-model="form.confirm_password" :type="showConfirmPassword ? 'text' : 'password'"
+            :class="['form-control', { 'is-invalid': error.confirm_password }]" id="confirmPassword"
+            name="confirm_password" placeholder="Xác nhận mật khẩu">
+          <button type="button"
+            class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+            @click="showConfirmPassword = !showConfirmPassword">
+            <i :class="showConfirmPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+          </button>
+        </div>
         <div class="invalid-feedback" v-if="error.confirm_password">{{ error.confirm_password }}</div>
         <p class="text-danger mt-2 tw-text-[14px]" v-if="error.register">{{ error.register }}</p>
       </div>
@@ -82,6 +97,9 @@ const error = reactive({
   register: ''
 })
 const isLoading = ref(false)
+
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 const isEmailValid = (email) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

@@ -10,26 +10,41 @@
       </div>
       <div class="mb-3">
         <label for="loginPassword" class="form-label">Mật khẩu</label>
-        <input v-model="form.password" type="password" class="form-control" name="password" id="loginPassword"
-          placeholder="Nhập mật khẩu" :class="{ 'is-invalid': error.password }">
+        <div class="position-relative">
+          <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="form-control" name="password"
+            id="loginPassword" placeholder="Nhập mật khẩu" :class="{ 'is-invalid': error.password }">
+          <button type="button"
+            class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+            @click="showPassword = !showPassword">
+            <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+          </button>
+        </div>
         <div class="invalid-feedback" v-if="error.password">{{ error.password }}</div>
       </div>
       <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="rememberMe">
+        <input v-model="rememberMe" type="checkbox" class="form-check-input" id="rememberMe">
         <label class="form-check-label" for="rememberMe">Ghi nhớ tôi</label>
         <a href="/quen-mat-khau" class="float-end text-decoration-none">Quên mật khẩu?</a>
       </div>
-      <button type="submit" class="tw-bg-[#81AACC] tw-text-white hover:tw-bg-[#66a2d3] w-100 tw-py-2 tw-rounded-lg">Đăng
-        Nhập</button>
+      <button type="submit"
+        class="tw-bg-[#81AACC] tw-text-white hover:tw-bg-[#66a2d3] w-100 tw-py-2 tw-rounded-lg tw-relative"
+        :disabled="isLoading">
+        <span :class="{ 'tw-opacity-0': isLoading }">Đăng Nhập</span>
+        <div v-if="isLoading" class="tw-absolute tw-inset-0 tw-flex tw-items-center tw-justify-center">
+          <div
+            class="tw-w-5 tw-h-5 tw-border-2 tw-border-white tw-border-t-transparent tw-rounded-full tw-animate-spin">
+          </div>
+        </div>
+      </button>
     </form>
 
     <!-- Đăng nhập bằng mạng xã hội -->
     <div class="text-center mt-3">
       <p class="mb-2">Hoặc đăng nhập bằng:</p>
       <div class="d-flex justify-content-center gap-2">
-        <a href="/login/facebook" class="btn btn-facebook social-btn w-100">
+        <button @click="facebookLogin" class="btn btn-facebook social-btn w-100">
           <i class="fa-brands fa-facebook me-2"></i> Facebook
-        </a>
+        </button>
         <button @click="googleLogin" class="btn btn-google social-btn w-100">
           <i class="fa-brands fa-google me-2"></i> Google
         </button>
@@ -56,11 +71,11 @@ useHead({
     { name: 'description', content: 'Đăng Nhập - DEVGANG' },
   ],
 });
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import Swal from 'sweetalert2'
 
-const { login, googleLogin } = useAuth()
+const { login, googleLogin, facebookLogin } = useAuth()
 
 const form = reactive({
   email: '',
@@ -73,6 +88,19 @@ const error = reactive({
 })
 
 const isLoading = ref(false)
+const rememberMe = ref(false)
+const showPassword = ref(false)
+
+onMounted(() => {
+  const savedEmail = localStorage.getItem('rememberedEmail')
+  const savedPassword = localStorage.getItem('rememberedPassword')
+
+  if (savedEmail && savedPassword) {
+    form.email = savedEmail
+    form.password = savedPassword
+    rememberMe.value = true
+  }
+})
 
 const resetErrors = () => {
   error.email = ''
@@ -86,7 +114,6 @@ const handleLogin = async () => {
   try {
     let hasError = false
 
-    // Validate email
     if (!form.email) {
       error.email = 'Vui lòng nhập email'
       hasError = true
@@ -95,7 +122,6 @@ const handleLogin = async () => {
       hasError = true
     }
 
-    // Validate password
     if (!form.password) {
       error.password = 'Vui lòng nhập mật khẩu'
       hasError = true
@@ -115,7 +141,15 @@ const handleLogin = async () => {
     })
 
     if (success) {
-      isLoading.value = false
+      // Lưu hoặc xóa thông tin đăng nhập tùy thuộc vào checkbox
+      if (rememberMe.value) {
+        localStorage.setItem('rememberedEmail', form.email)
+        localStorage.setItem('rememberedPassword', form.password)
+      } else {
+        localStorage.removeItem('rememberedEmail')
+        localStorage.removeItem('rememberedPassword')
+      }
+
       const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -132,7 +166,6 @@ const handleLogin = async () => {
       navigateTo('/')
     }
   } catch (err) {
-    isLoading.value = false
     console.error('Login error:', err.response?.data || err.message)
 
     const errorMessage = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.'
@@ -141,6 +174,8 @@ const handleLogin = async () => {
       title: 'Lỗi!',
       text: errorMessage
     })
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
