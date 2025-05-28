@@ -1,147 +1,97 @@
 <template>
-  <div>
-    <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
-      <div>
-        <h2 class="tw-text-3xl tw-font-bold">Products List</h2>
-        <p class="tw-text-gray-400 tw-mt-1">Manage your products inventory</p>
-      </div>
-      <div class="tw-flex tw-gap-2">
-        <button class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100"
-          @click="handleExport">
-          Export
-        </button>
-        <button class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100"
-          @click="handleImport">
-          Import
-        </button>
-        <button class="tw-bg-teal-600 tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-teal-700"
-          @click="handleCreate">
-          Create new
-        </button>
-      </div>
+  <div class="products-page">
+    <div class="page-header">
+      <h1>Quản lý sản phẩm</h1>
+      <p class="text-gray-600">Quản lý danh sách sản phẩm của bạn</p>
     </div>
 
-    <Table :items="products" :columns="columns" :show-filters="true" :categories="categories" :statuses="statuses"
-      :show-date-filter="true" :selectable="true" @edit="handleEdit" @delete="handleDelete"
-      @selection-change="handleSelectionChange" @filter-change="handleFilterChange" />
+    <Table :columns="columns" :data="products" :create-route="'/admin/products/create'" :edit-route="'/admin/products'"
+      @delete="handleDelete" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import Table from '@/components/Table.vue'
-
 definePageMeta({
   layout: 'admin'
 })
 
+import { ref } from 'vue'
+import Table from '~/components/admin/Table.vue'
+
 // Table columns configuration
 const columns = [
-  { key: 'image', type: 'image', label: '', altKey: 'name' },
-  { key: 'name', label: 'Name', class: 'tw-font-medium' },
-  { key: 'price', type: 'price', label: 'Price', class: 'tw-text-blue-900' },
-  { key: 'status', type: 'status', label: 'Status', labelKey: 'statusLabel' },
-  { key: 'date', label: 'Date' }
+  { key: 'id', label: 'ID' },
+  { key: 'image', label: 'Hình ảnh', type: 'image' },
+  { key: 'name', label: 'Tên sản phẩm' },
+  { key: 'category', label: 'Danh mục' },
+  { key: 'price', label: 'Giá', type: 'price' },
+  { key: 'status', label: 'Trạng thái', type: 'status' }
 ]
 
-// Filter options
-const categories = [
-  { value: 'clothing', label: 'Clothing' },
-  { value: 'accessories', label: 'Accessories' },
-  { value: 'electronics', label: 'Electronics' },
-  { value: 'furniture', label: 'Furniture' }
-]
-
-const statuses = [
-  { value: 'active', label: 'Active' },
-  { value: 'archived', label: 'Archived' },
-  { value: 'disabled', label: 'Disabled' }
-]
-
-// Sample products data (in real app, this would come from an API)
+// Mock data
 const products = ref([
   {
-    image: 'https://placehold.co/60x60',
-    name: 'T-shirt for men medium size',
-    price: '34.50',
-    status: 'active',
-    statusLabel: 'Active',
-    date: '02.11.2022',
-    category: 'clothing'
+    id: 1,
+    image: 'https://via.placeholder.com/150',
+    name: 'iPhone 13 Pro Max',
+    category: 'phone',
+    price: 30990000,
+    status: true,
+    description: 'iPhone 13 Pro Max 128GB'
   },
   {
-    image: 'https://placehold.co/60x60',
-    name: 'Helionic Hooded Down Jacket',
-    price: '990.99',
-    status: 'active',
-    statusLabel: 'Active',
-    date: '02.11.2022',
-    category: 'clothing'
+    id: 2,
+    image: 'https://via.placeholder.com/150',
+    name: 'Samsung Galaxy S21',
+    category: 'phone',
+    price: 20990000,
+    status: true,
+    description: 'Samsung Galaxy S21 Ultra 5G'
   },
   {
-    image: 'https://placehold.co/60x60',
-    name: 'Lace mini dress with faux leather',
-    price: '76.99',
-    status: 'archived',
-    statusLabel: 'Archived',
-    date: '02.11.2022',
-    category: 'clothing'
+    id: 3,
+    image: 'https://via.placeholder.com/150',
+    name: 'MacBook Pro M1',
+    category: 'laptop',
+    price: 35990000,
+    status: false,
+    description: 'MacBook Pro M1 13 inch'
   },
   {
-    image: 'https://placehold.co/60x60',
-    name: "Fanmis Men's Travel Bag",
-    price: '18.00',
-    status: 'active',
-    statusLabel: 'Active',
-    date: '02.11.2022',
-    category: 'accessories'
-  },
-  {
-    image: 'https://placehold.co/60x60',
-    name: 'Modern Armchair for home interiors',
-    price: '76.99',
-    status: 'active',
-    statusLabel: 'Active',
-    date: '02.11.2022',
-    category: 'furniture'
+    id: 4,
+    image: 'https://via.placeholder.com/150',
+    name: 'iPad Pro 2021',
+    category: 'tablet',
+    price: 23990000,
+    status: true,
+    description: 'iPad Pro 12.9 inch 2021'
   }
 ])
 
-// Event handlers
-function handleEdit(item) {
-  console.log('Edit item:', item)
-  // Navigate to edit page or open edit modal
-}
-
-function handleDelete(item) {
-  console.log('Delete item:', item)
-  // Show confirmation dialog and delete item
-}
-
-function handleSelectionChange(selectedItems) {
-  console.log('Selected items:', selectedItems)
-  // Handle bulk actions
-}
-
-function handleFilterChange(filters) {
-  console.log('Filter changed:', filters)
-  // Apply filters to products list
-}
-
-function handleExport() {
-  console.log('Export products')
-  // Export products to CSV/Excel
-}
-
-function handleImport() {
-  console.log('Import products')
-  // Show import dialog
-}
-
-function handleCreate() {
-  console.log('Create new product')
-  // Navigate to create page or open create modal
+// Handlers
+const handleDelete = (product) => {
+  if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+    const index = products.value.findIndex(p => p.id === product.id)
+    if (index !== -1) {
+      products.value.splice(index, 1)
+    }
+  }
 }
 </script>
 
-<style></style>
+<style scoped>
+.products-page {
+  padding: 1.5rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+</style>
