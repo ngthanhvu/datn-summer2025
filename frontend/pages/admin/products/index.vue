@@ -24,6 +24,7 @@ const columns = [
   { key: 'image', label: 'Hình ảnh', type: 'image' },
   { key: 'name', label: 'Tên sản phẩm' },
   { key: 'category', label: 'Danh mục' },
+  { key: 'brand', label: 'Thương hiệu' },
   { key: 'price', label: 'Giá', type: 'price' },
   { key: 'status', label: 'Trạng thái', type: 'status' }
 ]
@@ -35,6 +36,7 @@ const products = ref([
     image: 'https://via.placeholder.com/150',
     name: 'iPhone 13 Pro Max',
     category: 'phone',
+    brand: 'apple',
     price: 30990000,
     status: true,
     description: 'iPhone 13 Pro Max 128GB'
@@ -44,6 +46,7 @@ const products = ref([
     image: 'https://via.placeholder.com/150',
     name: 'Samsung Galaxy S21',
     category: 'phone',
+    brand: 'samsung',
     price: 20990000,
     status: true,
     description: 'Samsung Galaxy S21 Ultra 5G'
@@ -53,6 +56,7 @@ const products = ref([
     image: 'https://via.placeholder.com/150',
     name: 'MacBook Pro M1',
     category: 'laptop',
+    brand: 'apple',
     price: 35990000,
     status: false,
     description: 'MacBook Pro M1 13 inch'
@@ -62,6 +66,7 @@ const products = ref([
     image: 'https://via.placeholder.com/150',
     name: 'iPad Pro 2021',
     category: 'tablet',
+    brand: 'apple',
     price: 23990000,
     status: true,
     description: 'iPad Pro 12.9 inch 2021'

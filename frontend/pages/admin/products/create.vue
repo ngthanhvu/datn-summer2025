@@ -64,6 +64,19 @@ const formFields = [
     ]
   },
   {
+    name: 'brand',
+    label: 'Thương hiệu',
+    type: 'select',
+    placeholder: 'Chọn thương hiệu',
+    required: true,
+    options: [
+      { value: 'apple', label: 'Apple' },
+      { value: 'samsung', label: 'Samsung' },
+      { value: 'sony', label: 'Sony' },
+      { value: 'lg', label: 'LG' }
+    ]
+  },
+  {
     name: 'description',
     label: 'Mô tả',
     type: 'textarea',
@@ -86,6 +99,7 @@ const formData = ref({
   name: '',
   price: 0,
   category: '',
+  brand: '',
   description: '',
   status: true,
   image: null
