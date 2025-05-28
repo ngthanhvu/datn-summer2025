@@ -7,6 +7,11 @@
                 </p>
             </div>
             <div class="tw-space-y-1">
+                <NuxtLink v-if="isAdmin" to="/admin"
+                    class="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-gray-700 hover:tw-bg-gray-50 hover:tw-text-[#81AACC]">
+                    <i class="bi bi-gear-wide-connected tw-mr-3"></i>
+                    <span>Trang quản trị</span>
+                </NuxtLink>
                 <NuxtLink to="/profile"
                     class="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-gray-700 hover:tw-bg-gray-50 hover:tw-text-[#81AACC]">
                     <i class="bi bi-person-circle tw-mr-3"></i>
@@ -36,7 +41,7 @@ interface User {
 
 const user = useCookie<User>('user')
 import { useAuth } from '~/composables/useAuth'
-const { logout } = useAuth()
+const { logout, isAdmin } = useAuth()
 
 const handleLogout = () => {
     logout()

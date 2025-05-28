@@ -30,9 +30,9 @@
         <a href="/login/facebook" class="btn btn-facebook social-btn w-100">
           <i class="fa-brands fa-facebook me-2"></i> Facebook
         </a>
-        <a href="/login/google" class="btn btn-google social-btn w-100">
+        <button @click="googleLogin" class="btn btn-google social-btn w-100">
           <i class="fa-brands fa-google me-2"></i> Google
-        </a>
+        </button>
       </div>
     </div>
 
@@ -60,7 +60,7 @@ import { ref, reactive } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import Swal from 'sweetalert2'
 
-const { login } = useAuth()
+const { login, googleLogin } = useAuth()
 
 const form = reactive({
   email: '',

@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 
 export const useAuth = () => {
     const token = useCookie('token')
@@ -9,12 +10,10 @@ export const useAuth = () => {
     const isAuthenticated = ref(false)
     const isAdmin = ref(false)
 
-    // Tạo API instance riêng
     const API = axios.create({
         baseURL: 'http://127.0.0.1:8000'
     })
 
-    // Gắn Authorization nếu có token
     API.interceptors.request.use((req) => {
         if (token.value) {
             req.headers.Authorization = `Bearer ${token.value}`
@@ -22,10 +21,65 @@ export const useAuth = () => {
         return req
     })
 
+    const googleLogin = async () => {
+        try {
+            const res = await API.get('/api/google')
+            if (res.data.url) {
+                window.location.href = res.data.url
+            } else {
+                throw new Error('Failed to get Google login URL')
+            }
+        } catch (err) {
+            console.error('Google login error:', err.response?.data || err.message)
+            throw err
+        }
+    }
+
+    const handleGoogleCallback = async () => {
+        try {
+            const tokenFromQuery = useRoute().query.token
+            const userFromQuery = useRoute().query.user
+            const error = useRoute().query.error
+
+            if (error) {
+                throw new Error(error)
+            }
+
+            if (!tokenFromQuery || !userFromQuery) {
+                throw new Error('Missing token or user from Google callback')
+            }
+
+            token.value = tokenFromQuery
+            userInfo.value = JSON.parse(decodeURIComponent(userFromQuery))
+            user.value = userInfo.value
+            isAuthenticated.value = true
+            isAdmin.value = user.value?.role === 'admin'
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            })
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Đăng nhập thành công!'
+            })
+
+            navigateTo('/')
+            return true
+        } catch (err) {
+            console.error('Google callback error:', err.response?.data || err.message)
+            throw err
+        }
+    }
+
     const checkAuth = async () => {
         if (token.value) {
             try {
-                await getUser() // Cập nhật thông tin user
+                await getUser()
                 isAuthenticated.value = true
                 return true
             } catch (error) {
@@ -134,6 +188,8 @@ export const useAuth = () => {
         isAuthenticated,
         isAdmin,
         checkAuth,
-        checkAdmin
+        checkAdmin,
+        googleLogin,
+        handleGoogleCallback
     }
 }

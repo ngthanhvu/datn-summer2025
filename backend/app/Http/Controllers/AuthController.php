@@ -71,7 +71,7 @@ class AuthController extends Controller
     {
         $url = Socialite::driver('google')
             ->stateless()
-            ->redirectUrl('http://127.0.0.1:8000/api/google/callback')
+            ->redirectUrl(config('services.google.redirect'))
             ->redirect()
             ->getTargetUrl();
 
@@ -83,7 +83,7 @@ class AuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')
                 ->stateless()
-                ->redirectUrl('http://127.0.0.1:8000/api/google/callback')
+                ->redirectUrl(config('services.google.redirect'))
                 ->user();
 
             $user = User::updateOrCreate(
@@ -98,13 +98,13 @@ class AuthController extends Controller
 
             $token = JWTAuth::fromUser($user);
 
-            return response()->json([
-                'token' => $token,
-                'user' => $user
-            ]);
+            $frontendUrl = config('app.frontend_url') . '/auth/google/callback?token=' . urlencode($token) . '&user=' . urlencode(json_encode($user));
+
+            return redirect($frontendUrl);
         } catch (\Exception $e) {
             Log::error('Google login failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['error' => 'Đăng nhập Google thất bại.'], 500);
+            $frontendUrl = config('app.frontend_url') . '?error=' . urlencode('Đăng nhập Google thất bại.');
+            return redirect($frontendUrl);
         }
     }
 }
