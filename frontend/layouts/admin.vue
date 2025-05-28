@@ -18,10 +18,10 @@
         <div class="header-right">
           <button class="header-btn"><i class="fas fa-bell"></i><span class="badge">3</span></button>
           <div class="avatar-dropdown">
-            <div class="avatar-wrapper">
+            <div class="avatar-wrapper" @click="isDropdownOpen = !isDropdownOpen">
               <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User Avatar" class="avatar">
             </div>
-            <div class="dropdown-menu">
+            <div class="dropdown-menu" :class="{ 'show': isDropdownOpen }">
               <div class="dropdown-item">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
@@ -31,9 +31,11 @@
                 <span>Settings</span>
               </div>
               <div class="dropdown-divider"></div>
-              <div class="dropdown-item text-danger" @click="handleLogout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
+              <div
+                class="dropdown-item text-danger tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2 tw-transition-colors hover:tw-bg-red-50 tw-rounded-md tw-mx-2 tw-cursor-pointer"
+                @click="handleLogout">
+                <i class="fas fa-sign-out-alt tw-text-red-500"></i>
+                <span class="tw-font-medium tw-text-red-600">Logout</span>
               </div>
             </div>
           </div>
@@ -50,13 +52,22 @@
 const { isAuthenticated, isAdmin, checkAuth, checkAdmin } = useAuth()
 import SidebarAdmin from '~/components/admin/SidebarAdmin.vue'
 
-onMounted(async () => {
+const isDropdownOpen = ref(false)
+
+onMounted(() => {
   if (!isAuthenticated.value) {
-    await checkAuth()
+    checkAuth()
   }
   if (isAuthenticated.value && !isAdmin.value) {
     checkAdmin()
   }
+
+  document.addEventListener('click', (e) => {
+    const dropdown = document.querySelector('.avatar-dropdown')
+    if (dropdown && !dropdown.contains(e.target)) {
+      isDropdownOpen.value = false
+    }
+  })
 })
 </script>
 
@@ -160,12 +171,11 @@ onMounted(async () => {
   transition: all 0.2s ease-in-out;
 }
 
-.avatar-dropdown:hover .dropdown-menu {
+.dropdown-menu.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
-
 
 .dropdown-item:hover {
   background: #f7f8fa;

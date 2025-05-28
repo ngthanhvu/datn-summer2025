@@ -38,9 +38,28 @@
         </NuxtLink>
       </div>
 
-      <!-- Management Section -->
+      <!-- Communication Section -->
       <div class="nav-section">
-        <div class="section-title text-muted tw-font-bold tw-text-[14px]">Quản lý</div>
+        <div class="section-title text-muted tw-font-bold tw-text-[14px]">Giao tiếp</div>
+        <NuxtLink to="/admin/messages" class="nav-item">
+          <i class="fas fa-envelope"></i>
+          <span>Tin nhắn</span>
+          <span class="badge">5</span>
+        </NuxtLink>
+        <NuxtLink to="/admin/comments" class="nav-item">
+          <i class="fas fa-comments"></i>
+          <span>Bình luận</span>
+          <span class="badge">12</span>
+        </NuxtLink>
+      </div>
+
+      <!-- System Section -->
+      <div class="nav-section">
+        <div class="section-title text-muted tw-font-bold tw-text-[14px]">Hệ thống</div>
+        <NuxtLink to="/admin/logs" class="nav-item">
+          <i class="fas fa-history"></i>
+          <span>Nhật ký hoạt động</span>
+        </NuxtLink>
         <NuxtLink to="/admin/settings" class="nav-item">
           <i class="fas fa-cog"></i>
           <span>Cài đặt</span>
@@ -178,5 +197,14 @@ const handleLogout = () => {
 
 .dropdown-toggle i.rotate-180 {
   transform: rotate(180deg);
+}
+
+.badge {
+  background: #3bb77e;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  margin-left: auto;
 }
 </style>
