@@ -179,7 +179,16 @@ export const useAuth = () => {
         }
     }
 
-    // Initialize user from cookie if exists
+    const getListUser = async () => {
+        try {
+            const res = await API.get('/api/admin/user')
+            return res.data
+        } catch (err) {
+            console.error('Get list user error:', err.response?.data || err.message)
+            throw err
+        }
+    }
+
     if (userInfo.value) {
         user.value = userInfo.value
         isAuthenticated.value = true
@@ -199,6 +208,7 @@ export const useAuth = () => {
         checkAdmin,
         googleLogin,
         handleGoogleCallback,
-        facebookLogin
+        facebookLogin,
+        getListUser
     }
 }

@@ -6,40 +6,24 @@
         <p class="tw-text-gray-400 tw-mt-1">Manage your products inventory</p>
       </div>
       <div class="tw-flex tw-gap-2">
-        <button
-          class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100"
-          @click="handleExport"
-        >
+        <button class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100"
+          @click="handleExport">
           Export
         </button>
-        <button
-          class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100"
-          @click="handleImport"
-        >
+        <button class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100"
+          @click="handleImport">
           Import
         </button>
-        <button 
-          class="tw-bg-teal-600 tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-teal-700"
-          @click="handleCreate"
-        >
+        <button class="tw-bg-teal-600 tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-teal-700"
+          @click="handleCreate">
           Create new
         </button>
       </div>
     </div>
-    
-    <Table 
-      :items="products"
-      :columns="columns"
-      :show-filters="true"
-      :categories="categories"
-      :statuses="statuses"
-      :show-date-filter="true"
-      :selectable="true"
-      @edit="handleEdit"
-      @delete="handleDelete"
-      @selection-change="handleSelectionChange"
-      @filter-change="handleFilterChange"
-    />
+
+    <Table :items="products" :columns="columns" :show-filters="true" :categories="categories" :statuses="statuses"
+      :show-date-filter="true" :selectable="true" @edit="handleEdit" @delete="handleDelete"
+      @selection-change="handleSelectionChange" @filter-change="handleFilterChange" />
   </div>
 </template>
 
@@ -54,7 +38,7 @@ definePageMeta({
 // Table columns configuration
 const columns = [
   { key: 'image', type: 'image', label: '', altKey: 'name' },
-  { key: 'names', label: 'Names', class: 'tw-font-medium' },
+  { key: 'name', label: 'Name', class: 'tw-font-medium' },
   { key: 'price', type: 'price', label: 'Price', class: 'tw-text-blue-900' },
   { key: 'status', type: 'status', label: 'Status', labelKey: 'statusLabel' },
   { key: 'date', label: 'Date' }
