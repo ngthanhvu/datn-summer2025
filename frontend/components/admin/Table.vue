@@ -1,0 +1,328 @@
+<template>
+    <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
+        <!-- Table Header with Search and Add Button -->
+        <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
+            <div class="tw-flex tw-gap-4">
+                <!-- Search box -->
+                <div class="tw-relative">
+                    <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..." @input="handleSearch"
+                        class="tw-border tw-rounded tw-px-4 tw-py-2 tw-pl-10 tw-w-64">
+                    <i
+                        class="fas fa-search tw-absolute tw-left-3 tw-top-1/2 tw-transform -tw-translate-y-1/2 tw-text-gray-400"></i>
+                </div>
+
+                <!-- Filters -->
+                <select v-if="categories.length" v-model="selectedCategory"
+                    class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
+                    <option value="">Tất cả danh mục</option>
+                    <option v-for="category in categories" :key="category.value" :value="category.value">
+                        {{ category.label }}
+                    </option>
+                </select>
+
+                <input v-if="showDateFilter" v-model="selectedDate" type="date"
+                    class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56" />
+
+                <select v-if="statuses.length" v-model="selectedStatus"
+                    class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
+                    <option value="">Tất cả trạng thái</option>
+                    <option v-for="status in statuses" :key="status.value" :value="status.value">
+                        {{ status.label }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- Add button -->
+            <NuxtLink v-if="createRoute" :to="createRoute"
+                class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-primary-dark">
+                <i class="fas fa-plus"></i>
+                Thêm mới
+            </NuxtLink>
+        </div>
+
+        <!-- Main Table -->
+        <div class="tw-overflow-x-auto">
+            <table class="tw-w-full tw-text-left">
+                <thead>
+                    <tr class="tw-border-b tw-bg-gray-50">
+                        <th v-if="selectable" class="tw-px-4 tw-py-3">
+                            <input type="checkbox" :checked="allSelected" @change="toggleSelectAll"
+                                class="tw-rounded" />
+                        </th>
+                        <th v-for="column in columns" :key="column.key" class="tw-px-4 tw-py-3 tw-font-semibold"
+                            @click="sortBy(column.key)">
+                            {{ column.label }}
+                            <i v-if="sortKey === column.key"
+                                :class="['fas', sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down']"></i>
+                        </th>
+                        <th v-if="showActions" class="tw-px-4 tw-py-3 tw-font-semibold">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item, index) in paginatedData" :key="index" class="tw-border-b hover:tw-bg-gray-50">
+                        <td v-if="selectable" class="tw-px-4 tw-py-3">
+                            <input type="checkbox" v-model="selectedItems" :value="item" class="tw-rounded" />
+                        </td>
+                        <td v-for="column in columns" :key="column.key" class="tw-px-4 tw-py-3">
+                            <!-- Image column -->
+                            <template v-if="column.type === 'image'">
+                                <img :src="item[column.key]" :alt="item[column.altKey || 'name']"
+                                    class="tw-w-14 tw-h-14 tw-object-cover tw-rounded" />
+                            </template>
+
+                            <!-- Status column -->
+                            <template v-else-if="column.type === 'status'">
+                                <span :class="badgeClass(item[column.key])">
+                                    {{ item[column.labelKey || column.key] }}
+                                </span>
+                            </template>
+
+                            <!-- Price column -->
+                            <template v-else-if="column.type === 'price'">
+                                {{ formatPrice(item[column.key]) }}
+                            </template>
+
+                            <!-- Default column -->
+                            <template v-else>
+                                {{ item[column.key] }}
+                            </template>
+                        </td>
+
+                        <!-- Actions column -->
+                        <td v-if="showActions" class="tw-px-4 tw-py-3">
+                            <div class="tw-flex tw-gap-2">
+                                <NuxtLink v-if="editRoute" :to="editRoute + '/' + item.id"
+                                    class="tw-bg-blue-600 tw-text-white tw-rounded tw-p-2 hover:tw-bg-blue-700">
+                                    <i class="fas fa-edit"></i>
+                                </NuxtLink>
+                                <button v-if="showDeleteButton" @click="$emit('delete', item)"
+                                    class="tw-bg-red-600 tw-text-white tw-rounded tw-p-2 hover:tw-bg-red-700">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="tw-flex tw-justify-between tw-items-center tw-mt-4">
+            <div class="tw-text-sm tw-text-gray-600">
+                Hiển thị {{ paginatedData.length }} trên tổng số {{ filteredData.length }} bản ghi
+            </div>
+            <div class="tw-flex tw-gap-2">
+                <button :disabled="currentPage === 1" @click="currentPage--"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="tw-px-3 tw-py-1">
+                    Trang {{ currentPage }} / {{ totalPages }}
+                </span>
+                <button :disabled="currentPage === totalPages" @click="currentPage++"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, computed, watch } from 'vue'
+
+const props = defineProps({
+    // Data
+    data: {
+        type: Array,
+        required: true,
+        default: () => []
+    },
+    columns: {
+        type: Array,
+        required: true,
+        default: () => []
+    },
+    itemsPerPage: {
+        type: Number,
+        default: 10
+    },
+
+    // Routes
+    createRoute: {
+        type: String,
+        default: ''
+    },
+    editRoute: {
+        type: String,
+        default: ''
+    },
+
+    // Filters
+    categories: {
+        type: Array,
+        default: () => []
+    },
+    statuses: {
+        type: Array,
+        default: () => []
+    },
+    showDateFilter: {
+        type: Boolean,
+        default: false
+    },
+
+    // Selection
+    selectable: {
+        type: Boolean,
+        default: false
+    },
+
+    // Actions
+    showActions: {
+        type: Boolean,
+        default: true
+    },
+    showDeleteButton: {
+        type: Boolean,
+        default: true
+    }
+})
+
+const emit = defineEmits(['delete', 'selection-change', 'filter-change'])
+
+// State
+const searchQuery = ref('')
+const selectedItems = ref([])
+const selectedCategory = ref('')
+const selectedStatus = ref('')
+const selectedDate = ref('')
+const currentPage = ref(1)
+const sortKey = ref('')
+const sortOrder = ref('asc')
+
+// Computed
+const filteredData = computed(() => {
+    let result = [...props.data]
+
+    // Search
+    if (searchQuery.value) {
+        result = result.filter(item =>
+            Object.values(item).some(val =>
+                String(val).toLowerCase().includes(searchQuery.value.toLowerCase())
+            )
+        )
+    }
+
+    // Category filter
+    if (selectedCategory.value) {
+        result = result.filter(item => item.category === selectedCategory.value)
+    }
+
+    // Status filter
+    if (selectedStatus.value) {
+        result = result.filter(item => item.status === selectedStatus.value)
+    }
+
+    // Date filter
+    if (selectedDate.value) {
+        result = result.filter(item => item.date === selectedDate.value)
+    }
+
+    // Sort
+    if (sortKey.value) {
+        result.sort((a, b) => {
+            const aVal = a[sortKey.value]
+            const bVal = b[sortKey.value]
+            if (sortOrder.value === 'asc') {
+                return aVal > bVal ? 1 : -1
+            } else {
+                return aVal < bVal ? 1 : -1
+            }
+        })
+    }
+
+    return result
+})
+
+const totalPages = computed(() =>
+    Math.ceil(filteredData.value.length / props.itemsPerPage)
+)
+
+const paginatedData = computed(() => {
+    const start = (currentPage.value - 1) * props.itemsPerPage
+    const end = start + props.itemsPerPage
+    return filteredData.value.slice(start, end)
+})
+
+const allSelected = computed(() => {
+    return paginatedData.value.length > 0 &&
+        selectedItems.value.length === paginatedData.value.length
+})
+
+// Methods
+const handleSearch = () => {
+    currentPage.value = 1
+}
+
+const sortBy = (key) => {
+    if (sortKey.value === key) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+    } else {
+        sortKey.value = key
+        sortOrder.value = 'asc'
+    }
+}
+
+const toggleSelectAll = (event) => {
+    selectedItems.value = event.target.checked ? [...paginatedData.value] : []
+    emit('selection-change', selectedItems.value)
+}
+
+// Watch for filter changes
+watch([selectedCategory, selectedStatus, selectedDate], () => {
+    currentPage.value = 1
+    emit('filter-change', {
+        category: selectedCategory.value,
+        status: selectedStatus.value,
+        date: selectedDate.value
+    })
+})
+
+// Utility functions
+const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(price)
+}
+
+const badgeClass = (status) => {
+    switch (status) {
+        case true:
+        case 'active':
+        case 'completed':
+            return 'tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'processing':
+            return 'tw-bg-blue-100 tw-text-blue-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'pending':
+            return 'tw-bg-yellow-100 tw-text-yellow-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case false:
+        case 'inactive':
+        case 'cancelled':
+            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        default:
+            return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+    }
+}
+</script>
+
+<style scoped>
+.tw-bg-primary {
+    background-color: #3bb77e;
+}
+
+.tw-bg-primary-dark {
+    background-color: #2ea16d;
+}
+</style>

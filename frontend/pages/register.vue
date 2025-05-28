@@ -16,15 +16,30 @@
       </div>
       <div class="mb-2">
         <label for="registerPassword" class="form-label">Mật khẩu</label>
-        <input v-model="form.password" type="password" :class="['form-control', { 'is-invalid': error.password }]"
-          id="registerPassword" name="password" placeholder="Nhập mật khẩu">
+        <div class="position-relative">
+          <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
+            :class="['form-control', { 'is-invalid': error.password }]" id="registerPassword" name="password"
+            placeholder="Nhập mật khẩu">
+          <button type="button"
+            class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+            @click="showPassword = !showPassword">
+            <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+          </button>
+        </div>
         <div class="invalid-feedback" v-if="error.password">{{ error.password }}</div>
       </div>
       <div class="mb-2">
         <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
-        <input v-model="form.confirm_password" type="password"
-          :class="['form-control', { 'is-invalid': error.confirm_password }]" id="confirmPassword"
-          name="confirm_password" placeholder="Xác nhận mật khẩu">
+        <div class="position-relative">
+          <input v-model="form.confirm_password" :type="showConfirmPassword ? 'text' : 'password'"
+            :class="['form-control', { 'is-invalid': error.confirm_password }]" id="confirmPassword"
+            name="confirm_password" placeholder="Xác nhận mật khẩu">
+          <button type="button"
+            class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+            @click="showConfirmPassword = !showConfirmPassword">
+            <i :class="showConfirmPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+          </button>
+        </div>
         <div class="invalid-feedback" v-if="error.confirm_password">{{ error.confirm_password }}</div>
         <p class="text-danger mt-2 tw-text-[14px]" v-if="error.register">{{ error.register }}</p>
       </div>
@@ -50,6 +65,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  layout: 'default',
+  middleware: 'guest'
+})
 useHead({
   title: 'Đăng Ký - DEVGANG',
   meta: [
@@ -78,6 +97,9 @@ const error = reactive({
   register: ''
 })
 const isLoading = ref(false)
+
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 const isEmailValid = (email) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -130,6 +152,7 @@ const handleRegister = async () => {
     }
 
     if (hasError) {
+      isLoading.value = false
       return
     }
 
@@ -139,6 +162,7 @@ const handleRegister = async () => {
       email: form.email,
       password: form.password,
       password_confirmation: form.confirm_password,
+      role: 'user',
       cf_turnstile_response: 'test-token'
     })
 
@@ -149,12 +173,11 @@ const handleRegister = async () => {
         icon: 'success',
         title: 'Đăng ký thành công!',
         html: 'Bạn sẽ được chuyển hướng sau <strong></strong> giây.',
-        timer: 5000,
+        timer: 3000,
         timerProgressBar: true,
         didOpen: () => {
-          // Bắt đầu đếm ngược từ 3
           const content = Swal.getHtmlContainer()
-          let count = 5
+          let count = 3
           content.querySelector('strong').textContent = count
 
           timerInterval = setInterval(() => {
@@ -168,11 +191,18 @@ const handleRegister = async () => {
           clearInterval(timerInterval)
         }
       }).then(() => {
-        navigateTo('/login')
+        navigateTo('/')
       })
-    } else {
-      error.register = 'Đăng ký thất bại. Vui lòng thử lại.'
     }
+  } catch (err) {
+    console.error('Register error:', err.response?.data || err.message)
+    const errorMessage = err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.'
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Lỗi!',
+      text: errorMessage
+    })
   } finally {
     isLoading.value = false
   }

@@ -5,34 +5,22 @@
       <span class="logo-text">Admin Panel</span>
     </div>
     <nav class="sidebar-nav">
-      <!-- Reports Section -->
+      <!-- Overview Section -->
       <div class="nav-section">
-        <div class="section-title">Báo cáo</div>
+        <div class="section-title text-muted tw-font-bold tw-text-[14px]">Tổng quan</div>
         <NuxtLink to="/admin" class="nav-item">
-          <i class="fas fa-chart-line"></i>
-          <span>Dashboard</span>
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Bảng điều khiển</span>
         </NuxtLink>
-        <NuxtLink to="/admin/statistics" class="nav-item">
-          <i class="fas fa-chart-bar"></i>
-          <span>Thống kê</span>
-        </NuxtLink>
-        <NuxtLink to="/admin/transactions" class="nav-item">
-          <i class="fas fa-dollar-sign"></i>
-          <span>Giao dịch</span>
-        </NuxtLink>
-      </div>
 
-      <!-- Management Section -->
-      <div class="nav-section">
-        <div class="section-title">Quản lý</div>
-        <!-- Products Management -->
+        <!-- Products Dropdown -->
         <div class="nav-item dropdown-toggle" @click="showProductsMenu = !showProductsMenu">
           <i class="fas fa-box"></i>
           <span>Sản phẩm</span>
         </div>
         <div v-show="showProductsMenu" class="submenu">
           <NuxtLink to="/admin/products" class="nav-sub-item">Tất cả sản phẩm</NuxtLink>
-          <NuxtLink to="/admin/add-product" class="nav-sub-item">Thêm sản phẩm</NuxtLink>
+          <NuxtLink to="/admin/categories" class="nav-sub-item">Danh mục</NuxtLink>
           <NuxtLink to="/admin/brands" class="nav-sub-item">Thương hiệu</NuxtLink>
         </div>
 
@@ -40,18 +28,19 @@
           <i class="fas fa-shopping-cart"></i>
           <span>Đơn hàng</span>
         </NuxtLink>
-        <NuxtLink to="/admin/sellers" class="nav-item">
-          <i class="fas fa-store"></i>
-          <span>Người bán</span>
+        <NuxtLink to="/admin/customers" class="nav-item">
+          <i class="fas fa-users"></i>
+          <span>Khách hàng</span>
         </NuxtLink>
-        <NuxtLink to="/admin/reviews" class="nav-item">
-          <i class="fas fa-star"></i>
-          <span>Đánh giá</span>
+        <NuxtLink to="/admin/promotions" class="nav-item">
+          <i class="fa-solid fa-ticket"></i>
+          <span>Khuyến mãi giảm giá</span>
         </NuxtLink>
-        <NuxtLink to="/admin/account" class="nav-item">
-          <i class="fas fa-user"></i>
-          <span>Tài khoản</span>
-        </NuxtLink>
+      </div>
+
+      <!-- Management Section -->
+      <div class="nav-section">
+        <div class="section-title text-muted tw-font-bold tw-text-[14px]">Quản lý</div>
         <NuxtLink to="/admin/settings" class="nav-item">
           <i class="fas fa-cog"></i>
           <span>Cài đặt</span>
@@ -181,5 +170,13 @@ const handleLogout = () => {
 .nav-item:hover {
   background: #e9f6ef;
   color: #3bb77e;
+}
+
+.dropdown-toggle i.ml-auto {
+  transition: transform 0.2s ease;
+}
+
+.dropdown-toggle i.rotate-180 {
+  transform: rotate(180deg);
 }
 </style>

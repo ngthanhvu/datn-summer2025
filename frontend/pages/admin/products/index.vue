@@ -1,27 +1,97 @@
 <template>
-  <div>
-    <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
-      <div>
-        <h2 class="tw-text-3xl tw-font-bold">Products List</h2>
-        <p class="tw-text-gray-400 tw-mt-1">Lorem ipsum dolor sit amet.</p>
-      </div>
-      <div class="tw-flex tw-gap-2">
-        <button
-          class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100">Export</button>
-        <button
-          class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100">Import</button>
-        <button class="tw-bg-teal-600 tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-teal-700">Create new</button>
-      </div>
+  <div class="products-page">
+    <div class="page-header">
+      <h1>Quản lý sản phẩm</h1>
+      <p class="text-gray-600">Quản lý danh sách sản phẩm của bạn</p>
     </div>
-    <Table />
+
+    <Table :columns="columns" :data="products" :create-route="'/admin/products/create'" :edit-route="'/admin/products'"
+      @delete="handleDelete" />
   </div>
 </template>
 
 <script setup>
-import Table from '@/components/Table.vue';
 definePageMeta({
   layout: 'admin'
 })
+
+import { ref } from 'vue'
+import Table from '~/components/admin/Table.vue'
+
+// Table columns configuration
+const columns = [
+  { key: 'id', label: 'ID' },
+  { key: 'image', label: 'Hình ảnh', type: 'image' },
+  { key: 'name', label: 'Tên sản phẩm' },
+  { key: 'category', label: 'Danh mục' },
+  { key: 'price', label: 'Giá', type: 'price' },
+  { key: 'status', label: 'Trạng thái', type: 'status' }
+]
+
+// Mock data
+const products = ref([
+  {
+    id: 1,
+    image: 'https://via.placeholder.com/150',
+    name: 'iPhone 13 Pro Max',
+    category: 'phone',
+    price: 30990000,
+    status: true,
+    description: 'iPhone 13 Pro Max 128GB'
+  },
+  {
+    id: 2,
+    image: 'https://via.placeholder.com/150',
+    name: 'Samsung Galaxy S21',
+    category: 'phone',
+    price: 20990000,
+    status: true,
+    description: 'Samsung Galaxy S21 Ultra 5G'
+  },
+  {
+    id: 3,
+    image: 'https://via.placeholder.com/150',
+    name: 'MacBook Pro M1',
+    category: 'laptop',
+    price: 35990000,
+    status: false,
+    description: 'MacBook Pro M1 13 inch'
+  },
+  {
+    id: 4,
+    image: 'https://via.placeholder.com/150',
+    name: 'iPad Pro 2021',
+    category: 'tablet',
+    price: 23990000,
+    status: true,
+    description: 'iPad Pro 12.9 inch 2021'
+  }
+])
+
+// Handlers
+const handleDelete = (product) => {
+  if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+    const index = products.value.findIndex(p => p.id === product.id)
+    if (index !== -1) {
+      products.value.splice(index, 1)
+    }
+  }
+}
 </script>
 
-<style></style>
+<style scoped>
+.products-page {
+  padding: 1.5rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+</style>
