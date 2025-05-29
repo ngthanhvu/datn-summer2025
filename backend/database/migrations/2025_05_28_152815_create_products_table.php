@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('price');
+            $table->string('description');
             $table->integer('original_price')->nullable();
             $table->integer('discount_price')->nullable();
             $table->integer('quantity')->default(0);
             $table->string('slug')->unique();
+            $table->boolean('is_active')->default(true);
             $table->foreignId('categories_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->foreignId('brand_id')->nullable()->constrained('brands')->onDelete('set null');
             $table->timestamps();

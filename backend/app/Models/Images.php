@@ -5,15 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Variants extends Model
+class Images extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'color',
-        'size',
-        'price',
-        'quantity',
-        'sku',
+        'image_path',
+        'is_main',
         'product_id',
     ];
 

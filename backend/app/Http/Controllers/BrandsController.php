@@ -22,6 +22,7 @@ class BrandsController extends Controller
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'parent_id' => 'nullable|exists:brands,id',
+                'is_active' => 'boolean',
             ]);
             $slug = Str::slug($request->name);
             $originalSlug = $slug;
@@ -37,7 +38,8 @@ class BrandsController extends Controller
                 'slug' => $slug,
                 'description' => $request->description,
                 'image' => $imagePath,
-                'parent_id' => $request->parent_id ?: null, // Nếu không chọn parent_id thì để null
+                'parent_id' => $request->parent_id ?: null,
+                'is_active' => $request->is_active ?: true,
             ]);
             return response()->json($brand, 201);
         } catch (\Exception $e) {
@@ -53,6 +55,7 @@ class BrandsController extends Controller
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'parent_id' => 'nullable|exists:brands,id',
+                'is_active' => 'boolean',
             ]);
 
             $brands = Brands::findOrFail($id);
@@ -74,6 +77,7 @@ class BrandsController extends Controller
             $brands->name = $request->name;
             $brands->description = $request->description;
             $brands->parent_id = $request->parent_id ?: null;
+            $brands->is_active = (bool) $request->is_active;
             $brands->save();
 
             return response()->json($brands);

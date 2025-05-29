@@ -14,6 +14,7 @@ class Categories extends Model
         'image',
         'slug',
         'parent_id',
+        'is_active',
     ];
 
     public function parent()

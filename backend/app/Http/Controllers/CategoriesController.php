@@ -11,7 +11,7 @@ class CategoriesController extends Controller
 
     public function index()
     {
-        $categories = Categories::select('id', 'name', 'slug', 'description', 'image', 'parent_id')->get();
+        $categories = Categories::select('id', 'name', 'slug', 'description', 'image', 'is_active', 'parent_id')->get();
         return response()->json($categories);
     }
 
@@ -23,6 +23,7 @@ class CategoriesController extends Controller
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'parent_id' => 'nullable|exists:brands,id',
+                'is_active' => 'boolean',
             ]);
             $slug = Str::slug($request->name);
             $originalSlug = $slug;
@@ -43,6 +44,7 @@ class CategoriesController extends Controller
                 'description' => $request->description,
                 'image' => $imagePath,
                 'parent_id' => $request->parent_id ?: null,
+                'is_active' => $request->is_active ?: true,
             ]);
             return response()->json($category, 201);
         } catch (\Exception $e) {
@@ -59,6 +61,7 @@ class CategoriesController extends Controller
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'parent_id' => 'nullable|exists:brands,id',
+                'is_active' => 'boolean',
             ]);
             $category = Categories::findOrFail($id);
             if ($category->name !== $request->name) {
@@ -77,6 +80,7 @@ class CategoriesController extends Controller
             $category->name = $request->name;
             $category->description = $request->description;
             $category->parent_id = $request->parent_id ?: null;
+            $category->is_active = (bool) $request->is_active;
             $category->save();
 
             return response()->json($category);
