@@ -29,6 +29,43 @@
                 <label :for="field.name"></label>
             </div>
 
+            <!-- Main Image Upload -->
+            <div v-else-if="field.type === 'mainImage'" class="image-upload">
+                <div v-if="field.description" class="tw-text-sm tw-text-gray-500 tw-mb-2">{{ field.description }}</div>
+                <div class="image-preview" v-if="formData.mainImagePreview">
+                    <img :src="formData.mainImagePreview" :alt="field.label">
+                    <button type="button" @click="removeMainImage" class="remove-image">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div v-else class="upload-placeholder" @click="triggerMainImageUpload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Thêm ảnh chính</span>
+                </div>
+                <input type="file" id="mainImage" ref="mainImageInput" @change="handleMainImageUpload" accept="image/*"
+                    class="hidden" />
+            </div>
+
+            <!-- Additional Images Upload -->
+            <div v-else-if="field.type === 'additionalImages'" class="additional-images-upload">
+                <div v-if="field.description" class="tw-text-sm tw-text-gray-500 tw-mb-2">{{ field.description }}</div>
+                <div class="image-grid">
+                    <div v-for="(preview, index) in formData.additionalImagePreviews" :key="index"
+                        class="image-preview">
+                        <img :src="preview" :alt="`Additional Image ${index + 1}`">
+                        <button type="button" @click="removeAdditionalImage(index)" class="remove-image">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="upload-placeholder" @click="triggerAdditionalImagesUpload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Thêm ảnh phụ</span>
+                    </div>
+                </div>
+                <input type="file" id="additionalImages" ref="additionalImagesInput"
+                    @change="handleAdditionalImagesUpload" accept="image/*" multiple class="hidden" />
+            </div>
+
             <!-- Image Upload -->
             <div v-else-if="field.type === 'image'" class="image-upload">
                 <div class="image-preview" v-if="formData[field.name]">
@@ -117,6 +154,81 @@ const handleImageUpload = (event, fieldName) => {
 
 const removeImage = (fieldName) => {
     formData.value[fieldName] = null
+}
+
+const handleMainImageUpload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        formData.value.mainImage = file
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            formData.value.mainImagePreview = e.target.result
+        }
+        reader.readAsDataURL(file)
+    }
+}
+
+const removeMainImage = () => {
+    formData.value.mainImage = null
+    formData.value.mainImagePreview = null
+}
+
+const triggerMainImageUpload = () => {
+    document.getElementById('mainImage').click()
+}
+
+const handleAdditionalImagesUpload = async (event) => {
+    const files = Array.from(event.target.files)
+
+    // Create copies of current arrays
+    const newAdditionalImages = [...formData.value.additionalImages]
+    const newAdditionalImagePreviews = [...formData.value.additionalImagePreviews]
+
+    // Process all files
+    const processFile = (file) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                resolve(e.target.result)
+            }
+            reader.readAsDataURL(file)
+        })
+    }
+
+    // Wait for all files to be processed
+    const previews = await Promise.all(files.map(processFile))
+
+    // Add all files and previews at once
+    newAdditionalImages.push(...files)
+    newAdditionalImagePreviews.push(...previews)
+
+    // Update formData with all new images at once
+    formData.value = {
+        ...formData.value,
+        additionalImages: newAdditionalImages,
+        additionalImagePreviews: newAdditionalImagePreviews
+    }
+}
+
+const removeAdditionalImage = (index) => {
+    // Create copies of current arrays
+    const newAdditionalImages = [...formData.value.additionalImages]
+    const newAdditionalImagePreviews = [...formData.value.additionalImagePreviews]
+
+    // Remove items at index
+    newAdditionalImages.splice(index, 1)
+    newAdditionalImagePreviews.splice(index, 1)
+
+    // Update formData with new arrays while preserving other values
+    formData.value = {
+        ...formData.value,
+        additionalImages: newAdditionalImages,
+        additionalImagePreviews: newAdditionalImagePreviews
+    }
+}
+
+const triggerAdditionalImagesUpload = () => {
+    document.getElementById('additionalImages').click()
 }
 </script>
 
@@ -253,5 +365,27 @@ const removeImage = (fieldName) => {
 .error-message {
     color: #ef4444;
     font-size: 0.875rem;
+}
+
+/* Additional Images styles */
+.additional-images-upload {
+    width: 100%;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.image-grid .image-preview,
+.image-grid .upload-placeholder {
+    aspect-ratio: 1;
+    width: 100%;
+}
+
+.image-grid .upload-placeholder {
+    height: auto;
 }
 </style>

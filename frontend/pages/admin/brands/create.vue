@@ -14,6 +14,10 @@
 
         <Form :fields="formFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
 
+        <div class="tw-mt-6">
+            <ImageUpload v-model="formData.image" label="Logo thương hiệu" required />
+        </div>
+
         <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
             <NuxtLink to="/admin/brands"
                 class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
@@ -34,6 +38,7 @@ definePageMeta({
 
 import { ref } from 'vue'
 import Form from '~/components/admin/Form.vue'
+import ImageUpload from '~/components/admin/ImageUpload.vue'
 
 const formFields = [
     {
@@ -51,11 +56,6 @@ const formFields = [
         rows: 4
     },
     {
-        name: 'logo',
-        label: 'Logo',
-        type: 'image'
-    },
-    {
         name: 'status',
         label: 'Trạng thái',
         type: 'toggle'
@@ -65,19 +65,33 @@ const formFields = [
 const formData = ref({
     name: '',
     description: '',
-    logo: '',
+    image: null,
     status: true
 })
 
 const handleSubmit = async () => {
     try {
-        // TODO: Call API to create brand
-        console.log('Create brand:', formData.value)
+        const formDataToSend = new FormData()
+        formDataToSend.append('name', formData.value.name)
+        formDataToSend.append('description', formData.value.description)
+        if (formData.value.image) {
+            formDataToSend.append('image', formData.value.image)
+        }
+        formDataToSend.append('status', formData.value.status)
+
+        const { data } = await useFetch('/api/brands', {
+            method: 'POST',
+            body: formDataToSend
+        })
+
+        // Show success message
+        useToast().success('Tạo thương hiệu thành công')
 
         // Navigate back to brands list
         await navigateTo('/admin/brands')
     } catch (error) {
         console.error('Error creating brand:', error)
+        useToast().error('Có lỗi xảy ra khi tạo thương hiệu')
     }
 }
 </script>

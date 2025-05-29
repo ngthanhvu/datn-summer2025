@@ -84,9 +84,17 @@ const formFields = [
     rows: 4
   },
   {
-    name: 'image',
-    label: 'Hình ảnh',
-    type: 'image'
+    name: 'mainImage',
+    label: 'Ảnh chính',
+    type: 'mainImage',
+    required: true,
+    description: 'Chọn ảnh chính cho sản phẩm'
+  },
+  {
+    name: 'additionalImages',
+    label: 'Ảnh phụ',
+    type: 'additionalImages',
+    description: 'Chọn thêm các ảnh khác cho sản phẩm'
   },
   {
     name: 'status',
@@ -102,13 +110,37 @@ const formData = ref({
   brand: '',
   description: '',
   status: true,
-  image: null
+  mainImage: null,
+  mainImagePreview: null,
+  additionalImages: [],
+  additionalImagePreviews: []
 })
 
 const handleSubmit = async () => {
   try {
-    // TODO: Call API to create product
-    console.log('Create product:', formData.value)
+    // Validate if main image is selected
+    if (!formData.value.mainImage) {
+      alert('Vui lòng chọn ảnh chính cho sản phẩm')
+      return
+    }
+
+    // Prepare form data for API
+    const productData = new FormData()
+    productData.append('name', formData.value.name)
+    productData.append('price', formData.value.price)
+    productData.append('category', formData.value.category)
+    productData.append('brand', formData.value.brand)
+    productData.append('description', formData.value.description)
+    productData.append('status', formData.value.status)
+    productData.append('mainImage', formData.value.mainImage)
+
+    // Append additional images if any
+    formData.value.additionalImages.forEach((image, index) => {
+      productData.append(`additionalImages[${index}]`, image)
+    })
+
+    // TODO: Call API to create product with images
+    console.log('Create product with images:', formData.value)
 
     // Navigate back to products list
     await navigateTo('/admin/products')

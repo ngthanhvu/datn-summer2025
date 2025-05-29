@@ -14,6 +14,10 @@
 
         <Form :fields="formFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
 
+        <div class="tw-mt-6">
+            <ImageUpload v-model="formData.image" label="Hình ảnh" required />
+        </div>
+
         <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
             <NuxtLink to="/admin/categories"
                 class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
@@ -34,6 +38,10 @@ definePageMeta({
 
 import { ref } from 'vue'
 import Form from '~/components/admin/Form.vue'
+import ImageUpload from '~/components/admin/ImageUpload.vue'
+
+// Fetch parent categories
+const { data: categories } = await useFetch('/api/categories')
 
 const formFields = [
     {
@@ -51,10 +59,14 @@ const formFields = [
         rows: 4
     },
     {
-        name: 'icon',
-        label: 'Icon',
-        type: 'text',
-        placeholder: 'Nhập class icon (ví dụ: fas fa-mobile)'
+        name: 'parent_id',
+        label: 'Danh mục cha',
+        type: 'select',
+        placeholder: 'Chọn danh mục cha',
+        options: categories.value?.map(cat => ({
+            label: cat.name,
+            value: cat.id
+        })) || []
     },
     {
         name: 'status',
@@ -66,19 +78,37 @@ const formFields = [
 const formData = ref({
     name: '',
     description: '',
-    icon: '',
+    image: null,
+    parent_id: null,
     status: true
 })
 
 const handleSubmit = async () => {
     try {
-        // TODO: Call API to create category
-        console.log('Create category:', formData.value)
+        const formDataToSend = new FormData()
+        formDataToSend.append('name', formData.value.name)
+        formDataToSend.append('description', formData.value.description)
+        if (formData.value.image) {
+            formDataToSend.append('image', formData.value.image)
+        }
+        if (formData.value.parent_id) {
+            formDataToSend.append('parent_id', formData.value.parent_id)
+        }
+        formDataToSend.append('status', formData.value.status)
+
+        const { data } = await useFetch('/api/categories', {
+            method: 'POST',
+            body: formDataToSend
+        })
+
+        // Show success message
+        useToast().success('Tạo danh mục thành công')
 
         // Navigate back to categories list
         await navigateTo('/admin/categories')
     } catch (error) {
         console.error('Error creating category:', error)
+        useToast().error('Có lỗi xảy ra khi tạo danh mục')
     }
 }
 </script>
