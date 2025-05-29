@@ -22,4 +22,14 @@ useHead({
     { name: 'description', content: 'EGA MEN' },
   ],
 });
+
+const { getBrands } = useBrand()
+
+const brands = ref([])
+
+getBrands().then(res => {
+  brands.value = res
+  console.table(brands.value)
+})
+
 </script>

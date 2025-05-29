@@ -9,9 +9,10 @@ export const useAuth = () => {
     const user = ref(null)
     const isAuthenticated = ref(false)
     const isAdmin = ref(false)
-
+    const apiBaseUrl = config.public.apiBaseUrl
+    
     const API = axios.create({
-        baseURL: 'http://127.0.0.1:8000'
+        baseURL: apiBaseUrl
     })
 
     API.interceptors.request.use((req) => {
