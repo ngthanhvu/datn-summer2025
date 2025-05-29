@@ -340,7 +340,7 @@ const triggerAdditionalImagesUpload = () => {
 }
 
 .upload-placeholder {
-    width: 150px;
+    /* width: 150px; */
     height: 150px;
     border: 2px dashed #e5e7eb;
     border-radius: 6px;

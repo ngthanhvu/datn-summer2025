@@ -12,7 +12,14 @@
       </NuxtLink>
     </div>
 
-    <Form :fields="formFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+    <div class="tw-grid tw-grid-cols-2 tw-gap-6">
+      <div class="tw-space-y-4">
+        <Form :fields="basicFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+      </div>
+      <div class="tw-space-y-4">
+        <Form :fields="imageFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+      </div>
+    </div>
 
     <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
       <NuxtLink to="/admin/products" class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
@@ -34,7 +41,7 @@ definePageMeta({
 import { ref } from 'vue'
 import Form from '~/components/admin/Form.vue'
 
-const formFields = [
+const basicFields = [
   {
     name: 'name',
     label: 'Tên sản phẩm',
@@ -84,6 +91,14 @@ const formFields = [
     rows: 4
   },
   {
+    name: 'status',
+    label: 'Trạng thái',
+    type: 'toggle'
+  }
+]
+
+const imageFields = [
+  {
     name: 'mainImage',
     label: 'Ảnh chính',
     type: 'mainImage',
@@ -95,11 +110,6 @@ const formFields = [
     label: 'Ảnh phụ',
     type: 'additionalImages',
     description: 'Chọn thêm các ảnh khác cho sản phẩm'
-  },
-  {
-    name: 'status',
-    label: 'Trạng thái',
-    type: 'toggle'
   }
 ]
 
