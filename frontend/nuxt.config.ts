@@ -35,9 +35,9 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
-    apiBaseUrl: process.env.NUXT_API_BASE_URL,
     public: {
       turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY,
+      apiBaseUrl: process.env.NUXT_API_BASE_URL,
     },
   },
 })

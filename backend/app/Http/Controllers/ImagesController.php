@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Products_varriant;
+use App\Models\Images;
 use Illuminate\Http\Request;
 
-class ProductsVarriantController extends Controller
+class ImagesController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +34,7 @@ class ProductsVarriantController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Products_varriant $products_varriant)
+    public function show(Images $images)
     {
         //
     }
@@ -42,7 +42,7 @@ class ProductsVarriantController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Products_varriant $products_varriant)
+    public function edit(Images $images)
     {
         //
     }
@@ -50,7 +50,7 @@ class ProductsVarriantController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Products_varriant $products_varriant)
+    public function update(Request $request, Images $images)
     {
         //
     }
@@ -58,7 +58,7 @@ class ProductsVarriantController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Products_varriant $products_varriant)
+    public function destroy(Images $images)
     {
         //
     }

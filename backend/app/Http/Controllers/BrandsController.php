@@ -2,230 +2,137 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brands;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
-use Exception;
-use App\Models\Brands;
+use Illuminate\Support\Facades\Storage;
+
 class BrandsController extends Controller
 {
-
-    public function index(Request $request)
+    public function index()
     {
-        $query = Brands::query();
+        $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id', 'is_active')->get();
 
-        if ($request->has('active')) {
-            $query->active();
-        }
+        $brands->transform(function ($brand) {
+            $brand->image = url('storage/' . $brand->image);
+            return $brand;
+        });
 
-        if ($request->has('root')) {
-            $query->root();
-        }
-
-        if ($request->has('with_children')) {
-            $query->with('children');
-        }
-
-        if ($request->has('with_all_children')) {
-            $query->with('allChildren');
-        }
-
-
-        $Brands = $query->paginate(10);
-        if ($Brands ->isEmpty()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Danh sách thương hiệu trống, thêm thương hiệu mới để bắt đầu!',
-                'data' => []
-            ], 200);
-        }
-        return response()->json($Brands);
+        return response()->json($brands);
     }
 
+    public function show($id)
+    {
+        try {
+            $brand = Brands::findOrFail($id);
+            $brand->image = url('storage/' . $brand->image);
+            return response()->json($brand);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Brand not found'], 404);
+        }
+    }
 
     public function store(Request $request)
     {
         try {
             $request->validate([
-                'name' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('Brands', 'name')->where(function ($query) {
-                        return $query->where('is_active', true);
-                    })
-                ],
+                'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'parent_id' => [
-                    'nullable',
-                    Rule::exists('Brands', 'id')->where(function ($query) {
-                        return $query->where('is_active', true);
-                    }),
-                ],
-                'image' => [
-                    'nullable',
-                    'string',
-                    'regex:/^.*\.(jpg|jpeg|png|gif|bmp|webp)$/i'
-                ],
-                'is_active' => 'boolean'
-            ],[
-                'name.required' => 'Tên thương hiệu không được để trống',
-                'name.string' => 'Tên thương hiệu phải là chuỗi ký tự',
-                'name.max' => 'Tên thương hiệu không được vượt quá 255 ký tự',
-                'name.unique' => 'Tên thương hiệu đã tồn tại',
-                'description.string' => 'Mô tả phải là chuỗi ký tự',
-                'parent_id.exists' => 'Thương hiệu cha không tồn tại hoặc không hoạt động',
-                'image.string' => 'Đường dẫn ảnh phải là chuỗi ký tự',
-                'image.regex' => 'Định dạng ảnh không hợp lệ. Chấp nhận: jpg, jpeg, png, gif, bmp, webp',
-                'is_active.boolean' => 'Trạng thái hoạt động phải là true hoặc false'
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'parent_id' => 'nullable|exists:brands,id',
+                'is_active' => 'boolean',
             ]);
-
-            $baseSlug = Str::slug($request->name);
-            $slug = $baseSlug;
-            $counter = 1;
-
+            $slug = Str::slug($request->name);
+            $originalSlug = $slug;
+            $count = 1;
             while (Brands::where('slug', $slug)->exists()) {
-                $slug = $baseSlug . '-' . $counter;
-                $counter++;
+                $slug = $originalSlug . '-' . $count++;
             }
 
-            $brands = new Brands();
-            $brands->name = $request->name;
-            $brands->slug = $slug;
-            $brands->description = $request->description;
-            $brands->parent_id = $request->parent_id;
-            $brands->image = $request->image;
-            $brands->is_active = $request->is_active ?? true;
-            $brands->save();
+            $imagePath = $request->file('image')->store('brands', 'public');
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Thêm thương hiệu thành công!',
-                'data' => $brands->load(['parent', 'children'])
-            ], 201);
-
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Có lỗi xảy ra khi thêm thương hiệu',
-                'error' => $e->getMessage()
-            ], 500);
+            $brand = Brands::create([
+                'name' => $request->name,
+                'slug' => $slug,
+                'description' => $request->description,
+                'image' => $imagePath,
+                'parent_id' => $request->parent_id ?: null,
+                'is_active' => $request->has('is_active') ? (bool) $request->is_active : true,
+            ]);
+            return response()->json($brand, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    public function show(string $id)
-    {
-        $brands = Brands::with(['parent', 'children', 'products'])
-            ->findOrFail($id);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $brands
-        ]);
-    }
-
-
-
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
         try {
-            $brands = Brands::findOrFail($id);
-            
-            $request->validate([
-                'name' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('Brands', 'name')->where(function ($query) {
-                        return $query->where('is_active', true);
-                    })->ignore($id)
-                ],
-                'slug' => 'required|string|max:255|unique:Brands,slug,' . $id,
-                'description' => 'nullable|string',
-                'parent_id' => [
-                    'nullable',
-                    Rule::exists('Brands', 'id')->where(function ($query) use ($id) {
-                        return $query->where('is_active', true)
-                            ->where('id', '!=', $id);
-                    }),
-                ],
-                'image' => [
-                    'nullable',
-                    'string',
-                    'regex:/^.*\.(jpg|jpeg|png|gif|bmp|webp)$/i'
-                ],
-                'is_active' => 'boolean',
-            ],[
-                'name.required' => 'Tên thương hiệu không được để trống',
-                'name.string' => 'Tên thương hiệu phải là chuỗi ký tự',
-                'name.max' => 'Tên thương hiệu không được vượt quá 255 ký tự',
-                'name.unique' => 'Tên thương hiệu đã tồn tại',
-                'slug.required' => 'Slug không được để trống',
-                'slug.string' => 'Slug phải là chuỗi ký tự',
-                'slug.max' => 'Slug không được vượt quá 255 ký tự',
-                'slug.unique' => 'Slug đã tồn tại',
-                'description.string' => 'Mô tả phải là chuỗi ký tự',
-                'parent_id.exists' => 'Thương hiệu cha không tồn tại hoặc không hoạt động',
-                'image.string' => 'Đường dẫn ảnh phải là chuỗi ký tự',
-                'image.regex' => 'Định dạng ảnh không hợp lệ. Chấp nhận: jpg, jpeg, png, gif, bmp, webp',
-                'is_active.boolean' => 'Trạng thái hoạt động phải là true hoặc false'
+            \Log::info('Received update request for brand:', [
+                'id' => $id,
+                'request_data' => $request->all()
             ]);
 
-            if ($request->parent_id && $brands->allChildren->pluck('id')->contains($request->parent_id)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Không thể đặt thương hiệu con làm thương hiệu cha!'
-                ], 422);
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'parent_id' => 'nullable|exists:brands,id',
+                'is_active' => 'required|boolean',
+            ]);
+
+            $brand = Brands::findOrFail($id);
+
+            if ($request->name !== $brand->name) {
+                $slug = Str::slug($request->name);
+                $originalSlug = $slug;
+                $count = 1;
+                while (Brands::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+                    $slug = $originalSlug . '-' . $count++;
+                }
+                $brand->slug = $slug;
             }
 
-            $brands->update([
-                'name' => $request->name ?? $brands->name,
-                'slug' => $request->name ? Str::slug($request->name) : $brands->slug,
-                'description' => $request->description ?? $brands->description,
-                'parent_id' => $request->parent_id ?? $brands->parent_id,
-                'image' => $request->image ?? $brands->image,
-                'is_active' => $request->is_active ?? $brands->is_active
+            if ($request->hasFile('image')) {
+                if ($brand->image) {
+                    Storage::disk('public')->delete($brand->image);
+                }
+                $brand->image = $request->file('image')->store('brands', 'public');
+            }
+
+            $brand->name = $request->name;
+            $brand->description = $request->description;
+            $brand->parent_id = $request->parent_id ?: null;
+            $brand->is_active = $request->boolean('is_active');
+
+            $brand->save();
+
+            \Log::info('Brand updated successfully:', [
+                'id' => $brand->id,
+                'name' => $brand->name,
+                'is_active' => $brand->is_active
             ]);
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Cập nhật thương hiệu thành công!',
-                'data' => $brands->load(['parent', 'children'])
+
+            $brand->image = $brand->image ? url('storage/' . $brand->image) : null;
+            return response()->json($brand);
+        } catch (\Exception $e) {
+            \Log::error('Error updating brand:', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Có lỗi xảy ra khi cập nhật thương hiệu',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        $brands = Brands::findOrFail($id);
-        if ($brands->children()->count() > 0) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Không thể xóa thương hiệu có thương hiệu con!'
-            ], 400);
+        try {
+            $brand = Brands::findOrFail($id);
+            $brand->delete();
+            return response()->json(['message' => 'Brand deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-        $brands->delete();
-
-        if ($brands->products()->count() > 0) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Không thể xóa thương hiệu đang tồn tại sản phẩm!'
-            ], 400);
-        }
-
-        if ($brands->parent_id) {
-            $brands->parent->children()->where('id', $brands->id)->update(['parent_id' => null]);
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Xóa thương hiệu thành công!',
-        ]);
     }
 }

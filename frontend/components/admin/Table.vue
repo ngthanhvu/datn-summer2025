@@ -82,6 +82,11 @@
                                 {{ formatPrice(item[column.key]) }}
                             </template>
 
+                            <!-- Variants column -->
+                            <template v-else-if="column.type === 'variants'">
+                                <Badges :variants="item[column.key]" />
+                            </template>
+
                             <!-- Default column -->
                             <template v-else>
                                 {{ item[column.key] }}
@@ -130,6 +135,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import Badges from './Badges.vue'
 
 const props = defineProps({
     // Data

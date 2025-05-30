@@ -44,6 +44,7 @@ const formData = ref({
     name: '',
     price: 0,
     category: '',
+    brand: '',
     description: '',
     status: true,
     image: null
@@ -79,6 +80,19 @@ const formFields = [
         ]
     },
     {
+        name: 'brand',
+        label: 'Thương hiệu',
+        type: 'select',
+        placeholder: 'Chọn thương hiệu',
+        required: true,
+        options: [
+            { value: 'apple', label: 'Apple' },
+            { value: 'samsung', label: 'Samsung' },
+            { value: 'sony', label: 'Sony' },
+            { value: 'lg', label: 'LG' }
+        ]
+    },
+    {
         name: 'description',
         label: 'Mô tả',
         type: 'textarea',
@@ -106,6 +120,7 @@ onMounted(async () => {
             name: 'iPhone 13 Pro Max',
             price: 30990000,
             category: 'phone',
+            brand: 'apple',
             description: 'iPhone 13 Pro Max 128GB',
             status: true,
             image: 'https://via.placeholder.com/150'

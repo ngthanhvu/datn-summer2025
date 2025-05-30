@@ -5,17 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Attribute extends Model
+class Images extends Model
 {
     use HasFactory;
-
     protected $fillable = [
-        'name',
-        'code'
+        'image_path',
+        'is_main',
+        'product_id',
     ];
 
-    public function values()
+    public function product()
     {
-        return $this->hasMany(AttributeValue::class);
+        return $this->belongsTo(Products::class, 'product_id');
     }
-} 
+}

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use App\Mail\WelcomeEmail;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -27,6 +29,8 @@ class AuthController extends Controller
             'password' => bcrypt($request->password),
             'role' => 'user'
         ]);
+
+        Mail::to($user->email)->send(new WelcomeEmail($user));
 
         $token = JWTAuth::fromUser($user);
 
@@ -95,6 +99,8 @@ class AuthController extends Controller
                     'oauth_id' => $googleUser->getId(),
                 ]
             );
+
+            Mail::to($user->email)->send(new WelcomeEmail($user));
 
             $token = JWTAuth::fromUser($user);
 
