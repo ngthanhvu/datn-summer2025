@@ -22,4 +22,5 @@ useHead({
     { name: 'description', content: 'EGA MEN' },
   ],
 });
+
 </script>

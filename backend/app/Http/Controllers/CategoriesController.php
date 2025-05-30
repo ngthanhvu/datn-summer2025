@@ -1,0 +1,148 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Categories;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+
+class CategoriesController extends Controller
+{
+    public function index()
+    {
+        $categories = Categories::select('id', 'name', 'slug', 'description', 'image', 'is_active', 'parent_id')->get();
+
+        $categories->transform(function ($category) {
+            $category->image = $category->image ? url('storage/' . $category->image) : null;
+            return $category;
+        });
+        return response()->json($categories);
+    }
+
+    public function show($id)
+    {
+        try {
+            $category = Categories::findOrFail($id);
+            $category->image = $category->image ? url('storage/' . $category->image) : null;
+            return response()->json($category);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Category not found'], 404);
+        }
+    }
+
+    public function store(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'parent_id' => 'nullable|exists:categories,id',
+                'is_active' => 'required|boolean',
+            ]);
+
+            $slug = Str::slug($request->name);
+            $originalSlug = $slug;
+            $count = 1;
+            while (Categories::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('categories', 'public');
+            } else {
+                $imagePath = null;
+            }
+
+            $category = Categories::create([
+                'name' => $request->name,
+                'slug' => $slug,
+                'description' => $request->description,
+                'image' => $imagePath,
+                'parent_id' => $request->parent_id ?: null,
+                'is_active' => $request->boolean('is_active'),
+            ]);
+
+            $category->image = $imagePath ? url('storage/' . $imagePath) : null;
+            return response()->json($category, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            \Log::info('Received update request for category:', [
+                'id' => $id,
+                'request_data' => $request->all()
+            ]);
+
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'parent_id' => 'nullable|exists:categories,id',
+                'is_active' => 'required|boolean',
+            ]);
+
+            $category = Categories::findOrFail($id);
+
+            if ($request->name !== $category->name) {
+                $slug = Str::slug($request->name);
+                $originalSlug = $slug;
+                $count = 1;
+                while (Categories::where('slug', $slug)->where('id', '!=', $category->id)->exists()) {
+                    $slug = $originalSlug . '-' . $count++;
+                }
+                $category->slug = $slug;
+            }
+
+            if ($request->hasFile('image')) {
+                // Xóa ảnh cũ nếu có
+                if ($category->image) {
+                    Storage::disk('public')->delete($category->image);
+                }
+                $category->image = $request->file('image')->store('categories', 'public');
+            }
+
+            $category->name = $request->name;
+            $category->description = $request->description;
+            $category->parent_id = $request->parent_id ?: null;
+            $category->is_active = $request->boolean('is_active');
+
+            $category->save();
+
+            \Log::info('Category updated successfully:', [
+                'id' => $category->id,
+                'name' => $category->name,
+                'is_active' => $category->is_active
+            ]);
+
+            $category->image = $category->image ? url('storage/' . $category->image) : null;
+            return response()->json($category);
+        } catch (\Exception $e) {
+            \Log::error('Error updating category:', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $category = Categories::findOrFail($id);
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+            $category->delete();
+            return response()->json(['message' => 'Category deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+}

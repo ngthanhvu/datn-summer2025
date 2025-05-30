@@ -56,6 +56,9 @@
 </template>
 
 <script setup>
+definePageMeta({
+    layout: 'default',
+})
 useHead({
     title: 'Theo dõi đơn hàng - DEVGANG',
     meta: [

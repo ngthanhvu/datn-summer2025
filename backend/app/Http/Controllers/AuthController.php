@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use App\Mail\WelcomeEmail;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -25,8 +27,10 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'role' => $request->role
+            'role' => 'user'
         ]);
+
+        Mail::to($user->email)->send(new WelcomeEmail($user));
 
         $token = JWTAuth::fromUser($user);
 
@@ -71,7 +75,7 @@ class AuthController extends Controller
     {
         $url = Socialite::driver('google')
             ->stateless()
-            ->redirectUrl('http://127.0.0.1:8000/api/google/callback') // NHỚ thêm dòng này
+            ->redirectUrl(config('services.google.redirect'))
             ->redirect()
             ->getTargetUrl();
 
@@ -83,7 +87,7 @@ class AuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')
                 ->stateless()
-                ->redirectUrl('http://127.0.0.1:8000/api/google/callback') // PHẢI KHỚP y chang bước 1
+                ->redirectUrl(config('services.google.redirect'))
                 ->user();
 
             $user = User::updateOrCreate(
@@ -96,15 +100,30 @@ class AuthController extends Controller
                 ]
             );
 
+            Mail::to($user->email)->send(new WelcomeEmail($user));
+
             $token = JWTAuth::fromUser($user);
 
-            return response()->json([
-                'token' => $token,
-                'user' => $user
-            ]);
+            $frontendUrl = config('app.frontend_url') . '/auth/google/callback?token=' . urlencode($token) . '&user=' . urlencode(json_encode($user));
+
+            return redirect($frontendUrl);
         } catch (\Exception $e) {
             Log::error('Google login failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['error' => 'Đăng nhập Google thất bại.'], 500);
+            $frontendUrl = config('app.frontend_url') . '?error=' . urlencode('Đăng nhập Google thất bại.');
+            return redirect($frontendUrl);
         }
+    }
+
+    public function listUser(Request $request)
+    {
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $users = User::all();
+
+        return response()->json([
+            'users' => $users
+        ]);
     }
 }
