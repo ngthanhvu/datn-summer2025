@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Brands;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class BrandsController extends Controller
 {
@@ -18,6 +19,17 @@ class BrandsController extends Controller
         });
 
         return response()->json($brands);
+    }
+
+    public function show($id)
+    {
+        try {
+            $brand = Brands::findOrFail($id);
+            $brand->image = url('storage/' . $brand->image);
+            return response()->json($brand);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Brand not found'], 404);
+        }
     }
 
     public function store(Request $request)
@@ -56,43 +68,62 @@ class BrandsController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            \Log::info('Received update request for brand:', [
+                'id' => $id,
+                'request_data' => $request->all()
+            ]);
+
             $request->validate([
-                'name' => 'string|max:255',
+                'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'parent_id' => 'nullable|exists:brands,id',
-                'is_active' => 'boolean',
+                'is_active' => 'required|boolean',
             ]);
 
-            $brands = Brands::findOrFail($id);
+            $brand = Brands::findOrFail($id);
 
-            if ($brands->name !== $request->name) {
+            if ($request->name !== $brand->name) {
                 $slug = Str::slug($request->name);
                 $originalSlug = $slug;
                 $count = 1;
-                while (Brands::where('slug', $slug)->where('id', '!=', $brands->id)->exists()) {
+                while (Brands::where('slug', $slug)->where('id', '!=', $id)->exists()) {
                     $slug = $originalSlug . '-' . $count++;
                 }
-                $brands->slug = $slug;
+                $brand->slug = $slug;
             }
 
             if ($request->hasFile('image')) {
-                $brands->image = $request->file('image')->store('brands', 'public');
+                if ($brand->image) {
+                    Storage::disk('public')->delete($brand->image);
+                }
+                $brand->image = $request->file('image')->store('brands', 'public');
             }
 
-            $brands->name = $request->name;
-            $brands->description = $request->description;
-            $brands->parent_id = $request->parent_id ?: null;
-            $brands->is_active = (bool) $request->is_active;
-            $brands->save();
+            $brand->name = $request->name;
+            $brand->description = $request->description;
+            $brand->parent_id = $request->parent_id ?: null;
+            $brand->is_active = $request->boolean('is_active');
 
-            return response()->json($brands);
+            $brand->save();
+
+            \Log::info('Brand updated successfully:', [
+                'id' => $brand->id,
+                'name' => $brand->name,
+                'is_active' => $brand->is_active
+            ]);
+
+            $brand->image = $brand->image ? url('storage/' . $brand->image) : null;
+            return response()->json($brand);
         } catch (\Exception $e) {
+            \Log::error('Error updating brand:', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
-
 
     public function destroy($id)
     {

@@ -18,11 +18,13 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::get('/brands', [BrandsController::class, 'index']);
+Route::get('/brands/{id}', [BrandsController::class, 'show']);
 Route::post('/brands', [BrandsController::class, 'store']);
 Route::put('/brands/{id}', [BrandsController::class, 'update']);
 Route::delete('/brands/{id}', [BrandsController::class, 'destroy']);
 
 Route::get('/categories', [CategoriesController::class, 'index']);
+Route::get('/categories/{id}', [CategoriesController::class, 'show']);
 Route::post('/categories', [CategoriesController::class, 'store']);
 Route::put('/categories/{id}', [CategoriesController::class, 'update']);
 Route::delete('/categories/{id}', [CategoriesController::class, 'destroy']);

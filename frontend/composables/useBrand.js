@@ -13,6 +13,16 @@ export const useBrand = () => {
         return response.data
     }
 
+    const getBrandById = async (id) => {
+        try {
+            const response = await API.get(`/api/brands/${id}`)
+            return response.data
+        } catch (error) {
+            console.error('Error getting brand:', error)
+            throw error
+        }
+    }
+
     const createBrand = async (brand) => {
         try {
             const response = await API.post('/api/brands', brand)
@@ -25,10 +35,21 @@ export const useBrand = () => {
 
     const updateBrand = async (id, brand) => {
         try {
-            const response = await API.put(`/api/brands/${id}`, brand)
+            // Log the actual data being sent
+            console.log('Sending data to server:', {
+                id,
+                brand: Object.fromEntries(brand.entries())
+            })
+
+            const response = await API.post(`/api/brands/${id}?_method=PUT`, brand, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
+                }
+            })
             return response.data
         } catch (error) {
-            console.error('Error updating brand:', error)
+            console.error('Error updating brand:', error.response?.data || error)
             throw error
         }
     }
@@ -45,6 +66,7 @@ export const useBrand = () => {
 
     return {
         getBrands,
+        getBrandById,
         createBrand,
         updateBrand,
         deleteBrand

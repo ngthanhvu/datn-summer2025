@@ -13,11 +13,22 @@ export const useCategory = () => {
         return response.data
     }
 
+    const getCategoryById = async (id) => {
+        try {
+            const response = await API.get(`/api/categories/${id}`)
+            return response.data
+        } catch (error) {
+            console.error('Error getting category:', error)
+            throw error
+        }
+    }
+
     const createCategory = async (category) => {
         try {
             const response = await API.post('/api/categories', category, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
                 }
             })
             return response.data
@@ -29,10 +40,20 @@ export const useCategory = () => {
 
     const updateCategory = async (id, category) => {
         try {
-            const response = await API.put(`/api/categories/${id}`, category)
+            console.log('Sending data to server:', {
+                id,
+                category: Object.fromEntries(category.entries())
+            })
+
+            const response = await API.post(`/api/categories/${id}?_method=PUT`, category, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
+                }
+            })
             return response.data
         } catch (error) {
-            console.error('Error updating category:', error)
+            console.error('Error updating category:', error.response?.data || error)
             throw error
         }
     }
@@ -49,6 +70,7 @@ export const useCategory = () => {
 
     return {
         getCategories,
+        getCategoryById,
         createCategory,
         updateCategory,
         deleteCategory

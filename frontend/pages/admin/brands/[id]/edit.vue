@@ -12,20 +12,55 @@
             </NuxtLink>
         </div>
 
-        <Form v-if="brand" :fields="formFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+        <div v-if="brand">
+            <div class="tw-mb-6">
+                <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Tên thương hiệu *</label>
+                <input type="text" v-model="formData.name" required
+                    class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md focus:tw-outline-none focus:tw-ring-1 focus:tw-ring-primary"
+                    placeholder="Nhập tên thương hiệu">
+            </div>
+
+            <div class="tw-mb-6">
+                <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Mô tả</label>
+                <textarea v-model="formData.description" rows="4"
+                    class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md focus:tw-outline-none focus:tw-ring-1 focus:tw-ring-primary"
+                    placeholder="Nhập mô tả thương hiệu"></textarea>
+            </div>
+
+            <div class="tw-mb-6">
+                <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Logo thương hiệu</label>
+                <div class="tw-flex tw-items-start tw-gap-4">
+                    <img v-if="formData.image" :src="formData.image" alt="Current logo"
+                        class="tw-w-32 tw-h-32 tw-object-cover tw-rounded">
+                    <div>
+                        <input type="file" @change="handleImageChange" accept="image/*"
+                            class="tw-block tw-w-full tw-text-sm tw-text-gray-500 file:tw-mr-4 file:tw-py-2 file:tw-px-4 file:tw-rounded-md file:tw-border-0 file:tw-text-sm file:tw-font-semibold file:tw-bg-primary file:tw-text-white hover:file:tw-bg-primary-dark">
+                        <p class="tw-mt-1 tw-text-sm tw-text-gray-500">PNG, JPG, GIF tối đa 2MB</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tw-mb-6">
+                <label class="tw-flex tw-items-center tw-gap-2">
+                    <input type="checkbox" v-model="formData.is_active"
+                        class="tw-rounded tw-text-primary focus:tw-ring-primary">
+                    <span class="tw-text-sm tw-font-medium tw-text-gray-700">Kích hoạt</span>
+                </label>
+            </div>
+
+            <div class="tw-flex tw-justify-end tw-gap-4">
+                <NuxtLink to="/admin/brands"
+                    class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
+                    Hủy
+                </NuxtLink>
+                <button @click="handleSubmit"
+                    class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
+                    Lưu thay đổi
+                </button>
+            </div>
+        </div>
         <div v-else class="tw-text-center tw-py-8">
             <p class="tw-text-gray-500">Đang tải...</p>
-        </div>
-
-        <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
-            <NuxtLink to="/admin/brands"
-                class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
-                Hủy
-            </NuxtLink>
-            <button @click="handleSubmit"
-                class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
-                Lưu thay đổi
-            </button>
         </div>
     </div>
 </template>
@@ -36,73 +71,84 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
-import Form from '~/components/admin/Form.vue'
 
 const route = useRoute()
 const brand = ref(null)
+const imageFile = ref(null)
 const formData = ref({
     name: '',
     description: '',
-    logo: '',
-    status: true
+    image: '',
+    is_active: true
 })
 
-const formFields = [
-    {
-        name: 'name',
-        label: 'Tên thương hiệu',
-        type: 'text',
-        placeholder: 'Nhập tên thương hiệu',
-        required: true
-    },
-    {
-        name: 'description',
-        label: 'Mô tả',
-        type: 'textarea',
-        placeholder: 'Nhập mô tả thương hiệu',
-        rows: 4
-    },
-    {
-        name: 'logo',
-        label: 'Logo',
-        type: 'image'
-    },
-    {
-        name: 'status',
-        label: 'Trạng thái',
-        type: 'toggle'
+const { getBrandById, updateBrand } = useBrand()
+
+const handleImageChange = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        imageFile.value = file
+        // Tạo URL preview cho ảnh đã chọn
+        formData.value.image = URL.createObjectURL(file)
     }
-]
+}
 
 onMounted(async () => {
     try {
-        // TODO: Call API to get brand by ID
-        // For now, use mock data
-        const mockBrand = {
-            id: route.params.id,
-            name: 'Apple',
-            description: 'Công ty công nghệ Apple Inc.',
-            logo: 'https://via.placeholder.com/150',
-            status: true,
-            productCount: 12
+        const brandData = await getBrandById(route.params.id)
+        if (brandData) {
+            brand.value = brandData
+            formData.value = {
+                name: brandData.name || '',
+                description: brandData.description || '',
+                image: brandData.image || '',
+                is_active: !!brandData.is_active
+            }
+            console.log('Loaded brand data:', formData.value)
         }
-
-        brand.value = mockBrand
-        formData.value = { ...mockBrand }
     } catch (error) {
         console.error('Error fetching brand:', error)
+        alert('Không thể tải thông tin thương hiệu')
     }
 })
 
 const handleSubmit = async () => {
     try {
-        // TODO: Call API to update brand
-        console.log('Update brand:', formData.value)
+        // Validate form
+        if (!formData.value.name?.trim()) {
+            alert('Vui lòng nhập tên thương hiệu')
+            return
+        }
 
-        // Navigate back to brands list
-        await navigateTo('/admin/brands')
+        const formDataToSend = new FormData()
+
+        // Đảm bảo gửi đúng dữ liệu
+        formDataToSend.append('name', formData.value.name.trim())
+        formDataToSend.append('description', formData.value.description?.trim() || '')
+        formDataToSend.append('is_active', formData.value.is_active ? '1' : '0')
+
+        // Nếu có file ảnh mới thì gửi lên
+        if (imageFile.value) {
+            formDataToSend.append('image', imageFile.value)
+        }
+
+        // Log dữ liệu trước khi gửi
+        console.log('Form data before sending:')
+        for (let [key, value] of formDataToSend.entries()) {
+            console.log(`${key}:`, value)
+        }
+
+        const result = await updateBrand(route.params.id, formDataToSend)
+        console.log('Update result:', result)
+
+        if (result) {
+            alert('Cập nhật thương hiệu thành công!')
+            await navigateTo('/admin/brands')
+        }
     } catch (error) {
-        console.error('Error updating brand:', error)
+        console.error('Error updating brand:', error.response?.data || error)
+        const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi cập nhật thương hiệu'
+        alert(errorMessage)
     }
 }
 </script>
