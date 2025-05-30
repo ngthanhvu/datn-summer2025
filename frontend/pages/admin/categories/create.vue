@@ -15,7 +15,7 @@
         <Form :fields="formFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
 
         <div class="tw-mt-6">
-            <ImageUpload v-model="formData.image" label="Hình ảnh" required />
+            <ImageUpload v-model="imageData" label="Hình ảnh" required />
         </div>
 
         <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
@@ -32,18 +32,33 @@
 </template>
 
 <script setup>
+useHead({
+    title: 'Thêm danh mục'
+})
 definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'admin',
 })
 
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import Form from '~/components/admin/Form.vue'
 import ImageUpload from '~/components/admin/ImageUpload.vue'
 
-// Fetch parent categories
-const { data: categories } = await useFetch('/api/categories')
+const { getCategories, createCategory } = useCategory()
 
-const formFields = [
+const formData = ref({
+    name: '',
+    description: '',
+    image: null,
+    parent_id: null,
+    is_active: 1
+})
+
+const imageData = ref(null)
+
+const parentCategories = ref([])
+
+const formFields = ref([
     {
         name: 'name',
         label: 'Tên danh mục',
@@ -63,52 +78,79 @@ const formFields = [
         label: 'Danh mục cha',
         type: 'select',
         placeholder: 'Chọn danh mục cha',
-        options: categories.value?.map(cat => ({
-            label: cat.name,
-            value: cat.id
-        })) || []
+        options: []
     },
     {
-        name: 'status',
+        name: 'is_active',
         label: 'Trạng thái',
         type: 'toggle'
     }
-]
+])
 
-const formData = ref({
-    name: '',
-    description: '',
-    image: null,
-    parent_id: null,
-    status: true
+// Watch for image changes
+watch(imageData, (newValue) => {
+    formData.value.image = newValue
+}, { deep: true })
+
+onMounted(async () => {
+    try {
+        const categories = await getCategories()
+        if (categories) {
+            formFields.value[2].options = categories.map(cat => ({
+                label: cat.name,
+                value: cat.id
+            }))
+        }
+    } catch (error) {
+        console.error('Error fetching categories:', error)
+        alert('Không thể tải danh sách danh mục')
+    }
 })
 
 const handleSubmit = async () => {
     try {
+        if (!formData.value.name) {
+            alert('Vui lòng nhập tên danh mục')
+            return
+        }
+
+        if (!imageData.value) {
+            alert('Vui lòng chọn hình ảnh')
+            return
+        }
+
         const formDataToSend = new FormData()
         formDataToSend.append('name', formData.value.name)
-        formDataToSend.append('description', formData.value.description)
-        if (formData.value.image) {
-            formDataToSend.append('image', formData.value.image)
-        }
+        formDataToSend.append('description', formData.value.description || '')
+        formDataToSend.append('is_active', formData.value.is_active ? '1' : '0')
+
         if (formData.value.parent_id) {
             formDataToSend.append('parent_id', formData.value.parent_id)
         }
-        formDataToSend.append('status', formData.value.status)
 
-        const { data } = await useFetch('/api/categories', {
-            method: 'POST',
-            body: formDataToSend
-        })
+        console.log('Active status:', formData.value.is_active)
 
-        // Show success message
-        useToast().success('Tạo danh mục thành công')
+        if (imageData.value instanceof File) {
+            formDataToSend.append('image', imageData.value)
+        } else if (typeof imageData.value === 'string' && imageData.value.startsWith('data:')) {
+            const response = await fetch(imageData.value)
+            const blob = await response.blob()
+            formDataToSend.append('image', blob, 'image.jpg')
+        } else if (typeof imageData.value === 'string') {
+            formDataToSend.append('image', imageData.value)
+        }
+        console.log(formDataToSend)
 
-        // Navigate back to categories list
-        await navigateTo('/admin/categories')
+        const result = await createCategory(formDataToSend)
+
+        if (result) {
+            alert('Tạo danh mục thành công')
+            await navigateTo('/admin/categories')
+        }
     } catch (error) {
         console.error('Error creating category:', error)
-        useToast().error('Có lỗi xảy ra khi tạo danh mục')
+        const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo danh mục'
+        alert(errorMessage)
     }
 }
 </script>

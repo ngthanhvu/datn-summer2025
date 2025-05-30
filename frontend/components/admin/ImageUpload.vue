@@ -3,8 +3,9 @@
         <label :for="id" class="tw-block tw-text-sm tw-font-medium tw-text-gray-700">{{ label }}</label>
 
         <!-- Preview Image -->
-        <div v-if="modelValue" class="tw-relative tw-w-32 tw-h-32 tw-mb-4">
-            <img :src="previewUrl" class="tw-w-full tw-h-full tw-object-cover tw-rounded-lg" />
+        <div v-if="modelValue || previewUrl" class="tw-relative tw-w-32 tw-h-32 tw-mb-4">
+            <img :src="typeof modelValue === 'string' ? modelValue : previewUrl"
+                class="tw-w-full tw-h-full tw-object-cover tw-rounded-lg" />
             <button @click="removeImage"
                 class="tw-absolute tw-w-[25%] tw-top-0 tw-right-0 tw-p-1 tw-bg-red-500 tw-rounded-full tw-text-white hover:tw-bg-red-600 tw-transform tw-translate-x-1/2 tw--translate-y-1/2">
                 <i class="fas fa-times"></i>
@@ -37,7 +38,7 @@ import { ref, watch } from 'vue'
 
 const props = defineProps({
     modelValue: {
-        type: [File, null],
+        type: [File, String, null],
         default: null
     },
     label: {
@@ -58,12 +59,14 @@ const previewUrl = ref('')
 
 // Watch for changes in modelValue to update preview
 watch(() => props.modelValue, (newFile) => {
-    if (newFile) {
+    if (newFile && newFile instanceof File) {
         createPreviewUrl(newFile)
+    } else if (typeof newFile === 'string') {
+        previewUrl.value = newFile
     } else {
         clearPreview()
     }
-}, { immediate: true })
+}, { immediate: true, deep: true })
 
 function createPreviewUrl(file) {
     if (previewUrl.value) {

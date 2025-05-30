@@ -12,6 +12,11 @@ class CategoriesController extends Controller
     public function index()
     {
         $categories = Categories::select('id', 'name', 'slug', 'description', 'image', 'is_active', 'parent_id')->get();
+
+        $categories->transform(function ($category) {
+            $category->image = url('storage/' . $category->image);
+            return $category;
+        });
         return response()->json($categories);
     }
 

@@ -10,7 +10,13 @@ class BrandsController extends Controller
 {
     public function index()
     {
-        $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id')->get();
+        $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id', 'is_active')->get();
+
+        $brands->transform(function ($brand) {
+            $brand->image = url('storage/' . $brand->image);
+            return $brand;
+        });
+
         return response()->json($brands);
     }
 

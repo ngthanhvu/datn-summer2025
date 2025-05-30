@@ -21,7 +21,6 @@
                             <th class="tw-px-4 tw-py-3 tw-text-left">Logo</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Tên thương hiệu</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Mô tả</th>
-                            <th class="tw-px-4 tw-py-3 tw-text-left">Số sản phẩm</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Trạng thái</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Thao tác</th>
                         </tr>
@@ -30,18 +29,17 @@
                         <tr v-for="brand in brands" :key="brand.id" class="tw-border-b hover:tw-bg-gray-50">
                             <td class="tw-px-4 tw-py-3">#{{ brand.id }}</td>
                             <td class="tw-px-4 tw-py-3">
-                                <img :src="brand.logo" :alt="brand.name"
+                                <img :src="brand.image" :alt="brand.name"
                                     class="tw-w-10 tw-h-10 tw-object-cover tw-rounded">
                             </td>
                             <td class="tw-px-4 tw-py-3">{{ brand.name }}</td>
                             <td class="tw-px-4 tw-py-3">{{ brand.description }}</td>
-                            <td class="tw-px-4 tw-py-3">{{ brand.productCount }}</td>
                             <td class="tw-px-4 tw-py-3">
                                 <span :class="[
                                     'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
-                                    brand.status ? 'tw-bg-green-100 tw-text-green-700' : 'tw-bg-red-100 tw-text-red-700'
+                                    Number(brand.is_active) === 1 ? 'tw-bg-green-100 tw-text-green-700' : 'tw-bg-red-100 tw-text-red-700'
                                 ]">
-                                    {{ brand.status ? 'Hoạt động' : 'Vô hiệu' }}
+                                    {{ Number(brand.is_active) === 1 ? 'Hoạt động' : 'Vô hiệu' }}
                                 </span>
                             </td>
                             <td class="tw-px-4 tw-py-3">
@@ -57,6 +55,14 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr v-if="brands.length === 0">
+                            <td colspan="6" class="tw-py-8">
+                                <div class="tw-text-center tw-text-gray-500">
+                                    <i class="fas fa-box-open tw-text-4xl tw-mb-3"></i>
+                                    <p class="tw-text-lg">Không có thương hiệu nào</p>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -68,53 +74,53 @@
 definePageMeta({
     layout: 'admin'
 })
+import { useBrand } from '~/composables/useBrand'
+import Swal from 'sweetalert2'
 
-import { ref } from 'vue'
+const { getBrands, deleteBrand } = useBrand()
+const brands = ref([])
 
-// Mock data
-const brands = ref([
-    {
-        id: 1,
-        logo: 'https://via.placeholder.com/150',
-        name: 'Apple',
-        description: 'Công ty công nghệ Apple Inc.',
-        productCount: 12,
-        status: true
-    },
-    {
-        id: 2,
-        logo: 'https://via.placeholder.com/150',
-        name: 'Samsung',
-        description: 'Tập đoàn Samsung Electronics',
-        productCount: 18,
-        status: true
-    },
-    {
-        id: 3,
-        logo: 'https://via.placeholder.com/150',
-        name: 'Sony',
-        description: 'Tập đoàn Sony Corporation',
-        productCount: 8,
-        status: true
-    },
-    {
-        id: 4,
-        logo: 'https://via.placeholder.com/150',
-        name: 'LG',
-        description: 'Tập đoàn LG Electronics',
-        productCount: 6,
-        status: false
-    }
-])
-
-const handleDelete = (brand) => {
-    if (confirm('Bạn có chắc chắn muốn xóa thương hiệu này?')) {
-        const index = brands.value.findIndex(b => b.id === brand.id)
-        if (index !== -1) {
-            brands.value.splice(index, 1)
+const handleDelete = async (brand) => {
+    Swal.fire({
+        title: 'Bạn có chắc chắn muốn xóa thương hiệu?',
+        text: `Bạn có chắc chắn muốn xóa thương hiệu "${brand.name}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Xóa',
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                await deleteBrand(brand.id)
+                brands.value = await getBrands()
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                })
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Thương hiệu đã được xóa thành công'
+                })
+            } catch (error) {
+                console.error('Failed to delete brand:', error)
+                Swal.fire('Có lỗi xảy ra khi xóa thương hiệu', error.message, 'error')
+            }
         }
-    }
+    })
 }
+
+onMounted(async () => {
+    try {
+        brands.value = await getBrands()
+        console.log(brands.value)
+    } catch (error) {
+        console.error('Failed to fetch brands:', error)
+    }
+})
 </script>
 
 <style scoped>
