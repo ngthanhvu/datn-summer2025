@@ -21,6 +21,7 @@
                             <th class="tw-px-4 tw-py-3 tw-text-left">Ảnh</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Tên danh mục</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Mô tả</th>
+                            <th class="tw-px-4 tw-py-3 tw-text-left">Danh mục cha</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Trạng thái</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Thao tác</th>
                         </tr>
@@ -34,6 +35,8 @@
                             </td>
                             <td class="tw-px-4 tw-py-3">{{ category.name }}</td>
                             <td class="tw-px-4 tw-py-3">{{ category.description }}</td>
+                            <td class="tw-px-4 tw-py-3">{{category.parent_id ? categories.find(c => c.id ===
+                                category.parent_id).name : 'Không có danh mục cha'}}</td>
                             <td class="tw-px-4 tw-py-3">
                                 <span :class="[
                                     'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
