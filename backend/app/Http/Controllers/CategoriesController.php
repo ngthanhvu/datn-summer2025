@@ -27,7 +27,7 @@ class CategoriesController extends Controller
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-                'parent_id' => 'nullable|exists:brands,id',
+                'parent_id' => 'nullable|exists:categories,id',
                 'is_active' => 'boolean',
             ]);
             $slug = Str::slug($request->name);
@@ -49,7 +49,7 @@ class CategoriesController extends Controller
                 'description' => $request->description,
                 'image' => $imagePath,
                 'parent_id' => $request->parent_id ?: null,
-                'is_active' => $request->is_active ?: true,
+                'is_active' => $request->has('is_active') ? (bool) $request->is_active : true,
             ]);
             return response()->json($category, 201);
         } catch (\Exception $e) {
@@ -65,7 +65,7 @@ class CategoriesController extends Controller
                 'name' => 'string|max:255',
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-                'parent_id' => 'nullable|exists:brands,id',
+                'parent_id' => 'nullable|exists:categories,id',
                 'is_active' => 'boolean',
             ]);
             $category = Categories::findOrFail($id);

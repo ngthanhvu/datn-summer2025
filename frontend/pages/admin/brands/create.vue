@@ -12,10 +12,10 @@
             </NuxtLink>
         </div>
 
-        <Form :fields="formFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+        <Form :fields="formFields" v-model="formData" @submit="handleSubmit" />
 
         <div class="tw-mt-6">
-            <ImageUpload v-model="formData.image" label="Logo thương hiệu" required />
+            <ImageUpload v-model="imageData" label="Logo thương hiệu" required />
         </div>
 
         <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
@@ -32,11 +32,15 @@
 </template>
 
 <script setup>
+useHead({
+    title: 'Thêm thương hiệu'
+})
 definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'admin',
 })
 
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import Form from '~/components/admin/Form.vue'
 import ImageUpload from '~/components/admin/ImageUpload.vue'
 
@@ -46,12 +50,15 @@ const formData = ref({
     name: '',
     description: '',
     image: null,
-    status: true
+    parent_id: '',
+    is_active: true
 })
+
+const imageData = ref(null)
 
 const parentBrands = ref([])
 
-const formFields = [
+const formFields = ref([
     {
         name: 'name',
         label: 'Tên thương hiệu',
@@ -67,19 +74,28 @@ const formFields = [
         rows: 4
     },
     {
-        name: 'status',
+        name: 'parent_id',
+        label: 'Thương hiệu cha',
+        type: 'select',
+        placeholder: 'Chọn thương hiệu cha',
+        options: [],
+        clearable: true
+    },
+    {
+        name: 'is_active',
         label: 'Trạng thái',
-        type: 'toggle'
+        type: 'toggle',
+        value: true
     }
-]
+])
 
 onMounted(async () => {
     try {
         const brands = await getBrands()
         if (brands) {
-            parentBrands.value = brands.map(brand => ({
+            formFields.value[2].options = brands.map(brand => ({
                 label: brand.name,
-                value: brand.id
+                value: brand.id.toString()
             }))
         }
     } catch (error) {
@@ -90,56 +106,58 @@ onMounted(async () => {
 
 const handleSubmit = async () => {
     try {
-
         if (!formData.value.name) {
             alert('Vui lòng nhập tên thương hiệu')
             return
         }
 
-        if (!formData.value.image) {
+        if (!imageData.value) {
             alert('Vui lòng chọn hình ảnh')
             return
         }
 
         const formDataToSend = new FormData()
+        formDataToSend.append('name', formData.value.name)
+        formDataToSend.append('description', formData.value.description || '')
 
-        Object.keys(formData.value).forEach(key => {
-            if (formData.value[key] !== null && key !== 'image') {
-                formDataToSend.append(key, formData.value[key])
-            }
-        })
+        const isActive = formData.value.is_active === undefined ? true : Boolean(formData.value.is_active)
+        formDataToSend.append('is_active', isActive ? '1' : '0')
 
-        if (formData.value.image instanceof File) {
-            formDataToSend.append('image', formData.value.image)
+        const parentId = formData.value.parent_id
+        if (parentId && parentId !== '') {
+            formDataToSend.append('parent_id', parentId.toString())
         }
 
-        await createBrand(formDataToSend)
+        console.log('Form submission - Raw form data:', {
+            ...formData.value,
+            is_active: isActive,
+            parent_id: parentId
+        })
 
-        alert('Tạo thương hiệu thành công')
+        if (imageData.value instanceof File) {
+            formDataToSend.append('image', imageData.value)
+        } else if (typeof imageData.value === 'string' && imageData.value.startsWith('data:')) {
+            const response = await fetch(imageData.value)
+            const blob = await response.blob()
+            formDataToSend.append('image', blob, 'image.jpg')
+        } else if (typeof imageData.value === 'string') {
+            formDataToSend.append('image', imageData.value)
+        }
 
-        await navigateTo('/admin/brands')
+        for (let pair of formDataToSend.entries()) {
+            console.log('FormData entry:', pair[0], pair[1])
+        }
 
-        // const formDataToSend = new FormData()
-        // formDataToSend.append('name', formData.value.name)
-        // formDataToSend.append('description', formData.value.description)
-        // if (formData.value.image) {
-        //     formDataToSend.append('image', formData.value.image)
-        // }
-        // formDataToSend.append('status', formData.value.status)
+        const result = await createBrand(formDataToSend)
 
-        // const { data } = await useFetch('/api/brands', {
-        //     method: 'POST',
-        //     body: formDataToSend
-        // })
-
-        // // Show success message
-        // useToast().success('Tạo thương hiệu thành công')
-
-        // // Navigate back to brands list
-        // await navigateTo('/admin/brands')
+        if (result) {
+            alert('Tạo thương hiệu thành công')
+            await navigateTo('/admin/brands')
+        }
     } catch (error) {
         console.error('Error creating brand:', error)
-        useToast().error('Có lỗi xảy ra khi tạo thương hiệu')
+        const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo thương hiệu'
+        alert(errorMessage)
     }
 }
 </script>

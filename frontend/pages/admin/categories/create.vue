@@ -12,7 +12,7 @@
             </NuxtLink>
         </div>
 
-        <Form :fields="formFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+        <Form :fields="formFields" v-model="formData" @submit="handleSubmit" />
 
         <div class="tw-mt-6">
             <ImageUpload v-model="imageData" label="Hình ảnh" required />
@@ -50,8 +50,8 @@ const formData = ref({
     name: '',
     description: '',
     image: null,
-    parent_id: null,
-    is_active: 1
+    parent_id: '',
+    is_active: true
 })
 
 const imageData = ref(null)
@@ -78,19 +78,16 @@ const formFields = ref([
         label: 'Danh mục cha',
         type: 'select',
         placeholder: 'Chọn danh mục cha',
-        options: []
+        options: [],
+        clearable: true
     },
     {
         name: 'is_active',
         label: 'Trạng thái',
-        type: 'toggle'
+        type: 'toggle',
+        value: true
     }
 ])
-
-// Watch for image changes
-watch(imageData, (newValue) => {
-    formData.value.image = newValue
-}, { deep: true })
 
 onMounted(async () => {
     try {
@@ -98,7 +95,7 @@ onMounted(async () => {
         if (categories) {
             formFields.value[2].options = categories.map(cat => ({
                 label: cat.name,
-                value: cat.id
+                value: cat.id.toString()
             }))
         }
     } catch (error) {
@@ -122,13 +119,20 @@ const handleSubmit = async () => {
         const formDataToSend = new FormData()
         formDataToSend.append('name', formData.value.name)
         formDataToSend.append('description', formData.value.description || '')
-        formDataToSend.append('is_active', formData.value.is_active ? '1' : '0')
 
-        if (formData.value.parent_id) {
-            formDataToSend.append('parent_id', formData.value.parent_id)
+        const isActive = formData.value.is_active === undefined ? true : Boolean(formData.value.is_active)
+        formDataToSend.append('is_active', isActive ? '1' : '0')
+
+        const parentId = formData.value.parent_id
+        if (parentId && parentId !== '') {
+            formDataToSend.append('parent_id', parentId.toString())
         }
 
-        console.log('Active status:', formData.value.is_active)
+        console.log('Form submission - Raw form data:', {
+            ...formData.value,
+            is_active: isActive,
+            parent_id: parentId
+        })
 
         if (imageData.value instanceof File) {
             formDataToSend.append('image', imageData.value)
@@ -139,7 +143,10 @@ const handleSubmit = async () => {
         } else if (typeof imageData.value === 'string') {
             formDataToSend.append('image', imageData.value)
         }
-        console.log(formDataToSend)
+
+        for (let pair of formDataToSend.entries()) {
+            console.log('FormData entry:', pair[0], pair[1])
+        }
 
         const result = await createCategory(formDataToSend)
 

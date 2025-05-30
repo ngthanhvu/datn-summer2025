@@ -45,7 +45,7 @@ class BrandsController extends Controller
                 'description' => $request->description,
                 'image' => $imagePath,
                 'parent_id' => $request->parent_id ?: null,
-                'is_active' => $request->is_active ?: true,
+                'is_active' => $request->has('is_active') ? (bool) $request->is_active : true,
             ]);
             return response()->json($brand, 201);
         } catch (\Exception $e) {
