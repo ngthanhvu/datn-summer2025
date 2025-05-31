@@ -111,7 +111,7 @@ export const useProducts = () => {
         deleteProduct,
         toggleFavorite,
         getFavoriteProducts,
-        isFavorite
+        isFavorite,
         getBrands,
         getCategories
     }
