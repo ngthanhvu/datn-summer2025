@@ -64,16 +64,27 @@
                             <input type="checkbox" v-model="selectedItems" :value="item" class="tw-rounded" />
                         </td>
                         <td v-for="column in columns" :key="column.key" class="tw-px-4 tw-py-3">
-                            <!-- Image column -->
-                            <template v-if="column.type === 'image'">
-                                <img :src="item[column.key]" :alt="item[column.altKey || 'name']"
-                                    class="tw-w-14 tw-h-14 tw-object-cover tw-rounded" />
+                            <!-- Main image column -->
+                            <template v-if="column.type === 'main_image'">
+                                <img :src="getMainImage(item.images)?.image_path"
+                                    :alt="getMainImage(item.images)?.image_path"
+                                    class="tw-w-12 tw-h-12 tw-object-cover tw-rounded" />
+                            </template>
+
+                            <!-- Sub images column -->
+                            <template v-else-if="column.type === 'sub_images'">
+                                <div class="tw-flex tw-gap-1">
+                                    <img v-for="image in getSubImages(item.images)" :key="image.id"
+                                        :src="image.image_path" :alt="image.image_path"
+                                        class="tw-w-8 tw-h-8 tw-object-cover tw-rounded tw-cursor-pointer hover:tw-opacity-75"
+                                        @click="handleImageClick(image)" />
+                                </div>
                             </template>
 
                             <!-- Status column -->
                             <template v-else-if="column.type === 'status'">
-                                <span :class="badgeClass(item[column.key])">
-                                    {{ item[column.labelKey || column.key] }}
+                                <span :class="getStatusBadgeClass(item[column.key])">
+                                    {{ getStatusText(item[column.key]) }}
                                 </span>
                             </template>
 
@@ -136,6 +147,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import Badges from './Badges.vue'
+import ProductImages from './ProductImages.vue'
 
 const props = defineProps({
     // Data
@@ -303,23 +315,27 @@ const formatPrice = (price) => {
     }).format(price)
 }
 
-const badgeClass = (status) => {
-    switch (status) {
-        case true:
-        case 'active':
-        case 'completed':
-            return 'tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-        case 'processing':
-            return 'tw-bg-blue-100 tw-text-blue-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-        case 'pending':
-            return 'tw-bg-yellow-100 tw-text-yellow-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-        case false:
-        case 'inactive':
-        case 'cancelled':
-            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-        default:
-            return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-    }
+const getStatusBadgeClass = (status) => {
+    return status === 1
+        ? 'tw-bg-green-100 tw-text-green-700 tw-px-2 tw-py-1 tw-rounded-full tw-text-xs'
+        : 'tw-bg-red-100 tw-text-red-700 tw-px-2 tw-py-1 tw-rounded-full tw-text-xs'
+}
+
+const getStatusText = (status) => {
+    return status === 1 ? 'Hoạt động' : 'Vô hiệu'
+}
+
+const handleImageClick = (image) => {
+    // Handle image click if needed
+    console.log('Image clicked:', image)
+}
+
+const getMainImage = (images) => {
+    return images?.find(img => img.is_main === 1)
+}
+
+const getSubImages = (images) => {
+    return images?.filter(img => img.is_main === 0) || []
 }
 </script>
 

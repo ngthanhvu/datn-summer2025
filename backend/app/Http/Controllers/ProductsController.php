@@ -35,6 +35,14 @@ class ProductsController extends Controller
             )
             ->get();
 
+        $products->transform(function ($product) {
+            $product->images->transform(function ($image) {
+                $image->image_path = url('storage/' . $image->image_path);
+                return $image;
+            });
+            return $product;
+        });
+
         return response()->json($products);
     }
 

@@ -15,7 +15,9 @@
     <div class="tw-flex tw-flex-col tw-gap-6">
       <div class="tw-grid tw-grid-cols-2 tw-gap-6">
         <div class="tw-space-y-4">
-          <Form :fields="basicFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+          <Form v-if="isDataLoaded" :fields="basicFields" :initial-data="formData" v-model="formData"
+            @submit="handleSubmit" />
+          <div v-else class="tw-text-center tw-text-gray-500">Đang tải danh mục và thương hiệu...</div>
         </div>
         <div class="tw-space-y-4">
           <Form :fields="imageFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
@@ -73,10 +75,14 @@ definePageMeta({
   layout: 'admin'
 })
 
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Form from '~/components/admin/Form.vue'
+import { useProducts } from '~/composables/useProducts'
+import { useCategory } from '~/composables/useCategory'
+import { useBrand } from '~/composables/useBrand'
 
-const basicFields = [
+const isDataLoaded = ref(false)
+const basicFields = ref([
   {
     name: 'name',
     label: 'Tên sản phẩm',
@@ -94,16 +100,38 @@ const basicFields = [
     step: 1000
   },
   {
+    name: 'original_price',
+    label: 'Giá gốc',
+    type: 'number',
+    placeholder: 'Nhập giá gốc',
+    required: false,
+    min: 0,
+    step: 1000
+  },
+  {
+    name: 'discount_price',
+    label: 'Giá khuyến mãi',
+    type: 'number',
+    placeholder: 'Nhập giá khuyến mãi',
+    required: false,
+    min: 0,
+    step: 1000
+  },
+  {
+    name: 'quantity',
+    label: 'Số lượng',
+    type: 'number',
+    placeholder: 'Nhập số lượng',
+    required: true,
+    min: 0
+  },
+  {
     name: 'category',
     label: 'Danh mục',
     type: 'select',
     placeholder: 'Chọn danh mục',
     required: true,
-    options: [
-      { value: 'phone', label: 'Điện thoại' },
-      { value: 'laptop', label: 'Laptop' },
-      { value: 'tablet', label: 'Máy tính bảng' }
-    ]
+    options: []
   },
   {
     name: 'brand',
@@ -111,12 +139,7 @@ const basicFields = [
     type: 'select',
     placeholder: 'Chọn thương hiệu',
     required: true,
-    options: [
-      { value: 'apple', label: 'Apple' },
-      { value: 'samsung', label: 'Samsung' },
-      { value: 'sony', label: 'Sony' },
-      { value: 'lg', label: 'LG' }
-    ]
+    options: []
   },
   {
     name: 'description',
@@ -130,7 +153,7 @@ const basicFields = [
     label: 'Trạng thái',
     type: 'toggle'
   }
-]
+])
 
 const variantFields = [
   {
@@ -192,6 +215,9 @@ const imageFields = [
 const formData = ref({
   name: '',
   price: 0,
+  original_price: 0,
+  discount_price: 0,
+  quantity: 0,
   category: '',
   brand: '',
   description: '',
@@ -200,58 +226,88 @@ const formData = ref({
   mainImagePreview: null,
   additionalImages: [],
   additionalImagePreviews: [],
-  variants: []  // Changed to empty array initially
+  variants: []
 })
 
-// Add showVariants ref to control visibility
 const showVariants = ref(false)
+
+const { createProduct } = useProducts()
+const { getCategories } = useCategory()
+const { getBrands } = useBrand()
+
+onMounted(async () => {
+  try {
+    const [categories, brands] = await Promise.all([
+      getCategories(),
+      getBrands()
+    ])
+
+    if (categories && Array.isArray(categories)) {
+      const catOptions = categories.map(cat => ({ value: String(cat.id), label: cat.name }))
+      const categoryField = basicFields.value.find(f => f.name === 'category')
+      if (categoryField) {
+        categoryField.options = catOptions
+      }
+    }
+
+    if (brands && Array.isArray(brands)) {
+      const brandOptions = brands.map(brand => ({ value: String(brand.id), label: brand.name }))
+      const brandField = basicFields.value.find(f => f.name === 'brand')
+      if (brandField) {
+        brandField.options = brandOptions
+      }
+    }
+
+    isDataLoaded.value = true
+  } catch (err) {
+    console.error('Không thể tải danh mục/thương hiệu', err)
+  }
+})
 
 const handleSubmit = async () => {
   try {
-    // Validate if main image is selected
     if (!formData.value.mainImage) {
       alert('Vui lòng chọn ảnh chính cho sản phẩm')
       return
     }
 
-    // Prepare form data for API
     const productData = new FormData()
     productData.append('name', formData.value.name)
-    productData.append('price', formData.value.price)
-    productData.append('category', formData.value.category)
-    productData.append('brand', formData.value.brand)
     productData.append('description', formData.value.description)
-    productData.append('status', formData.value.status)
-    productData.append('mainImage', formData.value.mainImage)
+    productData.append('price', String(formData.value.price))
+    productData.append('original_price', String(formData.value.original_price))
+    productData.append('discount_price', String(formData.value.discount_price))
+    productData.append('quantity', String(formData.value.quantity))
+    productData.append('is_active', formData.value.status ? '1' : '0')
+    productData.append('categories_id', String(formData.value.category))
+    productData.append('brand_id', String(formData.value.brand))
+    productData.append('is_main', formData.value.mainImage)
 
-    // Append variants data only if there are variants
+    formData.value.additionalImages.forEach((img) => {
+      productData.append('image_path[]', img)
+    })
+
     if (formData.value.variants.length > 0) {
-      formData.value.variants.forEach((variant, index) => {
-        Object.keys(variant).forEach(key => {
-          productData.append(`variants[${index}][${key}]`, variant[key])
-        })
+      formData.value.variants.forEach((variant, idx) => {
+        productData.append(`variants[${idx}][color]`, variant.color)
+        productData.append(`variants[${idx}][size]`, variant.size)
+        productData.append(`variants[${idx}][price]`, String(variant.price))
+        productData.append(`variants[${idx}][quantity]`, String(variant.quantity))
+        productData.append(`variants[${idx}][sku]`, variant.sku)
       })
     }
 
-    // Append additional images if any
-    formData.value.additionalImages.forEach((image, index) => {
-      productData.append(`additionalImages[${index}]`, image)
-    })
-
-    // TODO: Call API to create product with images
-    console.log('Create product with images:', formData.value)
-
-    // Navigate back to products list
+    await createProduct(productData)
     await navigateTo('/admin/products')
   } catch (error) {
     console.error('Error creating product:', error)
+    alert('Có lỗi khi tạo sản phẩm')
   }
 }
 
-// Add new function to handle showing variants section
 const showVariantsSection = () => {
   showVariants.value = true
-  addVariant() // Add first variant immediately
+  addVariant()
 }
 
 const addVariant = () => {
@@ -266,7 +322,6 @@ const addVariant = () => {
 
 const removeVariant = (index) => {
   formData.value.variants.splice(index, 1)
-  // Hide variants section if no variants left
   if (formData.value.variants.length === 0) {
     showVariants.value = false
   }
