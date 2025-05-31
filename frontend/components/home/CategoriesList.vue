@@ -22,18 +22,18 @@
                         spaceBetween: 30
                     }
                 }" class="categories-swiper">
-                <swiper-slide v-for="(item, index) in categories" :key="index">
-                    <NuxtLink :to="`/category/${item.label.toLowerCase().replace(/\s+/g, '-')}`"
+                <swiper-slide v-for="category in categories" :key="category.id">
+                    <NuxtLink :to="`/category/${category.slug}`"
                         class="tw-flex tw-flex-col tw-items-center tw-space-y-3 tw-transition-transform tw-duration-300 hover:tw-scale-110">
                         <!-- Image inside big circle -->
                         <div
                             class="tw-w-36 tw-h-36 tw-rounded-full tw-bg-gray-100 tw-flex tw-items-center tw-justify-center tw-overflow-hidden">
-                            <img :src="item.image" :alt="item.label" class="tw-w-28 tw-h-28 tw-object-contain" />
+                            <img :src="category.image" :alt="category.name" class="tw-w-28 tw-h-28 tw-object-contain" />
                         </div>
 
                         <!-- Label -->
-                        <p class="tw-text-base tw-font-medium">{{ item.label }}</p>
-                        <p class="tw-text-sm tw-text-gray-500">{{ item.count }} sản phẩm</p>
+                        <p class="tw-text-base tw-font-medium">{{ category.name }}</p>
+                        <p class="tw-text-sm tw-text-gray-500">{{ category.product_count || 0 }} sản phẩm</p>
                     </NuxtLink>
                 </swiper-slide>
             </swiper>
@@ -46,15 +46,18 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination as SwiperPagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
+import { ref, onMounted } from 'vue'
 
-const categories = [
-    { label: 'Áo khoác', image: 'https://theme.hstatic.net/200000696635/1001257291/14/season_coll_2_img_large.png?v=107', count: 8 },
-    { label: 'Áo sơ mi', image: 'https://theme.hstatic.net/200000696635/1001257291/14/season_coll_2_img_large.png?v=107', count: 6 },
-    { label: 'Áo thun', image: 'https://theme.hstatic.net/200000696635/1001257291/14/season_coll_2_img_large.png?v=107', count: 7 },
-    { label: 'Quần dài nam', image: 'https://theme.hstatic.net/200000696635/1001257291/14/season_coll_2_img_large.png?v=107', count: 5 },
-    { label: 'Quần jeans', image: 'https://theme.hstatic.net/200000696635/1001257291/14/season_coll_2_img_large.png?v=107', count: 4 },
-    { label: 'Quần short', image: 'https://theme.hstatic.net/200000696635/1001257291/14/season_coll_2_img_large.png?v=107', count: 5 }
-]
+const { getCategories } = useCategory()
+const categories = ref([])
+
+onMounted(async () => {
+    try {
+        categories.value = await getCategories()
+    } catch (error) {
+        console.error('Error fetching categories:', error)
+    }
+})
 </script>
 
 <style scoped>

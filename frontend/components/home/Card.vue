@@ -3,8 +3,8 @@
     <!-- Image wrapper -->
     <div class="tw-relative tw-overflow-hidden">
       <img
-        src="https://product.hstatic.net/200000696635/product/frame_25_fb1b30c611ec4ebb88fc27d011201815_d572fde53b934b5ea502c2dd0a56a0d7_large.png"
-        alt="Quần short nam"
+        :src="getMainImage"
+        :alt="product.name"
         class="tw-w-full tw-object-cover tw-h-80 tw-transition-transform group-hover:tw-scale-105 tw-duration-300" />
 
       <!-- Hover overlay -->
@@ -18,7 +18,8 @@
         <!-- Add to cart -->
         <button
           class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
-          title="Thêm vào giỏ">
+          title="Thêm vào giỏ"
+          @click="addToCart">
           <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -29,7 +30,8 @@
         <!-- Quick view -->
         <button
           class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
-          title="Xem nhanh">
+          title="Xem nhanh"
+          @click="showQuickView">
           <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -43,36 +45,104 @@
 
     <!-- Product info -->
     <div class="tw-px-3 tw-mt-2">
-      <p class="tw-text-xs tw-uppercase tw-text-gray-400">Khác</p>
-      <p class="tw-text-sm tw-font-medium tw-text-gray-900">Quần short nam</p>
+      <p class="tw-text-xs tw-uppercase tw-text-gray-400">{{ categoryName }}</p>
+      <p class="tw-text-sm tw-font-medium tw-text-gray-900">{{ product.name }}</p>
 
       <!-- Price -->
       <div class="tw-flex tw-items-center tw-gap-2 tw-mt-1">
-        <p class="tw-text-blue-600 tw-font-semibold tw-text-base">489,000đ</p>
-        <p class="tw-text-gray-400 tw-line-through tw-text-sm">789,000đ</p>
-        <span class="tw-bg-red-600 tw-text-white tw-text-xs tw-rounded-full tw-px-2 tw-py-[1px]">-39%</span>
+        <p class="tw-text-blue-600 tw-font-semibold tw-text-base">{{ formatPrice(product.discount_price || product.price) }}</p>
+        <template v-if="product.discount_price && product.discount_price < product.price">
+          <p class="tw-text-gray-400 tw-line-through tw-text-sm">{{ formatPrice(product.price) }}</p>
+          <span class="tw-bg-red-600 tw-text-white tw-text-xs tw-rounded-full tw-px-2 tw-py-[1px]">
+            -{{ calculateDiscount(product.price, product.discount_price) }}%
+          </span>
+        </template>
       </div>
 
-      <!-- Swatches & extra -->
+      <!-- Variants & extra -->
       <div class="tw-flex tw-items-center tw-justify-between tw-mt-3">
-        <div class="tw-flex tw-items-center tw-gap-1">
-          <div class="tw-w-4 tw-h-4 tw-rounded-full tw-border tw-border-gray-300 tw-bg-orange-400"></div>
-          <span class="tw-text-xs tw-text-gray-500">+2</span>
+        <div class="tw-flex tw-items-center tw-gap-1" v-if="product.variants && product.variants.length">
+          <div 
+            v-for="(variant, index) in displayedVariants" 
+            :key="index"
+            class="tw-w-4 tw-h-4 tw-rounded-full tw-border tw-border-gray-300"
+            :style="{ backgroundColor: variant.color }">
+          </div>
+          <span v-if="product.variants.length > maxDisplayVariants" class="tw-text-xs tw-text-gray-500">
+            +{{ product.variants.length - maxDisplayVariants }}
+          </span>
         </div>
 
         <!-- Like Icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-          class="tw-w-5 tw-h-5 tw-text-gray-500 tw-cursor-pointer hover:tw-text-red-500 tw-transition tw-duration-200">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.682l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-        </svg>
+        <FavoriteButton :product-id="product.id" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import FavoriteButton from '../common/FavoriteButton.vue'
 
+const props = defineProps({
+  product: {
+    type: Object,
+    required: true
+  }
+})
+
+const { getCategoryById } = useCategory()
+const categoryName = ref('Khác')
+const maxDisplayVariants = 3
+
+onMounted(async () => {
+  if (props.product.categories_id) {
+    try {
+      const category = await getCategoryById(props.product.categories_id)
+      categoryName.value = category.name
+    } catch (error) {
+      console.error('Error fetching category:', error)
+    }
+  }
+})
+
+const displayedVariants = computed(() => {
+  return props.product.variants?.slice(0, maxDisplayVariants) || []
+})
+
+const getMainImage = computed(() => {
+  const mainImage = props.product.images?.find(img => img.is_main === 1)
+  return mainImage ? mainImage.image_path : props.product.images?.[0]?.image_path
+})
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(price)
+}
+
+const calculateDiscount = (originalPrice, discountPrice) => {
+  return Math.round(((originalPrice - discountPrice) / originalPrice) * 100)
+}
+
+const addToCart = () => {
+  // TODO: Implement add to cart functionality
+  console.log('Add to cart:', props.product)
+}
+
+const showQuickView = () => {
+  // TODO: Implement quick view functionality
+  console.log('Quick view:', props.product)
+}
 </script>
 
-<style></style>
+<style scoped>
+.favorite-tooltip {
+  @apply tw-invisible tw-opacity-0 tw-transition-all tw-duration-200;
+}
+
+.group:hover .favorite-tooltip {
+  @apply tw-visible tw-opacity-100;
+}
+</style>

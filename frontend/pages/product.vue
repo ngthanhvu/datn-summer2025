@@ -13,28 +13,56 @@
             </svg>
             Lọc sản phẩm
           </button>
-          <ProductSort />
+          <ProductSort @sort="handleSort" />
         </div>
-        <ProductGrid />
+        
+        <!-- Products Grid -->
+        <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
+          <Card v-for="product in products" :key="product.id" :product="product" />
+        </div>
+
+        <!-- Empty State -->
+        <div v-if="products.length === 0" class="tw-text-center tw-py-12">
+          <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-12 tw-w-12 tw-mx-auto tw-text-gray-400 tw-mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          </svg>
+          <h3 class="tw-text-lg tw-font-medium tw-text-gray-900">Không tìm thấy sản phẩm</h3>
+          <p class="tw-text-gray-500">Vui lòng thử lại với bộ lọc khác</p>
+        </div>
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import ProductFilter from '~/components/product/ProductFilter.vue'
 import ProductSort from '~/components/product/ProductSort.vue'
-import ProductGrid from '~/components/product/ProductGrid.vue'
+import Card from '~/components/home/Card.vue'
 
 const showFilter = ref(false)
+const products = ref([])
+const { getProducts } = useProducts()
+
+onMounted(async () => {
+  try {
+    products.value = await getProducts()
+  } catch (error) {
+    console.error('Error fetching products:', error)
+  }
+})
+
+const handleSort = (sortOption) => {
+  // Implement sorting logic here
+  console.log('Sort by:', sortOption)
+}
 
 useHead({
   title: 'Sản phẩm - DEVGANG',
   meta: [
     { name: 'description', content: 'Sản phẩm - DEVGANG' },
   ],
-});
+})
 </script>
 
 <style scoped>

@@ -73,12 +73,45 @@ export const useProducts = () => {
         }
     }
 
+    const toggleFavorite = async (productId) => {
+        try {
+            const response = await API.post(`/api/products/${productId}/favorite`)
+            return response.data
+        } catch (error) {
+            console.error('Error toggling favorite:', error)
+            throw error
+        }
+    }
+
+    const getFavoriteProducts = async () => {
+        try {
+            const response = await API.get('/api/products/favorites')
+            return response.data
+        } catch (error) {
+            console.error('Error getting favorite products:', error)
+            throw error
+        }
+    }
+
+    const isFavorite = async (productId) => {
+        try {
+            const response = await API.get(`/api/products/${productId}/favorite`)
+            return response.data.is_favorite
+        } catch (error) {
+            console.error('Error checking favorite status:', error)
+            return false
+        }
+    }
+
     return {
         getProducts,
         getProductById,
         createProduct,
         updateProduct,
         deleteProduct,
+        toggleFavorite,
+        getFavoriteProducts,
+        isFavorite
         getBrands,
         getCategories
     }
