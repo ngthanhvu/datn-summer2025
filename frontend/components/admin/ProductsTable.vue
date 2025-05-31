@@ -20,20 +20,23 @@
                     </option>
                 </select>
 
-                <input v-if="showDateFilter" v-model="selectedDate" type="date"
-                    class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56" />
-
-                <select v-if="statuses.length" v-model="selectedStatus"
+                <select v-if="brands.length" v-model="selectedBrand"
                     class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
-                    <option value="">Tất cả trạng thái</option>
-                    <option v-for="status in statuses" :key="status.value" :value="status.value">
-                        {{ status.label }}
+                    <option value="">Tất cả thương hiệu</option>
+                    <option v-for="brand in brands" :key="brand.value" :value="brand.value">
+                        {{ brand.label }}
                     </option>
+                </select>
+
+                <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="1">Hoạt động</option>
+                    <option value="0">Vô hiệu</option>
                 </select>
             </div>
 
             <!-- Add button -->
-            <NuxtLink v-if="createRoute" :to="createRoute"
+            <NuxtLink to="/admin/products/create"
                 class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-primary-dark">
                 <i class="fas fa-plus"></i>
                 Thêm mới
@@ -45,24 +48,17 @@
             <table class="tw-w-full tw-text-left">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
-                        <th v-if="selectable" class="tw-px-4 tw-py-3">
-                            <input type="checkbox" :checked="allSelected" @change="toggleSelectAll"
-                                class="tw-rounded" />
-                        </th>
                         <th v-for="column in columns" :key="column.key" class="tw-px-4 tw-py-3 tw-font-semibold"
                             @click="sortBy(column.key)">
                             {{ column.label }}
                             <i v-if="sortKey === column.key"
                                 :class="['fas', sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down']"></i>
                         </th>
-                        <th v-if="showActions" class="tw-px-4 tw-py-3 tw-font-semibold">Thao tác</th>
+                        <th class="tw-px-4 tw-py-3 tw-font-semibold">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(item, index) in paginatedData" :key="index" class="tw-border-b hover:tw-bg-gray-50">
-                        <td v-if="selectable" class="tw-px-4 tw-py-3">
-                            <input type="checkbox" v-model="selectedItems" :value="item" class="tw-rounded" />
-                        </td>
                         <td v-for="column in columns" :key="column.key" class="tw-px-4 tw-py-3">
                             <!-- Main image column -->
                             <template v-if="column.type === 'main_image'">
@@ -115,13 +111,13 @@
                         </td>
 
                         <!-- Actions column -->
-                        <td v-if="showActions" class="tw-px-4 tw-py-3">
+                        <td class="tw-px-4 tw-py-3">
                             <div class="tw-flex tw-gap-2">
-                                <NuxtLink v-if="editRoute" :to="editRoute + '/' + item.id"
+                                <NuxtLink :to="`/admin/products/${item.id}/edit`"
                                     class="tw-bg-blue-600 tw-text-white tw-rounded tw-p-2 hover:tw-bg-blue-700">
                                     <i class="fas fa-edit"></i>
                                 </NuxtLink>
-                                <button v-if="showDeleteButton" @click="$emit('delete', item)"
+                                <button @click="$emit('delete', item)"
                                     class="tw-bg-red-600 tw-text-white tw-rounded tw-p-2 hover:tw-bg-red-700">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -157,10 +153,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import Badges from './Badges.vue'
-import ProductImages from './ProductImages.vue'
 
 const props = defineProps({
-    // Data
     data: {
         type: Array,
         required: true,
@@ -171,60 +165,27 @@ const props = defineProps({
         required: true,
         default: () => []
     },
-    itemsPerPage: {
-        type: Number,
-        default: 10
-    },
-
-    // Routes
-    createRoute: {
-        type: String,
-        default: ''
-    },
-    editRoute: {
-        type: String,
-        default: ''
-    },
-
-    // Filters
     categories: {
         type: Array,
         default: () => []
     },
-    statuses: {
+    brands: {
         type: Array,
         default: () => []
     },
-    showDateFilter: {
-        type: Boolean,
-        default: false
-    },
-
-    // Selection
-    selectable: {
-        type: Boolean,
-        default: false
-    },
-
-    // Actions
-    showActions: {
-        type: Boolean,
-        default: true
-    },
-    showDeleteButton: {
-        type: Boolean,
-        default: true
+    itemsPerPage: {
+        type: Number,
+        default: 10
     }
 })
 
-const emit = defineEmits(['delete', 'selection-change', 'filter-change'])
+const emit = defineEmits(['delete', 'filter-change'])
 
 // State
 const searchQuery = ref('')
-const selectedItems = ref([])
 const selectedCategory = ref('')
+const selectedBrand = ref('')
 const selectedStatus = ref('')
-const selectedDate = ref('')
 const currentPage = ref(1)
 const sortKey = ref('')
 const sortOrder = ref('asc')
@@ -247,14 +208,14 @@ const filteredData = computed(() => {
         result = result.filter(item => item.category === selectedCategory.value)
     }
 
-    // Status filter
-    if (selectedStatus.value) {
-        result = result.filter(item => item.status === selectedStatus.value)
+    // Brand filter
+    if (selectedBrand.value) {
+        result = result.filter(item => item.brand === selectedBrand.value)
     }
 
-    // Date filter
-    if (selectedDate.value) {
-        result = result.filter(item => item.date === selectedDate.value)
+    // Status filter
+    if (selectedStatus.value) {
+        result = result.filter(item => item.is_active === parseInt(selectedStatus.value))
     }
 
     // Sort
@@ -283,11 +244,6 @@ const paginatedData = computed(() => {
     return filteredData.value.slice(start, end)
 })
 
-const allSelected = computed(() => {
-    return paginatedData.value.length > 0 &&
-        selectedItems.value.length === paginatedData.value.length
-})
-
 // Methods
 const handleSearch = () => {
     currentPage.value = 1
@@ -302,18 +258,13 @@ const sortBy = (key) => {
     }
 }
 
-const toggleSelectAll = (event) => {
-    selectedItems.value = event.target.checked ? [...paginatedData.value] : []
-    emit('selection-change', selectedItems.value)
-}
-
 // Watch for filter changes
-watch([selectedCategory, selectedStatus, selectedDate], () => {
+watch([selectedCategory, selectedBrand, selectedStatus], () => {
     currentPage.value = 1
     emit('filter-change', {
         category: selectedCategory.value,
-        status: selectedStatus.value,
-        date: selectedDate.value
+        brand: selectedBrand.value,
+        status: selectedStatus.value
     })
 })
 

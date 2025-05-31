@@ -21,6 +21,7 @@
                             <th class="tw-px-4 tw-py-3 tw-text-left">Logo</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Tên thương hiệu</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Mô tả</th>
+                            <th class="tw-px-4 tw-py-3 tw-text-left">Danh mục cha</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Trạng thái</th>
                             <th class="tw-px-4 tw-py-3 tw-text-left">Thao tác</th>
                         </tr>
@@ -34,6 +35,8 @@
                             </td>
                             <td class="tw-px-4 tw-py-3">{{ brand.name }}</td>
                             <td class="tw-px-4 tw-py-3">{{ brand.description }}</td>
+                            <td class="tw-px-4 tw-py-3">{{brand.parent_id ? brands.find(b => b.id ===
+                                brand.parent_id).name : 'Không có thương hiệu cha'}}</td>
                             <td class="tw-px-4 tw-py-3">
                                 <span :class="[
                                     'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
