@@ -43,9 +43,6 @@
                 <button @click="$emit('close')" class="tw-px-4 tw-py-2 tw-border tw-rounded-lg hover:tw-bg-gray-50">
                     Đóng
                 </button>
-                <button class="tw-px-4 tw-py-2 tw-bg-primary tw-text-white tw-rounded-lg hover:tw-bg-primary-dark">
-                    Thêm biến thể
-                </button>
             </div>
         </div>
     </div>
