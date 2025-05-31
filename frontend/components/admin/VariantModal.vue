@@ -23,7 +23,7 @@
                             <div class="tw-text-sm tw-text-gray-600">
                                 <div>Kích thước: {{ variant.size || 'N/A' }}</div>
                                 <div>Màu sắc: {{ variant.colorName || variant.color || 'N/A' }}</div>
-                                <div>Số lượng: {{ variant.stock || 0 }}</div>
+                                <div>Số lượng: {{ variant.quantity || 0 }}</div>
                                 <div>Giá: {{ formatPrice(variant.price) }}</div>
                             </div>
                         </div>
@@ -42,9 +42,6 @@
             <div class="tw-mt-6 tw-flex tw-justify-end tw-gap-2">
                 <button @click="$emit('close')" class="tw-px-4 tw-py-2 tw-border tw-rounded-lg hover:tw-bg-gray-50">
                     Đóng
-                </button>
-                <button class="tw-px-4 tw-py-2 tw-bg-primary tw-text-white tw-rounded-lg hover:tw-bg-primary-dark">
-                    Thêm biến thể
                 </button>
             </div>
         </div>

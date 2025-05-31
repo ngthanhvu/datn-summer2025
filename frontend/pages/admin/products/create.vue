@@ -71,8 +71,13 @@
 </template>
 
 <script setup>
+useHead({
+  title: 'Tạo sản phẩm'
+})
+
 definePageMeta({
-  layout: 'admin'
+  layout: 'admin',
+  middleware: 'auth'
 })
 
 import { ref, onMounted } from 'vue'
