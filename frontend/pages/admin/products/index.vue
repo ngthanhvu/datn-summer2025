@@ -5,7 +5,7 @@
       <p class="text-gray-600">Quản lý danh sách sản phẩm của bạn</p>
     </div>
 
-    <Table :columns="columns" :data="products" :create-route="'/admin/products/create'" :edit-route="'/admin/products'"
+    <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands"
       @delete="handleDelete" />
   </div>
 </template>
@@ -17,15 +17,17 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
-import Table from '~/components/admin/Table.vue'
+import ProductsTable from '~/components/admin/ProductsTable.vue'
 import { useProducts } from '~/composables/useProducts'
+import Swal from 'sweetalert2'
 
-// Table columns configuration
 const columns = [
   { key: 'id', label: 'ID' },
   { key: 'main_image', label: 'Ảnh chính', type: 'main_image' },
   { key: 'sub_images', label: 'Ảnh phụ', type: 'sub_images' },
   { key: 'name', label: 'Tên sản phẩm' },
+  { key: 'category', label: 'Danh mục', type: 'category' },
+  { key: 'brand', label: 'Thương hiệu', type: 'brand' },
   { key: 'price', label: 'Giá gốc', type: 'price' },
   { key: 'discount_price', label: 'Giá khuyến mãi', type: 'price' },
   { key: 'quantity', label: 'Số lượng' },
@@ -34,31 +36,67 @@ const columns = [
 ]
 
 const products = ref([])
-const { getProducts, deleteProduct } = useProducts()
+const brands = ref([])
+const categories = ref([])
+const { getProducts, deleteProduct, getBrands, getCategories } = useProducts()
 
-// Fetch products on component mount
 onMounted(async () => {
   try {
-    const data = await getProducts()
-    products.value = data
+    const [productsData, brandsData, categoriesData] = await Promise.all([
+      getProducts(),
+      getBrands(),
+      getCategories()
+    ])
+
+    products.value = productsData.map(product => ({
+      ...product,
+      brand: brandsData.find(b => b.id === product.brand_id)?.name || 'N/A',
+      category: categoriesData.find(c => c.id === product.categories_id)?.name || 'N/A'
+    }))
+
+    brands.value = brandsData.map(brand => ({
+      value: brand.name,
+      label: brand.name
+    }))
+
+    categories.value = categoriesData.map(category => ({
+      value: category.name,
+      label: category.name
+    }))
   } catch (error) {
-    console.error('Error fetching products:', error)
+    console.error('Error fetching data:', error)
   }
 })
 
-// Handlers
 const handleDelete = async (product) => {
-  if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-    try {
-      await deleteProduct(product.id)
-      const index = products.value.findIndex(p => p.id === product.id)
-      if (index !== -1) {
-        products.value.splice(index, 1)
+  Swal.fire({
+    title: 'Bạn có chắc chắn muốn xóa sản phẩm này không?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await deleteProduct(product.id)
+        products.value = await getProducts()
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        })
+        Toast.fire({
+          icon: 'success',
+          title: 'Sản phẩm đã được xóa thành công'
+        })
+      } catch (error) {
+        console.error('Error deleting product:', error)
+        Swal.fire('Có lỗi xảy ra khi xóa sản phẩm', error.message, 'error')
       }
-    } catch (error) {
-      console.error('Error deleting product:', error)
     }
-  }
+  })
 }
 </script>
 

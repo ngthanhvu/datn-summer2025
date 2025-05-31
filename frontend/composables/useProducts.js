@@ -13,6 +13,16 @@ export const useProducts = () => {
         return response.data
     }
 
+    const getBrands = async () => {
+        const response = await API.get('/api/brands')
+        return response.data
+    }
+
+    const getCategories = async () => {
+        const response = await API.get('/api/categories')
+        return response.data
+    }
+
     const getProductById = async (id) => {
         try {
             const response = await API.get(`/api/products/${id}`)
@@ -68,6 +78,8 @@ export const useProducts = () => {
         getProductById,
         createProduct,
         updateProduct,
-        deleteProduct
+        deleteProduct,
+        getBrands,
+        getCategories
     }
 }

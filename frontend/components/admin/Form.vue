@@ -8,8 +8,8 @@
                 :placeholder="field.placeholder" />
 
             <!-- Number Input -->
-            <input v-else-if="field.type === 'number'" :id="field.name" v-model="formData[field.name]" type="number"
-                :min="field.min" :max="field.max" :step="field.step" :placeholder="field.placeholder" />
+            <input v-else-if="field.type === 'number'" :id="field.name" v-model.number="formData[field.name]"
+                type="number" :min="field.min" :max="field.max" :step="field.step" :placeholder="field.placeholder" />
 
             <!-- Textarea -->
             <textarea v-else-if="field.type === 'textarea'" :id="field.name" v-model="formData[field.name]"
@@ -66,22 +66,6 @@
                     @change="handleAdditionalImagesUpload" accept="image/*" multiple class="hidden" />
             </div>
 
-            <!-- Image Upload -->
-            <div v-else-if="field.type === 'image'" class="image-upload">
-                <div class="image-preview" v-if="formData[field.name]">
-                    <img :src="formData[field.name]" :alt="field.label">
-                    <button type="button" @click="removeImage(field.name)" class="remove-image">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div v-else class="upload-placeholder" @click="triggerImageUpload(field.name)">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <span>Click để tải ảnh lên</span>
-                </div>
-                <input type="file" :id="field.name" :ref="field.name" @change="handleImageUpload($event, field.name)"
-                    accept="image/*" class="hidden" />
-            </div>
-
             <!-- Error Message -->
             <span v-if="errors[field.name]" class="error-message">
                 {{ errors[field.name] }}
@@ -92,6 +76,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { isEqual } from 'lodash' // Requires npm install lodash
 
 const props = defineProps({
     fields: {
@@ -111,26 +96,25 @@ const errors = ref({})
 
 // Watch for changes in initialData
 watch(() => props.initialData, (newVal) => {
-    formData.value = { ...newVal }
+    if (!isEqual(newVal, formData.value)) {
+        formData.value = { ...newVal }
+    }
 }, { deep: true })
 
 // Watch for form changes
 watch(formData, (newVal) => {
-    emit('update:modelValue', newVal)
+    if (!isEqual(newVal, props.initialData)) {
+        emit('update:modelValue', { ...newVal })
+    }
 }, { deep: true })
 
 const handleSubmit = () => {
-    // Reset errors
     errors.value = {}
-
-    // Validate required fields
     props.fields.forEach(field => {
         if (field.required && !formData.value[field.name]) {
             errors.value[field.name] = `${field.label} là bắt buộc`
         }
     })
-
-    // If no errors, emit submit event
     if (Object.keys(errors.value).length === 0) {
         emit('submit', formData.value)
     }
@@ -146,31 +130,37 @@ const handleImageUpload = (event, fieldName) => {
     if (file) {
         const reader = new FileReader()
         reader.onload = (e) => {
-            formData.value[fieldName] = e.target.result
+            formData.value = { ...formData.value, [fieldName]: e.target.result }
         }
         reader.readAsDataURL(file)
     }
 }
 
 const removeImage = (fieldName) => {
-    formData.value[fieldName] = null
+    formData.value = { ...formData.value, [fieldName]: null }
 }
 
 const handleMainImageUpload = (event) => {
     const file = event.target.files[0]
     if (file) {
-        formData.value.mainImage = file
         const reader = new FileReader()
         reader.onload = (e) => {
-            formData.value.mainImagePreview = e.target.result
+            formData.value = {
+                ...formData.value,
+                mainImage: file,
+                mainImagePreview: e.target.result
+            }
         }
         reader.readAsDataURL(file)
     }
 }
 
 const removeMainImage = () => {
-    formData.value.mainImage = null
-    formData.value.mainImagePreview = null
+    formData.value = {
+        ...formData.value,
+        mainImage: null,
+        mainImagePreview: null
+    }
 }
 
 const triggerMainImageUpload = () => {
@@ -179,12 +169,8 @@ const triggerMainImageUpload = () => {
 
 const handleAdditionalImagesUpload = async (event) => {
     const files = Array.from(event.target.files)
-
-    // Create copies of current arrays
     const newAdditionalImages = [...formData.value.additionalImages]
     const newAdditionalImagePreviews = [...formData.value.additionalImagePreviews]
-
-    // Process all files
     const processFile = (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader()
@@ -194,15 +180,9 @@ const handleAdditionalImagesUpload = async (event) => {
             reader.readAsDataURL(file)
         })
     }
-
-    // Wait for all files to be processed
     const previews = await Promise.all(files.map(processFile))
-
-    // Add all files and previews at once
     newAdditionalImages.push(...files)
     newAdditionalImagePreviews.push(...previews)
-
-    // Update formData with all new images at once
     formData.value = {
         ...formData.value,
         additionalImages: newAdditionalImages,
@@ -211,15 +191,10 @@ const handleAdditionalImagesUpload = async (event) => {
 }
 
 const removeAdditionalImage = (index) => {
-    // Create copies of current arrays
     const newAdditionalImages = [...formData.value.additionalImages]
     const newAdditionalImagePreviews = [...formData.value.additionalImagePreviews]
-
-    // Remove items at index
     newAdditionalImages.splice(index, 1)
     newAdditionalImagePreviews.splice(index, 1)
-
-    // Update formData with new arrays while preserving other values
     formData.value = {
         ...formData.value,
         additionalImages: newAdditionalImages,
@@ -265,7 +240,6 @@ const triggerAdditionalImagesUpload = () => {
     resize: vertical;
 }
 
-/* Toggle styles */
 .toggle {
     position: relative;
     display: inline-block;
@@ -305,7 +279,6 @@ const triggerAdditionalImagesUpload = () => {
     transform: translateX(24px);
 }
 
-/* Image upload styles */
 .image-upload {
     width: 100%;
 }
@@ -340,7 +313,6 @@ const triggerAdditionalImagesUpload = () => {
 }
 
 .upload-placeholder {
-    /* width: 150px; */
     height: 150px;
     border: 2px dashed #e5e7eb;
     border-radius: 6px;
@@ -361,13 +333,11 @@ const triggerAdditionalImagesUpload = () => {
     display: none;
 }
 
-/* Error message */
 .error-message {
     color: #ef4444;
     font-size: 0.875rem;
 }
 
-/* Additional Images styles */
 .additional-images-upload {
     width: 100%;
 }
