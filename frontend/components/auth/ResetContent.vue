@@ -6,7 +6,7 @@
             <p class="tw-text-[#4A5568] tw-mb-8 tw-text-base tw-leading-relaxed">
                 Nhập 6 số từ email của bạn để xác nhận đổi mật khẩu
             </p>
-            <form class="tw-mb-6">
+            <form @submit.prevent="handleResetPassword" class="tw-mb-6">
                 <div class="tw-flex tw-justify-center tw-gap-4 tw-mb-8">
                     <input v-for="(digit, index) in 6" :key="index" ref="otpInputs" type="text" maxlength="1"
                         class="tw-w-14 tw-h-14 tw-rounded-md tw-bg-[#F1F5F9] tw-text-center tw-text-xl tw-font-semibold tw-text-black focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-[#81AACC]"
@@ -14,13 +14,13 @@
                         @input="onDigitInput($event, index)" />
                 </div>
 
-                <input type="hidden" placeholder="Email"
+                <input v-model="emailInput" type="hidden" placeholder="Email"
                     class="tw-mb-3 tw-pl-3 tw-pr-4 tw-py-2 tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-text-gray-700 tw-placeholder-gray-400 focus:tw-outline-none focus:tw-ring-1 focus:tw-ring-[#81AACC] focus:tw-border-[#81AACC]"
                     aria-label="Email" />
-                <input type="password" placeholder="Mật khẩu mới"
+                <input v-model="newPassword" type="password" placeholder="Mật khẩu mới"
                     class="tw-mb-3 tw-pl-3 tw-pr-4 tw-py-2 tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-text-gray-700 tw-placeholder-gray-400 focus:tw-outline-none focus:tw-ring-1 focus:tw-ring-[#81AACC] focus:tw-border-[#81AACC]"
                     aria-label="New Password" />
-                <input type="password" placeholder="Xác nhận mật khẩu mới"
+                <input v-model="confirmPassword" type="password" placeholder="Xác nhận mật khẩu mới"
                     class="tw-mb-3 tw-pl-3 tw-pr-4 tw-py-2 tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-text-gray-700 tw-placeholder-gray-400 focus:tw-outline-none focus:tw-ring-1 focus:tw-ring-[#81AACC] focus:tw-border-[#81AACC]"
                     aria-label="Confirm New Password" />
                 <button type="submit"
@@ -37,9 +37,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { useAuth } from '~/composables/useAuth'
+const { resetPassword } = useAuth();
+const route = useRoute();
 
+const emailInput = route.query.email
 const otpInputs = ref([])
+const newPassword = ref('');
+const confirmPassword = ref('');
 
 const onDigitInput = (event, index) => {
     const value = event.target.value
@@ -48,7 +53,17 @@ const onDigitInput = (event, index) => {
     }
 }
 
-// Fix Nuxt refs with v-for issue
+const handleResetPassword = async () => {
+    try {
+        const otp = otpInputs.value.map(input => input.value || '0').join('').split('').map(Number);
+        await resetPassword(emailInput, otp, newPassword.value, confirmPassword.value);
+        alert('Đổi mật khẩu thành công')
+        navigateTo('/login')
+    } catch (error) {
+        console.error(error)
+    }
+}
+
 onMounted(() => {
     otpInputs.value = otpInputs.value.slice(0, 6)
 })

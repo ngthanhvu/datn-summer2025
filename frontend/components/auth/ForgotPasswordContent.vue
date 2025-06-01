@@ -7,14 +7,14 @@
             <h2 class="tw-text-center tw-text-gray-900 tw-font-semibold tw-text-xl tw-mb-8 tw-font-inter">
                 Quên mật khẩu?
             </h2>
-            <form @submit.prevent>
+            <form @submit.prevent="handleForgotPassword">
                 <label for="email"
                     class="tw-block tw-text-gray-700 tw-text-[16px] tw-mb-2 tw-font-semibold">Email</label>
                 <div class="tw-relative tw-mb-6">
                     <span class="tw-absolute tw-inset-y-0 tw-left-3 tw-flex tw-items-center tw-text-gray-400">
                         <i class="far fa-envelope"></i>
                     </span>
-                    <input id="email" type="email" placeholder="Nhập email của bạn"
+                    <input v-model="email" id="email" type="email" placeholder="Nhập email của bạn"
                         class="tw-pl-10 tw-pr-4 tw-py-2 tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-text-gray-700 tw-placeholder-gray-400 focus:tw-outline-none focus:tw-ring-1 focus:tw-ring-[#81AACC] focus:tw-border-[#81AACC]" />
                 </div>
                 <button type="submit"
@@ -31,7 +31,19 @@
 </template>
 
 <script setup>
-// Add any component-specific logic here
+import { useAuth } from '~/composables/useAuth'
+const { forgotPassword } = useAuth();
+
+const email = ref('');
+
+const handleForgotPassword = async () => {
+    try {
+        await forgotPassword(email.value);
+        navigateTo('/reset?email=' + email.value);
+    } catch (error) {
+        console.error(error);
+    }
+}
 </script>
 
 <style scoped>
