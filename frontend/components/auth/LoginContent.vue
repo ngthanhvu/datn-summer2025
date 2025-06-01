@@ -155,7 +155,8 @@ const handleLogin = async () => {
                 title: 'Đăng nhập thành công!'
             })
 
-            navigateTo('/')
+            // navigateTo('/')
+            window.location.href = '/'
         }
     } catch (err) {
         console.error('Login error:', err.response?.data || err.message)
