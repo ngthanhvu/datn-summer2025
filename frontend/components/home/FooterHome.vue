@@ -31,17 +31,17 @@
           <div class="tw-font-bold tw-mb-4">CHÍNH SÁCH</div>
           <ul class="tw-space-y-2 tw-text-gray-100">
             <li>
-              <NuxtLink to="/about" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Giới thiệu</NuxtLink>
+              <a href="/about" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Giới thiệu</a>
             </li>
             <li>
-              <NuxtLink to="/store-system" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Hệ thống cửa hàng
-              </NuxtLink>
+              <a href="/store-system" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Hệ thống cửa hàng
+              </a>
             </li>
             <li>
-              <NuxtLink to="/faq" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Câu hỏi thường gặp</NuxtLink>
+              <a href="/faq" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Câu hỏi thường gặp</a>
             </li>
             <li>
-              <NuxtLink to="/order-call" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Gọi điện đặt hàng</NuxtLink>
+              <a href="/order-call" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Gọi điện đặt hàng</a>
             </li>
           </ul>
         </div>
@@ -50,19 +50,19 @@
           <div class="tw-font-bold tw-mb-4">HỖ TRỢ KHÁCH HÀNG</div>
           <ul class="tw-space-y-2 tw-text-gray-100">
             <li>
-              <NuxtLink to="/contact" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Liên hệ</NuxtLink>
+              <a href="/contact" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Liên hệ</a>
             </li>
             <li>
-              <NuxtLink to="/policy/sale" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Chính sách bán hàng
-              </NuxtLink>
+              <a href="/policy/sale" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Chính sách bán hàng
+              </a>
             </li>
             <li>
-              <NuxtLink to="/policy/shipping" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Chính sách giao hàng
-              </NuxtLink>
+              <a href="/policy/shipping" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Chính sách giao hàng
+              </a>
             </li>
             <li>
-              <NuxtLink to="/policy/return" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Chính sách đổi trả
-              </NuxtLink>
+              <a href="/policy/return" class="tw-text-gray-100 hover:tw-text-[#2563eb]">Chính sách đổi trả
+              </a>
             </li>
           </ul>
         </div>

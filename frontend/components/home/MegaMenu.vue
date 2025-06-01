@@ -7,28 +7,28 @@
                     <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Bộ sưu tập</h6>
                     <ul class="tw-space-y-2">
                         <li>
-                            <NuxtLink to="/collections/ao-khoac" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo
-                                khoác</NuxtLink>
+                            <a href="/collections/ao-khoac" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo
+                                khoác</a>
                         </li>
                         <li>
-                            <NuxtLink to="/collections/ao-so-mi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo sơ
-                                mi</NuxtLink>
+                            <a href="/collections/ao-so-mi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo sơ
+                                mi</a>
                         </li>
                         <li>
-                            <NuxtLink to="/collections/ao-thun" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thun
-                            </NuxtLink>
+                            <a href="/collections/ao-thun" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thun
+                            </a>
                         </li>
                         <li>
-                            <NuxtLink to="/collections/quan-dai" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
-                                dài</NuxtLink>
+                            <a href="/collections/quan-dai" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
+                                dài</a>
                         </li>
                         <li>
-                            <NuxtLink to="/collections/quan-jeans" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
-                                jeans</NuxtLink>
+                            <a href="/collections/quan-jeans" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
+                                jeans</a>
                         </li>
                         <li>
-                            <NuxtLink to="/collections/quan-short" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
-                                short</NuxtLink>
+                            <a href="/collections/quan-short" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
+                                short</a>
                         </li>
                     </ul>
                 </div>
@@ -37,20 +37,20 @@
                     <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Mục theo dịp</h6>
                     <ul class="tw-space-y-2">
                         <li>
-                            <NuxtLink to="/occasions/dao-pho" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Dạo phố
-                            </NuxtLink>
+                            <a href="/occasions/dao-pho" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Dạo phố
+                            </a>
                         </li>
                         <li>
-                            <NuxtLink to="/occasions/di-bien" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đi biển
-                            </NuxtLink>
+                            <a href="/occasions/di-bien" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đi biển
+                            </a>
                         </li>
                         <li>
-                            <NuxtLink to="/occasions/du-lich" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Du lịch
-                            </NuxtLink>
+                            <a href="/occasions/du-lich" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Du lịch
+                            </a>
                         </li>
                         <li>
-                            <NuxtLink to="/occasions/di-choi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đi chơi
-                            </NuxtLink>
+                            <a href="/occasions/di-choi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đi chơi
+                            </a>
                         </li>
                     </ul>
                 </div>
@@ -59,20 +59,20 @@
                     <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Áo nam thời trang</h6>
                     <ul class="tw-space-y-2">
                         <li>
-                            <NuxtLink to="/fashion/ao-the-thao" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thể
-                                thao</NuxtLink>
+                            <a href="/fashion/ao-the-thao" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thể
+                                thao</a>
                         </li>
                         <li>
-                            <NuxtLink to="/fashion/ao-so-mi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo sơ mi
-                            </NuxtLink>
+                            <a href="/fashion/ao-so-mi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo sơ mi
+                            </a>
                         </li>
                         <li>
-                            <NuxtLink to="/fashion/ao-khoac" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo khoác
-                            </NuxtLink>
+                            <a href="/fashion/ao-khoac" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo khoác
+                            </a>
                         </li>
                         <li>
-                            <NuxtLink to="/fashion/ao-thun" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thun
-                            </NuxtLink>
+                            <a href="/fashion/ao-thun" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thun
+                            </a>
                         </li>
                     </ul>
                 </div>
@@ -81,20 +81,20 @@
                     <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Đồ mặc nhà</h6>
                     <ul class="tw-space-y-2">
                         <li>
-                            <NuxtLink to="/homewear/do-dai" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ dài
-                            </NuxtLink>
+                            <a href="/homewear/do-dai" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ dài
+                            </a>
                         </li>
                         <li>
-                            <NuxtLink to="/homewear/do-ngan" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ ngắn
-                            </NuxtLink>
+                            <a href="/homewear/do-ngan" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ ngắn
+                            </a>
                         </li>
                         <li>
-                            <NuxtLink to="/homewear/do-xuan-he" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ xuân
-                                - hè</NuxtLink>
+                            <a href="/homewear/do-xuan-he" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ xuân
+                                - hè</a>
                         </li>
                         <li>
-                            <NuxtLink to="/homewear/do-thu-dong" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ thu
-                                - đông</NuxtLink>
+                            <a href="/homewear/do-thu-dong" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ thu
+                                - đông</a>
                         </li>
                     </ul>
                 </div>

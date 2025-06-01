@@ -15,10 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('username')->nullable();
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
+            $table->string('avatar')->nullable();
             $table->string('password')->nullable();
             $table->string('role')->default('user')->nullable();
             $table->string('oauth_provider')->nullable();
             $table->string('oauth_id')->nullable();
+            $table->string('otp')->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

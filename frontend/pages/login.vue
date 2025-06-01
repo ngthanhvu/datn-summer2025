@@ -24,7 +24,8 @@
       <div class="mb-3 form-check">
         <input v-model="rememberMe" type="checkbox" class="form-check-input" id="rememberMe">
         <label class="form-check-label" for="rememberMe">Ghi nhớ tôi</label>
-        <a href="/quen-mat-khau" class="float-end text-decoration-none">Quên mật khẩu?</a>
+        <NuxtLink to="/forgot-password" class="float-end text-decoration-none hover:tw-text-[#81AACC]">Quên mật khẩu?
+        </NuxtLink>
       </div>
       <button type="submit"
         class="tw-bg-[#81AACC] tw-text-white hover:tw-bg-[#66a2d3] w-100 tw-py-2 tw-rounded-lg tw-relative"
