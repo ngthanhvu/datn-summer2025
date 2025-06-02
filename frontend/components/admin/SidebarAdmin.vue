@@ -36,6 +36,18 @@
           <i class="fa-solid fa-ticket"></i>
           <span>Khuyến mãi giảm giá</span>
         </NuxtLink>
+
+        <!-- Inventory Management -->
+        <div class="nav-item dropdown-toggle" @click="showInventoryMenu = !showInventoryMenu">
+          <i class="fas fa-warehouse"></i>
+          <span>Quản lý kho</span>
+        </div>
+        <div v-show="showInventoryMenu" class="submenu">
+          <NuxtLink to="/admin/inventory" class="nav-sub-item">Tổng quan kho</NuxtLink>
+          <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập kho</NuxtLink>
+          <NuxtLink to="/admin/inventory/export" class="nav-sub-item">Xuất kho</NuxtLink>
+          <NuxtLink to="/admin/inventory/history" class="nav-sub-item">Lịch sử kho</NuxtLink>
+        </div>
       </div>
 
       <!-- Communication Section -->
@@ -73,6 +85,7 @@
 import { ref } from 'vue'
 
 const showProductsMenu = ref(false)
+const showInventoryMenu = ref(false)
 
 const handleLogout = () => {
   console.log('Logout clicked')
