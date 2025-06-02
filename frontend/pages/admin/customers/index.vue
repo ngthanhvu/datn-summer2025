@@ -5,8 +5,7 @@
             <p class="text-gray-600">Quản lý danh sách khách hàng của bạn</p>
         </div>
 
-        <Table :columns="columns" :data="customers" :create-route="'/admin/customers/create'"
-            :edit-route="'/admin/customers'" @delete="handleDelete" />
+        <CustomersTable :customers="customers" @delete="handleDelete" />
     </div>
 </template>
 
@@ -16,19 +15,7 @@ definePageMeta({
 })
 
 import { ref } from 'vue'
-import Table from '~/components/admin/Table.vue'
-
-// Table columns configuration
-const columns = [
-    { key: 'id', label: 'ID' },
-    { key: 'avatar', label: 'Ảnh', type: 'image' },
-    { key: 'name', label: 'Họ tên' },
-    { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Số điện thoại' },
-    { key: 'totalOrders', label: 'Số đơn hàng' },
-    { key: 'totalSpent', label: 'Tổng chi tiêu', type: 'price' },
-    { key: 'status', label: 'Trạng thái', type: 'status' }
-]
+import CustomersTable from '~/components/admin/customers/CustomersTable.vue'
 
 // Mock data
 const customers = ref([
@@ -69,11 +56,9 @@ const customers = ref([
 
 // Handlers
 const handleDelete = (customer) => {
-    if (confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
-        const index = customers.value.findIndex(c => c.id === customer.id)
-        if (index !== -1) {
-            customers.value.splice(index, 1)
-        }
+    const index = customers.value.findIndex(c => c.id === customer.id)
+    if (index !== -1) {
+        customers.value.splice(index, 1)
     }
 }
 </script>
