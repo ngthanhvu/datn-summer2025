@@ -32,7 +32,35 @@
 
                 <!-- Products Grid -->
                 <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
-                    <Card v-for="product in products" :key="product.id" :product="product" />
+                    <Card v-for="product in paginatedProducts" :key="product.id" :product="product" />
+                </div>
+
+                <div v-if="totalPages > 1" class="tw-flex tw-justify-center tw-items-center tw-space-x-2 tw-mt-8">
+                    <!-- Previous -->
+                    <button 
+                        @click="goToPage(currentPage - 1)" 
+                        :disabled="currentPage === 1"
+                        class="tw-px-3 tw-py-2 tw-bg-white tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
+                        ‹
+                    </button>
+                    
+                    <!-- Page numbers -->
+                    <button 
+                        v-for="page in totalPages" 
+                        :key="page"
+                        @click="goToPage(page)"
+                        :class="page === currentPage ? 'tw-bg-blue-600 tw-text-white' : 'tw-bg-white'"
+                        class="tw-px-3 tw-py-2 tw-border tw-rounded hover:tw-bg-gray-50">
+                        {{ page }}
+                    </button>
+                    
+                    <!-- Next -->
+                    <button 
+                        @click="goToPage(currentPage + 1)" 
+                        :disabled="currentPage === totalPages"
+                        class="tw-px-3 tw-py-2 tw-bg-white tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
+                        ›
+                    </button>
                 </div>
 
                 <!-- Empty State -->
@@ -60,6 +88,8 @@ const showFilter = ref(false)
 const products = ref([])
 const searchQuery = ref('')
 const { getProducts } = useProducts()
+const currentPage = ref(1)
+const itemsPerPage = 12 // 3 hàng x 4 cột
 
 onMounted(async () => {
     try {
@@ -77,6 +107,25 @@ const handleSort = (sortOption) => {
 const handleSearch = () => {
     // Implement search logic here
     console.log('Search query:', searchQuery.value)
+}
+
+// Sản phẩm hiển thị trên trang hiện tại
+const paginatedProducts = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    const end = start + itemsPerPage
+    return products.value.slice(start, end)
+})
+
+// Tổng số trang
+const totalPages = computed(() => {
+    return Math.ceil(products.value.length / itemsPerPage)
+})
+
+// Chuyển trang
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+    }
 }
 </script>
 
