@@ -104,9 +104,23 @@ const handleSort = (sortOption) => {
     console.log('Sort by:', sortOption)
 }
 
-const handleSearch = () => {
-    // Implement search logic here
-    console.log('Search query:', searchQuery.value)
+const handleSearch = async () => {
+    try {
+        if (searchQuery.value.trim() === '') {
+            products.value = await getProducts();
+            return;
+        }
+
+        const { data, error } = await useFetch(`http://localhost:8000/api/products/search`, {
+            params: { q: searchQuery.value },
+        })
+
+        if (!error.value) {
+            products.value = Array.isArray(data.value) ? data.value : [] 
+        }
+    } catch (e) {
+        console.error('Lỗi khi tìm kiếm sản phẩm:', e)
+    }
 }
 
 // Sản phẩm hiển thị trên trang hiện tại
@@ -127,6 +141,7 @@ const goToPage = (page) => {
         currentPage.value = page
     }
 }
+
 </script>
 
 <style scoped>
