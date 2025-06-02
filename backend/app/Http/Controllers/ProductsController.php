@@ -288,17 +288,30 @@ class ProductsController extends Controller
             ], 500);
         }
     }
-public function search(Request $request)
-{
-    $q = $request->query('q');
 
-    if (!$q) {
-        return response()->json([], 200);  // Trả về mảng rỗng nếu không có từ khóa
+    public function search(Request $request)
+    {
+        $q = $request->query('q');
+
+        if (!$q) {
+            return response()->json([], 200);
+        }
+
+        $products = Products::with(['images' => function ($query) {
+            $query->select('id', 'image_path', 'is_main', 'product_id');
+        }])
+        ->select('id', 'name', 'price', 'original_price', 'discount_price', 'slug', 'categories_id')
+        ->where('name', 'like', "%{$q}%")
+        ->get();
+
+        $products->transform(function ($product) {
+            $product->images->transform(function ($image) {
+                $image->image_path = url('storage/' . $image->image_path);
+                return $image;
+            });
+            return $product;
+        });
+
+        return response()->json($products);
     }
-
-    $products = Products::where('name', 'like', "%{$q}%")->get();
-
-    return response()->json($products);
-}
-
 }
