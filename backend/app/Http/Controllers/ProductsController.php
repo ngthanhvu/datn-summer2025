@@ -263,4 +263,17 @@ class ProductsController extends Controller
             ], 500);
         }
     }
+public function search(Request $request)
+{
+    $q = $request->query('q');
+
+    if (!$q) {
+        return response()->json([], 200);  // Trả về mảng rỗng nếu không có từ khóa
+    }
+
+    $products = Products::where('name', 'like', "%{$q}%")->get();
+
+    return response()->json($products);
+}
+
 }
