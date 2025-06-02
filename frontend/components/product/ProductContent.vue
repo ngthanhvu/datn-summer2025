@@ -3,16 +3,30 @@
         <div class="tw-flex tw-gap-8">
             <ProductFilter v-model="showFilter" />
             <main class="tw-flex-1">
-                <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
-                    <button @click="showFilter = !showFilter"
-                        class="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-gray-600 md:tw-hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                        </svg>
-                        Lọc sản phẩm
-                    </button>
+                <div
+                    class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 tw-mb-6">
+                    <div class="tw-flex tw-items-center tw-gap-4 tw-w-full md:tw-w-auto">
+                        <button @click="showFilter = !showFilter"
+                            class="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-gray-600 md:tw-hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                            </svg>
+                            Lọc sản phẩm
+                        </button>
+                        <div class="tw-relative tw-w-full md:tw-w-64">
+                            <input type="text" v-model="searchQuery" @input="handleSearch"
+                                placeholder="Tìm kiếm sản phẩm..."
+                                class="tw-w-full tw-px-4 tw-py-1.5 tw-text-sm tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500" />
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="tw-h-4 tw-w-4 tw-absolute tw-right-3 tw-top-1/2 tw-transform tw--translate-y-1/2 tw-text-gray-400"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
                     <ProductSort @sort="handleSort" />
                 </div>
 
@@ -44,6 +58,7 @@ import Card from '~/components/home/Card.vue'
 
 const showFilter = ref(false)
 const products = ref([])
+const searchQuery = ref('')
 const { getProducts } = useProducts()
 
 onMounted(async () => {
@@ -57,6 +72,11 @@ onMounted(async () => {
 const handleSort = (sortOption) => {
     // Implement sorting logic here
     console.log('Sort by:', sortOption)
+}
+
+const handleSearch = () => {
+    // Implement search logic here
+    console.log('Search query:', searchQuery.value)
 }
 </script>
 
