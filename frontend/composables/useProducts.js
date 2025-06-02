@@ -33,6 +33,16 @@ export const useProducts = () => {
         }
     }
 
+    const getProductBySlug = async (slug) => {
+        try {
+            const response = await API.get(`/api/products/slug/${slug}`)
+            return response.data
+        } catch (error) {
+            console.error('Error getting product by slug:', error)
+            throw error
+        }
+    }
+
     const createProduct = async (product) => {
         try {
             const response = await API.post('/api/products', product, {
@@ -106,6 +116,7 @@ export const useProducts = () => {
     return {
         getProducts,
         getProductById,
+        getProductBySlug,
         createProduct,
         updateProduct,
         deleteProduct,

@@ -73,6 +73,31 @@ class ProductsController extends Controller
         return response()->json($product);
     }
 
+    public function getProductBySlug($slug)
+    {
+        try {
+            $product = Products::with(['images' => function ($query) {
+                $query->select('id', 'image_path', 'is_main', 'product_id');
+            }, 'variants' => function ($query) {
+                $query->select('id', 'color', 'size', 'price', 'quantity', 'sku', 'product_id');
+            }, 'categories', 'brand'])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+            $product->images->transform(function ($image) {
+                $image->image_path = url('storage/' . $image->image_path);
+                return $image;
+            });
+
+            return response()->json($product);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Product not found',
+                'error' => $e->getMessage()
+            ], 404);
+        }
+    }
+
     public function store(Request $request)
     {
         try {
