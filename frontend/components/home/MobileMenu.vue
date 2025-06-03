@@ -9,9 +9,9 @@
 
         <!-- Mobile Icons -->
         <div class="tw-flex tw-justify-around tw-items-center tw-p-4 tw-border-b">
-            <NuxtLink to="/search" class="tw-text-gray-700" @click="close">
+            <a href="/search" class="tw-text-gray-700" @click="close">
                 <i class="bi bi-search tw-text-xl"></i>
-            </NuxtLink>
+            </a>
             <NuxtLink to="/wishlist" class="tw-text-gray-700 tw-relative" @click="close">
                 <i class="bi bi-heart tw-text-xl"></i>
                 <span

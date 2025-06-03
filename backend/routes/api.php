@@ -16,7 +16,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
-
     Route::get('/admin/user', [AuthController::class, 'listUser']);
 });
 
@@ -35,8 +34,12 @@ Route::delete('/categories/{id}', [CategoriesController::class, 'destroy']);
 Route::get('/google', [AuthController::class, 'redirectToGoogle']);
 Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
+Route::get('/products/search', [ProductsController::class, 'search']);
+Route::get('/products/filter-options', [ProductsController::class, 'getFilterOptions']);
 Route::get('/products', [ProductsController::class, 'index']);
 Route::post('/products', [ProductsController::class, 'store']);
 Route::put('/products/{id}', [ProductsController::class, 'update']);
-Route::delete('/products/{id}', [ProductsController::class, 'destroy']);
+Route::get('/products/slug/{slug}', [ProductsController::class, 'getProductBySlug']);
 Route::get('/products/{id}', [ProductsController::class, 'getProductById']);
+Route::delete('/products/{id}', [ProductsController::class, 'destroy']);
+Route::get('/products/{id}/favorite', [ProductsController::class, 'favorite']);

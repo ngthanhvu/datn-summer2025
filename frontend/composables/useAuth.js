@@ -10,7 +10,7 @@ export const useAuth = () => {
     const isAuthenticated = ref(false)
     const isAdmin = ref(false)
     const apiBaseUrl = config.public.apiBaseUrl
-    
+
     const API = axios.create({
         baseURL: apiBaseUrl
     })
@@ -190,6 +190,32 @@ export const useAuth = () => {
         }
     }
 
+    const forgotPassword = async (email) => {
+        try {
+            const res = await API.post('/api/forgot-password', { email })
+            return res.data
+        } catch (err) {
+            console.error('Forgot password error:', err.response?.data || err.message)
+            throw err
+        }
+    }
+
+    const resetPassword = async (email, otp, password, password_confirmation) => {
+        try {
+            const res = await API.post('/api/reset-password', {
+                email,
+                otp,
+                password,
+                password_confirmation
+            })
+            return res.data
+        } catch (err) {
+            console.error('Reset password error:', err.response?.data || err.message)
+            throw err
+        }
+    }
+
+
     if (userInfo.value) {
         user.value = userInfo.value
         isAuthenticated.value = true
@@ -210,6 +236,8 @@ export const useAuth = () => {
         googleLogin,
         handleGoogleCallback,
         facebookLogin,
-        getListUser
+        getListUser,
+        forgotPassword,
+        resetPassword
     }
 }
