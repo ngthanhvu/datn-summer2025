@@ -8,9 +8,39 @@ export const useProducts = () => {
         baseURL: apiBaseUrl
     })
 
-    const getProducts = async () => {
-        const response = await API.get('/api/products')
-        return response.data
+    const getProducts = async (filters = {}) => {
+        try {
+            // Xây dựng query parameters từ các bộ lọc
+            const params = new URLSearchParams()
+
+            // Thêm các tham số lọc nếu có
+            if (filters.color) {
+                params.append('color', filters.color)
+            }
+            if (filters.min_price) {
+                params.append('min_price', filters.min_price)
+            }
+            if (filters.max_price) {
+                params.append('max_price', filters.max_price)
+            }
+            if (filters.category) {
+                params.append('category', filters.category)
+            }
+            if (filters.brand) {
+                params.append('brand', filters.brand)
+            }
+            if (filters.sort_by) {
+                params.append('sort_by', filters.sort_by)
+                params.append('sort_direction', filters.sort_direction || 'asc')
+            }
+
+            // Gọi API với các tham số lọc
+            const response = await API.get(`/api/products?${params.toString()}`)
+            return response.data
+        } catch (error) {
+            console.error('Error getting products:', error)
+            throw error
+        }
     }
 
     const getBrands = async () => {

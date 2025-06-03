@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Products::with(['images' => function ($query) {
+        $query = Products::with(['images' => function ($query) {
             $query->select('id', 'image_path', 'is_main', 'product_id');
         }, 'variants' => function ($query) {
             $query->select('id', 'color', 'size', 'price', 'quantity', 'sku', 'product_id');
@@ -34,9 +34,41 @@ class ProductsController extends Controller
                 'categories_id',
                 'brand_id',
                 'is_active'
-            )
-            ->get();
-
+            );
+        // Lọc theo khoảng giá
+        if ($request->has('min_price')) {
+            $query->where('price', '>=', $request->min_price);
+        }
+        if ($request->has('max_price')) {
+            $query->where('price', '<=', $request->max_price);
+        }
+    
+        // Lọc theo danh mục
+        if ($request->has('category')) {
+            $query->where('categories_id', $request->category);
+        }
+    
+        // Lọc theo thương hiệu
+        if ($request->has('brand')) {
+            $query->where('brand_id', $request->brand);
+        }
+    
+        // Lọc theo màu sắc
+        if ($request->has('color')) {
+            $query->whereHas('variants', function($q) use ($request) {
+                $q->where('color', $request->color);
+            });
+        }
+    
+        // Sắp xếp
+        if ($request->has('sort_by')) {
+            $sortField = $request->sort_by;
+            $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'asc';
+            $query->orderBy($sortField, $sortDirection);
+        }
+    
+        $products = $query->get();
+    
         $products->transform(function ($product) {
             $product->images->transform(function ($image) {
                 $image->image_path = url('storage/' . $image->image_path);
@@ -44,7 +76,7 @@ class ProductsController extends Controller
             });
             return $product;
         });
-
+    
         return response()->json($products);
     }
 

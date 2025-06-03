@@ -1,7 +1,10 @@
 <template>
     <div class="tw-container tw-mx-auto tw-px-4 tw-py-8">
         <div class="tw-flex tw-gap-8">
-            <ProductFilter v-model="showFilter" />
+            <ProductFilter 
+                v-model="showFilter" 
+                @filter="handleFilter"
+            />
             <main class="tw-flex-1">
                 <div
                     class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 tw-mb-6">
@@ -79,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import ProductFilter from '~/components/product/ProductFilter.vue'
 import ProductSort from '~/components/product/ProductSort.vue'
 import Card from '~/components/home/Card.vue'
@@ -90,6 +93,7 @@ const searchQuery = ref('')
 const { getProducts } = useProducts()
 const currentPage = ref(1)
 const itemsPerPage = 12 // 3 hàng x 4 cột
+const filters = ref({}) // Thêm biến để lưu trữ bộ lọc
 
 onMounted(async () => {
     try {
@@ -99,20 +103,30 @@ onMounted(async () => {
     }
 })
 
-const handleSort = (sortOption) => {
-    // Implement sorting logic here
-    console.log('Sort by:', sortOption)
+const handleSort = async (sortOption) => {
+    try {
+        products.value = await getProducts({
+            ...filters.value,
+            sort_by: sortOption.sort_by,
+            sort_direction: sortOption.sort_direction
+        })
+    } catch (error) {
+        console.error('Error sorting products:', error)
+    }
 }
 
 const handleSearch = async () => {
     try {
         if (searchQuery.value.trim() === '') {
-            products.value = await getProducts();
+            products.value = await getProducts(filters.value);
             return;
         }
 
         const { data, error } = await useFetch(`http://localhost:8000/api/products/search`, {
-            params: { q: searchQuery.value },
+            params: { 
+                q: searchQuery.value,
+                ...filters.value
+            },
         })
 
         if (!error.value) {
@@ -120,6 +134,17 @@ const handleSearch = async () => {
         }
     } catch (e) {
         console.error('Lỗi khi tìm kiếm sản phẩm:', e)
+    }
+}
+
+// Thêm hàm xử lý sự kiện lọc
+const handleFilter = async (newFilters) => {
+    filters.value = newFilters
+    currentPage.value = 1 // Reset về trang 1 khi lọc
+    try {
+        products.value = await getProducts(filters.value)
+    } catch (error) {
+        console.error('Error filtering products:', error)
     }
 }
 

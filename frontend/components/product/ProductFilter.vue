@@ -14,23 +14,38 @@
       </button>
     </div>
     <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Tất cả sản phẩm</h2>
-    <ColorFilter />
-    <PriceFilter />
-    <ShippingFilter />
+    <ColorFilter @filter="handleColorFilter" />
+    <PriceFilter @filter="handlePriceFilter" />
   </aside>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import ColorFilter from './ColorFilter.vue'
 import PriceFilter from './PriceFilter.vue'
-import ShippingFilter from './ShippingFilter.vue'
 
-defineProps({
+const props = defineProps({
   modelValue: {
     type: Boolean,
     required: true
   }
 })
 
-defineEmits(['update:modelValue'])
-</script> 
+const emit = defineEmits(['update:modelValue', 'filter'])
+
+const filters = ref({
+  color: null,
+  min_price: null,
+  max_price: null
+})
+
+const handleColorFilter = (colorFilter) => {
+  filters.value = { ...filters.value, ...colorFilter }
+  emit('filter', filters.value)
+}
+
+const handlePriceFilter = (priceFilter) => {
+  filters.value = { ...filters.value, ...priceFilter }
+  emit('filter', filters.value)
+}
+</script>
