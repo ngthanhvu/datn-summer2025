@@ -1,7 +1,7 @@
 <template>
     <div class="tw-container tw-mx-auto tw-px-4 tw-py-8">
         <div class="tw-flex tw-gap-8">
-            <ProductFilter v-model="showFilter" />
+            <ProductFilter v-model="showFilter" @filter="handleFilter" />
             <main class="tw-flex-1">
                 <div
                     class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 tw-mb-6">
@@ -32,7 +32,28 @@
 
                 <!-- Products Grid -->
                 <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
-                    <Card v-for="product in products" :key="product.id" :product="product" />
+                    <Card v-for="product in paginatedProducts" :key="product.id" :product="product" />
+                </div>
+
+                <div v-if="totalPages > 1" class="tw-flex tw-justify-center tw-items-center tw-space-x-2 tw-mt-8">
+                    <!-- Previous -->
+                    <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
+                        class="tw-px-3 tw-py-2 tw-bg-white tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
+                        ‹
+                    </button>
+
+                    <!-- Page numbers -->
+                    <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
+                        :class="page === currentPage ? 'tw-bg-blue-600 tw-text-white' : 'tw-bg-white'"
+                        class="tw-px-3 tw-py-2 tw-border tw-rounded hover:tw-bg-gray-50">
+                        {{ page }}
+                    </button>
+
+                    <!-- Next -->
+                    <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
+                        class="tw-px-3 tw-py-2 tw-bg-white tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
+                        ›
+                    </button>
                 </div>
 
                 <!-- Empty State -->
@@ -51,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import ProductFilter from '~/components/product/ProductFilter.vue'
 import ProductSort from '~/components/product/ProductSort.vue'
 import Card from '~/components/home/Card.vue'
@@ -59,7 +80,10 @@ import Card from '~/components/home/Card.vue'
 const showFilter = ref(false)
 const products = ref([])
 const searchQuery = ref('')
-const { getProducts } = useProducts()
+const { getProducts, searchProducts } = useProducts()
+const currentPage = ref(1)
+const itemsPerPage = 12
+const filters = ref({})
 
 onMounted(async () => {
     try {
@@ -69,15 +93,58 @@ onMounted(async () => {
     }
 })
 
-const handleSort = (sortOption) => {
-    // Implement sorting logic here
-    console.log('Sort by:', sortOption)
+const handleSort = async (sortOption) => {
+    try {
+        products.value = await getProducts({
+            ...filters.value,
+            sort_by: sortOption.sort_by,
+            sort_direction: sortOption.sort_direction
+        })
+    } catch (error) {
+        console.error('Error sorting products:', error)
+    }
 }
 
-const handleSearch = () => {
-    // Implement search logic here
-    console.log('Search query:', searchQuery.value)
+const handleSearch = async () => {
+    try {
+        if (searchQuery.value.trim() === '') {
+            products.value = await getProducts(filters.value);
+            return;
+        }
+
+        products.value = await searchProducts(searchQuery.value, filters.value);
+
+    } catch (e) {
+        console.error('Lỗi khi tìm kiếm sản phẩm:', e)
+    }
 }
+
+const handleFilter = async (newFilters) => {
+    filters.value = newFilters
+    currentPage.value = 1
+    try {
+        products.value = await getProducts(filters.value)
+    } catch (error) {
+        console.error('Error filtering products:', error)
+    }
+}
+
+const paginatedProducts = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    const end = start + itemsPerPage
+    return products.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+    return Math.ceil(products.value.length / itemsPerPage)
+})
+
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+    }
+}
+
 </script>
 
 <style scoped>
