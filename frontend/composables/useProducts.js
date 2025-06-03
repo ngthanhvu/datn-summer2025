@@ -10,10 +10,8 @@ export const useProducts = () => {
 
     const getProducts = async (filters = {}) => {
         try {
-            // Xây dựng query parameters từ các bộ lọc
             const params = new URLSearchParams()
 
-            // Thêm các tham số lọc nếu có
             if (filters.color) {
                 params.append('color', filters.color)
             }
@@ -143,6 +141,71 @@ export const useProducts = () => {
         }
     }
 
+    const getFilterOptions = async () => {
+        try {
+            const response = await API.get('/api/products/filter-options')
+            return response.data
+        } catch (error) {
+            console.error('Error getting filter options:', error)
+            return null
+        }
+    }
+
+    const searchProducts = async (query, filters = {}) => {
+        try {
+            const params = new URLSearchParams()
+            if (query) {
+                params.append('q', query)
+            }
+            // Thêm các tham số lọc nếu có
+            if (filters.color && filters.color.length > 0) {
+                // Assuming filters.color is an array based on previous changes
+                if (Array.isArray(filters.color)) {
+                    filters.color.forEach(c => params.append('color[]', c));
+                } else {
+                    params.append('color', filters.color);
+                }
+            }
+            if (filters.min_price) {
+                params.append('min_price', filters.min_price)
+            }
+            if (filters.max_price) {
+                params.append('max_price', filters.max_price)
+            }
+            if (filters.category && filters.category.length > 0) {
+                // Assuming filters.category is an array based on previous changes
+                if (Array.isArray(filters.category)) {
+                    filters.category.forEach(c => params.append('category[]', c));
+                } else {
+                    params.append('category', filters.category);
+                }
+            }
+            if (filters.brand && filters.brand.length > 0) {
+                // Assuming filters.brand is an array based on previous changes
+                if (Array.isArray(filters.brand)) {
+                    filters.brand.forEach(b => params.append('brand[]', b));
+                } else {
+                    params.append('brand', filters.brand);
+                }
+            }
+            if (filters.size && filters.size.length > 0) {
+                // Assuming filters.size is an array based on previous changes
+                if (Array.isArray(filters.size)) {
+                    filters.size.forEach(s => params.append('size[]', s));
+                } else {
+                    params.append('size', filters.size);
+                }
+            }
+
+            const response = await API.get(`/api/products/search?${params.toString()}`)
+            // Ensure the response data is an array
+            return Array.isArray(response.data) ? response.data : []
+        } catch (error) {
+            console.error('Error searching products:', error)
+            return []
+        }
+    }
+
     return {
         getProducts,
         getProductById,
@@ -154,6 +217,8 @@ export const useProducts = () => {
         getFavoriteProducts,
         isFavorite,
         getBrands,
-        getCategories
+        getCategories,
+        getFilterOptions,
+        searchProducts
     }
 }

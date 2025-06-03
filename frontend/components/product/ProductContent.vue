@@ -1,10 +1,7 @@
 <template>
     <div class="tw-container tw-mx-auto tw-px-4 tw-py-8">
         <div class="tw-flex tw-gap-8">
-            <ProductFilter 
-                v-model="showFilter" 
-                @filter="handleFilter"
-            />
+            <ProductFilter v-model="showFilter" @filter="handleFilter" />
             <main class="tw-flex-1">
                 <div
                     class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 tw-mb-6">
@@ -40,27 +37,20 @@
 
                 <div v-if="totalPages > 1" class="tw-flex tw-justify-center tw-items-center tw-space-x-2 tw-mt-8">
                     <!-- Previous -->
-                    <button 
-                        @click="goToPage(currentPage - 1)" 
-                        :disabled="currentPage === 1"
+                    <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
                         class="tw-px-3 tw-py-2 tw-bg-white tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
                         ‹
                     </button>
-                    
+
                     <!-- Page numbers -->
-                    <button 
-                        v-for="page in totalPages" 
-                        :key="page"
-                        @click="goToPage(page)"
+                    <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
                         :class="page === currentPage ? 'tw-bg-blue-600 tw-text-white' : 'tw-bg-white'"
                         class="tw-px-3 tw-py-2 tw-border tw-rounded hover:tw-bg-gray-50">
                         {{ page }}
                     </button>
-                    
+
                     <!-- Next -->
-                    <button 
-                        @click="goToPage(currentPage + 1)" 
-                        :disabled="currentPage === totalPages"
+                    <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
                         class="tw-px-3 tw-py-2 tw-bg-white tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
                         ›
                     </button>
@@ -90,10 +80,10 @@ import Card from '~/components/home/Card.vue'
 const showFilter = ref(false)
 const products = ref([])
 const searchQuery = ref('')
-const { getProducts } = useProducts()
+const { getProducts, searchProducts } = useProducts()
 const currentPage = ref(1)
-const itemsPerPage = 12 // 3 hàng x 4 cột
-const filters = ref({}) // Thêm biến để lưu trữ bộ lọc
+const itemsPerPage = 12
+const filters = ref({})
 
 onMounted(async () => {
     try {
@@ -122,25 +112,16 @@ const handleSearch = async () => {
             return;
         }
 
-        const { data, error } = await useFetch(`http://localhost:8000/api/products/search`, {
-            params: { 
-                q: searchQuery.value,
-                ...filters.value
-            },
-        })
+        products.value = await searchProducts(searchQuery.value, filters.value);
 
-        if (!error.value) {
-            products.value = Array.isArray(data.value) ? data.value : [] 
-        }
     } catch (e) {
         console.error('Lỗi khi tìm kiếm sản phẩm:', e)
     }
 }
 
-// Thêm hàm xử lý sự kiện lọc
 const handleFilter = async (newFilters) => {
     filters.value = newFilters
-    currentPage.value = 1 // Reset về trang 1 khi lọc
+    currentPage.value = 1
     try {
         products.value = await getProducts(filters.value)
     } catch (error) {
@@ -148,19 +129,16 @@ const handleFilter = async (newFilters) => {
     }
 }
 
-// Sản phẩm hiển thị trên trang hiện tại
 const paginatedProducts = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage
     const end = start + itemsPerPage
     return products.value.slice(start, end)
 })
 
-// Tổng số trang
 const totalPages = computed(() => {
     return Math.ceil(products.value.length / itemsPerPage)
 })
 
-// Chuyển trang
 const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page

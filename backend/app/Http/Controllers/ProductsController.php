@@ -35,40 +35,53 @@ class ProductsController extends Controller
                 'brand_id',
                 'is_active'
             );
-        // Lọc theo khoảng giá
         if ($request->has('min_price')) {
             $query->where('price', '>=', $request->min_price);
         }
         if ($request->has('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
-    
-        // Lọc theo danh mục
-        if ($request->has('category')) {
-            $query->where('categories_id', $request->category);
+
+        if ($request->has('category') && !empty($request->category)) {
+            $categories = is_array($request->category) ? array_filter($request->category) : [$request->category];
+            if (!empty($categories)) {
+                $query->whereIn('categories_id', $categories);
+            }
         }
-    
-        // Lọc theo thương hiệu
-        if ($request->has('brand')) {
-            $query->where('brand_id', $request->brand);
+
+        if ($request->has('brand') && !empty($request->brand)) {
+            $brands = is_array($request->brand) ? array_filter($request->brand) : [$request->brand];
+            if (!empty($brands)) {
+                $query->whereIn('brand_id', $brands);
+            }
         }
-    
-        // Lọc theo màu sắc
-        if ($request->has('color')) {
-            $query->whereHas('variants', function($q) use ($request) {
-                $q->where('color', $request->color);
-            });
+
+        if ($request->has('color') && !empty($request->color)) {
+            $colors = is_array($request->color) ? array_filter($request->color) : [$request->color];
+            if (!empty($colors)) {
+                $query->whereHas('variants', function ($q) use ($colors) {
+                    $q->whereIn('color', $colors);
+                });
+            }
         }
-    
-        // Sắp xếp
+
+        if ($request->has('size') && !empty($request->size)) {
+            $sizes = is_array($request->size) ? array_filter($request->size) : [$request->size];
+            if (!empty($sizes)) {
+                $query->whereHas('variants', function ($q) use ($sizes) {
+                    $q->whereIn('size', $sizes);
+                });
+            }
+        }
+
         if ($request->has('sort_by')) {
             $sortField = $request->sort_by;
             $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'asc';
             $query->orderBy($sortField, $sortDirection);
         }
-    
+
         $products = $query->get();
-    
+
         $products->transform(function ($product) {
             $product->images->transform(function ($image) {
                 $image->image_path = url('storage/' . $image->image_path);
@@ -76,7 +89,7 @@ class ProductsController extends Controller
             });
             return $product;
         });
-    
+
         return response()->json($products);
     }
 
@@ -113,8 +126,8 @@ class ProductsController extends Controller
             }, 'variants' => function ($query) {
                 $query->select('id', 'color', 'size', 'price', 'quantity', 'sku', 'product_id');
             }, 'categories', 'brand'])
-            ->where('slug', $slug)
-            ->firstOrFail();
+                ->where('slug', $slug)
+                ->firstOrFail();
 
             $product->images->transform(function ($image) {
                 $image->image_path = url('storage/' . $image->image_path);
@@ -332,9 +345,9 @@ class ProductsController extends Controller
         $products = Products::with(['images' => function ($query) {
             $query->select('id', 'image_path', 'is_main', 'product_id');
         }])
-        ->select('id', 'name', 'price', 'original_price', 'discount_price', 'slug', 'categories_id')
-        ->where('name', 'like', "%{$q}%")
-        ->get();
+            ->select('id', 'name', 'price', 'original_price', 'discount_price', 'slug', 'categories_id')
+            ->where('name', 'like', "%{$q}%")
+            ->get();
 
         $products->transform(function ($product) {
             $product->images->transform(function ($image) {
@@ -345,5 +358,57 @@ class ProductsController extends Controller
         });
 
         return response()->json($products);
+    }
+
+    public function getFilterOptions()
+    {
+        try {
+            $colors = Variants::select('color')
+                ->join('products', 'variants.product_id', '=', 'products.id')
+                ->where('products.is_active', true)
+                ->whereNotNull('color')
+                ->where('color', '!=', '')
+                ->distinct()
+                ->pluck('color')
+                ->toArray();
+
+            $sizes = Variants::select('size')
+                ->join('products', 'variants.product_id', '=', 'products.id')
+                ->where('products.is_active', true)
+                ->whereNotNull('size')
+                ->where('size', '!=', '')
+                ->distinct()
+                ->pluck('size')
+                ->toArray();
+
+            $categories = Categories::select('id', 'name')
+                ->where('is_active', true)
+                ->get()
+                ->toArray();
+
+            $brands = Brands::select('id', 'name')
+                ->where('is_active', true)
+                ->get()
+                ->toArray();
+
+            return response()->json([
+                'colors' => $colors,
+                'sizes' => $sizes,
+                'categories' => $categories,
+                'brands' => $brands
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to get filter options',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function favorite($id)
+    {
+        return response()->json([
+            'message' => 'Product favorite successfully',
+        ], 200);
     }
 }
