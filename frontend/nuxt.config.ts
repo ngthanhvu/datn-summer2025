@@ -16,7 +16,10 @@ export default defineNuxtConfig({
       watch: {
         usePolling: true,
         interval: 100
-      }
+      },
+      allowedHosts: [
+        '6e6b-14-236-154-186.ngrok-free.app'
+      ]
     }
   },
   app: {

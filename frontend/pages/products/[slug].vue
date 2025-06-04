@@ -44,20 +44,21 @@
           <div class="tw-space-y-6">
             <div>
               <h1 class="tw-text-2xl tw-font-bold tw-mb-2">{{ data.name }}</h1>
-              <p class="tw-text-gray-500">Danh mục: <NuxtLink :to="'/category/' + data.category?.slug" v-if="data.category"
-                  class="tw-text-blue-600 hover:tw-underline">{{ data.category.name }}</NuxtLink>
+              <p class="tw-text-gray-500">Danh mục: <NuxtLink :to="'/category/' + data.category?.slug"
+                  v-if="data.category" class="tw-text-blue-600 hover:tw-underline">{{ data.category.name }}</NuxtLink>
               </p>
             </div>
 
             <!-- Price -->
             <div class="tw-space-y-2">
               <div class="tw-flex tw-items-center tw-gap-4">
-                <span class="tw-text-2xl tw-font-bold tw-text-blue-600">{{ formatPrice(data.discount_price || data.price) }}</span>
-                <span v-if="data.discount_price && data.discount_price < data.price" 
+                <span class="tw-text-2xl tw-font-bold tw-text-blue-600">{{ formatPrice(data.discount_price ||
+                  data.price) }}</span>
+                <span v-if="data.discount_price && data.discount_price < data.price"
                   class="tw-text-lg tw-text-gray-400 tw-line-through">
                   {{ formatPrice(data.price) }}
                 </span>
-                <span v-if="data.discount_percentage" 
+                <span v-if="data.discount_percentage"
                   class="tw-bg-red-500 tw-text-white tw-px-2 tw-py-1 tw-rounded-full tw-text-sm">
                   -{{ data.discount_percentage }}%
                 </span>
@@ -103,10 +104,12 @@
               <div class="tw-flex tw-items-center tw-gap-4">
                 <div class="tw-flex tw-items-center tw-border tw-rounded-md">
                   <button @click="quantity > 1 && quantity--" class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">-</button>
-                  <input type="number" v-model="quantity" min="1" :max="data.stock" class="tw-w-16 tw-text-center tw-border-x tw-py-2" />
-                  <button @click="quantity < data.stock && quantity++" class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">+</button>
+                  <input type="number" v-model="quantity" min="1" :max="selectedVariantStock"
+                    class="tw-w-16 tw-text-center tw-border-x tw-py-2" />
+                  <button @click="quantity < selectedVariantStock && quantity++"
+                    class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">+</button>
                 </div>
-                <span class="tw-text-sm tw-text-gray-500">Còn lại: {{ data.stock || 0 }} sản phẩm</span>
+                <span class="tw-text-sm tw-text-gray-500">Còn lại: {{ selectedVariantStock }} sản phẩm</span>
               </div>
             </div>
 
@@ -123,9 +126,9 @@
             <div class="tw-flex tw-items-center tw-gap-2 tw-text-sm">
               <span :class="[
                 'tw-font-medium',
-                data.stock > 0 ? 'tw-text-green-600' : 'tw-text-red-600'
+                selectedVariantStock > 0 ? 'tw-text-green-600' : 'tw-text-red-600'
               ]">
-                {{ data.stock > 0 ? 'Còn hàng' : 'Hết hàng' }}
+                {{ selectedVariantStock > 0 ? 'Còn hàng' : 'Hết hàng' }}
               </span>
               <span class="tw-text-gray-500">|</span>
               <span class="tw-text-gray-500">Giao hàng trong 1-3 ngày</span>
@@ -226,7 +229,8 @@
     </div>
 
     <!-- Zoom Modal -->
-    <div v-if="showZoomModal" class="tw-fixed tw-inset-0 tw-z-50 tw-bg-black/90 tw-flex tw-items-center tw-justify-center"
+    <div v-if="showZoomModal"
+      class="tw-fixed tw-inset-0 tw-z-50 tw-bg-black/90 tw-flex tw-items-center tw-justify-center"
       @click="showZoomModal = false">
       <div class="tw-relative tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center">
         <button class="tw-absolute tw-top-4 tw-right-4 tw-text-white tw-text-2xl" @click="showZoomModal = false">
@@ -246,27 +250,41 @@ import 'swiper/css'
 
 const route = useRoute()
 const { getProducts, getProductBySlug } = useProducts()
+const { getInventories } = useInventories()
 
 // Product data
 const { data, pending, error, refresh } = await useAsyncData(
   'product',
-  () => getProductBySlug(route.params.slug),
+  async () => {
+    const product = await getProductBySlug(route.params.slug)
+
+    if (product?.variants?.length) {
+      const inventories = await getInventories({ product_id: product.id })
+
+      product.variants = product.variants.map(variant => {
+        const inventory = inventories.find(inv => inv.variant_id === variant.id)
+        return {
+          ...variant,
+          stock: inventory?.quantity || 0
+        }
+      })
+    }
+
+    return product
+  },
   {
     watch: [route.params.slug]
   }
 )
 
-// Zoom modal state
 const showZoomModal = ref(false)
 
-// Product images
 const mainImage = ref('')
 const productImages = computed(() => {
   if (!data.value?.images?.length) return ['/images/placeholder.jpg']
   return data.value.images.map(img => img.image_path)
 })
 
-// Set initial main image
 watch(data, () => {
   if (data.value?.images?.length) {
     const mainImg = data.value.images.find(img => img.is_main === 1) || data.value.images[0]
@@ -276,7 +294,6 @@ watch(data, () => {
   }
 }, { immediate: true })
 
-// Product variants
 const sizes = computed(() => {
   if (!data.value?.variants?.length) return []
   const uniqueSizes = new Set()
@@ -301,23 +318,30 @@ const colors = computed(() => {
 const selectedSize = ref('')
 const selectedColor = ref(null)
 
-// Set default variants when data changes
+const selectedVariantStock = computed(() => {
+  if (!data.value?.variants?.length) return 0
+
+  const variant = data.value.variants.find(v =>
+    v.size === selectedSize.value &&
+    v.color === selectedColor.value?.name
+  )
+
+  return variant?.stock || 0
+})
+
 watch(data, () => {
   if (sizes.value.length > 0) selectedSize.value = sizes.value[0]
   if (colors.value.length > 0) selectedColor.value = colors.value[0]
 }, { immediate: true })
 
-// Quantity
 const quantity = ref(1)
 
-// Tabs
 const tabs = [
   { id: 'description', name: 'Mô tả' },
   { id: 'reviews', name: 'Đánh giá' },
 ]
 const activeTab = ref('description')
 
-// Reviews
 const ratings = [
   { stars: 5, percentage: 70 },
   { stars: 4, percentage: 20 },
@@ -345,10 +369,8 @@ const reviews = [
   },
 ]
 
-// Related products
 const relatedProducts = ref([])
 
-// Fetch related products
 watch(data, async () => {
   if (data.value?.categories_id) {
     try {
@@ -362,7 +384,6 @@ watch(data, async () => {
   }
 }, { immediate: true })
 
-// Format price
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -370,9 +391,7 @@ const formatPrice = (price) => {
   }).format(price)
 }
 
-// Add to cart
 const addToCart = () => {
-  // TODO: Implement add to cart functionality
   console.log('Add to cart:', {
     product: data.value,
     size: selectedSize.value,
@@ -381,12 +400,11 @@ const addToCart = () => {
   })
 }
 
-// Update page metadata
 useHead(() => ({
   title: data.value ? `${data.value.name} - DEVGANG` : 'Loading... - DEVGANG',
   meta: [
-    { 
-      name: 'description', 
+    {
+      name: 'description',
       content: data.value ? data.value.description : 'Loading product details...'
     },
   ],
@@ -394,7 +412,6 @@ useHead(() => ({
 </script>
 
 <style scoped>
-/* Add any custom styles here */
 .tw-cursor-zoom-in {
   cursor: zoom-in;
 }
