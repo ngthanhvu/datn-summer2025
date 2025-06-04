@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\WelcomeEmail;
 use App\Mail\OtpEmail;
 use Illuminate\Support\Facades\Mail;
-use Carbon\Carbon;
 
 class AuthController extends Controller
 {

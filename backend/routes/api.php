@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrandsController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\VariantController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -17,6 +19,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/admin/user', [AuthController::class, 'listUser']);
+
+    Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
+    Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
 });
 
 Route::get('/brands', [BrandsController::class, 'index']);
@@ -43,3 +48,8 @@ Route::get('/products/slug/{slug}', [ProductsController::class, 'getProductBySlu
 Route::get('/products/{id}', [ProductsController::class, 'getProductById']);
 Route::delete('/products/{id}', [ProductsController::class, 'destroy']);
 Route::get('/products/{id}/favorite', [ProductsController::class, 'favorite']);
+
+Route::get('/inventory', [InventoryController::class, 'index']);
+
+// Variant routes
+Route::get('/variants', [VariantController::class, 'index']);

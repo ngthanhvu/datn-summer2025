@@ -42,9 +42,9 @@ class User extends Authenticatable implements JWTSubject
 
     public function hasValidOtp($otp)
     {
-        return $this->otp === $otp && 
-               $this->otp_expires_at && 
-               Carbon::now()->isBefore($this->otp_expires_at);
+        return $this->otp === $otp &&
+            $this->otp_expires_at &&
+            Carbon::now()->isBefore($this->otp_expires_at);
     }
 
     public function isOtpExpired()
@@ -93,14 +93,19 @@ class User extends Authenticatable implements JWTSubject
     public function scopeWithValidOtp($query)
     {
         return $query->whereNotNull('otp')
-                    ->whereNotNull('otp_expires_at')
-                    ->where('otp_expires_at', '>', Carbon::now());
+            ->whereNotNull('otp_expires_at')
+            ->where('otp_expires_at', '>', Carbon::now());
     }
 
     public function scopeWithExpiredOtp($query)
     {
         return $query->whereNotNull('otp')
-                    ->whereNotNull('otp_expires_at')
-                    ->where('otp_expires_at', '<=', Carbon::now());
+            ->whereNotNull('otp_expires_at')
+            ->where('otp_expires_at', '<=', Carbon::now());
+    }
+
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class);
     }
 }

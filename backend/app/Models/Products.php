@@ -14,7 +14,6 @@ class Products extends Model
         'price',
         'original_price',
         'discount_price',
-        'quantity',
         'slug',
         'categories_id',
         'brand_id',

@@ -203,22 +203,18 @@ const filteredData = computed(() => {
         )
     }
 
-    // Category filter
     if (selectedCategory.value) {
         result = result.filter(item => item.category === selectedCategory.value)
     }
 
-    // Brand filter
     if (selectedBrand.value) {
         result = result.filter(item => item.brand === selectedBrand.value)
     }
 
-    // Status filter
     if (selectedStatus.value) {
         result = result.filter(item => item.is_active === parseInt(selectedStatus.value))
     }
 
-    // Sort
     if (sortKey.value) {
         result.sort((a, b) => {
             const aVal = a[sortKey.value]

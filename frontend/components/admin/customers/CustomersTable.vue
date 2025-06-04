@@ -21,58 +21,48 @@
                 <thead>
                     <tr class="tw-bg-gray-50">
                         <th
-                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                             ID
                         </th>
                         <th
-                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                             Ảnh
                         </th>
                         <th
-                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                            Họ tên
+                            class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            Tên người dùng
                         </th>
                         <th
-                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                             Email
                         </th>
                         <th
-                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                             Số điện thoại
                         </th>
                         <th
-                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                            Số đơn hàng
-                        </th>
-                        <th
-                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                            Tổng chi tiêu
-                        </th>
-                        <th
-                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                             Trạng thái
                         </th>
                         <th
-                            class="tw-px-4 tw-py-3 tw-text-right tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                             Thao tác
                         </th>
                     </tr>
                 </thead>
                 <tbody class="tw-divide-y tw-divide-gray-200">
                     <tr v-for="customer in filteredCustomers" :key="customer.id" class="tw-hover:tw-bg-gray-50">
-                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">{{ customer.id }}</td>
-                        <td class="tw-px-4 tw-py-3">
-                            <img :src="customer.avatar" :alt="customer.name"
-                                class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover">
+                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900 tw-text-center">{{ customer.id }}</td>
+                        <td class="tw-px-4 tw-py-3 tw-text-center">
+                            <img :src="customer.avatar || defaultAvatar" :alt="customer.username"
+                                class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover tw-mx-auto" />
                         </td>
-                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">{{ customer.name }}</td>
-                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">{{ customer.email }}</td>
-                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">{{ customer.phone }}</td>
-                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">{{ customer.totalOrders }}</td>
-                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">
-                            {{ formatPrice(customer.totalSpent) }}
+                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900 tw-text-center">{{ customer.username }}
                         </td>
-                        <td class="tw-px-4 tw-py-3">
+                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900 tw-text-center">{{ customer.email }}</td>
+                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900 tw-text-center">{{ customer.phone ?
+                            customer.phone : 'Không có' }}</td>
+                        <td class="tw-px-4 tw-py-3 tw-text-center">
                             <span :class="[
                                 'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
                                 customer.status
@@ -82,8 +72,8 @@
                                 {{ customer.status ? 'Đang hoạt động' : 'Đã khóa' }}
                             </span>
                         </td>
-                        <td class="tw-px-4 tw-py-3 tw-text-right tw-text-sm tw-font-medium">
-                            <div class="tw-flex tw-justify-end tw-gap-2">
+                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-font-medium">
+                            <div class="tw-flex tw-justify-center tw-gap-2">
                                 <NuxtLink :to="`/admin/customers/${customer.id}`"
                                     class="tw-text-primary tw-hover:tw-text-primary-dark">
                                     <i class="fas fa-edit"></i>
@@ -94,6 +84,9 @@
                                 </button>
                             </div>
                         </td>
+                    </tr>
+                    <tr v-if="filteredCustomers.length === 0">
+                        <td colspan="8" class="tw-text-center tw-text-gray-500">Không có dữ liệu</td>
                     </tr>
                 </tbody>
             </table>
@@ -111,6 +104,7 @@ const props = defineProps({
     }
 })
 
+const defaultAvatar = ref('https://img.freepik.com/premium-vector/error-404-found-glitch-effect_8024-4.jpg')
 const emit = defineEmits(['delete'])
 
 const searchQuery = ref('')
@@ -118,21 +112,16 @@ const filterStatus = ref('')
 
 const filteredCustomers = computed(() => {
     return props.customers.filter(customer => {
-        const matchesSearch = customer.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            customer.email.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            customer.phone.includes(searchQuery.value)
-        const matchesStatus = filterStatus.value === '' || customer.status.toString() === filterStatus.value
+        const matchesSearch =
+            (customer.username?.toLowerCase().includes(searchQuery.value.toLowerCase()) || '') ||
+            (customer.email?.toLowerCase().includes(searchQuery.value.toLowerCase()) || '') ||
+            (customer.phone?.includes(searchQuery.value) || '')
+
+        const matchesStatus = filterStatus.value === '' || customer.status?.toString() === filterStatus.value
+
         return matchesSearch && matchesStatus
     })
 })
-
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-    }).format(price)
-}
-
 const handleDelete = (customer) => {
     if (confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
         emit('delete', customer)
