@@ -20,7 +20,7 @@ class ProductsController extends Controller
         $query = Products::with(['images' => function ($query) {
             $query->select('id', 'image_path', 'is_main', 'product_id');
         }, 'variants' => function ($query) {
-            $query->select('id', 'color', 'size', 'price', 'quantity', 'sku', 'product_id');
+            $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
         }])
             ->select(
                 'id',
@@ -29,7 +29,6 @@ class ProductsController extends Controller
                 'price',
                 'original_price',
                 'discount_price',
-                'quantity',
                 'slug',
                 'categories_id',
                 'brand_id',
@@ -98,7 +97,7 @@ class ProductsController extends Controller
         $product = Products::with(['images' => function ($query) {
             $query->select('id', 'image_path', 'is_main', 'product_id');
         }, 'variants' => function ($query) {
-            $query->select('id', 'color', 'size', 'price', 'quantity', 'sku', 'product_id');
+            $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
         }])
             ->select(
                 'id',
@@ -107,7 +106,6 @@ class ProductsController extends Controller
                 'price',
                 'original_price',
                 'discount_price',
-                'quantity',
                 'slug',
                 'categories_id',
                 'brand_id',
@@ -124,7 +122,7 @@ class ProductsController extends Controller
             $product = Products::with(['images' => function ($query) {
                 $query->select('id', 'image_path', 'is_main', 'product_id');
             }, 'variants' => function ($query) {
-                $query->select('id', 'color', 'size', 'price', 'quantity', 'sku', 'product_id');
+                $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
             }, 'categories', 'brand'])
                 ->where('slug', $slug)
                 ->firstOrFail();
@@ -152,7 +150,6 @@ class ProductsController extends Controller
                 'price' => 'required|numeric',
                 'original_price' => 'required|numeric',
                 'discount_price' => 'required|numeric',
-                'quantity' => 'required|integer',
                 'is_active' => 'required|boolean',
             ]);
 
@@ -170,7 +167,6 @@ class ProductsController extends Controller
                 "description" => $request->description,
                 "original_price" => $request->original_price,
                 "discount_price" => $request->discount_price,
-                "quantity" => $request->quantity,
                 "slug" => $slug,
                 "categories_id" => $request->categories_id,
                 "brand_id" => $request->brand_id,
@@ -202,7 +198,6 @@ class ProductsController extends Controller
                             'color' => $variant['color'],
                             'size' => $variant['size'],
                             'price' => $variant['price'],
-                            'quantity' => $variant['quantity'] ?? 0,
                             'sku' => $variant['sku'] ?? '',
                             'product_id' => $product->id,
                         ]);
@@ -233,7 +228,6 @@ class ProductsController extends Controller
                 'price' => 'required|numeric',
                 'original_price' => 'required|numeric',
                 'discount_price' => 'required|numeric',
-                'quantity' => 'required|integer',
                 'is_active' => 'required|boolean',
             ]);
 
@@ -250,7 +244,6 @@ class ProductsController extends Controller
                 "description" => $request->description,
                 "original_price" => $request->original_price,
                 "discount_price" => $request->discount_price,
-                "quantity" => $request->quantity,
                 "slug" => $slug,
                 "categories_id" => $request->categories_id,
                 "brand_id" => $request->brand_id,
@@ -298,7 +291,6 @@ class ProductsController extends Controller
                             'color' => $variant['color'],
                             'size' => $variant['size'],
                             'price' => $variant['price'],
-                            'quantity' => $variant['quantity'] ?? 0,
                             'sku' => $variant['sku'] ?? '',
                             'product_id' => $product->id,
                         ]);

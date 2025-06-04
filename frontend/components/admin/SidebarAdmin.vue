@@ -45,8 +45,6 @@
         <div v-show="showInventoryMenu" class="submenu">
           <NuxtLink to="/admin/inventory" class="nav-sub-item">Tổng quan kho</NuxtLink>
           <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập kho</NuxtLink>
-          <NuxtLink to="/admin/inventory/export" class="nav-sub-item">Xuất kho</NuxtLink>
-          <NuxtLink to="/admin/inventory/history" class="nav-sub-item">Lịch sử kho</NuxtLink>
         </div>
       </div>
 

@@ -17,8 +17,15 @@
 </template>
 
 <script setup>
+useHead({
+    title: "Quản lý thương hiệu",
+    meta: [
+        { name: "description", content: "Quản lý thương hiệu sản phẩm của bạn" }
+    ]
+})
 definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'admin'
 })
 import { useBrand } from '~/composables/useBrand'
 import Swal from 'sweetalert2'

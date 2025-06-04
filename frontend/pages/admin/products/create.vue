@@ -123,14 +123,6 @@ const basicFields = ref([
     step: 1000
   },
   {
-    name: 'quantity',
-    label: 'Số lượng',
-    type: 'number',
-    placeholder: 'Nhập số lượng',
-    required: true,
-    min: 0
-  },
-  {
     name: 'category',
     label: 'Danh mục',
     type: 'select',
@@ -185,14 +177,6 @@ const variantFields = [
     step: 1000
   },
   {
-    name: 'quantity',
-    label: 'Số lượng',
-    type: 'number',
-    placeholder: 'Nhập số lượng',
-    required: true,
-    min: 0
-  },
-  {
     name: 'sku',
     label: 'SKU',
     type: 'text',
@@ -222,7 +206,6 @@ const formData = ref({
   price: 0,
   original_price: 0,
   discount_price: 0,
-  quantity: 0,
   category: '',
   brand: '',
   description: '',
@@ -282,7 +265,6 @@ const handleSubmit = async () => {
     productData.append('price', String(formData.value.price))
     productData.append('original_price', String(formData.value.original_price))
     productData.append('discount_price', String(formData.value.discount_price))
-    productData.append('quantity', String(formData.value.quantity))
     productData.append('is_active', formData.value.status ? '1' : '0')
     productData.append('categories_id', String(formData.value.category))
     productData.append('brand_id', String(formData.value.brand))
@@ -297,7 +279,6 @@ const handleSubmit = async () => {
         productData.append(`variants[${idx}][color]`, variant.color)
         productData.append(`variants[${idx}][size]`, variant.size)
         productData.append(`variants[${idx}][price]`, String(variant.price))
-        productData.append(`variants[${idx}][quantity]`, String(variant.quantity))
         productData.append(`variants[${idx}][sku]`, variant.sku)
       })
     }
@@ -320,7 +301,6 @@ const addVariant = () => {
     color: '',
     size: '',
     price: 0,
-    quantity: 0,
     sku: ''
   })
 }

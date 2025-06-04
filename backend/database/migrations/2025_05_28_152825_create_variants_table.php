@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('color')->nullable();
             $table->string('size')->nullable();
             $table->integer('price');
-            $table->integer('quantity')->default(0);
             $table->string('sku')->unique();
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->timestamps();

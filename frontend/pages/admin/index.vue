@@ -29,6 +29,15 @@
 </template>
 
 <script setup>
+useHead({
+  title: "Bảng điều khiển",
+  meta: [
+    {
+      name: "description",
+      content: "Bảng điều khiển quản lý hệ thống"
+    }
+  ]
+})
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'

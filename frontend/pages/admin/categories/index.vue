@@ -17,8 +17,15 @@
 </template>
 
 <script setup>
+useHead({
+    title: "Quản lý danh mục",
+    meta: [
+        { name: "description", content: "Quản lý danh mục sản phẩm của bạn" }
+    ]
+})
 definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'admin'
 })
 import { useCategory } from '~/composables/useCategory'
 import Swal from 'sweetalert2'

@@ -11,6 +11,12 @@
 </template>
 
 <script setup>
+useHead({
+  title: "Quản lý sản phẩm",
+  meta: [
+    { name: "description", content: "Quản lý danh sách sản phẩm của bạn" }
+  ]
+})
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -30,7 +36,6 @@ const columns = [
   { key: 'brand', label: 'Thương hiệu', type: 'brand' },
   { key: 'price', label: 'Giá gốc', type: 'price' },
   { key: 'discount_price', label: 'Giá khuyến mãi', type: 'price' },
-  { key: 'quantity', label: 'Số lượng' },
   { key: 'variants', label: 'Biến thể', type: 'variants' },
   { key: 'is_active', label: 'Trạng thái', type: 'status' }
 ]
