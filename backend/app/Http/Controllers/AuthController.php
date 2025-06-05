@@ -56,7 +56,9 @@ class AuthController extends Controller
             'id' => Auth::id(),
             'username' => Auth::user()->username,
             'email' => Auth::user()->email,
-            'role' => Auth::user()->role
+            'role' => Auth::user()->role,
+            'avatar' => Auth::user()->avatar,
+            'phone' => Auth::user()->phone,
         ]);
     }
 

@@ -19,23 +19,18 @@
           <button class="header-btn"><i class="fas fa-bell"></i><span class="badge">3</span></button>
           <div class="avatar-dropdown">
             <div class="avatar-wrapper" @click="isDropdownOpen = !isDropdownOpen">
-              <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User Avatar" class="avatar">
+              <img :src="user?.avatar" alt="User Avatar" class="avatar">
+              <span class="user-name">Xin chào <b>{{ user?.username }}</b></span>
+              <i class="fas fa-chevron-down"></i>
             </div>
-            <div class="dropdown-menu" :class="{ 'show': isDropdownOpen }">
-              <div class="dropdown-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
+            <div class="dropdown-menu menu-drop" :class="{ 'show': isDropdownOpen }">
+              <div class="user-info">
+                <span class="name">{{ user?.username }}</span>
+                <span class="email">{{ user?.email }}</span>
               </div>
-              <div class="dropdown-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-              </div>
-              <div class="dropdown-divider"></div>
-              <div
-                class="dropdown-item text-danger tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2 tw-transition-colors hover:tw-bg-red-50 tw-rounded-md tw-mx-2 tw-cursor-pointer"
-                @click="handleLogout">
-                <i class="fas fa-sign-out-alt tw-text-red-500"></i>
-                <span class="tw-font-medium tw-text-red-600">Logout</span>
+              <div class="dropdown-item tw-cursor-pointer" @click="handleBackHome">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Trở về trang chủ</span>
               </div>
             </div>
           </div>
@@ -54,6 +49,8 @@ import SidebarAdmin from '~/components/admin/SidebarAdmin.vue'
 
 const isDropdownOpen = ref(false)
 
+const user = useCookie('user')
+
 onMounted(() => {
   if (!isAuthenticated.value) {
     checkAuth()
@@ -69,9 +66,19 @@ onMounted(() => {
     }
   })
 })
+
+const handleBackHome = () => {
+  navigateTo('/')
+}
 </script>
 
 <style scoped>
+.menu-drop {
+  position: absolute;
+  top: 60px;
+  right: 0;
+}
+
 .main-content {
   flex: 1;
   display: flex;
@@ -153,83 +160,68 @@ onMounted(() => {
   cursor: pointer;
   display: flex;
   align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
 }
 
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  min-width: 200px;
-  z-index: 1000;
-  border: 1px solid #e5e7eb;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.2s ease-in-out;
+.avatar-wrapper:hover {
+  background-color: #f3f4f6;
 }
 
-.dropdown-menu.show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.dropdown-item:hover {
-  background: #f7f8fa;
-}
-
-.dropdown-item i {
-  width: 20px;
-  text-align: center;
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 0.5rem 0;
-}
-
-.text-danger {
-  color: #ef4444;
-}
-
-.text-danger:hover {
-  background: #fee2e2;
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #3bb77e;
 }
 
-.content {
-  padding: 2rem 2rem 0 2rem;
-  flex: 1;
+.dropdown-menu {
+  min-width: 240px;
+  padding: 8px 0;
 }
 
-@media (max-width: 900px) {
-  .sidebar {
-    display: none;
-  }
-
-  .main-content {
-    margin-left: 0;
-    padding-left: 0;
-  }
+.user-info {
+  padding: 12px 16px;
 }
 
-.section-title {
-  font-size: 0.875rem;
-  font-weight: 600;
+.user-info .name {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.user-info .email {
+  display: block;
+  font-size: 13px;
   color: #6b7280;
-  text-transform: uppercase;
-  padding: 0.5rem 1rem;
-  margin-bottom: 0.5rem;
+  margin-top: 2px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  color: #4b5563;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item i {
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.dropdown-divider {
+  margin: 8px 0;
 }
 </style>
