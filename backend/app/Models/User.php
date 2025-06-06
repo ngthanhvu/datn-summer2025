@@ -21,6 +21,8 @@ class User extends Authenticatable implements JWTSubject
         'oauth_id',
         'otp',
         'otp_expires_at',
+        'phone',     
+        'avatar',   
     ];
     protected $hidden = [
         'password',
