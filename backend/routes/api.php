@@ -24,11 +24,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
-
-    Route::get('/addresses', [AddressController::class, 'index']);
-    Route::post('/addresses', [AddressController::class, 'store']);
-    Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
-    Route::put('/addresses/{id}', [AddressController::class, 'update']);
 });
 
 
@@ -62,3 +57,8 @@ Route::get('/inventory', [InventoryController::class, 'index']);
 
 // Variant routes
 Route::get('/variants', [VariantController::class, 'index']);
+
+Route::get('/addresses', [AddressController::class, 'index']);
+Route::post('/addresses', [AddressController::class, 'store']);
+Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
+Route::put('/addresses/{id}', [AddressController::class, 'update']);
