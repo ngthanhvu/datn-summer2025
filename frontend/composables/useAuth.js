@@ -222,6 +222,38 @@ export const useAuth = () => {
         isAdmin.value = user.value?.role === 'admin'
     }
 
+    const updateUserProfile = async (formData) => {
+        try {
+            const response = await API.post('/api/update-profile', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+
+            if (response.data) {
+                await getUser()
+                return response.data
+            }
+        } catch (error) {
+            console.error('Update profile error:', error.response?.data || error.message)
+            throw error
+        }
+    }
+
+    const resetPasswordProfile = async (currentPassword, newPassword, newPasswordConfirmation) => {
+        try {
+            const res = await API.post('/api/reset-password-profile', {
+                current_password: currentPassword,
+                password: newPassword,
+                password_confirmation: newPasswordConfirmation
+            })
+            return res.data
+        } catch (err) {
+            console.error('Reset password profile error:', err.response?.data || err.message)
+            throw err
+        }
+    }
+
     return {
         user,
         token,
@@ -238,6 +270,8 @@ export const useAuth = () => {
         facebookLogin,
         getListUser,
         forgotPassword,
-        resetPassword
+        resetPassword,
+        updateUserProfile,
+        resetPasswordProfile,
     }
 }
