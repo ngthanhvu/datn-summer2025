@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\VariantController;
+use App\Http\Controllers\AddressController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -23,6 +24,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
 });
+
+// Đảm bảo các route addresses nằm ngoài middleware('auth:api') nếu bạn muốn test không cần đăng nhập.
+// Nếu muốn bảo vệ bằng token, chỉ để 1 nhóm middleware('auth:api') duy nhất cho addresses.
+// Không được lặp lại hoặc khai báo trùng các route addresses.
+
 
 Route::get('/brands', [BrandsController::class, 'index']);
 Route::get('/brands/{id}', [BrandsController::class, 'show']);
@@ -53,3 +59,9 @@ Route::get('/inventory', [InventoryController::class, 'index']);
 
 // Variant routes
 Route::get('/variants', [VariantController::class, 'index']);
+
+// Đưa các route addresses RA NGOÀI middleware('auth:api')
+Route::get('/addresses', [AddressController::class, 'index']);
+Route::post('/addresses', [AddressController::class, 'store']);
+Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
+Route::put('/addresses/{id}', [AddressController::class, 'update']);
