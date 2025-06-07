@@ -12,11 +12,11 @@
                     <i class="bi bi-gear-wide-connected tw-mr-3"></i>
                     <span>Trang quản trị</span>
                 </NuxtLink>
-                <a href="/profile"
+                <NuxtLink to="/profile"
                     class="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-gray-700 hover:tw-bg-gray-50 hover:tw-text-[#81AACC]">
                     <i class="bi bi-person-circle tw-mr-3"></i>
                     <span>Trang cá nhân</span>
-                </a>
+                </NuxtLink>
                 <a href="/history"
                     class="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-gray-700 hover:tw-bg-gray-50 hover:tw-text-[#81AACC]">
                     <i class="bi bi-clock-history tw-mr-3"></i>
