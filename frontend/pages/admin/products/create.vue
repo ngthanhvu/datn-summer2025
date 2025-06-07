@@ -16,11 +16,12 @@
       <div class="tw-grid tw-grid-cols-2 tw-gap-6">
         <div class="tw-space-y-4">
           <Form v-if="isDataLoaded" :fields="basicFields" :initial-data="formData" v-model="formData"
-            @submit="handleSubmit" />
+            @submit="handleSubmit" :errors="formErrors" />
           <div v-else class="tw-text-center tw-text-gray-500">Đang tải danh mục và thương hiệu...</div>
         </div>
         <div class="tw-space-y-4">
-          <Form :fields="imageFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+          <Form :fields="imageFields" :initial-data="formData" v-model="formData" @submit="handleSubmit"
+            :errors="formErrors" />
         </div>
       </div>
 
@@ -51,7 +52,8 @@
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
-              <Form :fields="variantFields" :initial-data="variant" v-model="formData.variants[index]" />
+              <Form :fields="variantFields" :initial-data="variant" v-model="formData.variants[index]"
+                :errors="formErrors.variants[index]" />
             </div>
           </div>
         </div>
@@ -86,6 +88,7 @@ import { useProducts } from '~/composables/useProducts'
 import { useCategory } from '~/composables/useCategory'
 import { useBrand } from '~/composables/useBrand'
 
+const notyf = useNuxtApp().$notyf
 const isDataLoaded = ref(false)
 const basicFields = ref([
   {
@@ -93,7 +96,11 @@ const basicFields = ref([
     label: 'Tên sản phẩm',
     type: 'text',
     placeholder: 'Nhập tên sản phẩm',
-    required: true
+    required: true,
+    validation: {
+      required: 'Vui lòng nhập tên sản phẩm',
+      minLength: { value: 3, message: 'Tên sản phẩm phải có ít nhất 3 ký tự' }
+    }
   },
   {
     name: 'price',
@@ -102,7 +109,11 @@ const basicFields = ref([
     placeholder: 'Nhập giá sản phẩm',
     required: true,
     min: 0,
-    step: 1000
+    step: 1000,
+    validation: {
+      required: 'Vui lòng nhập giá sản phẩm',
+      min: { value: 0, message: 'Giá không được âm' }
+    }
   },
   {
     name: 'original_price',
@@ -111,7 +122,10 @@ const basicFields = ref([
     placeholder: 'Nhập giá gốc',
     required: false,
     min: 0,
-    step: 1000
+    step: 1000,
+    validation: {
+      min: { value: 0, message: 'Giá gốc không được âm' }
+    }
   },
   {
     name: 'discount_price',
@@ -120,7 +134,10 @@ const basicFields = ref([
     placeholder: 'Nhập giá khuyến mãi',
     required: false,
     min: 0,
-    step: 1000
+    step: 1000,
+    validation: {
+      min: { value: 0, message: 'Giá khuyến mãi không được âm' }
+    }
   },
   {
     name: 'category',
@@ -128,7 +145,10 @@ const basicFields = ref([
     type: 'select',
     placeholder: 'Chọn danh mục',
     required: true,
-    options: []
+    options: [],
+    validation: {
+      required: 'Vui lòng chọn danh mục'
+    }
   },
   {
     name: 'brand',
@@ -136,14 +156,20 @@ const basicFields = ref([
     type: 'select',
     placeholder: 'Chọn thương hiệu',
     required: true,
-    options: []
+    options: [],
+    validation: {
+      required: 'Vui lòng chọn thương hiệu'
+    }
   },
   {
     name: 'description',
     label: 'Mô tả',
     type: 'textarea',
     placeholder: 'Nhập mô tả sản phẩm',
-    rows: 4
+    rows: 4,
+    validation: {
+      minLength: { value: 10, message: 'Mô tả phải có ít nhất 10 ký tự' }
+    }
   },
   {
     name: 'status',
@@ -158,14 +184,20 @@ const variantFields = [
     label: 'Màu sắc',
     type: 'text',
     placeholder: 'Nhập màu sắc',
-    required: true
+    required: true,
+    validation: {
+      required: 'Vui lòng nhập màu sắc'
+    }
   },
   {
     name: 'size',
     label: 'Kích thước',
     type: 'text',
     placeholder: 'Nhập kích thước',
-    required: true
+    required: true,
+    validation: {
+      required: 'Vui lòng nhập kích thước'
+    }
   },
   {
     name: 'price',
@@ -174,14 +206,22 @@ const variantFields = [
     placeholder: 'Nhập giá biến thể',
     required: true,
     min: 0,
-    step: 1000
+    step: 1000,
+    validation: {
+      required: 'Vui lòng nhập giá biến thể',
+      min: { value: 0, message: 'Giá biến thể không được âm' }
+    }
   },
   {
     name: 'sku',
     label: 'SKU',
     type: 'text',
     placeholder: 'Nhập mã SKU',
-    required: true
+    required: true,
+    validation: {
+      required: 'Vui lòng nhập mã SKU',
+      pattern: { value: /^[A-Z0-9-]+$/, message: 'SKU chỉ được chứa chữ hoa, số và dấu gạch ngang' }
+    }
   }
 ]
 
@@ -214,6 +254,17 @@ const formData = ref({
   mainImagePreview: null,
   additionalImages: [],
   additionalImagePreviews: [],
+  variants: []
+})
+
+const formErrors = ref({
+  name: '',
+  price: '',
+  original_price: '',
+  discount_price: '',
+  category: '',
+  brand: '',
+  description: '',
   variants: []
 })
 
@@ -252,10 +303,95 @@ onMounted(async () => {
   }
 })
 
+const validateField = (field, value) => {
+  const fieldConfig = basicFields.value.find(f => f.name === field)
+  if (!fieldConfig || !fieldConfig.validation) return ''
+
+  const validation = fieldConfig.validation
+
+  if (validation.required && !value) {
+    return validation.required
+  }
+
+  if (validation.minLength && value.length < validation.minLength.value) {
+    return validation.minLength.message
+  }
+
+  if (validation.min && value < validation.min.value) {
+    return validation.min.message
+  }
+
+  if (validation.pattern && !validation.pattern.value.test(value)) {
+    return validation.pattern.message
+  }
+
+  return ''
+}
+
+const validateVariantField = (field, value, index) => {
+  const fieldConfig = variantFields.find(f => f.name === field)
+  if (!fieldConfig || !fieldConfig.validation) return ''
+
+  const validation = fieldConfig.validation
+
+  if (validation.required && !value) {
+    return validation.required
+  }
+
+  if (validation.minLength && value.length < validation.minLength.value) {
+    return validation.minLength.message
+  }
+
+  if (validation.min && value < validation.min.value) {
+    return validation.min.message
+  }
+
+  if (validation.pattern && !validation.pattern.value.test(value)) {
+    return validation.pattern.message
+  }
+
+  return ''
+}
+
+const validateForm = () => {
+  let hasError = false
+  const errors = { ...formErrors.value }
+
+  // Validate basic fields
+  errors.name = validateField('name', formData.value.name)
+  errors.price = validateField('price', formData.value.price)
+  errors.original_price = validateField('original_price', formData.value.original_price)
+  errors.discount_price = validateField('discount_price', formData.value.discount_price)
+  errors.category = validateField('category', formData.value.category)
+  errors.brand = validateField('brand', formData.value.brand)
+  errors.description = validateField('description', formData.value.description)
+
+  // Validate variants
+  errors.variants = formData.value.variants.map((variant, index) => {
+    const variantErrors = {}
+    variantErrors.color = validateVariantField('color', variant.color, index)
+    variantErrors.size = validateVariantField('size', variant.size, index)
+    variantErrors.price = validateVariantField('price', variant.price, index)
+    variantErrors.sku = validateVariantField('sku', variant.sku, index)
+    return variantErrors
+  })
+
+  formErrors.value = errors
+  hasError = Object.values(errors).some(error => error !== '') ||
+    errors.variants.some(variantErrors =>
+      Object.values(variantErrors).some(error => error !== ''))
+
+  return !hasError
+}
+
 const handleSubmit = async () => {
   try {
+    if (!validateForm()) {
+      return
+    }
+
     if (!formData.value.mainImage) {
-      alert('Vui lòng chọn ảnh chính cho sản phẩm')
+      notyf.error('Vui lòng chọn ảnh chính cho sản phẩm')
       return
     }
 
@@ -303,10 +439,17 @@ const addVariant = () => {
     price: 0,
     sku: ''
   })
+  formErrors.value.variants.push({
+    color: '',
+    size: '',
+    price: '',
+    sku: ''
+  })
 }
 
 const removeVariant = (index) => {
   formData.value.variants.splice(index, 1)
+  formErrors.value.variants.splice(index, 1)
   if (formData.value.variants.length === 0) {
     showVariants.value = false
   }

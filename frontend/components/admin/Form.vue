@@ -67,8 +67,8 @@
             </div>
 
             <!-- Error Message -->
-            <span v-if="errors[field.name]" class="error-message">
-                {{ errors[field.name] }}
+            <span v-if="localErrors[field.name]" class="error-message">
+                {{ localErrors[field.name] }}
             </span>
         </div>
     </form>
@@ -86,13 +86,17 @@ const props = defineProps({
     initialData: {
         type: Object,
         default: () => ({})
+    },
+    errors: {
+        type: Object,
+        default: () => ({})
     }
 })
 
 const emit = defineEmits(['submit', 'update:modelValue'])
 
 const formData = ref({ ...props.initialData })
-const errors = ref({})
+const localErrors = ref({})
 
 // Watch for changes in initialData
 watch(() => props.initialData, (newVal) => {
@@ -108,14 +112,48 @@ watch(formData, (newVal) => {
     }
 }, { deep: true })
 
+// Watch for external errors
+watch(() => props.errors, (newErrors) => {
+    localErrors.value = { ...newErrors }
+}, { deep: true })
+
+const validateField = (field, value) => {
+    if (!field.validation) return ''
+
+    const validation = field.validation
+
+    if (validation.required && !value) {
+        return validation.required
+    }
+
+    if (validation.minLength && value && value.length < validation.minLength.value) {
+        return validation.minLength.message
+    }
+
+    if (validation.min && value < validation.min.value) {
+        return validation.min.message
+    }
+
+    if (validation.pattern && value && !validation.pattern.value.test(value)) {
+        return validation.pattern.message
+    }
+
+    return ''
+}
+
 const handleSubmit = () => {
-    errors.value = {}
+    localErrors.value = {}
+    let hasError = false
+
     props.fields.forEach(field => {
-        if (field.required && !formData.value[field.name]) {
-            errors.value[field.name] = `${field.label} là bắt buộc`
+        const error = validateField(field, formData.value[field.name])
+        if (error) {
+            localErrors.value[field.name] = error
+            hasError = true
         }
     })
-    if (Object.keys(errors.value).length === 0) {
+
+    if (!hasError) {
         emit('submit', formData.value)
     }
 }
