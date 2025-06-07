@@ -14,11 +14,11 @@
 
 <script setup>
 import { ref } from 'vue'
-import ProfileSidebar from '~/components/profile/ProfileSidebar.vue'
-import ProfileInfo from '~/components/profile/ProfileInfo.vue'
-import ChangePassword from '~/components/profile/ChangePassword.vue'
-import ProfileAddress from '~/components/profile/ProfileAddress.vue'
-import ProfileOrders from '~/components/profile/ProfileOrders.vue'
+import ProfileSidebar from '../../components/profile/ProfileSidebar.vue'
+import ProfileInfo from '../../components/profile/ProfileInfo.vue'
+import ChangePassword from '../../components/profile/ProfileChangePassword.vue'
+import ProfileAddress from '../../components/profile/ProfileAddress.vue'
+import ProfileOrders from '../../components/profile/ProfileOrders.vue'
 
 const selectedTab = ref('info')
 </script>

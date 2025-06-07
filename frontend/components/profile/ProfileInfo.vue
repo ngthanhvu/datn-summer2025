@@ -48,6 +48,15 @@
 </template>
 
 <script setup>
+useHead({
+    title: 'Thông tin cá nhân',
+    meta: [
+        {
+            name: 'description',
+            content: 'Cập nhật thông tin cá nhân',
+        },
+    ],
+})
 import { ref, computed, onMounted } from 'vue'
 
 const { user, getUser, updateUserProfile } = useAuth()

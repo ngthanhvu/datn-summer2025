@@ -6,5 +6,13 @@
 </template>
 
 <script setup>
-// Component logic here
+useHead({
+    title: 'Đơn hàng',
+    meta: [
+        {
+            name: 'description',
+            content: 'Đơn hàng',
+        },
+    ],
+})
 </script>

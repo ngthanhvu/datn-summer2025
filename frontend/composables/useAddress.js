@@ -1,9 +1,12 @@
 // useAddress.js
 import axios from 'axios'
+import { ref } from 'vue'
+import Swal from 'sweetalert2'
 
 export const useAddress = () => {
     const config = useRuntimeConfig()
     const apiBaseUrl = config.public.apiBaseUrl
+    const notyf = useNuxtApp().$notyf
 
     const API = axios.create({
         baseURL: apiBaseUrl
@@ -13,7 +16,17 @@ export const useAddress = () => {
         baseURL: 'https://provinces.open-api.vn/api/'
     })
 
-    // Lấy danh sách tỉnh/thành phố
+    const form = ref({
+        full_name: '',
+        phone: '',
+        province: '',
+        district: '',
+        ward: '',
+        street: ''
+    })
+
+    const errors = ref({})
+
     const getProvinces = async () => {
         try {
             const response = await PROVINCE_API.get('p/')
@@ -24,7 +37,6 @@ export const useAddress = () => {
         }
     }
 
-    // Lấy danh sách quận/huyện theo tỉnh
     const getDistricts = async (provinceCode) => {
         try {
             const response = await PROVINCE_API.get(`p/${provinceCode}?depth=2`)
@@ -35,7 +47,6 @@ export const useAddress = () => {
         }
     }
 
-    // Lấy danh sách xã/phường theo quận/huyện
     const getWards = async (districtCode) => {
         try {
             const response = await PROVINCE_API.get(`d/${districtCode}?depth=2`)
@@ -46,7 +57,6 @@ export const useAddress = () => {
         }
     }
 
-    // Lấy danh sách địa chỉ của user
     const getAddresses = async () => {
         try {
             const response = await API.get('/api/addresses')
@@ -57,7 +67,6 @@ export const useAddress = () => {
         }
     }
 
-    // Thêm địa chỉ mới
     const createAddress = async (addressData) => {
         try {
             const response = await API.post('/api/addresses', addressData)
@@ -68,7 +77,6 @@ export const useAddress = () => {
         }
     }
 
-    // Cập nhật địa chỉ
     const updateAddress = async (id, addressData) => {
         try {
             const response = await API.put(`/api/addresses/${id}`, addressData)
@@ -79,24 +87,80 @@ export const useAddress = () => {
         }
     }
 
-    // Xóa địa chỉ
     const deleteAddress = async (id) => {
         try {
-            const response = await API.delete(`/api/addresses/${id}`)
-            return response.data
+            const result = await Swal.fire({
+                title: 'Bạn có chắc chắn?',
+                text: "Bạn không thể hoàn tác sau khi xóa!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Có, xóa nó!',
+                cancelButtonText: 'Hủy'
+            })
+
+            if (result.isConfirmed) {
+                const response = await API.delete(`/api/addresses/${id}`)
+                notyf.success('Đã xóa địa chỉ thành công!')
+                return response.data
+            }
+            return null
         } catch (error) {
             console.error('Error deleting address:', error)
+            notyf.error('Có lỗi xảy ra khi xóa địa chỉ.')
             throw error
         }
     }
 
+    const validateForm = () => {
+        const err = {}
+        if (!form.value.full_name) err.full_name = 'Họ và tên không được để trống'
+        else if (form.value.full_name.length > 100) err.full_name = 'Họ và tên tối đa 100 ký tự'
+        if (!form.value.phone) err.phone = 'Số điện thoại không được để trống'
+        else if (!/^(0|\+84)[1-9][0-9]{8,9}$/.test(form.value.phone)) err.phone = 'Số điện thoại không hợp lệ'
+        if (!form.value.province) err.province = 'Vui lòng chọn tỉnh/thành phố'
+        if (!form.value.district) err.district = 'Vui lòng chọn quận/huyện'
+        if (!form.value.ward) err.ward = 'Vui lòng chọn xã/phường'
+        if (!form.value.street) err.street = 'Thôn/xóm không được để trống'
+        else if (form.value.street.length > 100) err.street = 'Thôn/xóm tối đa 100 ký tự'
+        errors.value = err
+        return Object.keys(err).length === 0
+    }
+
+    const getFullAddress = (address) => {
+        return `${address.street}, ${address.ward}, ${address.district}, ${address.province}`
+    }
+
+    const resetForm = () => {
+        form.value = {
+            full_name: '',
+            phone: '',
+            province: '',
+            district: '',
+            ward: '',
+            street: ''
+        }
+        errors.value = {}
+    }
+
+    const setFormData = (data) => {
+        form.value = { ...data }
+    }
+
     return {
+        form,
+        errors,
         getProvinces,
         getDistricts,
         getWards,
         getAddresses,
         createAddress,
         updateAddress,
-        deleteAddress
+        deleteAddress,
+        validateForm,
+        getFullAddress,
+        resetForm,
+        setFormData
     }
 }
