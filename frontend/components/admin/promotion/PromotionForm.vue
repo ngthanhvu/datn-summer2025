@@ -18,7 +18,7 @@
             <div class="form-group">
                 <label for="type">Loại giảm giá</label>
                 <select id="type" v-model="formData.type" required>
-                    <option value="percentage">Giảm theo phần trăm</option>
+                    <option value="percent">Giảm theo phần trăm</option>
                     <option value="fixed">Giảm số tiền cố định</option>
                 </select>
             </div>
@@ -28,17 +28,17 @@
                 <label for="value">Giá trị giảm</label>
                 <div class="input-with-suffix">
                     <input id="value" v-model.number="formData.value" type="number" required :min="0"
-                        :max="formData.type === 'percentage' ? 100 : undefined"
-                        :step="formData.type === 'percentage' ? 1 : 1000" />
-                    <span class="suffix">{{ formData.type === 'percentage' ? '%' : 'đ' }}</span>
+                        :max="formData.type === 'percent' ? 100 : undefined"
+                        :step="formData.type === 'percent' ? 1 : 1000" />
+                    <span class="suffix">{{ formData.type === 'percent' ? '%' : 'đ' }}</span>
                 </div>
             </div>
 
             <!-- Đơn hàng tối thiểu -->
             <div class="form-group">
-                <label for="minSpend">Đơn hàng tối thiểu</label>
+                <label for="min_order_value">Đơn hàng tối thiểu</label>
                 <div class="input-with-suffix">
-                    <input id="minSpend" v-model.number="formData.minSpend" type="number" required :min="0"
+                    <input id="min_order_value" v-model.number="formData.min_order_value" type="number" required :min="0"
                         :step="1000" />
                     <span class="suffix">đ</span>
                 </div>
@@ -46,9 +46,9 @@
 
             <!-- Giảm tối đa -->
             <div class="form-group">
-                <label for="maxDiscount">Giảm tối đa</label>
+                <label for="max_discount_value">Giảm tối đa</label>
                 <div class="input-with-suffix">
-                    <input id="maxDiscount" v-model.number="formData.maxDiscount" type="number" required :min="0"
+                    <input id="max_discount_value" v-model.number="formData.max_discount_value" type="number" required :min="0"
                         :step="1000" />
                     <span class="suffix">đ</span>
                 </div>
@@ -56,36 +56,29 @@
 
             <!-- Giới hạn sử dụng -->
             <div class="form-group">
-                <label for="usageLimit">Giới hạn sử dụng</label>
-                <input id="usageLimit" v-model.number="formData.usageLimit" type="number" :min="0" :step="1"
+                <label for="usage_limit">Giới hạn sử dụng</label>
+                <input id="usage_limit" v-model.number="formData.usage_limit" type="number" :min="0" :step="1"
                     placeholder="0 = không giới hạn" />
             </div>
 
             <!-- Ngày bắt đầu -->
             <div class="form-group">
-                <label for="startDate">Ngày bắt đầu</label>
-                <input id="startDate" v-model="formData.startDate" type="datetime-local" required />
+                <label for="start_date">Ngày bắt đầu</label>
+                <input id="start_date" v-model="formData.start_date" type="datetime-local" required />
             </div>
 
             <!-- Ngày kết thúc -->
             <div class="form-group">
-                <label for="endDate">Ngày kết thúc</label>
-                <input id="endDate" v-model="formData.endDate" type="datetime-local" required />
-            </div>
-
-            <!-- Mô tả -->
-            <div class="form-group">
-                <label for="description">Mô tả</label>
-                <textarea id="description" v-model="formData.description" rows="3"
-                    placeholder="Nhập mô tả chương trình khuyến mãi"></textarea>
+                <label for="end_date">Ngày kết thúc</label>
+                <input id="end_date" v-model="formData.end_date" type="datetime-local" required />
             </div>
 
             <!-- Trạng thái -->
             <div class="form-group">
-                <label for="status">Trạng thái</label>
+                <label for="is_active">Trạng thái</label>
                 <div class="toggle">
-                    <input type="checkbox" id="status" v-model="formData.status" />
-                    <label for="status"></label>
+                    <input type="checkbox" id="is_active" v-model="formData.is_active" />
+                    <label for="is_active"></label>
                 </div>
             </div>
         </form>
@@ -101,35 +94,62 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useCoupon } from '@/composables/useCoupon'
+import Swal from 'sweetalert2'
 
-const props = defineProps({
-    initialData: {
-        type: Object,
-        default: () => ({})
-    }
-})
+const { createCoupon } = useCoupon()
 
 const formData = ref({
     name: '',
     code: '',
-    type: 'percentage',
+    type: 'percent',
     value: 0,
-    minSpend: 0,
-    maxDiscount: 0,
-    usageLimit: 0,
-    startDate: '',
-    endDate: '',
+    min_order_value: 0,
+    max_discount_value: 0,
+    usage_limit: 0,
+    start_date: '',
+    end_date: '',
     description: '',
-    status: true,
-    ...props.initialData
+    is_active: true
 })
 
 const handleSubmit = async () => {
     try {
-        console.log('Create promotion:', formData.value)
-        await navigateTo('/admin/promotions')
+        await createCoupon(formData.value)
+        
+        // Hiển thị thông báo thành công
+        await Swal.fire({
+            title: 'Thành công!',
+            text: 'Mã giảm giá đã được tạo thành công',
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3bb77e'
+        })
+
+        // Reset form sau khi tạo thành công
+        formData.value = {
+            name: '',
+            code: '',
+            type: 'percent',
+            value: 0,
+            min_order_value: 0,
+            max_discount_value: 0,
+            usage_limit: 0,
+            start_date: '',
+            end_date: '',
+            description: '',
+            is_active: true
+        }
     } catch (error) {
-        console.error('Error creating promotion:', error)
+        // Hiển thị thông báo lỗi
+        Swal.fire({
+            title: 'Lỗi!',
+            text: 'Có lỗi xảy ra khi tạo mã giảm giá',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3bb77e'
+        })
+        console.error('Lỗi khi tạo coupon:', error)
     }
 }
 </script>
