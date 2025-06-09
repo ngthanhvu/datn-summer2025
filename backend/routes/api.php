@@ -9,6 +9,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\VariantController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\CartController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,9 +25,12 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/cart/{id}', [CartController::class, 'update']);
+    Route::delete('/cart/{id}', [CartController::class, 'destroy']);
+    Route::post('/cart/transfer-session-to-user', [CartController::class, 'transferCartFromSessionToUser']);
 });
-
-
 
 Route::get('/brands', [BrandsController::class, 'index']);
 Route::get('/brands/{id}', [BrandsController::class, 'show']);
@@ -62,3 +66,9 @@ Route::get('/addresses', [AddressController::class, 'index']);
 Route::post('/addresses', [AddressController::class, 'store']);
 Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 Route::put('/addresses/{id}', [AddressController::class, 'update']);
+
+// Route cho guest (không cần token, lưu theo session_id)
+Route::get('/guest-cart', [CartController::class, 'index']);
+Route::post('/guest-cart', [CartController::class, 'store']);
+Route::put('/guest-cart/{id}', [CartController::class, 'update']);
+Route::delete('/guest-cart/{id}', [CartController::class, 'destroy']);

@@ -66,8 +66,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import Swal from 'sweetalert2'
+import useCarts from '~/composables/useCarts'
 
 const { login, googleLogin, facebookLogin } = useAuth()
+const { transferCartFromSessionToUser, fetchCart } = useCarts()
 
 const form = reactive({
     email: '',
@@ -97,6 +99,12 @@ onMounted(() => {
 const resetErrors = () => {
     error.email = ''
     error.password = ''
+}
+
+const mergeCartAfterLogin = async () => {
+    await transferCartFromSessionToUser()
+    await fetchCart()
+    // Có thể hiển thị thông báo nếu muốn
 }
 
 const handleLogin = async () => {
@@ -154,6 +162,9 @@ const handleLogin = async () => {
                 icon: 'success',
                 title: 'Đăng nhập thành công!'
             })
+
+            // Hợp nhất cart sau khi đăng nhập
+            await mergeCartAfterLogin()
 
             // navigateTo('/')
             window.location.href = '/'
