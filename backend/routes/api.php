@@ -9,6 +9,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\VariantController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\CouponsController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -62,3 +63,11 @@ Route::get('/addresses', [AddressController::class, 'index']);
 Route::post('/addresses', [AddressController::class, 'store']);
 Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 Route::put('/addresses/{id}', [AddressController::class, 'update']);
+
+// Coupons routes
+    Route::get('/coupons', [CouponsController::class, 'index']);
+    Route::post('/coupons', [CouponsController::class, 'store']);
+    Route::get('/coupons/{id}', [CouponsController::class, 'show']);
+    Route::put('/coupons/{id}', [CouponsController::class, 'update']);
+    Route::delete('/coupons/{id}', [CouponsController::class, 'destroy']);
+    Route::post('/coupons/validate', [CouponsController::class, 'validate']);
