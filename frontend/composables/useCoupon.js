@@ -9,7 +9,6 @@ export const useCoupon = () => {
         baseURL: apiBaseUrl
     })
 
-    // Interceptor để thêm token vào header
     API.interceptors.request.use(
         (config) => {
             const token = localStorage.getItem('token')
@@ -23,22 +22,58 @@ export const useCoupon = () => {
         }
     )
 
+    API.interceptors.response.use(
+        (response) => {
+            return response
+        },
+        (error) => {
+            console.error('API Error:', error.response?.data || error.message)
+            return Promise.reject(error)
+        }
+    )
+
     const getCoupons = async () => {
         try {
             const response = await API.get('/api/coupons')
-            return response.data?.coupons || [] // Sử dụng optional chaining và giá trị mặc định
+            console.log('Coupons response:', response.data)
+
+            if (response.data) {
+                if (Array.isArray(response.data)) {
+                    return response.data
+                }
+                if (response.data.coupons && Array.isArray(response.data.coupons)) {
+                    return response.data.coupons
+                }
+                if (response.data.data && Array.isArray(response.data.data)) {
+                    return response.data.data
+                }
+            }
+
+            return []
         } catch (error) {
             console.error('Error getting coupons:', error)
-            return [] // Trả về mảng rỗng nếu có lỗi
+            return []
         }
     }
 
     const getCouponById = async (id) => {
         try {
             const response = await API.get(`/api/coupons/${id}`)
-            return response.data.coupon
+            console.log('Coupon by ID response:', response.data)
+
+            if (response.data) {
+                if (response.data.coupon) {
+                    return response.data.coupon
+                }
+                if (response.data.data) {
+                    return response.data.data
+                }
+                return response.data
+            }
+
+            return null
         } catch (error) {
-            console.error('Error getting coupon:', error)
+            console.error('Error getting coupon by ID:', error)
             throw error
         }
     }
@@ -51,6 +86,7 @@ export const useCoupon = () => {
                     'Accept': 'application/json'
                 }
             })
+            console.log('Create coupon response:', response.data)
             return response.data
         } catch (error) {
             console.error('Error creating coupon:', error)
@@ -66,6 +102,7 @@ export const useCoupon = () => {
                     'Accept': 'application/json'
                 }
             })
+            console.log('Update coupon response:', response.data)
             return response.data
         } catch (error) {
             console.error('Error updating coupon:', error.response?.data || error)
@@ -76,6 +113,7 @@ export const useCoupon = () => {
     const deleteCoupon = async (id) => {
         try {
             const response = await API.delete(`/api/coupons/${id}`)
+            console.log('Delete coupon response:', response.data)
             return response.data
         } catch (error) {
             console.error('Error deleting coupon:', error)
@@ -94,6 +132,7 @@ export const useCoupon = () => {
                     'Accept': 'application/json'
                 }
             })
+            console.log('Validate coupon response:', response.data)
             return response.data
         } catch (error) {
             console.error('Error validating coupon:', error)

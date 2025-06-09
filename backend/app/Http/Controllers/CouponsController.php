@@ -10,8 +10,8 @@ class CouponsController extends Controller
 {
     public function index()
     {
-        $coupons = Coupons::orderBy('created_at', 'desc')->get();
-        return response()->json(['coupons' => $coupons]);
+        $coupons = Coupons::orderBy('created_at', 'desc')->get()->makeHidden(['created_at', 'updated_at']);
+        return response()->json($coupons);
     }
 
     public function store(Request $request)
@@ -62,6 +62,12 @@ class CouponsController extends Controller
         return response()->json(['coupon' => $coupon, 'message' => 'Mã giảm giá đã được cập nhật thành công']);
     }
 
+    public function show($id)
+    {
+        $coupon = Coupons::findOrFail($id);
+        return response()->json($coupon);
+    }
+
     public function validate_coupon(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -93,5 +99,12 @@ class CouponsController extends Controller
             'discount' => $discount,
             'message' => 'Mã giảm giá hợp lệ'
         ]);
+    }
+
+    public function destroy($id)
+    {
+        $coupon = Coupons::findOrFail($id);
+        $coupon->delete();
+        return response()->json(['message' => 'Mã giảm giá đã được xóa thành công']);
     }
 }

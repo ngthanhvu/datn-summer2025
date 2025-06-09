@@ -1,18 +1,13 @@
 <template>
     <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
-        <!-- Search and Filter Section -->
         <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
-            <!-- Left side: Search and Filters -->
             <div class="tw-flex tw-gap-4">
-                <!-- Search Box -->
                 <div class="tw-relative">
                     <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..." @input="handleSearch"
                         class="tw-border tw-rounded tw-px-4 tw-py-2 tw-pl-10 tw-w-64 focus:tw-outline-none focus:tw-border-primary">
                     <i
                         class="fas fa-search tw-absolute tw-left-3 tw-top-1/2 tw-transform -tw-translate-y-1/2 tw-text-gray-400"></i>
                 </div>
-
-                <!-- Status Filter -->
                 <div class="tw-relative">
                     <select v-model="selectedStatus"
                         class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56 focus:tw-outline-none focus:tw-border-primary appearance-none">
@@ -20,29 +15,28 @@
                         <option value="1">Hoạt động</option>
                         <option value="0">Vô hiệu</option>
                     </select>
-                    <i
-                        class="fas fa-chevron-down tw-absolute tw-right-3 tw-top-1/2 tw-transform -tw-translate-y-1/2 tw-text-gray-400 tw-pointer-events-none"></i>
                 </div>
-
-                <!-- Date Filter -->
                 <div class="tw-relative">
                     <input v-model="selectedDate" type="date"
                         class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56 focus:tw-outline-none focus:tw-border-primary">
                 </div>
             </div>
-
-            <!-- Right side: Add Button -->
             <NuxtLink to="/admin/promotions/create"
                 class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-primary-dark tw-transition-colors">
                 <i class="fas fa-plus"></i>
                 Thêm mới
             </NuxtLink>
         </div>
-
-        <!-- Table Section -->
-        <div class="tw-overflow-x-auto">
+        <div v-if="loading" class="tw-flex tw-justify-center tw-items-center tw-py-8">
+            <div class="tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-primary"></div>
+            <span class="tw-ml-2">Đang tải...</span>
+        </div>
+        <div v-else-if="error"
+            class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-4">
+            {{ error }}
+        </div>
+        <div v-else class="tw-overflow-x-auto">
             <table class="tw-w-full tw-text-left">
-                <!-- Table Header -->
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
                         <th v-for="column in columns" :key="column.key"
@@ -57,29 +51,20 @@
                         <th class="tw-px-4 tw-py-3 tw-font-semibold">Thao tác</th>
                     </tr>
                 </thead>
-
-                <!-- Table Body -->
                 <tbody>
                     <tr v-for="(item, index) in paginatedData" :key="index"
                         class="tw-border-b hover:tw-bg-gray-50 tw-transition-colors">
-                        <!-- ID Column -->
                         <td class="tw-px-4 tw-py-3 tw-text-gray-600">
                             #{{ item.id }}
                         </td>
-
-                        <!-- Name Column -->
                         <td class="tw-px-4 tw-py-3">
                             <div class="tw-font-medium">{{ item.name }}</div>
                         </td>
-
-                        <!-- Code Column -->
                         <td class="tw-px-4 tw-py-3">
                             <span class="tw-bg-gray-100 tw-text-gray-700 tw-px-2 tw-py-1 tw-rounded tw-text-sm">
                                 {{ item.code }}
                             </span>
                         </td>
-
-                        <!-- Type Column -->
                         <td class="tw-px-4 tw-py-3">
                             <span :class="[
                                 'tw-px-2 tw-py-1 tw-rounded tw-text-sm',
@@ -90,8 +75,6 @@
                                 {{ item.type === 'percentage' ? 'Giảm theo %' : 'Giảm số tiền' }}
                             </span>
                         </td>
-
-                        <!-- Value Column -->
                         <td class="tw-px-4 tw-py-3 tw-font-medium">
                             <span :class="[
                                 item.type === 'percentage'
@@ -101,52 +84,36 @@
                                 {{ item.type === 'percentage' ? item.value + '%' : formatPrice(item.value) }}
                             </span>
                         </td>
-
-                        <!-- Min Spend Column -->
                         <td class="tw-px-4 tw-py-3">
-                            {{ formatPrice(item.minSpend) }}
+                            {{ formatPrice(item.min_order_value) }}
                         </td>
-
-                        <!-- Max Discount Column -->
                         <td class="tw-px-4 tw-py-3">
-                            {{ formatPrice(item.maxDiscount) }}
+                            {{ formatPrice(item.max_discount_value) }}
                         </td>
-
-                        <!-- Usage Limit Column -->
                         <td class="tw-px-4 tw-py-3">
-                            {{ item.usageLimit === 0 ? 'Không giới hạn' : item.usageLimit }}
+                            {{ item.usage_limit === 0 ? 'Không giới hạn' : item.usage_limit }}
                         </td>
-
-                        <!-- Usage Count Column -->
                         <td class="tw-px-4 tw-py-3">
                             <div class="tw-flex tw-items-center tw-gap-2">
-                                <span>{{ item.usageCount }}</span>
+                                <span>{{ item.used_count }}</span>
                                 <div class="tw-w-16 tw-h-2 tw-bg-gray-200 tw-rounded-full">
                                     <div class="tw-h-full tw-bg-primary tw-rounded-full"
-                                        :style="{ width: `${(item.usageCount / (item.usageLimit || 1)) * 100}%` }">
+                                        :style="{ width: `${(item.used_count / (item.usage_limit || 1)) * 100}%` }">
                                     </div>
                                 </div>
                             </div>
                         </td>
-
-                        <!-- Start Date Column -->
                         <td class="tw-px-4 tw-py-3">
-                            {{ formatDate(item.startDate) }}
+                            {{ formatDate(item.start_date) }}
                         </td>
-
-                        <!-- End Date Column -->
                         <td class="tw-px-4 tw-py-3">
-                            {{ formatDate(item.endDate) }}
+                            {{ formatDate(item.end_date) }}
                         </td>
-
-                        <!-- Status Column -->
                         <td class="tw-px-4 tw-py-3">
-                            <span :class="getStatusBadgeClass(item.status)">
-                                {{ getStatusText(item.status) }}
+                            <span :class="getStatusBadgeClass(item.is_active)">
+                                {{ getStatusText(item.is_active) }}
                             </span>
                         </td>
-
-                        <!-- Actions Column -->
                         <td class="tw-px-4 tw-py-3">
                             <div class="tw-flex tw-gap-2">
                                 <NuxtLink :to="'/admin/promotions/' + item.id"
@@ -160,18 +127,19 @@
                             </div>
                         </td>
                     </tr>
+                    <tr v-if="!paginatedData.length">
+                        <td colspan="12" class="tw-px-4 tw-py-3 tw-text-center tw-text-gray-600">
+                            Không có dữ liệu
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Pagination Section -->
-        <div class="tw-flex tw-justify-between tw-items-center tw-mt-6">
-            <!-- Records Info -->
+        <div v-if="!loading && !error" class="tw-flex tw-justify-between tw-items-center tw-mt-6">
             <div class="tw-text-sm tw-text-gray-600">
                 Hiển thị {{ paginatedData.length }} trên tổng số {{ filteredData.length }} bản ghi
             </div>
-
-            <!-- Pagination Controls -->
             <div class="tw-flex tw-gap-2">
                 <button :disabled="currentPage === 1" @click="currentPage--"
                     class="tw-px-3 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed tw-transition-colors">
@@ -190,73 +158,31 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useCoupon } from '~/composables/useCoupon'
 
 const emit = defineEmits(['delete', 'filter-change'])
 
-// Table columns configuration
+const { getCoupons, deleteCoupon } = useCoupon()
+
 const columns = [
     { key: 'id', label: 'ID' },
     { key: 'name', label: 'Tên chương trình' },
     { key: 'code', label: 'Mã giảm giá' },
     { key: 'type', label: 'Loại' },
     { key: 'value', label: 'Giá trị' },
-    { key: 'minSpend', label: 'Đơn tối thiểu', type: 'price' },
-    { key: 'maxDiscount', label: 'Giảm tối đa', type: 'price' },
-    { key: 'usageLimit', label: 'Giới hạn' },
-    { key: 'usageCount', label: 'Đã dùng' },
-    { key: 'startDate', label: 'Ngày bắt đầu' },
-    { key: 'endDate', label: 'Ngày kết thúc' },
-    { key: 'status', label: 'Trạng thái', type: 'status' }
+    { key: 'min_order_value', label: 'Đơn tối thiểu', type: 'price' },
+    { key: 'max_discount_value', label: 'Giảm tối đa', type: 'price' },
+    { key: 'usage_limit', label: 'Giới hạn' },
+    { key: 'used_count', label: 'Đã dùng' },
+    { key: 'start_date', label: 'Ngày bắt đầu' },
+    { key: 'end_date', label: 'Ngày kết thúc' },
+    { key: 'is_active', label: 'Trạng thái', type: 'status' }
 ]
 
-// Mock data
-const promotions = ref([
-    {
-        id: 1,
-        name: 'Giảm giá mùa hè',
-        code: 'SUMMER2024',
-        type: 'percentage',
-        value: 20,
-        minSpend: 1000000,
-        maxDiscount: 500000,
-        usageLimit: 100,
-        usageCount: 45,
-        startDate: '2024-06-01',
-        endDate: '2024-08-31',
-        status: true
-    },
-    {
-        id: 2,
-        name: 'Giảm giá sinh nhật',
-        code: 'BIRTHDAY',
-        type: 'fixed',
-        value: 200000,
-        minSpend: 500000,
-        maxDiscount: 200000,
-        usageLimit: 0,
-        usageCount: 156,
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
-        status: true
-    },
-    {
-        id: 3,
-        name: 'Flash sale cuối tuần',
-        code: 'WEEKEND',
-        type: 'percentage',
-        value: 15,
-        minSpend: 300000,
-        maxDiscount: 300000,
-        usageLimit: 50,
-        usageCount: 50,
-        startDate: '2024-03-01',
-        endDate: '2024-03-31',
-        status: false
-    }
-])
-
-// State
+const promotions = ref([])
+const loading = ref(false)
+const error = ref('')
 const searchQuery = ref('')
 const selectedStatus = ref('')
 const selectedDate = ref('')
@@ -264,6 +190,20 @@ const currentPage = ref(1)
 const sortKey = ref('')
 const sortOrder = ref('asc')
 const itemsPerPage = 10
+
+const loadPromotions = async () => {
+    try {
+        loading.value = true
+        error.value = ''
+        const data = await getCoupons()
+        promotions.value = data
+    } catch (err) {
+        error.value = 'Không thể tải dữ liệu khuyến mãi. Vui lòng thử lại.'
+        console.error('Error loading promotions:', err)
+    } finally {
+        loading.value = false
+    }
+}
 
 // Computed
 const filteredData = computed(() => {
@@ -280,12 +220,17 @@ const filteredData = computed(() => {
 
     // Status filter
     if (selectedStatus.value) {
-        result = result.filter(item => String(item.status) === selectedStatus.value)
+        const statusBool = selectedStatus.value === '1'
+        result = result.filter(item => item.is_active === statusBool)
     }
 
     // Date filter
     if (selectedDate.value) {
-        result = result.filter(item => item.startDate === selectedDate.value || item.endDate === selectedDate.value)
+        result = result.filter(item => {
+            const startDate = new Date(item.start_date).toISOString().split('T')[0]
+            const endDate = new Date(item.end_date).toISOString().split('T')[0]
+            return startDate === selectedDate.value || endDate === selectedDate.value
+        })
     }
 
     // Sort
@@ -328,11 +273,14 @@ const sortBy = (key) => {
     }
 }
 
-const handleDelete = (promotion) => {
+const handleDelete = async (promotion) => {
     if (confirm('Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?')) {
-        const index = promotions.value.findIndex(p => p.id === promotion.id)
-        if (index !== -1) {
-            promotions.value.splice(index, 1)
+        try {
+            await deleteCoupon(promotion.id)
+            await loadPromotions()
+        } catch (err) {
+            error.value = 'Không thể xóa chương trình khuyến mãi. Vui lòng thử lại.'
+            console.error('Error deleting promotion:', err)
         }
     }
 }
@@ -364,7 +312,7 @@ const getStatusText = (status) => {
     return status ? 'Hoạt động' : 'Vô hiệu'
 }
 
-// Add new utility function for date formatting
+// Format date function
 const formatDate = (date) => {
     return new Date(date).toLocaleDateString('vi-VN', {
         year: 'numeric',
@@ -372,6 +320,11 @@ const formatDate = (date) => {
         day: '2-digit'
     })
 }
+
+// Load data on component mount
+onMounted(() => {
+    loadPromotions()
+})
 </script>
 
 <style scoped>

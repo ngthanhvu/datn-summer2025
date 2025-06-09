@@ -1,6 +1,14 @@
 <template>
     <div>
-        <form @submit.prevent="handleSubmit" class="form">
+        <div v-if="loading" class="tw-flex tw-justify-center tw-items-center tw-py-8">
+            <div class="tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-primary"></div>
+            <span class="tw-ml-2">Đang tải...</span>
+        </div>
+        <div v-else-if="error"
+            class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-4">
+            {{ error }}
+        </div>
+        <form v-else @submit.prevent="handleSubmit" class="form">
             <div class="form-group">
                 <label for="name">Tên chương trình</label>
                 <input id="name" v-model="formData.name" type="text" required
@@ -13,7 +21,7 @@
             <div class="form-group">
                 <label for="type">Loại giảm giá</label>
                 <select id="type" v-model="formData.type" required>
-                    <option value="percent">Giảm theo phần trăm</option>
+                    <option value="percentage">Giảm theo phần trăm</option>
                     <option value="fixed">Giảm số tiền cố định</option>
                 </select>
             </div>
@@ -21,9 +29,9 @@
                 <label for="value">Giá trị giảm</label>
                 <div class="input-with-suffix">
                     <input id="value" v-model.number="formData.value" type="number" required :min="0"
-                        :max="formData.type === 'percent' ? 100 : undefined"
-                        :step="formData.type === 'percent' ? 1 : 1000" />
-                    <span class="suffix">{{ formData.type === 'percent' ? '%' : 'đ' }}</span>
+                        :max="formData.type === 'percentage' ? 100 : undefined"
+                        :step="formData.type === 'percentage' ? 1 : 1000" />
+                    <span class="suffix">{{ formData.type === 'percentage' ? '%' : 'đ' }}</span>
                 </div>
             </div>
             <div class="form-group">
@@ -64,25 +72,41 @@
             </div>
         </form>
         <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
-            <button @click="handleSubmit"
-                class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
-                Tạo khuyến mãi
+            <button @click="$emit('cancel')"
+                class="tw-bg-gray-500 tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-gray-600">
+                Hủy
+            </button>
+            <button @click="handleSubmit" :disabled="loading"
+                class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark disabled:tw-opacity-50">
+                {{ loading ? 'Đang cập nhật...' : 'Cập nhật khuyến mãi' }}
             </button>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useCoupon } from '@/composables/useCoupon'
 import Swal from 'sweetalert2'
 
-const { createCoupon } = useCoupon()
+const props = defineProps({
+    couponId: {
+        type: [String, Number],
+        required: true
+    }
+})
+
+const emit = defineEmits(['cancel', 'updated'])
+
+const { getCouponById, updateCoupon } = useCoupon()
+
+const loading = ref(false)
+const error = ref('')
 
 const formData = ref({
     name: '',
     code: '',
-    type: 'percent',
+    type: 'percentage',
     value: 0,
     min_order_value: 0,
     max_discount_value: 0,
@@ -93,45 +117,96 @@ const formData = ref({
     is_active: true
 })
 
+const loadCouponData = async () => {
+    try {
+        loading.value = true
+        error.value = ''
+        const coupon = await getCouponById(props.couponId)
+
+        if (coupon) {
+            // Format dates for datetime-local input
+            const formatDateForInput = (dateString) => {
+                if (!dateString) return ''
+                const date = new Date(dateString)
+                return date.toISOString().slice(0, 16)
+            }
+
+            formData.value = {
+                name: coupon.name || '',
+                code: coupon.code || '',
+                type: coupon.type === 'percent' ? 'percentage' : coupon.type,
+                value: coupon.value || 0,
+                min_order_value: coupon.min_order_value || 0,
+                max_discount_value: coupon.max_discount_value || 0,
+                usage_limit: coupon.usage_limit || 0,
+                start_date: formatDateForInput(coupon.start_date),
+                end_date: formatDateForInput(coupon.end_date),
+                description: coupon.description || '',
+                is_active: coupon.is_active !== undefined ? coupon.is_active : true
+            }
+        }
+    } catch (err) {
+        error.value = 'Không thể tải dữ liệu mã giảm giá. Vui lòng thử lại.'
+        console.error('Error loading coupon:', err)
+    } finally {
+        loading.value = false
+    }
+}
+
 const handleSubmit = async () => {
     try {
-        await createCoupon(formData.value)
+        loading.value = true
+
+        // Validate dates
+        if (new Date(formData.value.start_date) >= new Date(formData.value.end_date)) {
+            throw new Error('Ngày kết thúc phải sau ngày bắt đầu')
+        }
+
+        await updateCoupon(props.couponId, {
+            ...formData.value,
+            type: formData.value.type === 'percentage' ? 'percent' : formData.value.type
+        })
 
         // Hiển thị thông báo thành công
         await Swal.fire({
             title: 'Thành công!',
-            text: 'Mã giảm giá đã được tạo thành công',
+            text: 'Mã giảm giá đã được cập nhật thành công',
             icon: 'success',
             confirmButtonText: 'OK',
             confirmButtonColor: '#3bb77e'
         })
 
-        // Reset form sau khi tạo thành công
-        formData.value = {
-            name: '',
-            code: '',
-            type: 'percent',
-            value: 0,
-            min_order_value: 0,
-            max_discount_value: 0,
-            usage_limit: 0,
-            start_date: '',
-            end_date: '',
-            description: '',
-            is_active: true
-        }
+        // Emit event để parent component biết đã cập nhật
+        emit('updated')
     } catch (error) {
         // Hiển thị thông báo lỗi
+        const errorMessage = error.message || 'Có lỗi xảy ra khi cập nhật mã giảm giá'
         Swal.fire({
             title: 'Lỗi!',
-            text: 'Có lỗi xảy ra khi tạo mã giảm giá',
+            text: errorMessage,
             icon: 'error',
             confirmButtonText: 'OK',
             confirmButtonColor: '#3bb77e'
         })
-        console.error('Lỗi khi tạo coupon:', error)
+        console.error('Lỗi khi cập nhật coupon:', error)
+    } finally {
+        loading.value = false
     }
 }
+
+// Watch for couponId changes
+watch(() => props.couponId, () => {
+    if (props.couponId) {
+        loadCouponData()
+    }
+}, { immediate: true })
+
+// Load data on component mount
+onMounted(() => {
+    if (props.couponId) {
+        loadCouponData()
+    }
+})
 </script>
 
 <style scoped>
