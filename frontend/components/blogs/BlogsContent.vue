@@ -1,107 +1,94 @@
 <template>
-    <div class="tw-max-w-7xl tw-mx-auto tw-px-4 sm:tw-px-6 tw-py-6 sm:tw-py-10">
-        <h1 class="tw-text-center tw-text-[1.5rem] sm:tw-text-[2rem] tw-font-normal tw-mb-6 sm:tw-mb-8">Tin tức</h1>
-        <div class="tw-flex tw-flex-col lg:tw-flex-row tw-gap-6 sm:tw-gap-10">
-            <main class="tw-flex-1 tw-max-w-4xl tw-space-y-6 sm:tw-space-y-10">
-                <BlogArticle v-for="(article, index) in articles" :key="index" :article="article" />
-            </main>
-
-            <aside class="tw-w-full lg:tw-max-w-xs tw-flex-shrink-0 tw-space-y-6 sm:tw-space-y-8">
-                <!-- Danh mục tin tức -->
-                <section class="tw-bg-gray-50 tw-p-4 sm:tw-p-0 sm:tw-bg-transparent">
-                    <h3 class="tw-text-[14px] sm:tw-text-[16px] tw-font-semibold tw-mb-3 tw-uppercase tw-tracking-wide">
-                        DANH MỤC TIN TỨC
-                    </h3>
-                    <ul class="tw-text-[0.875rem] sm:tw-text-[1rem] tw-text-gray-700 tw-space-y-1">
-                        <li class="tw-cursor-pointer tw-select-none hover:tw-text-[#81AACC]">Trang chủ</li>
-                        <li
-                            class="tw-flex tw-justify-between tw-items-center tw-cursor-pointer tw-select-none hover:tw-text-[#81AACC]">
-                            Sản phẩm <i class="fas fa-chevron-down tw-text-sm"></i>
-                        </li>
-                        <li
-                            class="tw-flex tw-justify-between tw-items-center tw-cursor-pointer tw-select-none hover:tw-text-[#81AACC]">
-                            Chương trình khuyến mãi <i class="fas fa-chevron-down tw-text-sm"></i>
-                        </li>
-                        <li class="tw-cursor-pointer tw-select-none hover:tw-text-[#81AACC]">Hệ thống cửa hàng</li>
-                        <li class="tw-cursor-pointer tw-select-none hover:tw-text-[#81AACC]">Giới thiệu</li>
-                        <li class="tw-cursor-pointer tw-select-none hover:tw-text-[#81AACC]">Tin tức</li>
-                        <li class="tw-cursor-pointer tw-select-none hover:tw-text-[#81AACC]">Liên hệ</li>
-                        <li class="tw-cursor-pointer tw-select-none hover:tw-text-[#81AACC]">Kiểm tra đơn hàng</li>
-                    </ul>
-                </section>
-
-                <!-- Tin nổi bật -->
-                <section class="tw-bg-gray-50 tw-p-4 sm:tw-p-0 sm:tw-bg-transparent">
-                    <h3 class="tw-text-[14px] sm:tw-text-[16px] tw-font-semibold tw-mb-3 tw-uppercase tw-tracking-wide">
-                        TIN NỔI BẬT
-                    </h3>
-                    <ul class="tw-space-y-3 tw-text-[14px] sm:tw-text-[16px] tw-text-gray-800">
-                        <HighlightItem v-for="(item, index) in highlights" :key="index" :item="item" />
-                    </ul>
-                </section>
-            </aside>
+    <section class="tw-max-w-7xl tw-mx-auto tw-px-6 tw-py-12">
+        <div class="tw-text-center tw-max-w-xl tw-mx-auto tw-mb-12">
+            <h2 class="tw-text-gray-900 tw-font-semibold tw-text-2xl sm:tw-text-3xl tw-mb-2">
+                Our latest blogs
+            </h2>
+            <p class="tw-text-gray-500 tw-text-sm sm:tw-text-base">
+                A daily dose of knowledge will keep build you to your next stage
+            </p>
         </div>
-    </div>
+        <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-3 tw-gap-8">
+            <article v-for="(blog, index) in blogs" :key="index">
+                <img :alt="blog.alt" class="tw-w-full tw-h-48 sm:tw-h-56 tw-object-cover tw-rounded" loading="lazy"
+                    :src="blog.image" width="600" />
+                <time class="tw-block tw-mt-4 tw-mb-1 tw-text-xs tw-text-gray-500" :datetime="blog.date">
+                    {{ formatDate(blog.date) }}
+                </time>
+                <a class="tw-text-blue-700 tw-font-semibold tw-text-sm sm:tw-text-base tw-leading-snug hover:tw-underline tw-inline-block tw-mb-1"
+                    :href="blog.link">
+                    {{ blog.title }}
+                </a>
+                <p class="tw-text-gray-500 tw-text-sm sm:tw-text-base tw-leading-relaxed">
+                    {{ blog.excerpt }}
+                </p>
+            </article>
+        </div>
+    </section>
 </template>
 
 <script setup>
-import HighlightItem from '@/components/blogs/HighlightItem.vue';
-import BlogArticle from '@/components/blogs/BlogArticle.vue';
-
-const articles = [
+const blogs = [
     {
-        title: 'Quần short nam và 5 nguyên tắc bạn cần biết',
-        date: '12/04/2023',
-        readTime: '3 phút',
-        image: 'https://storage.googleapis.com/a1aa/image/89f0f8f6-ae74-4202-9623-2e41987189df.jpg',
-        excerpt: 'Những mẫu quần short luôn là một trong những items thời trang chiếm số lượng cực lớn trong tủ đồ của mọi chàng trai. Hãy cùng tìm hiểu 5 nguyên tắc quan trọng khi chọn quần short nam...'
+        title: '10 Tips for Capturing Stunning Landscape Photos',
+        date: '2023-05-25',
+        image: 'https://storage.googleapis.com/a1aa/image/0937c7ad-97ec-45f0-c69c-cdba4f61b684.jpg',
+        alt: 'Landscape with rolling hills and trees under soft pink sky',
+        excerpt: 'Landscape photography is one of the most popular genres among photographers.',
+        link: '#'
     },
     {
-        title: '9 Cách phối màu quần áo nam cho chàng thêm phong cách và thời trang',
-        date: '11/04/2023',
-        readTime: '6 phút',
-        image: 'https://storage.googleapis.com/a1aa/image/fe6ca910-a815-41b4-0b3b-8d4e1d896c5f.jpg',
-        excerpt: 'Chọn trang phục có thiết kế đẹp và hợp với dáng thôi vẫn chưa đủ đâu nhé các chàng trai. Để có một set đồ ấn tượng, bạn cần biết cách phối màu...'
+        title: 'How Technology is Changing the Field of Architecture',
+        date: '2023-06-25',
+        image: 'https://storage.googleapis.com/a1aa/image/43aedf66-1620-4716-0b93-d93fec7c29d9.jpg',
+        alt: 'Minimalist 3D render of arched doorways in neutral tones',
+        excerpt: 'Macro photography is a fascinating genre that allows you to capture the intricate details.',
+        link: '#'
     },
     {
-        title: 'Bí mật 6+ cách phối đồ ăn gian chiều cao cho nam đơn giản, hiệu quả cao',
-        date: '11/04/2023',
-        readTime: '8 phút',
-        image: 'https://storage.googleapis.com/a1aa/image/ba3f8873-a8fd-423e-432c-f0eea310516f.jpg',
-        excerpt: 'Cách phối đồ ăn gian chiều cao cho nam giới là vấn đề được phái mạnh quan tâm nhiều nhất. Xã hội luôn thích những người có chiều cao...'
+        title: 'Preserving History: The Importance of Architectural Conservation and Restoration',
+        date: '2023-12-25',
+        image: 'https://storage.googleapis.com/a1aa/image/a6b704ba-4a4e-4794-5753-e7e477f9a1de.jpg',
+        alt: 'Ornate archway with colorful tile mosaic patterns',
+        excerpt: 'Preserving historic buildings and sites is an important consideration in the field of architecture',
+        link: '#'
     },
     {
-        title: 'TOP 4 ITEM QUẦN ÁO NAM MÙA HÈ GÂY BÃO CỰC CHẤT',
-        date: '11/04/2023',
-        readTime: '4 phút',
-        image: 'https://storage.googleapis.com/a1aa/image/988ba650-809b-4be8-d119-741de4b94ab8.jpg',
-        excerpt: 'Thời trang là khẳng định phong cách, là yếu tố tồn lên vẻ đẹp tiềm ẩn của mỗi cá nhân. Chính vì vậy, làng thời trang luôn...'
+        title: 'Exploring the Beauty of Nature Photography',
+        date: '2024-01-15',
+        image: 'https://storage.googleapis.com/a1aa/image/12fb8a47-07cd-4e18-ef1a-e5c8ca90c806.jpg',
+        alt: 'Sunset over a calm lake with mountains in the background',
+        excerpt: 'Discover tips and techniques to capture the stunning beauty of natural landscapes and wildlife.',
+        link: '#'
     },
     {
-        title: '8 Xu hướng thời trang nam mùa hè mới nhất',
-        date: '10/04/2023',
-        readTime: '5 phút',
-        image: 'https://storage.googleapis.com/a1aa/image/49820d58-90d5-4da2-e15a-c8fbff260c9b.jpg',
-        excerpt: 'Mùa hè đang đến gần, đây là thời điểm hoàn hảo để cập nhật tủ đồ của bạn với những xu hướng thời trang nam mới nhất...'
+        title: 'Innovations in Sustainable Architecture',
+        date: '2024-02-10',
+        image: 'https://storage.googleapis.com/a1aa/image/4530f9e6-43ba-4f0f-3f85-d59f15aedcd3.jpg',
+        alt: 'Modern office building with glass facade reflecting the sky',
+        excerpt: 'Learn about the latest trends and innovations driving sustainability in modern architecture.',
+        link: '#'
+    },
+    {
+        title: 'The Art of Vintage Photography: Tips and Tricks',
+        date: '2024-03-05',
+        image: 'https://storage.googleapis.com/a1aa/image/f34a288c-b3e0-4585-bac4-cb25a220aa98.jpg',
+        alt: 'Close-up of a vintage camera on a wooden table',
+        excerpt: 'Explore how to create timeless vintage-style photos with simple techniques and equipment.',
+        link: '#'
     }
 ];
 
-const highlights = [
-    {
-        img: 'https://storage.googleapis.com/a1aa/image/49820d58-90d5-4da2-e15a-c8fbff260c9b.jpg',
-        text: '8 Xu hướng thời trang nam mùa hè mới nhất'
-    },
-    {
-        img: 'https://storage.googleapis.com/a1aa/image/4643301c-219c-44df-4f0b-fcfb5ba83c90.jpg',
-        text: 'Quần short nam và 5 nguyên tắc nam giới cần phải biết'
-    },
-    {
-        img: 'https://storage.googleapis.com/a1aa/image/f61eee0b-c33e-4fcf-01dd-2d859d2a0680.jpg',
-        text: '9 Cách phối màu quần áo nam cho chàng thêm phong cách và thời trang'
-    },
-    {
-        img: 'https://storage.googleapis.com/a1aa/image/8eedc17f-2463-4138-0484-f85120c15be8.jpg',
-        text: 'Bí mật 6+ cách phối đồ ăn gian chiều cao cho nam đơn giản, hiệu quả cao'
-    }
-];
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+};
 </script>
+
+<style scoped>
+/* Add any custom styles here if needed */
+</style>

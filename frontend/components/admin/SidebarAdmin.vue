@@ -51,6 +51,10 @@
       <!-- Communication Section -->
       <div class="nav-section">
         <div class="section-title text-muted tw-font-bold tw-text-[14px]">Giao tiếp</div>
+        <NuxtLink to="/admin/blogs" class="nav-item">
+          <i class="fa-solid fa-newspaper"></i>
+          Bài viết
+        </NuxtLink>
         <NuxtLink to="/admin/messages" class="nav-item">
           <i class="fas fa-envelope"></i>
           <span>Tin nhắn</span>
