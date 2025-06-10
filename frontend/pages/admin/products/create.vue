@@ -64,9 +64,9 @@
       <NuxtLink to="/admin/products" class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
         Hủy
       </NuxtLink>
-      <button @click="handleSubmit"
-        class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
-        Tạo sản phẩm
+      <button @click="handleSubmit" :disabled="isSubmitting"
+        class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark disabled:tw-opacity-50 disabled:tw-cursor-not-allowed">
+        {{ isSubmitting ? 'Đang tạo...' : 'Tạo sản phẩm' }}
       </button>
     </div>
   </div>
@@ -90,17 +90,14 @@ import { useBrand } from '~/composables/useBrand'
 
 const notyf = useNuxtApp().$notyf
 const isDataLoaded = ref(false)
+const isSubmitting = ref(false)
 const basicFields = ref([
   {
     name: 'name',
     label: 'Tên sản phẩm',
     type: 'text',
     placeholder: 'Nhập tên sản phẩm',
-    required: true,
-    validation: {
-      required: 'Vui lòng nhập tên sản phẩm',
-      minLength: { value: 3, message: 'Tên sản phẩm phải có ít nhất 3 ký tự' }
-    }
+    required: true
   },
   {
     name: 'price',
@@ -109,11 +106,7 @@ const basicFields = ref([
     placeholder: 'Nhập giá sản phẩm',
     required: true,
     min: 0,
-    step: 1000,
-    validation: {
-      required: 'Vui lòng nhập giá sản phẩm',
-      min: { value: 0, message: 'Giá không được âm' }
-    }
+    step: 1000
   },
   {
     name: 'original_price',
@@ -122,10 +115,7 @@ const basicFields = ref([
     placeholder: 'Nhập giá gốc',
     required: false,
     min: 0,
-    step: 1000,
-    validation: {
-      min: { value: 0, message: 'Giá gốc không được âm' }
-    }
+    step: 1000
   },
   {
     name: 'discount_price',
@@ -134,10 +124,7 @@ const basicFields = ref([
     placeholder: 'Nhập giá khuyến mãi',
     required: false,
     min: 0,
-    step: 1000,
-    validation: {
-      min: { value: 0, message: 'Giá khuyến mãi không được âm' }
-    }
+    step: 1000
   },
   {
     name: 'category',
@@ -145,10 +132,7 @@ const basicFields = ref([
     type: 'select',
     placeholder: 'Chọn danh mục',
     required: true,
-    options: [],
-    validation: {
-      required: 'Vui lòng chọn danh mục'
-    }
+    options: []
   },
   {
     name: 'brand',
@@ -156,20 +140,14 @@ const basicFields = ref([
     type: 'select',
     placeholder: 'Chọn thương hiệu',
     required: true,
-    options: [],
-    validation: {
-      required: 'Vui lòng chọn thương hiệu'
-    }
+    options: []
   },
   {
     name: 'description',
     label: 'Mô tả',
     type: 'textarea',
     placeholder: 'Nhập mô tả sản phẩm',
-    rows: 4,
-    validation: {
-      minLength: { value: 10, message: 'Mô tả phải có ít nhất 10 ký tự' }
-    }
+    rows: 4
   },
   {
     name: 'status',
@@ -184,20 +162,14 @@ const variantFields = [
     label: 'Màu sắc',
     type: 'text',
     placeholder: 'Nhập màu sắc',
-    required: true,
-    validation: {
-      required: 'Vui lòng nhập màu sắc'
-    }
+    required: true
   },
   {
     name: 'size',
     label: 'Kích thước',
     type: 'text',
     placeholder: 'Nhập kích thước',
-    required: true,
-    validation: {
-      required: 'Vui lòng nhập kích thước'
-    }
+    required: true
   },
   {
     name: 'price',
@@ -206,22 +178,14 @@ const variantFields = [
     placeholder: 'Nhập giá biến thể',
     required: true,
     min: 0,
-    step: 1000,
-    validation: {
-      required: 'Vui lòng nhập giá biến thể',
-      min: { value: 0, message: 'Giá biến thể không được âm' }
-    }
+    step: 1000
   },
   {
     name: 'sku',
     label: 'SKU',
     type: 'text',
     placeholder: 'Nhập mã SKU',
-    required: true,
-    validation: {
-      required: 'Vui lòng nhập mã SKU',
-      pattern: { value: /^[A-Z0-9-]+$/, message: 'SKU chỉ được chứa chữ hoa, số và dấu gạch ngang' }
-    }
+    required: true
   }
 ]
 
@@ -303,84 +267,29 @@ onMounted(async () => {
   }
 })
 
-const validateField = (field, value) => {
-  const fieldConfig = basicFields.value.find(f => f.name === field)
-  if (!fieldConfig || !fieldConfig.validation) return ''
-
-  const validation = fieldConfig.validation
-
-  if (validation.required && !value) {
-    return validation.required
-  }
-
-  if (validation.minLength && value.length < validation.minLength.value) {
-    return validation.minLength.message
-  }
-
-  if (validation.min && value < validation.min.value) {
-    return validation.min.message
-  }
-
-  if (validation.pattern && !validation.pattern.value.test(value)) {
-    return validation.pattern.message
-  }
-
-  return ''
-}
-
-const validateVariantField = (field, value, index) => {
-  const fieldConfig = variantFields.find(f => f.name === field)
-  if (!fieldConfig || !fieldConfig.validation) return ''
-
-  const validation = fieldConfig.validation
-
-  if (validation.required && !value) {
-    return validation.required
-  }
-
-  if (validation.minLength && value.length < validation.minLength.value) {
-    return validation.minLength.message
-  }
-
-  if (validation.min && value < validation.min.value) {
-    return validation.min.message
-  }
-
-  if (validation.pattern && !validation.pattern.value.test(value)) {
-    return validation.pattern.message
-  }
-
-  return ''
-}
-
 const validateForm = () => {
   let hasError = false
   const errors = { ...formErrors.value }
 
-  // Validate basic fields
-  errors.name = validateField('name', formData.value.name)
-  errors.price = validateField('price', formData.value.price)
-  errors.original_price = validateField('original_price', formData.value.original_price)
-  errors.discount_price = validateField('discount_price', formData.value.discount_price)
-  errors.category = validateField('category', formData.value.category)
-  errors.brand = validateField('brand', formData.value.brand)
-  errors.description = validateField('description', formData.value.description)
-
-  // Validate variants
-  errors.variants = formData.value.variants.map((variant, index) => {
-    const variantErrors = {}
-    variantErrors.color = validateVariantField('color', variant.color, index)
-    variantErrors.size = validateVariantField('size', variant.size, index)
-    variantErrors.price = validateVariantField('price', variant.price, index)
-    variantErrors.sku = validateVariantField('sku', variant.sku, index)
-    return variantErrors
-  })
+  // Basic validation
+  if (!formData.value.name) {
+    errors.name = 'Vui lòng nhập tên sản phẩm'
+    hasError = true
+  }
+  if (!formData.value.price) {
+    errors.price = 'Vui lòng nhập giá sản phẩm'
+    hasError = true
+  }
+  if (!formData.value.category) {
+    errors.category = 'Vui lòng chọn danh mục'
+    hasError = true
+  }
+  if (!formData.value.brand) {
+    errors.brand = 'Vui lòng chọn thương hiệu'
+    hasError = true
+  }
 
   formErrors.value = errors
-  hasError = Object.values(errors).some(error => error !== '') ||
-    errors.variants.some(variantErrors =>
-      Object.values(variantErrors).some(error => error !== ''))
-
   return !hasError
 }
 
@@ -390,12 +299,9 @@ const handleSubmit = async () => {
       return
     }
 
-    if (!formData.value.mainImage) {
-      notyf.error('Vui lòng chọn ảnh chính cho sản phẩm')
-      return
-    }
-
+    isSubmitting.value = true
     const productData = new FormData()
+
     productData.append('name', formData.value.name)
     productData.append('description', formData.value.description)
     productData.append('price', String(formData.value.price))
@@ -404,9 +310,12 @@ const handleSubmit = async () => {
     productData.append('is_active', formData.value.status ? '1' : '0')
     productData.append('categories_id', String(formData.value.category))
     productData.append('brand_id', String(formData.value.brand))
-    productData.append('is_main', formData.value.mainImage)
 
-    formData.value.additionalImages.forEach((img) => {
+    if (formData.value.mainImage) {
+      productData.append('is_main', formData.value.mainImage)
+    }
+
+    formData.value.additionalImages.forEach(img => {
       productData.append('image_path[]', img)
     })
 
@@ -419,11 +328,13 @@ const handleSubmit = async () => {
       })
     }
 
-    await createProduct(productData)
+    const response = await createProduct(productData)
+    notyf.success('Tạo sản phẩm thành công!')
     await navigateTo('/admin/products')
   } catch (error) {
-    console.error('Error creating product:', error)
-    alert('Có lỗi khi tạo sản phẩm')
+    notyf.error(error.response?.data?.message || 'Có lỗi khi tạo sản phẩm')
+  } finally {
+    isSubmitting.value = false
   }
 }
 

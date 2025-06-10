@@ -35,7 +35,6 @@
                 </select>
             </div>
 
-            <!-- Add button -->
             <NuxtLink to="/admin/products/create"
                 class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-primary-dark">
                 <i class="fas fa-plus"></i>
@@ -43,7 +42,6 @@
             </NuxtLink>
         </div>
 
-        <!-- Main Table -->
         <div class="tw-overflow-x-auto">
             <table class="tw-w-full tw-text-left">
                 <thead>
@@ -60,14 +58,11 @@
                 <tbody>
                     <tr v-for="(item, index) in paginatedData" :key="index" class="tw-border-b hover:tw-bg-gray-50">
                         <td v-for="column in columns" :key="column.key" class="tw-px-4 tw-py-3">
-                            <!-- Main image column -->
                             <template v-if="column.type === 'main_image'">
                                 <img :src="getMainImage(item.images)?.image_path"
                                     :alt="getMainImage(item.images)?.image_path"
                                     class="tw-w-12 tw-h-12 tw-object-cover tw-rounded" />
                             </template>
-
-                            <!-- Sub images column -->
                             <template v-else-if="column.type === 'sub_images'">
                                 <div class="tw-flex tw-gap-1">
                                     <img v-for="image in getSubImages(item.images)" :key="image.id"
@@ -76,41 +71,27 @@
                                         @click="handleImageClick(image)" />
                                 </div>
                             </template>
-
-                            <!-- Brand column -->
                             <template v-else-if="column.type === 'brand'">
                                 <span class="tw-text-sm">{{ item[column.key] }}</span>
                             </template>
-
-                            <!-- Category column -->
                             <template v-else-if="column.type === 'category'">
                                 <span class="tw-text-sm">{{ item[column.key] }}</span>
                             </template>
-
-                            <!-- Status column -->
                             <template v-else-if="column.type === 'status'">
                                 <span :class="getStatusBadgeClass(item[column.key])">
                                     {{ getStatusText(item[column.key]) }}
                                 </span>
                             </template>
-
-                            <!-- Price column -->
                             <template v-else-if="column.type === 'price'">
                                 {{ formatPrice(item[column.key]) }}
                             </template>
-
-                            <!-- Variants column -->
                             <template v-else-if="column.type === 'variants'">
                                 <Badges :variants="item[column.key]" />
                             </template>
-
-                            <!-- Default column -->
                             <template v-else>
                                 {{ item[column.key] }}
                             </template>
                         </td>
-
-                        <!-- Actions column -->
                         <td class="tw-px-4 tw-py-3">
                             <div class="tw-flex tw-gap-2">
                                 <NuxtLink :to="`/admin/products/${item.id}/edit`"
@@ -124,11 +105,15 @@
                             </div>
                         </td>
                     </tr>
+                    <tr v-if="paginatedData.length === 0">
+                        <td colspan="10" class="tw-px-4 tw-py-3 tw-text-center tw-text-gray-500">
+                            Không có dữ liệu
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Pagination -->
         <div class="tw-flex tw-justify-between tw-items-center tw-mt-4">
             <div class="tw-text-sm tw-text-gray-600">
                 Hiển thị {{ paginatedData.length }} trên tổng số {{ filteredData.length }} bản ghi

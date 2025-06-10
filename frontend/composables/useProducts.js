@@ -32,7 +32,6 @@ export const useProducts = () => {
                 params.append('sort_direction', filters.sort_direction || 'asc')
             }
 
-            // Gọi API với các tham số lọc
             const response = await API.get(`/api/products?${params.toString()}`)
             return response.data
         } catch (error) {
@@ -157,9 +156,7 @@ export const useProducts = () => {
             if (query) {
                 params.append('q', query)
             }
-            // Thêm các tham số lọc nếu có
             if (filters.color && filters.color.length > 0) {
-                // Assuming filters.color is an array based on previous changes
                 if (Array.isArray(filters.color)) {
                     filters.color.forEach(c => params.append('color[]', c));
                 } else {
@@ -173,7 +170,6 @@ export const useProducts = () => {
                 params.append('max_price', filters.max_price)
             }
             if (filters.category && filters.category.length > 0) {
-                // Assuming filters.category is an array based on previous changes
                 if (Array.isArray(filters.category)) {
                     filters.category.forEach(c => params.append('category[]', c));
                 } else {
@@ -181,7 +177,6 @@ export const useProducts = () => {
                 }
             }
             if (filters.brand && filters.brand.length > 0) {
-                // Assuming filters.brand is an array based on previous changes
                 if (Array.isArray(filters.brand)) {
                     filters.brand.forEach(b => params.append('brand[]', b));
                 } else {
@@ -189,7 +184,6 @@ export const useProducts = () => {
                 }
             }
             if (filters.size && filters.size.length > 0) {
-                // Assuming filters.size is an array based on previous changes
                 if (Array.isArray(filters.size)) {
                     filters.size.forEach(s => params.append('size[]', s));
                 } else {
@@ -198,7 +192,6 @@ export const useProducts = () => {
             }
 
             const response = await API.get(`/api/products/search?${params.toString()}`)
-            // Ensure the response data is an array
             return Array.isArray(response.data) ? response.data : []
         } catch (error) {
             console.error('Error searching products:', error)

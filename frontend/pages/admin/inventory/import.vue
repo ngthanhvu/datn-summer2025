@@ -118,6 +118,10 @@
                                         </div>
                                     </td>
                                 </tr>
+                                <tr v-if="filteredMovements.length === 0">
+                                    <td colspan="7" class="tw-px-4 tw-py-3 tw-text-center tw-text-gray-500">Không có dữ
+                                        liệu</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

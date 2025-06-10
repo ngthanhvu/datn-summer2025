@@ -46,7 +46,7 @@
                         </td>
                     </tr>
                     <tr v-if="categories.length === 0">
-                        <td colspan="6" class="tw-py-8">
+                        <td colspan="7" class="tw-py-8">
                             <div class="tw-text-center tw-text-gray-500">
                                 <i class="fas fa-box-open tw-text-4xl tw-mb-3"></i>
                                 <p class="tw-text-lg">Không có danh mục nào</p>
