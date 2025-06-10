@@ -5,6 +5,13 @@ import { useCookie } from '#app'
 const useCarts = () => {
     const config = useRuntimeConfig()
     const apiBaseUrl = config.public.apiBaseUrl
+
+    if (!apiBaseUrl) {
+        console.error('API Base URL is not configured')
+        throw new Error('API configuration error')
+    }
+
+    const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`
     const cart = ref([])
     const isLoading = ref(false)
     const error = ref(null)
@@ -41,7 +48,7 @@ const useCarts = () => {
     const fetchCart = async () => {
         try {
             isLoading.value = true
-            const response = await axios.get(`${apiBaseUrl}api/${getCartEndpoint()}`, {
+            const response = await axios.get(`${baseUrl}api/${getCartEndpoint()}`, {
                 headers: getHeaders(),
                 withCredentials: true
             })
@@ -63,7 +70,7 @@ const useCarts = () => {
             }
 
             const response = await axios.post(
-                `${apiBaseUrl}api/${getCartEndpoint()}`,
+                `${baseUrl}api/${getCartEndpoint()}`,
                 payload,
                 {
                     headers: getHeaders(),
@@ -112,7 +119,7 @@ const useCarts = () => {
             }
 
             await axios.put(
-                `${apiBaseUrl}api/${getCartEndpoint()}/${cartId}`,
+                `${baseUrl}api/${getCartEndpoint()}/${cartId}`,
                 { quantity },
                 {
                     headers: getHeaders(),
@@ -132,25 +139,31 @@ const useCarts = () => {
         const sessionId = localStorage.getItem('sessionId')
         const token = getToken()
         if (!sessionId || !token) return
-        await axios.post(
-            `${apiBaseUrl}api/cart/transfer-session-to-user`,
-            {},
-            {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'X-Session-Id': sessionId
-                },
-                withCredentials: true
-            }
-        )
-        localStorage.removeItem('sessionId')
-        await fetchCart()
+
+        try {
+            await axios.post(
+                `${baseUrl}api/cart/transfer-session-to-user`,
+                {},
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-Session-Id': sessionId
+                    },
+                    withCredentials: true
+                }
+            )
+            localStorage.removeItem('sessionId')
+            await fetchCart()
+        } catch (error) {
+            console.error('Transfer cart error:', error)
+            // Không throw error để không làm gián đoạn quá trình login
+        }
     }
 
     const removeFromCart = async (cartId) => {
         try {
             isLoading.value = true
-            await axios.delete(`${apiBaseUrl}api/${getCartEndpoint()}/${cartId}`, {
+            await axios.delete(`${baseUrl}api/${getCartEndpoint()}/${cartId}`, {
                 headers: getHeaders(),
                 withCredentials: true
             })

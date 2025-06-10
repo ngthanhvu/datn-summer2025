@@ -2,7 +2,7 @@
     <tr class="tw-border-b tw-border-gray-200">
         <td class="tw-py-4 tw-w-[40%]">
             <div class="tw-flex tw-items-center tw-gap-4">
-                <img :src="runtimeConfig.public.apiBaseUrl + product?.variant?.product?.main_image?.image_path"
+                <img :src="runtimeConfig.public.apiBaseUrl + '/' + product?.variant?.product?.main_image?.image_path"
                     :alt="product?.variant?.product?.name || 'Product image'"
                     class="tw-w-20 tw-h-20 tw-object-cover tw-rounded-md" />
                 <div>
@@ -22,21 +22,15 @@
                 <div class="tw-flex tw-justify-center tw-items-center">
                     <button aria-label="Decrease quantity"
                         class="tw-text-[#6b7280] tw-text-xl tw-select-none hover:tw-text-black tw-transition-colors tw-w-8 tw-h-8 tw-flex tw-items-center tw-justify-center tw-rounded-full hover:tw-bg-gray-100"
-                        type="button" 
-                        @click="handleDecrease"
-                        :disabled="quantity <= 1">
+                        type="button" @click="handleDecrease" :disabled="quantity <= 1">
                         <i class="fas fa-minus"></i>
                     </button>
-                    <input type="number" 
-                        :value="quantity" 
-                        min="1"
-                        :max="product?.variant?.quantity || 999"
+                    <input type="number" :value="quantity" min="1" :max="product?.variant?.quantity || 999"
                         class="tw-w-16 tw-h-8 tw-text-center tw-border tw-border-gray-300 tw-mx-2 tw-text-sm focus:tw-outline-none focus:tw-border-blue-500"
                         @input="handleQuantityInput" />
                     <button aria-label="Increase quantity"
                         class="tw-text-[#6b7280] tw-text-xl tw-select-none hover:tw-text-black tw-transition-colors tw-w-8 tw-h-8 tw-flex tw-items-center tw-justify-center tw-rounded-full hover:tw-bg-gray-100"
-                        type="button" 
-                        @click="handleIncrease"
+                        type="button" @click="handleIncrease"
                         :disabled="quantity >= (product?.variant?.quantity || 999)">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -81,7 +75,7 @@ const error = ref('')
 const handleQuantityInput = (event) => {
     const newValue = parseInt(event.target.value) || 1
     const maxquantity = props.product?.variant?.quantity || 999
-    
+
     if (newValue < 1) {
         error.value = 'Số lượng không được nhỏ hơn 1'
         emit('update:quantity', 1)

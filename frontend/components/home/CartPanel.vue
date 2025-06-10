@@ -20,9 +20,8 @@
                     </NuxtLink>
                 </div>
                 <div v-else v-for="item in items" :key="item.id" class="tw-flex tw-gap-4 tw-pb-4 tw-border-b">
-                    <img :src="runtimeConfig.public.apiBaseUrl + item?.variant?.product?.main_image?.image_path" 
-                         :alt="item?.variant?.product?.name" 
-                         class="tw-w-20 tw-h-20 tw-object-cover tw-rounded">
+                    <img :src="runtimeConfig.public.apiBaseUrl + '/' + item?.variant?.product?.main_image?.image_path"
+                        :alt="item?.variant?.product?.name" class="tw-w-20 tw-h-20 tw-object-cover tw-rounded">
                     <div class="tw-flex-1">
                         <h6 class="tw-font-medium tw-mb-1">{{ item?.variant?.product?.name }}</h6>
                         <p class="tw-text-sm tw-text-gray-600 tw-mb-1">
@@ -34,22 +33,18 @@
                         </p>
                         <div class="tw-flex tw-justify-between tw-items-center">
                             <div class="tw-flex tw-items-center tw-gap-2">
-                                <button 
-                                    class="tw-px-2 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-100" 
-                                    @click="handleDecrease(item.id)"
-                                    :disabled="item.quantity <= 1"
-                                >-</button>
+                                <button class="tw-px-2 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-100"
+                                    @click="handleDecrease(item.id)" :disabled="item.quantity <= 1">-</button>
                                 <span class="tw-text-sm">{{ item.quantity }}</span>
-                                <button 
-                                    class="tw-px-2 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-100" 
+                                <button class="tw-px-2 tw-py-1 tw-border tw-rounded hover:tw-bg-gray-100"
                                     @click="handleIncrease(item.id)"
-                                    :disabled="item.quantity >= item?.variant?.inventory?.quantity"
-                                >+</button>
+                                    :disabled="item.quantity >= item?.variant?.inventory?.quantity">+</button>
                             </div>
                             <span class="tw-font-medium">{{ formatPrice(item.price) }}</span>
                         </div>
                     </div>
-                    <button class="tw-text-gray-400 hover:tw-text-red-500" @click="removeFromCart(item.id)"><i class="bi bi-x-lg"></i></button>
+                    <button class="tw-text-gray-400 hover:tw-text-red-500" @click="removeFromCart(item.id)"><i
+                            class="bi bi-x-lg"></i></button>
                 </div>
             </div>
             <!-- Cart Summary -->

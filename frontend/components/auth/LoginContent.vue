@@ -64,9 +64,9 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useAuth } from '~/composables/useAuth'
+import { useAuth } from '../../composables/useAuth'
 import Swal from 'sweetalert2'
-import useCarts from '~/composables/useCarts'
+import useCarts from '../../composables/useCarts'
 
 const { login, googleLogin, facebookLogin } = useAuth()
 const { transferCartFromSessionToUser, fetchCart } = useCarts()
@@ -102,9 +102,13 @@ const resetErrors = () => {
 }
 
 const mergeCartAfterLogin = async () => {
-    await transferCartFromSessionToUser()
-    await fetchCart()
-    // Có thể hiển thị thông báo nếu muốn
+    try {
+        await transferCartFromSessionToUser()
+        await fetchCart()
+    } catch (error) {
+        console.warn('Cart merge failed, but login succeeded:', error)
+        // Không hiển thị lỗi cho user vì login đã thành công
+    }
 }
 
 const handleLogin = async () => {
