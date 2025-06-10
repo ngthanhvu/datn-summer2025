@@ -247,10 +247,13 @@ import { ref, computed, watch } from 'vue'
 import Card from '~/components/home/Card.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
+import useCarts from '~/composables/useCarts'
+import { useCookie } from '#app'
 
 const route = useRoute()
 const { getProducts, getProductBySlug } = useProducts()
 const { getInventories } = useInventories()
+const { addToCart: addToCartComposable, getUserId, transferCartFromSessionToUser, fetchCart } = useCarts()
 
 // Product data
 const { data, pending, error, refresh } = await useAsyncData(
@@ -391,13 +394,34 @@ const formatPrice = (price) => {
   }).format(price)
 }
 
-const addToCart = () => {
-  console.log('Add to cart:', {
-    product: data.value,
-    size: selectedSize.value,
-    color: selectedColor.value,
-    quantity: quantity.value
-  })
+const addToCart = async () => {
+  try {
+    // Tìm variant dựa trên size và color đã chọn
+    const selectedVariant = data.value.variants.find(v =>
+      v.size === selectedSize.value &&
+      v.color === selectedColor.value?.name
+    )
+    if (!selectedVariant) {
+      alert('Vui lòng chọn size và màu sắc')
+      return
+    }
+    if (quantity.value > selectedVariant.stock) {
+      alert('Số lượng vượt quá số lượng trong kho')
+      return
+    }
+    await addToCartComposable(selectedVariant.id, quantity.value)
+    alert('Đã thêm vào giỏ hàng')
+  } catch (error) {
+    console.error('Error adding to cart:', error)
+    alert('Có lỗi xảy ra khi thêm vào giỏ hàng')
+  }
+}
+
+// Gọi hàm này sau khi đăng nhập thành công
+const mergeCartAfterLogin = async () => {
+  await transferCartFromSessionToUser()
+  await fetchCart()
+  alert('Đã hợp nhất giỏ hàng từ session sang tài khoản!')
 }
 
 useHead(() => ({

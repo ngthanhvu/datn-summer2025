@@ -23,7 +23,7 @@ class Variants extends Model
 
     public function inventory()
     {
-        return $this->hasOne(Inventory::class);
+        return $this->hasOne(Inventory::class, 'variant_id');
     }
 
     public function inventoryMovements()

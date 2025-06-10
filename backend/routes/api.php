@@ -9,6 +9,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\VariantController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CouponsController;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -25,9 +26,12 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/cart/{id}', [CartController::class, 'update']);
+    Route::delete('/cart/{id}', [CartController::class, 'destroy']);
+    Route::post('/cart/transfer-session-to-user', [CartController::class, 'transferCartFromSessionToUser']);
 });
-
-
 
 Route::get('/brands', [BrandsController::class, 'index']);
 Route::get('/brands/{id}', [BrandsController::class, 'show']);
@@ -56,7 +60,6 @@ Route::get('/products/{id}/favorite', [ProductsController::class, 'favorite']);
 
 Route::get('/inventory', [InventoryController::class, 'index']);
 
-// Variant routes
 Route::get('/variants', [VariantController::class, 'index']);
 
 Route::get('/addresses', [AddressController::class, 'index']);
@@ -64,10 +67,14 @@ Route::post('/addresses', [AddressController::class, 'store']);
 Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 Route::put('/addresses/{id}', [AddressController::class, 'update']);
 
-// Coupons routes
-    Route::get('/coupons', [CouponsController::class, 'index']);
-    Route::post('/coupons', [CouponsController::class, 'store']);
-    Route::get('/coupons/{id}', [CouponsController::class, 'show']);
-    Route::put('/coupons/{id}', [CouponsController::class, 'update']);
-    Route::delete('/coupons/{id}', [CouponsController::class, 'destroy']);
-    Route::post('/coupons/validate', [CouponsController::class, 'validate']);
+Route::get('/guest-cart', [CartController::class, 'index']);
+Route::post('/guest-cart', [CartController::class, 'store']);
+Route::put('/guest-cart/{id}', [CartController::class, 'update']);
+Route::delete('/guest-cart/{id}', [CartController::class, 'destroy']);
+
+Route::get('/coupons', [CouponsController::class, 'index']);
+Route::post('/coupons', [CouponsController::class, 'store']);
+Route::get('/coupons/{id}', [CouponsController::class, 'show']);
+Route::put('/coupons/{id}', [CouponsController::class, 'update']);
+Route::delete('/coupons/{id}', [CouponsController::class, 'destroy']);
+Route::post('/coupons/validate', [CouponsController::class, 'validate']);

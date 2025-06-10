@@ -19,7 +19,6 @@ class Cart extends Model
         'price',
     ];
 
-    // Quan hệ
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -29,4 +28,5 @@ class Cart extends Model
     {
         return $this->belongsTo(Variants::class);
     }
+
 }

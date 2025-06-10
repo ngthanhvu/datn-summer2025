@@ -51,18 +51,22 @@ const props = defineProps({
 })
 
 const shippingOptions = [
-    { label: 'Giao hàng tiêu chuẩn', value: 'standard', price: 10 },
-    { label: 'Giao hàng nhanh', value: 'express', price: 20 }
+    { label: 'Giao hàng tiêu chuẩn', value: 'standard', price: 10000 },
+    { label: 'Giao hàng nhanh', value: 'express', price: 20000 }
 ]
 
-const selectedShipping = ref(props.shipping.value)
+const selectedShipping = ref(props.shipping?.value || shippingOptions[0].value)
 
 const total = computed(() => {
-    return props.subtotal + selectedShipping.value.price
+    const shippingPrice = shippingOptions.find(option => option.value === selectedShipping.value)?.price || 0
+    return props.subtotal + shippingPrice
 })
 
 const formatPrice = (price) => {
-    return `$${price.toFixed(2)}`
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(price)
 }
 
 defineEmits(['update:shipping', 'checkout'])

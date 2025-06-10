@@ -5,27 +5,41 @@
             <section class="tw-flex-1 tw-p-4 sm:tw-p-6 md:tw-p-10">
                 <CartHeader :item-count="cartItems.length" />
 
-                <div class="tw-overflow-x-auto tw-w-full">
-                    <table class="tw-w-full tw-min-w-[800px]">
-                        <tbody>
-                            <CartItem v-for="item in cartItems" :key="item.id" :product="item" :quantity="item.quantity"
-                                @remove="removeItem(item.id)" @decrease="decreaseQuantity(item.id)"
-                                @increase="increaseQuantity(item.id)"
-                                @update:quantity="updateQuantity(item.id, $event)" />
-                        </tbody>
-                    </table>
+                <div v-if="cartItems.length === 0" class="tw-text-center tw-py-8">
+                    <div class="tw-text-gray-500 tw-mb-4">
+                        <i class="fas fa-shopping-cart tw-text-4xl tw-mb-3"></i>
+                        <p class="tw-text-lg">Giỏ hàng của bạn đang trống</p>
+                    </div>
+                    <NuxtLink to="/product"
+                        class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-[#81AACC] tw-text-white tw-rounded-md hover:tw-bg-[#4a85b6] tw-transition-colors">
+                        <i class="fas fa-shopping-bag tw-mr-2"></i> Mua sắm ngay
+                    </NuxtLink>
                 </div>
 
-                <div class="tw-flex tw-flex-col sm:tw-flex-row tw-justify-between tw-items-center tw-mt-6 tw-gap-4">
-                    <a href="#"
-                        class="tw-inline-flex tw-items-center tw-text-sm tw-text-[#81AACC] tw-font-semibold tw-select-none hover:tw-text-[#4a85b6] tw-transition-colors">
-                        <i class="fas fa-arrow-left tw-mr-2"></i> Tiếp tục mua hàng
-                    </a>
-                    <button type="button"
-                        class="tw-inline-flex tw-items-center tw-text-sm tw-text-red-500 tw-font-semibold tw-select-none hover:tw-text-red-600 tw-transition-colors"
-                        @click="clearCart">
-                        <i class="fas fa-trash-alt tw-mr-2"></i> Xóa toàn bộ giỏ hàng
-                    </button>
+                <div v-else>
+                    <div class="tw-overflow-x-auto tw-w-full">
+                        <table class="tw-w-full tw-min-w-[800px]">
+                            <tbody>
+                                <CartItem v-for="item in cartItems" :key="item.id" :product="item" :quantity="item.quantity"
+                                    @remove="handleRemove(item.id)" 
+                                    @decrease="handleDecrease(item.id)"
+                                    @increase="handleIncrease(item.id)"
+                                    @update:quantity="handleUpdateQuantity(item.id, $event)" />
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="tw-flex tw-flex-col sm:tw-flex-row tw-justify-between tw-items-center tw-mt-6 tw-gap-4">
+                        <NuxtLink to="/product"
+                            class="tw-inline-flex tw-items-center tw-text-sm tw-text-[#81AACC] tw-font-semibold tw-select-none hover:tw-text-[#4a85b6] tw-transition-colors">
+                            <i class="fas fa-arrow-left tw-mr-2"></i> Tiếp tục mua hàng
+                        </NuxtLink>
+                        <button type="button"
+                            class="tw-inline-flex tw-items-center tw-text-sm tw-text-red-500 tw-font-semibold tw-select-none hover:tw-text-red-600 tw-transition-colors"
+                            @click="handleClearCart">
+                            <i class="fas fa-trash-alt tw-mr-2"></i> Xóa toàn bộ giỏ hàng
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -36,37 +50,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import CartHeader from '~/components/cart/CartHeader.vue'
 import CartItem from '~/components/cart/CartItem.vue'
 import CartSummary from '~/components/cart/CartSummary.vue'
+import { useCart } from '~/composables/useCarts'
 
-const cartItems = ref([
-    {
-        id: 1,
-        name: 'Iphone 6S',
-        brand: 'Apple',
-        price: 400,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=100&h=100&fit=crop'
-    },
-    {
-        id: 2,
-        name: 'Xiaomi Mi 20000mAh',
-        brand: 'Xiaomi',
-        price: 40,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=100&h=100&fit=crop'
-    },
-    {
-        id: 3,
-        name: 'Airpods',
-        brand: 'Apple',
-        price: 150,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=100&h=100&fit=crop'
-    }
-])
+const { cart, fetchCart, removeFromCart, updateQuantity, clearCart } = useCart()
+
+const cartItems = computed(() => Array.isArray(cart.value) ? cart.value : [])
 
 const selectedShipping = ref({
     value: 'standard',
@@ -77,47 +69,84 @@ const subtotal = computed(() => {
     return cartItems.value.reduce((total, item) => total + (item.price * item.quantity), 0)
 })
 
-const removeItem = (id) => {
-    cartItems.value = cartItems.value.filter(item => item.id !== id)
-}
-
-const decreaseQuantity = (id) => {
-    const item = cartItems.value.find(item => item.id === id)
-    if (item && item.quantity > 1) {
-        item.quantity--
+const handleRemove = async (itemId) => {
+    try {
+        await removeFromCart(itemId)
+    } catch (error) {
+        console.error('Lỗi khi xóa sản phẩm:', error)
     }
 }
 
-const increaseQuantity = (id) => {
-    const item = cartItems.value.find(item => item.id === id)
-    if (item) {
-        item.quantity++
+const handleUpdateQuantity = async (itemId, newQuantity) => {
+    try {
+        const item = cartItems.value.find(i => i.id === itemId)
+        if (!item) {
+            alert('Không tìm thấy sản phẩm trong giỏ hàng')
+            return
+        }
+
+        if (newQuantity <= 0) {
+            alert('Số lượng phải lớn hơn 0')
+            return
+        }
+
+        if (!item.variant) {
+            alert('Không thể xác định thông tin sản phẩm')
+            return
+        }
+
+        if (!item.variant.inventory) {
+            alert('Không thể xác định số lượng tồn kho')
+            return
+        }
+
+        if (newQuantity > item.variant.inventory.quantity) {
+            alert(`Chỉ còn ${item.variant.inventory.quantity} sản phẩm trong kho`)
+            return
+        }
+
+        await updateQuantity(itemId, newQuantity)
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error
+        alert(errorMessage || 'Có lỗi xảy ra khi cập nhật số lượng')
+        
+        await fetchCart()
     }
 }
 
-const updateQuantity = (id, value) => {
-    const item = cartItems.value.find(item => item.id === id)
-    if (item) {
-        item.quantity = parseInt(value) || 1
+const handleIncrease = async (itemId) => {
+    const item = cartItems.value.find(i => i.id === itemId)
+    if (!item) return
+    
+    try {
+        await handleUpdateQuantity(itemId, item.quantity + 1)
+    } catch (error) {
+        console.error('Lỗi khi tăng số lượng:', error)
     }
 }
 
-const clearCart = () => {
-    cartItems.value = []
+const handleDecrease = async (itemId) => {
+    const item = cartItems.value.find(i => i.id === itemId)
+    if (!item) return
+    
+    if (item.quantity > 1) {
+        await handleUpdateQuantity(itemId, item.quantity - 1)
+    }
 }
 
-const updateShipping = (shipping) => {
-    selectedShipping.value = shipping
+const handleClearCart = async () => {
+    try {
+        for (const item of cartItems.value) {
+            await removeFromCart(item.id)
+        }
+    } catch (error) {
+        console.error('Lỗi khi xóa giỏ hàng:', error)
+    }
 }
 
-const checkout = () => {
-    // Implement checkout logic
-    console.log('Checkout', {
-        items: cartItems.value,
-        shipping: selectedShipping.value,
-        total: subtotal.value + selectedShipping.value.price
-    })
-}
+onMounted(() => {
+    fetchCart()
+})
 </script>
 
 <style scoped>
