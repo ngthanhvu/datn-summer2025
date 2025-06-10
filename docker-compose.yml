@@ -17,15 +17,12 @@ services:
       - DB_DATABASE=laravel
       - DB_USERNAME=laravel_user
       - DB_PASSWORD=laravel_password
-      - AWS_ACCESS_KEY_ID=minioadmin
-      - AWS_SECRET_ACCESS_KEY=minioadmin123
-      - AWS_DEFAULT_REGION=us-east-1
-      - AWS_BUCKET=laravel-bucket
-      - AWS_ENDPOINT=http://minio:9000
-      - AWS_USE_PATH_STYLE_ENDPOINT=true
+      - CACHE_DRIVER=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - mysql
-      - minio
+      - redis
     networks:
       - app-network
 
@@ -93,18 +90,11 @@ services:
       - app-network
     restart: always
 
-  minio:
-    image: minio/minio:latest
-    container_name: minio_storage
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
-    volumes:
-      - minio_data:/data
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
     ports:
-      - "9000:9000"
-      - "9001:9001"
-    command: server /data --console-address ":9001"
+      - "6379:6379"
     networks:
       - app-network
 
@@ -114,4 +104,3 @@ networks:
 
 volumes:
   mysql_data:
-  minio_data:
