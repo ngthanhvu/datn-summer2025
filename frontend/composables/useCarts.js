@@ -9,7 +9,6 @@ const useCarts = () => {
     const isLoading = ref(false)
     const error = ref(null)
 
-    // Đọc token từ cookie
     const getToken = () => {
         let token = null
         if (process.client) {
@@ -18,7 +17,7 @@ const useCarts = () => {
         } else {
             token = useCookie('token').value
         }
-        console.log('Token FE gửi lên:', token)
+        console.log('Token:', token)
         return token
     }
 
@@ -42,7 +41,7 @@ const useCarts = () => {
     const fetchCart = async () => {
         try {
             isLoading.value = true
-            const response = await axios.get(`${apiBaseUrl}api/${getCartEndpoint()}`, { 
+            const response = await axios.get(`${apiBaseUrl}api/${getCartEndpoint()}`, {
                 headers: getHeaders(),
                 withCredentials: true
             })
@@ -66,7 +65,7 @@ const useCarts = () => {
             const response = await axios.post(
                 `${apiBaseUrl}api/${getCartEndpoint()}`,
                 payload,
-                { 
+                {
                     headers: getHeaders(),
                     withCredentials: true
                 }
@@ -78,7 +77,7 @@ const useCarts = () => {
                 const tokenCookie = useCookie('token')
                 tokenCookie.value = null
                 localStorage.removeItem('token')
-                
+
                 return addToCart(variantId, quantity)
             }
             error.value = err.response?.data?.error || err.message || 'Không thể thêm vào giỏ hàng'
@@ -115,7 +114,7 @@ const useCarts = () => {
             await axios.put(
                 `${apiBaseUrl}api/${getCartEndpoint()}/${cartId}`,
                 { quantity },
-                { 
+                {
                     headers: getHeaders(),
                     withCredentials: true
                 }
@@ -151,7 +150,7 @@ const useCarts = () => {
     const removeFromCart = async (cartId) => {
         try {
             isLoading.value = true
-            await axios.delete(`${apiBaseUrl}api/${getCartEndpoint()}/${cartId}`, { 
+            await axios.delete(`${apiBaseUrl}api/${getCartEndpoint()}/${cartId}`, {
                 headers: getHeaders(),
                 withCredentials: true
             })
@@ -182,7 +181,7 @@ const useCarts = () => {
         }
         try {
             if (typeof user === 'string') user = JSON.parse(decodeURIComponent(user))
-        } catch {}
+        } catch { }
         return user?.id || null
     }
 
@@ -227,8 +226,8 @@ const useCarts = () => {
         removeFromCart,
         transferCartFromSessionToUser,
         getUserId,
-        increaseQuantity,  
-        decreaseQuantity  
+        increaseQuantity,
+        decreaseQuantity
     }
 }
 
