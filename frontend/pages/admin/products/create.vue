@@ -343,12 +343,22 @@ const showVariantsSection = () => {
   addVariant()
 }
 
+const generateSKU = (name) => {
+  const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
+  const namePart = name
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .substring(0, 4)
+  return `${namePart}-${randomNum}`
+}
+
 const addVariant = () => {
+  const sku = generateSKU(formData.value.name)
   formData.value.variants.push({
     color: '',
     size: '',
     price: 0,
-    sku: ''
+    sku: sku
   })
   formErrors.value.variants.push({
     color: '',
