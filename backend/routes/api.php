@@ -11,6 +11,7 @@ use App\Http\Controllers\VariantController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CouponsController;
+use App\Http\Controllers\ProductReviewController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -78,3 +79,12 @@ Route::get('/coupons/{id}', [CouponsController::class, 'show']);
 Route::put('/coupons/{id}', [CouponsController::class, 'update']);
 Route::delete('/coupons/{id}', [CouponsController::class, 'destroy']);
 Route::post('/coupons/validate', [CouponsController::class, 'validate']);
+
+
+Route::get('/product-reviews', [ProductReviewController::class, 'index']);
+Route::post('/product-reviews', [ProductReviewController::class, 'store']);
+Route::get('/product-reviews/{id}', [ProductReviewController::class, 'show']);
+Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update']);
+Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy']);
+Route::get('/product-reviews/product/{slug}', [ProductReviewController::class, 'getByProductSlug']);
+Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
