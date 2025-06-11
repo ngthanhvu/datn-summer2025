@@ -45,10 +45,7 @@
         <div class="text-center mt-3">
             <p class="mb-2">Hoặc đăng nhập bằng:</p>
             <div class="d-flex justify-content-center gap-2">
-                <button @click="facebookLogin" class="btn btn-facebook social-btn w-100">
-                    <i class="fa-brands fa-facebook me-2"></i> Facebook
-                </button>
-                <button @click="googleLogin" class="btn btn-google social-btn w-100">
+                <button @click="googleLogin" class="btn btn-google social-btn w-50">
                     <i class="fa-brands fa-google me-2"></i> Google
                 </button>
             </div>
@@ -68,7 +65,7 @@ import { useAuth } from '../../composables/useAuth'
 import Swal from 'sweetalert2'
 import useCarts from '../../composables/useCarts'
 
-const { login, googleLogin, facebookLogin } = useAuth()
+const { login, googleLogin } = useAuth()
 const { transferCartFromSessionToUser, fetchCart } = useCarts()
 
 const form = reactive({
@@ -107,7 +104,6 @@ const mergeCartAfterLogin = async () => {
         await fetchCart()
     } catch (error) {
         console.warn('Cart merge failed, but login succeeded:', error)
-        // Không hiển thị lỗi cho user vì login đã thành công
     }
 }
 
@@ -145,7 +141,6 @@ const handleLogin = async () => {
         })
 
         if (success) {
-            // Lưu hoặc xóa thông tin đăng nhập tùy thuộc vào checkbox
             if (rememberMe.value) {
                 localStorage.setItem('rememberedEmail', form.email)
                 localStorage.setItem('rememberedPassword', form.password)
@@ -167,10 +162,8 @@ const handleLogin = async () => {
                 title: 'Đăng nhập thành công!'
             })
 
-            // Hợp nhất cart sau khi đăng nhập
             await mergeCartAfterLogin()
 
-            // navigateTo('/')
             window.location.href = '/'
         }
     } catch (err) {
