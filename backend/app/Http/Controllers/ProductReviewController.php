@@ -26,12 +26,11 @@ class ProductReviewController extends Controller
             'is_admin_reply' => 'boolean',
             'is_approved' => 'boolean',
             'is_hidden' => 'boolean',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048' // mỗi ảnh max 2MB
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048' 
         ]);
 
         $review = ProductReview::create($validated);
 
-        // Lưu hình ảnh nếu có
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $imageFile) {
                 $path = $imageFile->store('review_images', 'public');
@@ -66,10 +65,8 @@ public function update(Request $request, $id)
         'delete_image_ids.*' => 'integer|exists:review_images,id'
     ]);
 
-    // Cập nhật nội dung
     $review->update($validated);
 
-    // Xoá ảnh cũ nếu có yêu cầu
     if (!empty($validated['delete_image_ids'])) {
         foreach ($validated['delete_image_ids'] as $imageId) {
             $image = ReviewImage::where('review_id', $review->id)->where('id', $imageId)->first();
@@ -80,7 +77,6 @@ public function update(Request $request, $id)
         }
     }
 
-    // Thêm ảnh mới nếu có
     if ($request->hasFile('images')) {
         foreach ($request->file('images') as $imageFile) {
             $path = $imageFile->store('review_images', 'public');
