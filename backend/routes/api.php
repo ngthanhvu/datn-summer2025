@@ -25,13 +25,15 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
-    Route::post('/blogs', [BlogsController::class, 'store']);
-    Route::put('/blogs/{id}', [BlogsController::class, 'update']);
-    Route::delete('/blogs/{id}', [BlogsController::class, 'destroy']);
 });
 
+// Các route blogs đều nằm ngoài middleware
+Route::post('/blogs', [BlogsController::class, 'store']);
+Route::put('/blogs/{id}', [BlogsController::class, 'update']);
+Route::delete('/blogs/{id}', [BlogsController::class, 'destroy']);
 Route::get('/blogs', [BlogsController::class, 'index']);
-Route::get('/blogs/slug/{slug}', [BlogsController::class, 'show']);
+Route::get('/blogs/{id}', [BlogsController::class, 'show']);
+Route::get('/blogs/slug/{slug}', [BlogsController::class, 'showBySlug']);
 
 Route::get('/brands', [BrandsController::class, 'index']);
 Route::get('/brands/{id}', [BrandsController::class, 'show']);

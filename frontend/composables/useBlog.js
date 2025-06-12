@@ -9,29 +9,19 @@ export const useBlog = () => {
         baseURL: apiBaseUrl
     });
 
-    API.interceptors.request.use((config) => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    }, (error) => {
-        return Promise.reject(error);
-    });
-
     const blogs = ref([]);
     const blog = ref(null);
     const loading = ref(false);
     const error = ref(null);
     const pagination = ref(null);
 
-    const fetchBlogs = async (page = 1) => {
+    const fetchBlogs = async (page = 1, filters = {}) => {
         loading.value = true;
         error.value = null;
-        console.log('Fetching blogs, page:', page, 'Base URL:', apiBaseUrl);
         try {
-            const response = await API.get('/blogs', { params: { page } });
-            console.log('Response:', response.data);
+            const params = { page, ...filters };
+            const response = await API.get('/api/blogs', { params });
+            
             if (response.data.success) {
                 blogs.value = response.data.data.data;
                 pagination.value = {
@@ -42,12 +32,10 @@ export const useBlog = () => {
                     from: response.data.data.from,
                     to: response.data.data.to
                 };
-                return response.data;
             } else {
                 throw new Error(response.data.message || 'Failed to fetch blogs');
             }
         } catch (err) {
-            console.error('Error:', err);
             error.value = err.response?.data?.message || err.message || 'An error occurred';
             throw err;
         } finally {
@@ -55,15 +43,13 @@ export const useBlog = () => {
         }
     };
 
-    // Get single blog by ID
     const fetchBlog = async (id) => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await API.get(`/blogs/${id}`);
+            const response = await API.get(`/api/blogs/${id}`);
             if (response.data.success) {
                 blog.value = response.data.data;
-                return response.data;
             } else {
                 throw new Error(response.data.message || 'Failed to fetch blog');
             }
@@ -75,16 +61,16 @@ export const useBlog = () => {
         }
     };
 
-    // Create new blog
     const createBlog = async (blogData) => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await API.post('/blogs', blogData);
-            if (response.data.success) {
-                if (blogs.value.length > 0) {
-                    blogs.value.unshift(response.data.data);
+            const response = await API.post('/api/blogs', blogData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
                 }
+            });
+            if (response.data.success) {
                 return response.data;
             } else {
                 throw new Error(response.data.message || 'Failed to create blog');
@@ -103,20 +89,16 @@ export const useBlog = () => {
         }
     };
 
-    // Update blog
     const updateBlog = async (id, blogData) => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await API.put(`/blogs/${id}`, blogData);
+            const response = await API.put(`/api/blogs/${id}`, blogData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             if (response.data.success) {
-                const index = blogs.value.findIndex(b => b.id === id);
-                if (index !== -1) {
-                    blogs.value[index] = response.data.data;
-                }
-                if (blog.value && blog.value.id === id) {
-                    blog.value = response.data.data;
-                }
                 return response.data;
             } else {
                 throw new Error(response.data.message || 'Failed to update blog');
@@ -135,17 +117,12 @@ export const useBlog = () => {
         }
     };
 
-    // Delete blog
     const deleteBlog = async (id) => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await API.delete(`/blogs/${id}`);
+            const response = await API.delete(`/api/blogs/${id}`);
             if (response.data.success) {
-                blogs.value = blogs.value.filter(b => b.id !== id);
-                if (blog.value && blog.value.id === id) {
-                    blog.value = null;
-                }
                 return response.data;
             } else {
                 throw new Error(response.data.message || 'Failed to delete blog');
@@ -158,12 +135,10 @@ export const useBlog = () => {
         }
     };
 
-    // Clear error
     const clearError = () => {
         error.value = null;
     };
 
-    // Reset state
     const resetState = () => {
         blogs.value = [];
         blog.value = null;

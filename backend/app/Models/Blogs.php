@@ -54,8 +54,8 @@ class Blogs extends Model
                      ->where('published_at', '<=', now());
     }
 
-    public function author(): BelongsTo
+    public function author()
     {
-        return $this->belongsTo(User::class, 'author_id');
+        return $this->belongsTo(\App\Models\User::class, 'author_id');
     }
 }

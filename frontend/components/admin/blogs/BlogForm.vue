@@ -1,6 +1,8 @@
 <template>
     <div class="tw-p-4">
-        <h2 class="tw-text-2xl tw-font-semibold tw-text-gray-800 tw-mb-8 tw-text-center">Thêm bài viết mới</h2>
+        <h2 class="tw-text-2xl tw-font-semibold tw-text-gray-800 tw-mb-8 tw-text-center">
+            {{ isEditMode ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới' }}
+        </h2>
 
         <form @submit.prevent="handleSubmit" class="tw-flex tw-flex-col tw-gap-6 tw-mb-8">
             <!-- Title -->
@@ -19,37 +21,42 @@
                     class="tw-w-full tw-px-3 tw-py-3 tw-border tw-border-gray-300 tw-rounded-md tw-text-sm tw-transition-colors tw-resize-y tw-font-inherit focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     :class="{ 'tw-border-red-500': errors.description }" placeholder="Nhập mô tả bài viết..."
                     rows="3"></textarea>
-                <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description
-                }}</span>
+                <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description }}</span>
             </div>
 
-            <!-- File Upload -->
+            <!-- Image Upload -->
             <div class="tw-flex tw-flex-col">
-                <label for="blog-file" class="tw-font-medium tw-text-gray-700 tw-mb-2">Tải lên file</label>
-                <input id="blog-file" type="file"
-                    class="tw-w-full tw-px-3 tw-py-3 tw-border tw-border-gray-300 tw-rounded-md tw-text-sm tw-transition-colors focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
-                    @change="handleFileUpload" accept="image/*,.pdf,.doc,.docx" />
-                <div v-if="formData.uploadedFile"
-                    class="tw-flex tw-items-center tw-gap-2 tw-mt-2 tw-p-2 tw-bg-gray-100 tw-rounded">
-                    <span class="tw-text-sm tw-text-gray-700">{{ formData.uploadedFile.name }}</span>
-                    <button type="button" @click="removeFile"
-                        class="tw-bg-red-500 tw-text-white tw-border-0 tw-rounded-full tw-w-5 tw-h-5 tw-cursor-pointer tw-text-xs tw-flex tw-items-center tw-justify-center hover:tw-bg-red-600">×</button>
+                <label class="tw-font-medium tw-text-gray-700 tw-mb-2">Hình ảnh</label>
+                <div class="tw-flex tw-items-center tw-gap-4">
+                    <div v-if="formData.image" class="tw-relative">
+                        <img :src="formData.image" class="tw-w-32 tw-h-32 tw-object-cover tw-rounded" />
+                        <button type="button" @click="removeImage"
+                            class="tw-absolute tw-top-0 tw-right-0 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-6 tw-h-6 tw-flex tw-items-center tw-justify-center hover:tw-bg-red-600">
+                            ×
+                        </button>
+                    </div>
+                    <div>
+                        <input type="file" id="blog-image" accept="image/*" @change="handleImageUpload"
+                            class="tw-hidden" />
+                        <label for="blog-image"
+                            class="tw-cursor-pointer tw-px-4 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md tw-text-sm hover:tw-bg-gray-50">
+                            {{ formData.image ? 'Thay đổi hình ảnh' : 'Tải lên hình ảnh' }}
+                        </label>
+                    </div>
                 </div>
+                <span v-if="errors.image" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.image }}</span>
             </div>
 
-            <!-- Status Toggle -->
+            <!-- Status -->
             <div class="tw-flex tw-flex-col">
                 <label class="tw-font-medium tw-text-gray-700 tw-mb-2">Trạng thái *</label>
-                <div class="tw-flex tw-items-center tw-gap-3">
-                    <label class="tw-relative tw-inline-block tw-w-12 tw-h-6">
-                        <input type="checkbox" v-model="formData.status" class="tw-opacity-0 tw-w-0 tw-h-0" />
-                        <span
-                            class="tw-absolute tw-cursor-pointer tw-top-0 tw-left-0 tw-right-0 tw-bottom-0 tw-bg-gray-300 tw-transition-all tw-duration-300 tw-rounded-full before:tw-absolute before:tw-content-[''] before:tw-h-4 before:tw-w-4 before:tw-left-1 before:tw-bottom-1 before:tw-bg-white before:tw-transition-all before:tw-duration-300 before:tw-rounded-full"
-                            :class="formData.status ? 'tw-bg-green-500 before:tw-translate-x-6' : ''"></span>
-                    </label>
-                    <span class="tw-text-sm tw-text-gray-700 tw-font-medium">
-                        {{ formData.status ? 'Đã xuất bản' : 'Bản nháp' }}</span>
-                </div>
+                <select v-model="formData.status"
+                    class="tw-w-full tw-px-3 tw-py-3 tw-border tw-border-gray-300 tw-rounded-md tw-text-sm focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
+                    <option value="draft">Bản nháp</option>
+                    <option value="published">Đã xuất bản</option>
+                    <option value="archived">Lưu trữ</option>
+                </select>
+                <span v-if="errors.status" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.status }}</span>
             </div>
 
             <!-- Content with Vue Quill -->
@@ -66,23 +73,25 @@
                     tự</div>
                 <span v-if="errors.content" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.content }}</span>
             </div>
-        </form>
 
-        <div class="tw-flex tw-justify-end tw-gap-4 tw-pt-4 tw-border-t tw-border-gray-200">
-            <button type="button" @click="handleCancel"
-                class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
-                Hủy
-            </button>
-            <button type="button" @click="handleSubmit"
-                class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
-                Thêm mới
-            </button>
-        </div>
+            <div class="tw-flex tw-justify-end tw-gap-4 tw-pt-4 tw-border-t tw-border-gray-200">
+                <button type="button" @click="handleCancel"
+                    class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
+                    Hủy
+                </button>
+                <button type="submit" :disabled="loading"
+                    class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark disabled:tw-opacity-50 disabled:tw-cursor-not-allowed">
+                    {{ loading ? 'Đang xử lý...' : isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+                </button>
+            </div>
+        </form>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useBlog } from '@/composables/useBlog'
 
 const QuillEditor = defineAsyncComponent(() => {
     return import('@vueup/vue-quill').then(module => {
@@ -93,14 +102,19 @@ const QuillEditor = defineAsyncComponent(() => {
     })
 })
 
-const emit = defineEmits(['submit', 'cancel'])
+const route = useRoute()
+const router = useRouter()
+const { blog, loading, error, fetchBlog, createBlog, updateBlog } = useBlog()
+
+const isEditMode = computed(() => route.params.id)
 
 const formData = ref({
     title: '',
     description: '',
     content: '',
-    status: false,
-    uploadedFile: null
+    status: 'draft',
+    image: null,      // URL hoặc base64 để preview
+    imageFile: null   // File object thực sự để gửi lên backend
 })
 
 const errors = ref({})
@@ -128,6 +142,22 @@ const quillOptions = {
     placeholder: 'Nhập nội dung bài viết...'
 }
 
+// Load blog data if in edit mode
+onMounted(async () => {
+    if (isEditMode.value) {
+        await fetchBlog(route.params.id)
+        if (blog.value) {
+            formData.value = {
+                title: blog.value.title,
+                description: blog.value.description,
+                content: blog.value.content,
+                status: blog.value.status,
+                image: blog.value.image
+            }
+        }
+    }
+})
+
 // Get text length from HTML content
 const getTextLength = (htmlContent) => {
     if (!htmlContent) return 0
@@ -139,33 +169,31 @@ const getTextLength = (htmlContent) => {
     return 0
 }
 
-// Handle file upload
-const handleFileUpload = (event) => {
+// Handle image upload
+const handleImageUpload = (event) => {
     const file = event.target.files[0]
     if (file) {
-        formData.value.uploadedFile = file
+        if (!file.type.match('image.*')) {
+            errors.value.image = 'Vui lòng chọn file hình ảnh'
+            return
+        }
+        formData.value.imageFile = file
+        // Hiển thị preview
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            formData.value.image = e.target.result
+            errors.value.image = null
+        }
+        reader.readAsDataURL(file)
     }
 }
 
-// Remove uploaded file
-const removeFile = () => {
-    formData.value.uploadedFile = null
-    if (process.client) {
-        const fileInput = document.getElementById('blog-file')
-        if (fileInput) fileInput.value = ''
-    }
-}
-
-// Reset form to initial state
-const resetForm = () => {
-    formData.value = {
-        title: '',
-        description: '',
-        content: '',
-        status: false,
-        uploadedFile: null
-    }
-    errors.value = {}
+// Remove image
+const removeImage = () => {
+    formData.value.image = null
+    formData.value.imageFile = null
+    const fileInput = document.getElementById('blog-image')
+    if (fileInput) fileInput.value = ''
 }
 
 // Validate form
@@ -193,24 +221,42 @@ const validateForm = () => {
 }
 
 // Handle form submission
-const handleSubmit = () => {
-    if (validateForm()) {
-        emit('submit', formData.value)
-        // Reset form after successful submission
-        resetForm()
+const handleSubmit = async () => {
+    if (!validateForm()) return
+
+    try {
+        const data = new FormData()
+        data.append('title', formData.value.title)
+        data.append('description', formData.value.description)
+        data.append('content', formData.value.content)
+        data.append('status', formData.value.status)
+        
+        // Chỉ append image nếu là File object (tức là upload mới)
+        if (formData.value.imageFile instanceof File) {
+            data.append('image', formData.value.imageFile)
+        }
+        // Nếu là string (URL cũ), KHÔNG append image, backend sẽ giữ ảnh cũ
+
+        if (isEditMode.value) {
+            await updateBlog(route.params.id, data)
+        } else {
+            await createBlog(data)
+        }
+        
+        router.push('/admin/blogs')
+    } catch (err) {
+        if (err.errors) {
+            errors.value = err.errors
+        } else {
+            console.error('Error:', err)
+        }
     }
 }
 
 // Handle cancel
 const handleCancel = () => {
-    resetForm()
-    emit('cancel')
+    router.push('/admin/blogs')
 }
-
-// Initialize form on mount
-onMounted(() => {
-    resetForm()
-})
 </script>
 
 <style scoped>

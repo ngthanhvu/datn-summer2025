@@ -28,20 +28,27 @@ class BlogsController extends Controller
         }
     }
 
-    public function show($identifier)
+    public function show($id)
     {
         try {
-            $blog = Blogs::with('author');
-            
-            // Check if identifier is numeric (ID) or string (slug)
-            if (is_numeric($identifier)) {
-                $blog = $blog->where('id', $identifier);
-            } else {
-                $blog = $blog->where('slug', $identifier);
-            }
-            
-            $blog = $blog->firstOrFail();
-            
+            $blog = Blogs::with('author')->findOrFail($id);
+            return response()->json([
+                'success' => true,
+                'data' => $blog,
+                'message' => 'Blog retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve blog: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function showBySlug($slug)
+    {
+        try {
+            $blog = Blogs::with('author')->where('slug', $slug)->firstOrFail();
             return response()->json([
                 'success' => true,
                 'data' => $blog,
@@ -77,7 +84,8 @@ class BlogsController extends Controller
             }
 
             $blogData = $request->except('image');
-            $blogData['author_id'] = Auth::id();
+            // Gán author_id mặc định nếu không có
+            $blogData['author_id'] = 1;
 
             if ($blogData['status'] === 'published' && empty($blogData['published_at'])) {
                 $blogData['published_at'] = now();
@@ -87,7 +95,7 @@ class BlogsController extends Controller
                 $image = $request->file('image');
                 $imageName = time() . '_' . $image->getClientOriginalName();
                 $path = $image->storeAs('public/blogs', $imageName);
-                $blogData['image'] = Storage::url($path);
+                $blogData['image'] = \Storage::url($path);
             }
 
             $blog = Blogs::create($blogData);
