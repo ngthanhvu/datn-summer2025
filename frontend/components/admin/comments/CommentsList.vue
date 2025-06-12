@@ -32,7 +32,7 @@
                 <div v-for="comment in filteredComments" :key="comment.id" class="tw-border tw-rounded-lg tw-p-4">
                     <div class="tw-flex tw-justify-between tw-items-start">
                         <div class="tw-flex tw-gap-4">
-                            <img :src="comment.userAvatar" :alt="comment.userName"
+                            <img :src="getImageUrl(comment.userAvatar)" :alt="comment.userName"
                                 class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover">
                             <div>
                                 <div class="tw-flex tw-items-center tw-gap-2">
@@ -46,7 +46,7 @@
                                 </div>
                                 <p class="tw-mt-2">{{ comment.content }}</p>
                                 <div v-if="comment.productInfo" class="tw-mt-2 tw-flex tw-items-center tw-gap-2">
-                                    <img :src="comment.productInfo.image" :alt="comment.productInfo.name"
+                                    <img :src="getImageUrl(comment.productInfo.image)" :alt="comment.productInfo.name"
                                         class="tw-w-10 tw-h-10 tw-object-cover tw-rounded">
                                     <span class="tw-text-sm tw-text-gray-600">{{ comment.productInfo.name }}</span>
                                 </div>
@@ -64,19 +64,22 @@
                                 {{ getStatusText(comment.status) }}
                             </span>
                             <div class="tw-flex tw-gap-2">
-                                <button v-if="comment.status === 'pending'"
+                                <button v-if="comment.status !== 'approved'"
                                     @click="updateStatus(comment.id, 'approved')"
-                                    class="tw-bg-green-500 tw-text-white tw-rounded tw-px-2 tw-py-1">
+                                    class="tw-bg-green-500 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-flex tw-items-center tw-gap-1">
                                     <i class="fas fa-check"></i>
+                                    <span class="tw-text-xs">Phê duyệt</span>
                                 </button>
-                                <button v-if="comment.status === 'pending'"
+                                <button v-if="comment.status !== 'rejected'"
                                     @click="updateStatus(comment.id, 'rejected')"
-                                    class="tw-bg-red-500 tw-text-white tw-rounded tw-px-2 tw-py-1">
+                                    class="tw-bg-red-500 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-flex tw-items-center tw-gap-1">
                                     <i class="fas fa-times"></i>
+                                    <span class="tw-text-xs">Từ chối</span>
                                 </button>
                                 <button @click="deleteComment(comment.id)"
-                                    class="tw-bg-gray-500 tw-text-white tw-rounded tw-px-2 tw-py-1">
+                                    class="tw-bg-gray-500 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-flex tw-items-center tw-gap-1">
                                     <i class="fas fa-trash"></i>
+                                    <span class="tw-text-xs">Xóa</span>
                                 </button>
                             </div>
                         </div>
@@ -84,14 +87,39 @@
                     <!-- Reply section -->
                     <div v-if="comment.reply" class="tw-mt-4 tw-ml-16 tw-pl-4 tw-border-l-2 tw-border-gray-200">
                         <div class="tw-flex tw-items-start tw-gap-2">
-                            <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Admin"
+                            <img :src="adminAvatar" alt="Admin"
                                 class="tw-w-8 tw-h-8 tw-rounded-full">
-                            <div>
-                                <div class="tw-flex tw-items-center tw-gap-2">
-                                    <span class="tw-font-medium">Admin</span>
-                                    <span class="tw-text-sm tw-text-gray-500">{{ comment.reply.date }}</span>
+                            <div class="tw-flex-1">
+                                <div class="tw-flex tw-items-center tw-justify-between">
+                                    <div class="tw-flex tw-items-center tw-gap-2">
+                                        <span class="tw-font-medium">Admin</span>
+                                        <span class="tw-text-sm tw-text-gray-500">{{ comment.reply.date }}</span>
+                                    </div>
+                                    <div class="tw-flex tw-gap-2">
+                                        <button v-if="!comment.isEditing" @click="startEditReply(comment)"
+                                            class="tw-bg-blue-500 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-flex tw-items-center tw-gap-1 tw-text-xs">
+                                            <i class="fas fa-edit"></i>
+                                            <span>Sửa</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <p class="tw-text-gray-600">{{ comment.reply.content }}</p>
+                                <div v-if="!comment.isEditing">
+                                    <p class="tw-text-gray-600">{{ comment.reply.content }}</p>
+                                </div>
+                                <div v-else class="tw-mt-2">
+                                    <div class="tw-flex tw-gap-2">
+                                        <input type="text" v-model="comment.editReplyText" 
+                                            class="tw-flex-1 tw-border tw-rounded tw-px-3 tw-py-1">
+                                        <button @click="updateReply(comment)"
+                                            class="tw-bg-primary tw-text-white tw-rounded tw-px-3 tw-py-1 tw-text-xs">
+                                            Lưu
+                                        </button>
+                                        <button @click="cancelEditReply(comment)"
+                                            class="tw-bg-gray-500 tw-text-white tw-rounded tw-px-3 tw-py-1 tw-text-xs">
+                                            Hủy
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -114,6 +142,10 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRuntimeConfig } from 'nuxt/app'
+
+const runtimeConfig = useRuntimeConfig()
+const adminAvatar = ref('https://randomuser.me/api/portraits/men/1.jpg')
 
 const props = defineProps({
     comments: {
@@ -122,11 +154,32 @@ const props = defineProps({
     }
 })
 
-const emit = defineEmits(['update-status', 'delete', 'add-reply'])
+const emit = defineEmits(['update-status', 'delete', 'add-reply', 'update-reply'])
 
 const searchQuery = ref('')
 const filterStatus = ref('')
 const filterRating = ref('')
+
+const getImageUrl = (url) => {
+    if (!url) return 'https://via.placeholder.com/150'
+    
+    if (url.startsWith('http')) {
+        const baseUrl = runtimeConfig.public.apiBaseUrl
+        
+        if (url.includes(`${baseUrl}/storage/${baseUrl}/storage/`)) {
+            return url.replace(new RegExp(`(${baseUrl}/storage/)+`, 'g'), `${baseUrl}/storage/`)
+        }
+        
+        if (url.includes(`${baseUrl}/storage/`) && !url.startsWith(`${baseUrl}/storage/`)) {
+            return url.replace(`${baseUrl}/storage/`, '')
+        }
+        
+        return url
+    }
+    
+    const baseUrl = runtimeConfig.public.apiBaseUrl
+    return `${baseUrl}/storage/${url.replace(/^\/storage\//, '')}`
+}
 
 const filteredComments = computed(() => {
     return props.comments.filter(comment => {
@@ -160,6 +213,22 @@ const deleteComment = (id) => {
 const addReply = (comment) => {
     if (!comment.replyText.trim()) return
     emit('add-reply', { id: comment.id, content: comment.replyText })
+}
+
+const startEditReply = (comment) => {
+    comment.isEditing = true
+    comment.editReplyText = comment.reply.content
+}
+
+const cancelEditReply = (comment) => {
+    comment.isEditing = false
+    comment.editReplyText = ''
+}
+
+const updateReply = (comment) => {
+    if (!comment.editReplyText.trim()) return
+    emit('update-reply', { id: comment.id, content: comment.editReplyText })
+    comment.isEditing = false
 }
 </script>
 

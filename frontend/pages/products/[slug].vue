@@ -168,7 +168,7 @@
                   <div class="tw-text-sm tw-text-gray-500 tw-font-medium">{{ reviewStats.total }} đánh giá</div>
                 </div>
                 <div class="tw-flex-1">
-                  <h3 class="tw-text-lg tw-font-medium tw-mb-4 tw-text-center md:tw-text-left">Phân bố đánh giá</h3>
+                  <h3 class="tw-text-lg tw-font-medium tw-mb-4 tw-text-center md:tw-text-left">Phân bối đánh giá</h3>
                   <div v-for="rating in reviewStats.distribution" :key="rating.stars" class="tw-flex tw-items-center tw-gap-3 tw-mb-3 tw-group">
                     <span class="tw-w-16 tw-font-medium tw-flex tw-items-center tw-gap-1">
                       {{ rating.stars }} <i class="bi bi-star-fill tw-text-yellow-400"></i>
@@ -374,6 +374,46 @@
                       </div>
                     </div>
                   </div>
+                  
+                  <!-- Hiển thị phản hồi của đánh giá -->
+                  <div v-if="review.replies && review.replies.length > 0" class="tw-mt-6 tw-border-t tw-border-gray-100 tw-pt-4">
+                    <h4 class="tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-3">Phản hồi:</h4>
+                    <div v-for="reply in review.replies" :key="reply.id" class="tw-bg-gray-50 tw-rounded-lg tw-p-4 tw-mb-3">
+                      <div class="tw-flex tw-items-start tw-gap-3">
+                        <img 
+                          :src="reply.user?.avatar ? (reply.user.avatar.startsWith('http') ? reply.user.avatar : runtimeConfig.public.apiBaseUrl + '/storage/avatars/' + reply.user.avatar.split('/').pop()) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'" 
+                          :alt="reply.user?.name" 
+                          class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover tw-border tw-border-gray-200" 
+                        />
+                        <div class="tw-flex-1">
+                          <div class="tw-flex tw-justify-between tw-items-center tw-mb-1">
+                            <div class="tw-font-medium tw-text-gray-800">
+                              {{ reply.user?.username || reply.user?.name }}
+                              <span v-if="reply.is_admin_reply" class="tw-bg-blue-100 tw-text-blue-800 tw-text-xs tw-px-2 tw-py-0.5 tw-rounded-full tw-ml-2">Admin</span>
+                            </div>
+                            <div class="tw-text-xs tw-text-gray-500">
+                              {{ new Date(reply.created_at).toLocaleDateString() }}
+                            </div>
+                          </div>
+                          <p class="tw-text-gray-700 tw-text-sm">{{ reply.content }}</p>
+                          
+                          <div v-if="reply.images && reply.images.length > 0" class="tw-mt-2 tw-flex tw-flex-wrap tw-gap-2">
+                            <div v-for="image in reply.images" :key="image.id" class="tw-relative tw-group tw-overflow-hidden tw-rounded-lg tw-shadow-sm">
+                              <img 
+                                :src="runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path" 
+                                :alt="'Hình ảnh phản hồi'" 
+                                class="tw-w-16 tw-h-16 tw-object-cover tw-cursor-pointer tw-transition-transform tw-duration-300 group-hover:tw-scale-110"
+                                @click="openImageModal(runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path)"
+                              />
+                              <div class="tw-absolute tw-inset-0 tw-bg-black tw-bg-opacity-0 group-hover:tw-bg-opacity-20 tw-transition-all tw-duration-300 tw-flex tw-items-center tw-justify-center">
+                                <i class="bi bi-zoom-in tw-text-white tw-opacity-0 group-hover:tw-opacity-100 tw-text-xl tw-transition-opacity tw-duration-300"></i>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -430,9 +470,7 @@ import { useCookie } from '#app'
 import { useReviews } from '~/composables/useReviews'
 import { useAuth } from '~/composables/useAuth'
 
-// Thêm dòng này để lấy cấu hình API URL
 const runtimeConfig = useRuntimeConfig()
-
 const route = useRoute()
 const { getProducts, getProductBySlug } = useProducts()
 const { getInventories } = useInventories()
@@ -440,11 +478,9 @@ const { addToCart: addToCartComposable, getUserId, transferCartFromSessionToUser
 const { getReviewsByProductSlug, addReview, updateReview, deleteReview, checkUserReview } = useReviews()
 const { user, isAuthenticated } = useAuth()
 
-// Thêm biến để kiểm tra người dùng đã đánh giá chưa
 const userHasReviewed = ref(false)
 const userReview = ref(null)
 
-// Product data
 const { data, pending, error, refresh } = await useAsyncData(
   'product',
   async () => {
@@ -552,14 +588,13 @@ const reviewStats = ref({
 const fetchReviews = async () => {
   try {
     const response = await getReviewsByProductSlug(data.value.slug)
-    reviews.value = response
+    reviews.value = response.filter(review => !review.parent_id)
     
     if (reviews.value.length > 0) {
       const total = reviews.value.length
       const sum = reviews.value.reduce((acc, review) => acc + review.rating, 0)
       const average = sum / total
       
-      // Tính phân phối sao
       const distribution = [5, 4, 3, 2, 1].map(stars => {
         const count = reviews.value.filter(r => r.rating === stars).length
         return {
@@ -575,7 +610,6 @@ const fetchReviews = async () => {
       }
     }
     
-    // Kiểm tra xem người dùng đã đánh giá chưa
     if (isAuthenticated.value && user.value) {
       await checkUserHasReviewed()
     }
@@ -666,6 +700,7 @@ const reviewForm = ref({
 const editingReviewId = ref(null)
 const isSubmitting = ref(false)
 const previewImages = ref([])
+const deleteImageIds = ref([]) 
 
 const handleImageUpload = (event) => {
   const files = event.target.files
@@ -687,6 +722,10 @@ const handleImageUpload = (event) => {
 }
 
 const removeImage = (index) => {
+  if (previewImages.value[index].existing && previewImages.value[index].id) {
+    deleteImageIds.value.push(previewImages.value[index].id)
+  }
+  
   previewImages.value.splice(index, 1)
   reviewForm.value.images.splice(index, 1)
 }
@@ -713,6 +752,10 @@ const submitReview = async () => {
       images: reviewForm.value.images
     }
     
+    if (editingReviewId.value && deleteImageIds.value.length > 0) {
+      reviewData.delete_image_ids = deleteImageIds.value
+    }
+    
     if (editingReviewId.value) {
       await updateReview(editingReviewId.value, reviewData)
       alert('Đã cập nhật đánh giá thành công')
@@ -727,16 +770,16 @@ const submitReview = async () => {
       images: []
     }
     previewImages.value = []
+    deleteImageIds.value = []
     editingReviewId.value = null
     
     await fetchReviews()
   } catch (error) {
     console.error('Lỗi khi gửi đánh giá:', error)
     
-    // Kiểm tra nếu lỗi là do người dùng đã đánh giá
     if (error.response && error.response.status === 422) {
       alert('Bạn đã đánh giá sản phẩm này rồi. Vui lòng chỉnh sửa đánh giá hiện có thay vì tạo mới.')
-      await checkUserHasReviewed() // Cập nhật trạng thái đánh giá
+      await checkUserHasReviewed() 
     } else {
       alert('Có lỗi xảy ra khi gửi đánh giá')
     }
@@ -773,6 +816,7 @@ const cancelEdit = () => {
     images: []
   }
   previewImages.value = []
+  deleteImageIds.value = [] 
 }
 
 const removeReview = async (reviewId) => {
@@ -801,7 +845,6 @@ const checkUserHasReviewed = async () => {
     userHasReviewed.value = response.hasReviewed
     userReview.value = response.review || null
     
-    // Nếu đang chỉnh sửa và người dùng đã có đánh giá, cập nhật form
     if (userHasReviewed.value && userReview.value && !editingReviewId.value) {
       editingReviewId.value = userReview.value.id
       reviewForm.value.rating = userReview.value.rating

@@ -89,4 +89,9 @@ Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy
 Route::get('/product-reviews/product/{slug}', [ProductReviewController::class, 'getByProductSlug']);
 Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview']);
 Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
+Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
+Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
+Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
+Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
+Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
 

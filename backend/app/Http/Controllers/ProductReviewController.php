@@ -186,4 +186,48 @@ class ProductReviewController extends Controller
             'hasReviewed' => false
         ]);
     }
+
+    public function updateAdminReply(Request $request, $id)
+    {
+        // Tìm kiếm phản hồi admin đã tồn tại dựa trên ID trong URL
+        $reply = ProductReview::findOrFail($id);
+        
+        // Nếu đã tìm thấy reply theo ID, chỉ validate content
+        $validated = $request->validate([
+            'content' => 'required|string',
+        ]);
+        
+        // Cập nhật phản hồi đã tồn tại
+        $reply->update([
+            'content' => $validated['content'],
+        ]);
+        
+        return response()->json($reply->fresh());
+    }
+
+    public function getByCategory($categoryId)
+    {
+        $reviews = ProductReview::with(['user', 'product', 'replies', 'images'])
+            ->whereHas('product', function ($query) use ($categoryId) {
+                $query->where('categories_id', $categoryId);
+            })
+            ->whereNull('parent_id')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json($reviews);
+    }
+
+    public function getByBrand($brandId)
+    {
+        $reviews = ProductReview::with(['user', 'product', 'replies', 'images'])
+            ->whereHas('product', function ($query) use ($brandId) {
+                $query->where('brand_id', $brandId);
+            })
+            ->whereNull('parent_id')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json($reviews);
+    }
 }

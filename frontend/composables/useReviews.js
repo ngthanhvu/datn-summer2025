@@ -1,4 +1,3 @@
-
 import axios from 'axios'
 import { useAuth } from './useAuth'
 
@@ -8,7 +7,6 @@ export const useReviews = () => {
     const API = axios.create({ baseURL: apiBaseUrl })
     const { getToken } = useAuth()
 
-    // Get all reviews for a product by slug
     const getReviewsByProductSlug = async (productSlug) => {
         try {
             const response = await API.get(`/api/product-reviews/product/${productSlug}`)
@@ -19,7 +17,6 @@ export const useReviews = () => {
         }
     }
 
-    // Add a new review
     const addReview = async (reviewData) => {
         try {
             const token = await getToken()
@@ -47,7 +44,6 @@ export const useReviews = () => {
         }
     }
 
-    // Update an existing review
     const updateReview = async (reviewId, reviewData) => {
         try {
             const token = await getToken()
@@ -59,14 +55,12 @@ export const useReviews = () => {
                 }
             })
             
-            // Add images to be uploaded
             if (reviewData.images) {
                 reviewData.images.forEach(image => {
                     formData.append('images[]', image)
                 })
             }
             
-            // Add image IDs to be deleted
             if (reviewData.delete_image_ids) {
                 reviewData.delete_image_ids.forEach(id => {
                     formData.append('delete_image_ids[]', id)
@@ -75,7 +69,7 @@ export const useReviews = () => {
             
             const response = await API.post(`/api/product-reviews/${reviewId}?_method=PUT`, formData, {
                 headers: {
-                    'Authorization': `Bearer ${token}`, // Sửa tokenValue thành token
+                    'Authorization': `Bearer ${token}`, 
                     'Content-Type': 'multipart/form-data'
                 }
             })
@@ -86,7 +80,6 @@ export const useReviews = () => {
         }
     }
 
-    // Delete a review
     const deleteReview = async (reviewId) => {
         try {
             const token = await getToken()
@@ -102,7 +95,6 @@ export const useReviews = () => {
         }
     }
 
-    // Check if user has already reviewed a product
     const checkUserReview = async (userId, productSlug) => {
         try {
             const token = await getToken()
@@ -123,6 +115,6 @@ export const useReviews = () => {
         addReview,
         updateReview,
         deleteReview,
-        checkUserReview // Thêm hàm mới vào return
+        checkUserReview 
     }
 }
