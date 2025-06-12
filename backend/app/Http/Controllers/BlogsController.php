@@ -6,6 +6,7 @@ use App\Models\Blogs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class BlogsController extends Controller
 {
@@ -27,10 +28,19 @@ class BlogsController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($identifier)
     {
         try {
-            $blog = Blogs::with('author')->findOrFail($id);
+            $blog = Blogs::with('author');
+            
+            // Check if identifier is numeric (ID) or string (slug)
+            if (is_numeric($identifier)) {
+                $blog = $blog->where('id', $identifier);
+            } else {
+                $blog = $blog->where('slug', $identifier);
+            }
+            
+            $blog = $blog->firstOrFail();
             
             return response()->json([
                 'success' => true,
@@ -54,7 +64,8 @@ class BlogsController extends Controller
                 'description' => 'required|string|max:500',
                 'content' => 'required|string',
                 'status' => 'required|in:draft,published,archived',
-                'published_at' => 'nullable|date'
+                'published_at' => 'nullable|date',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
 
             if ($validator->fails()) {
@@ -65,11 +76,18 @@ class BlogsController extends Controller
                 ], 422);
             }
 
-            $blogData = $request->all();
+            $blogData = $request->except('image');
             $blogData['author_id'] = Auth::id();
 
             if ($blogData['status'] === 'published' && empty($blogData['published_at'])) {
                 $blogData['published_at'] = now();
+            }
+
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $path = $image->storeAs('public/blogs', $imageName);
+                $blogData['image'] = Storage::url($path);
             }
 
             $blog = Blogs::create($blogData);
@@ -99,7 +117,8 @@ class BlogsController extends Controller
                 'description' => 'sometimes|required|string|max:500',
                 'content' => 'sometimes|required|string',
                 'status' => 'sometimes|required|in:draft,published,archived',
-                'published_at' => 'nullable|date'
+                'published_at' => 'nullable|date',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
 
             if ($validator->fails()) {
@@ -110,10 +129,22 @@ class BlogsController extends Controller
                 ], 422);
             }
 
-            $blogData = $request->all();
+            $blogData = $request->except('image');
 
             if (isset($blogData['status']) && $blogData['status'] === 'published' && empty($blogData['published_at']) && $blog->status !== 'published') {
                 $blogData['published_at'] = now();
+            }
+
+            if ($request->hasFile('image')) {
+                if ($blog->image) {
+                    $oldImagePath = str_replace('/storage/', 'public/', $blog->image);
+                    Storage::delete($oldImagePath);
+                }
+
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $path = $image->storeAs('public/blogs', $imageName);
+                $blogData['image'] = Storage::url($path);
             }
 
             $blog->update($blogData);
@@ -137,6 +168,12 @@ class BlogsController extends Controller
     {
         try {
             $blog = Blogs::findOrFail($id);
+            
+            if ($blog->image) {
+                $imagePath = str_replace('/storage/', 'public/', $blog->image);
+                Storage::delete($imagePath);
+            }
+            
             $blog->delete();
 
             return response()->json([

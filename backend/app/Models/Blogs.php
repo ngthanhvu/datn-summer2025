@@ -19,6 +19,7 @@ class Blogs extends Model
         'description',
         'content',
         'slug',
+        'image',
         'status',
         'published_at',
         'author_id',

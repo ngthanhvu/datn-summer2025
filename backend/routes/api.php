@@ -31,7 +31,7 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::get('/blogs', [BlogsController::class, 'index']);
-Route::get('/blogs/{id}', [BlogsController::class, 'show']);
+Route::get('/blogs/slug/{slug}', [BlogsController::class, 'show']);
 
 Route::get('/brands', [BrandsController::class, 'index']);
 Route::get('/brands/{id}', [BrandsController::class, 'show']);
