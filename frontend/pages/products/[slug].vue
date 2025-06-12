@@ -317,8 +317,7 @@
                 <div 
                   v-for="review in reviews" 
                   :key="review.id" 
-                  class="tw-bg-white tw-rounded-lg tw-p-6 tw-border tw-border-gray-100 tw-shadow-sm tw-transition-all hover:tw-shadow-md"
-                >
+                  class="tw-bg-white tw-rounded-lg tw-p-6 tw-border tw-border-gray-100 tw-shadow-sm tw-transition-all hover:tw-shadow-md">
                   <div class="tw-flex tw-justify-between tw-mb-4">
                     <div class="tw-flex tw-items-center tw-gap-3">
                       <img 
@@ -334,8 +333,8 @@
                       </div>
                     </div>
                     <div class="tw-flex tw-items-center tw-gap-3">
-                      <div class="tw-bg-gray-50 tw-px-3 tw-py-1 tw-rounded-full tw-flex tw-items-center tw-gap-1">
-                        <span class="tw-font-medium">{{ review.rating }}</span>
+                      <div class="tw-px-3 tw-py-1 tw-rounded-full tw-flex tw-items-center tw-gap-1">
+                        <!-- <span class="tw-font-medium">{{ review.rating }}</span> -->
                         <div class="tw-text-yellow-400">
                           <i v-for="n in 5" :key="n" :class="n <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'" class="tw-text-sm"></i>
                         </div>
