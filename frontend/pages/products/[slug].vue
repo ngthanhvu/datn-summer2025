@@ -156,76 +156,88 @@
           </div>
 
           <!-- Reviews -->
-          <div v-if="activeTab === 'reviews'" class="tw-space-y-6">
-            <!-- Review stats section (existing code) -->
-            <div class="tw-flex tw-items-center tw-gap-4 tw-mb-6">
-              <div class="tw-text-center">
-                <div class="tw-text-4xl tw-font-bold">{{ reviewStats.average }}</div>
-                <div class="tw-text-yellow-400 tw-flex tw-gap-1">
-                  <i v-for="n in 5" :key="n" :class="n <= Math.round(reviewStats.average) ? 'bi bi-star-fill' : (n <= reviewStats.average + 0.5 ? 'bi bi-star-half' : 'bi bi-star')"></i>
-                </div>
-                <div class="tw-text-sm tw-text-gray-500">Dựa trên {{ reviewStats.total }} đánh giá</div>
-              </div>
-              <div class="tw-flex-1">
-                <div v-for="rating in reviewStats.distribution" :key="rating.stars" class="tw-flex tw-items-center tw-gap-2 tw-mb-2">
-                  <span class="tw-w-16">{{ rating.stars }} sao</span>
-                  <div class="tw-flex-1 tw-h-2 tw-bg-gray-200 tw-rounded-full">
-                    <div class="tw-h-full tw-bg-yellow-400 tw-rounded-full" :style="{ width: rating.percentage + '%' }">
-                    </div>
+          <div v-if="activeTab === 'reviews'" class="tw-space-y-8">
+            <!-- Review stats section (improved) -->
+            <div class="tw-bg-gray-50 tw-rounded-lg tw-p-6 tw-shadow-sm tw-transition-all hover:tw-shadow-md">
+              <div class="tw-flex tw-flex-col md:tw-flex-row tw-items-center tw-gap-8">
+                <div class="tw-text-center tw-rounded-lg tw-p-4 tw-min-w-[150px]">
+                  <div class="tw-text-5xl tw-font-bold tw-text-blue-600 tw-mb-2">{{ reviewStats.average }}</div>
+                  <div class="tw-text-yellow-400 tw-flex tw-gap-1 tw-justify-center tw-mb-2">
+                    <i v-for="n in 5" :key="n" :class="n <= Math.round(reviewStats.average) ? 'bi bi-star-fill' : (n <= reviewStats.average + 0.5 ? 'bi bi-star-half' : 'bi bi-star')" class="tw-text-xl"></i>
                   </div>
-                  <span class="tw-w-12 tw-text-right">{{ rating.percentage }}%</span>
+                  <div class="tw-text-sm tw-text-gray-500 tw-font-medium">{{ reviewStats.total }} đánh giá</div>
+                </div>
+                <div class="tw-flex-1">
+                  <h3 class="tw-text-lg tw-font-medium tw-mb-4 tw-text-center md:tw-text-left">Phân bố đánh giá</h3>
+                  <div v-for="rating in reviewStats.distribution" :key="rating.stars" class="tw-flex tw-items-center tw-gap-3 tw-mb-3 tw-group">
+                    <span class="tw-w-16 tw-font-medium tw-flex tw-items-center tw-gap-1">
+                      {{ rating.stars }} <i class="bi bi-star-fill tw-text-yellow-400"></i>
+                    </span>
+                    <div class="tw-flex-1 tw-h-3 tw-bg-gray-200 tw-rounded-full tw-overflow-hidden">
+                      <div class="tw-h-full tw-bg-yellow-400 tw-rounded-full tw-transition-all tw-duration-500 group-hover:tw-bg-yellow-500" :style="{ width: rating.percentage + '%' }">
+                      </div>
+                    </div>
+                    <span class="tw-w-16 tw-text-right tw-font-medium">{{ rating.percentage }}%</span>
+                  </div>
                 </div>
               </div>
             </div>
             
             <!-- Review Form -->
-            <div id="review-form" class="tw-bg-gray-50 tw-p-4 tw-rounded-lg tw-mb-6">
-              <h3 class="tw-text-lg tw-font-medium tw-mb-4">
+            <div id="review-form" class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-border tw-border-gray-100 tw-mb-8 tw-transition-all hover:tw-shadow-md">
+              <h3 class="tw-text-xl tw-font-semibold tw-mb-6 tw-flex tw-items-center tw-gap-2">
+                <i class="bi bi-pencil-square tw-text-blue-600"></i>
                 {{ editingReviewId ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá' }}
               </h3>
               
-              <div v-if="!isAuthenticated" class="tw-text-center tw-py-4">
-                <p class="tw-mb-2">Vui lòng đăng nhập để đánh giá sản phẩm</p>
-                <NuxtLink to="/login" class="tw-bg-primary tw-text-white tw-px-4 tw-py-2 tw-rounded-md tw-inline-block">
-                  Đăng nhập
+              <div v-if="!isAuthenticated" class="tw-text-center tw-py-6 tw-bg-gray-50 tw-rounded-lg">
+                <i class="bi bi-person-lock tw-text-3xl tw-text-gray-400 tw-mb-2 tw-block"></i>
+                <p class="tw-mb-4 tw-text-gray-600">Vui lòng đăng nhập để đánh giá sản phẩm</p>
+                <NuxtLink to="/login" class="tw-bg-blue-600 tw-text-white tw-px-6 tw-py-2 tw-rounded-md tw-inline-block tw-font-medium tw-transition-colors hover:tw-bg-blue-700">
+                  <i class="bi bi-box-arrow-in-right tw-mr-1"></i> Đăng nhập
                 </NuxtLink>
               </div>
               
-              <div v-else-if="userHasReviewed && !editingReviewId" class="tw-text-center tw-py-4">
-                <p class="tw-mb-2">Bạn đã đánh giá sản phẩm này rồi</p>
+              <div v-else-if="userHasReviewed && !editingReviewId" class="tw-text-center tw-py-6 tw-bg-gray-50 tw-rounded-lg">
+                <i class="bi bi-check-circle tw-text-3xl tw-text-green-500 tw-mb-2 tw-block"></i>
+                <p class="tw-mb-4 tw-text-gray-600">Bạn đã đánh giá sản phẩm này rồi</p>
                 <button 
                   @click="editReview(userReview)" 
-                  class="tw-bg-blue tw-text-black tw-px-4 tw-py-2 tw-rounded-md tw-inline-block"
+                  class="tw-bg-blue-600 tw-text-white tw-px-6 tw-py-2 tw-rounded-md tw-inline-block tw-font-medium tw-transition-colors hover:tw-bg-blue-700"
                 >
-                  Chỉnh sửa đánh giá của bạn
+                  <i class="bi bi-pencil tw-mr-1"></i> Chỉnh sửa đánh giá của bạn
                 </button>
               </div>
               
-              <form v-else @submit.prevent="submitReview" class="tw-space-y-4">
+              <form v-else @submit.prevent="submitReview" class="tw-space-y-6">
                 <!-- Rating -->
                 <div>
-                  <label class="tw-block tw-mb-2 tw-font-medium">Đánh giá</label>
-                  <div class="tw-flex tw-text-2xl tw-text-yellow-400">
+                  <label class="tw-block tw-mb-3 tw-font-medium tw-text-gray-700">Đánh giá của bạn</label>
+                  <div class="tw-flex tw-text-3xl tw-text-gray-300 tw-mb-2">
                     <button 
                       v-for="star in 5" 
                       :key="star" 
                       type="button"
                       @click="reviewForm.rating = star" 
-                      class="tw-focus:outline-none"
+                      class="tw-focus:outline-none tw-transition-colors tw-duration-200 hover:tw-text-yellow-400"
+                      :class="star <= reviewForm.rating ? 'tw-text-yellow-400' : ''"
                     >
-                      <i :class="star <= reviewForm.rating ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                      <i class="bi bi-star-fill"></i>
                     </button>
+                  </div>
+                  <div class="tw-text-sm tw-text-gray-500">
+                    {{ ['Chọn đánh giá', 'Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Rất tốt'][reviewForm.rating] }}
                   </div>
                 </div>
                 
                 <!-- Content -->
                 <div>
-                  <label for="review-content" class="tw-block tw-mb-2 tw-font-medium">Nội dung đánh giá</label>
+                  <label for="review-content" class="tw-block tw-mb-3 tw-font-medium tw-text-gray-700">Nội dung đánh giá</label>
                   <textarea 
                     id="review-content" 
                     v-model="reviewForm.content" 
                     rows="4" 
-                    class="tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-p-2"
+                    class="tw-w-full tw-border tw-border-gray-300 tw-rounded-lg tw-p-3 tw-transition-colors focus:tw-border-blue-500 focus:tw-ring-2 focus:tw-ring-blue-200 focus:tw-outline-none"
                     placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này"
                     required
                   ></textarea>
@@ -233,23 +245,29 @@
                 
                 <!-- Image Upload -->
                 <div>
-                  <label class="tw-block tw-mb-2 tw-font-medium">Hình ảnh (tùy chọn)</label>
-                  <input 
-                    type="file" 
-                    @change="handleImageUpload" 
-                    accept="image/*" 
-                    multiple 
-                    class="tw-border tw-border-gray-300 tw-rounded-md tw-p-2 tw-w-full"
-                  >
+                  <label class="tw-block tw-mb-3 tw-font-medium tw-text-gray-700">Hình ảnh (tùy chọn)</label>
+                  <div class="tw-border-2 tw-border-dashed tw-border-gray-300 tw-rounded-lg tw-p-4 tw-text-center tw-transition-colors hover:tw-border-blue-400 tw-cursor-pointer tw-relative">
+                    <input 
+                      type="file" 
+                      @change="handleImageUpload" 
+                      accept="image/*" 
+                      multiple 
+                      class="tw-absolute tw-inset-0 tw-opacity-0 tw-cursor-pointer"
+                    >
+                    <i class="bi bi-cloud-arrow-up tw-text-3xl tw-text-gray-400 tw-mb-2"></i>
+                    <p class="tw-text-gray-500">Kéo thả hoặc nhấp để tải lên hình ảnh</p>
+                    <p class="tw-text-xs tw-text-gray-400 tw-mt-1">Hỗ trợ JPG, PNG, GIF</p>
+                  </div>
                   
                   <!-- Image Previews -->
-                  <div v-if="previewImages.length > 0" class="tw-flex tw-flex-wrap tw-gap-2 tw-mt-2">
-                    <div v-for="(image, index) in previewImages" :key="index" class="tw-relative tw-w-24 tw-h-24">
-                      <img :src="image.url" class="tw-w-full tw-h-full tw-object-cover tw-rounded-md">
+                  <div v-if="previewImages.length > 0" class="tw-flex tw-flex-wrap tw-gap-3 tw-mt-4">
+                    <div v-for="(image, index) in previewImages" :key="index" class="tw-relative tw-w-24 tw-h-24 tw-group tw-overflow-hidden tw-rounded-lg tw-shadow-sm">
+                      <img :src="image.url" class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-300 group-hover:tw-scale-110">
+                      <div class="tw-absolute tw-inset-0 tw-bg-black tw-bg-opacity-0 group-hover:tw-bg-opacity-30 tw-transition-all tw-duration-300"></div>
                       <button 
                         type="button" 
                         @click="removeImage(index)" 
-                        class="tw-absolute tw-top-1 tw-right-1 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center"
+                        class="tw-absolute tw-top-1 tw-right-1 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-6 tw-h-6 tw-flex tw-items-center tw-justify-center tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-duration-300"
                       >
                         <i class="bi bi-x"></i>
                       </button>
@@ -258,17 +276,17 @@
                 </div>
                 
                 <!-- Submit Buttons -->
-                <div class="tw-flex tw-gap-2">
+                <div class="tw-flex tw-gap-3 tw-pt-2">
                   <button 
                     type="submit" 
-                    class="tw-bg-blue tw-text-black tw-px-4 tw-py-2 tw-rounded-md"
+                    class="tw-bg-blue-600 tw-text-white tw-px-6 tw-py-3 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-blue-700 tw-flex tw-items-center tw-justify-center tw-min-w-[150px]"
                     :disabled="isSubmitting"
                   >
                     <span v-if="isSubmitting">
-                      <i class="bi bi-arrow-repeat tw-animate-spin tw-inline-block"></i> Đang xử lý...
+                      <i class="bi bi-arrow-repeat tw-animate-spin tw-inline-block tw-mr-2"></i> Đang xử lý...
                     </span>
                     <span v-else>
-                      {{ editingReviewId ? 'Cập nhật đánh giá' : 'Gửi đánh giá' }}
+                      <i class="bi bi-send tw-mr-2"></i> {{ editingReviewId ? 'Cập nhật đánh giá' : 'Gửi đánh giá' }}
                     </span>
                   </button>
                   
@@ -276,51 +294,85 @@
                     v-if="editingReviewId" 
                     type="button" 
                     @click="cancelEdit" 
-                    class="tw-bg-gray-300 tw-text-gray-700 tw-px-4 tw-py-2 tw-rounded-md"
+                    class="tw-bg-gray-200 tw-text-gray-700 tw-px-6 tw-py-3 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-gray-300"
                   >
-                    Hủy
+                    <i class="bi bi-x-lg tw-mr-2"></i> Hủy
                   </button>
                 </div>
               </form>
             </div>
           
+            <!-- Review List -->
             <div class="tw-space-y-6">
-              <div class="tw-space-y-6">
-                <div v-for="review in reviews" :key="review.id" class="tw-border-b tw-pb-6">
-                  <div class="tw-flex tw-justify-between tw-mb-2">
-                    <div class="tw-flex tw-items-center tw-gap-2">
-                      <img :src="review.user?.avatar ? (review.user.avatar.startsWith('http') ? review.user.avatar : runtimeConfig.public.apiBaseUrl + '/storage/avatars/' + review.user.avatar.split('/').pop()) : '/images/default-avatar.png'" :alt="review.user?.name" class="tw-w-10 tw-h-10 tw-rounded-full" />
+              <h3 class="tw-text-xl tw-font-semibold tw-mb-6 tw-flex tw-items-center tw-gap-2">
+                <i class="bi bi-chat-square-text tw-text-blue-600"></i> Đánh giá từ khách hàng
+              </h3>
+              
+              <div v-if="reviews.length === 0" class="tw-text-center tw-py-10 tw-bg-gray-50 tw-rounded-lg">
+                <i class="bi bi-chat-square tw-text-4xl tw-text-gray-300 tw-mb-3 tw-block"></i>
+                <p class="tw-text-gray-500">Chưa có đánh giá nào cho sản phẩm này</p>
+              </div>
+              
+              <div v-else class="tw-space-y-6">
+                <div 
+                  v-for="review in reviews" 
+                  :key="review.id" 
+                  class="tw-bg-white tw-rounded-lg tw-p-6 tw-border tw-border-gray-100 tw-shadow-sm tw-transition-all hover:tw-shadow-md"
+                >
+                  <div class="tw-flex tw-justify-between tw-mb-4">
+                    <div class="tw-flex tw-items-center tw-gap-3">
+                      <img 
+                        :src="review.user?.avatar ? (review.user.avatar.startsWith('http') ? review.user.avatar : runtimeConfig.public.apiBaseUrl + '/storage/avatars/' + review.user.avatar.split('/').pop()) : '/images/default-avatar.png'" 
+                        :alt="review.user?.name" 
+                        class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200" 
+                      />
                       <div>
-                        <div class="tw-font-medium">{{ review.user?.username || review.user?.name }}</div>
-                        <div class="tw-text-sm tw-text-gray-500">{{ new Date(review.created_at).toLocaleDateString() }}</div>
+                        <div class="tw-font-semibold tw-text-gray-800">{{ review.user?.username || review.user?.name }}</div>
+                        <div class="tw-text-sm tw-text-gray-500 tw-flex tw-items-center tw-gap-1">
+                          <i class="bi bi-calendar3"></i> {{ new Date(review.created_at).toLocaleDateString() }}
+                        </div>
                       </div>
                     </div>
-                    <div class="tw-flex tw-items-center tw-gap-2">
-                      <div class="tw-text-yellow-400">
-                        <i v-for="n in 5" :key="n" :class="n <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                    <div class="tw-flex tw-items-center tw-gap-3">
+                      <div class="tw-bg-gray-50 tw-px-3 tw-py-1 tw-rounded-full tw-flex tw-items-center tw-gap-1">
+                        <span class="tw-font-medium">{{ review.rating }}</span>
+                        <div class="tw-text-yellow-400">
+                          <i v-for="n in 5" :key="n" :class="n <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'" class="tw-text-sm"></i>
+                        </div>
                       </div>
                       <!-- Nút sửa và xóa đánh giá -->
-                      <div v-if="canModifyReview(review)" class="tw-flex tw-gap-2 tw-ml-4">
-                        <button @click="editReview(review)" class="tw-text-blue-600 hover:tw-text-blue-800 tw-p-1">
+                      <div v-if="canModifyReview(review)" class="tw-flex tw-gap-2">
+                        <button 
+                          @click="editReview(review)" 
+                          class="tw-text-blue-600 hover:tw-text-blue-800 tw-bg-blue-50 hover:tw-bg-blue-100 tw-rounded-full tw-w-8 tw-h-8 tw-flex tw-items-center tw-justify-center tw-transition-colors"
+                          title="Chỉnh sửa đánh giá"
+                        >
                           <i class="bi bi-pencil"></i>
                         </button>
-                        <button @click="removeReview(review.id)" class="tw-text-red-600 hover:tw-text-red-800 tw-p-1">
+                        <button 
+                          @click="removeReview(review.id)" 
+                          class="tw-text-red-600 hover:tw-text-red-800 tw-bg-red-50 hover:tw-bg-red-100 tw-rounded-full tw-w-8 tw-h-8 tw-flex tw-items-center tw-justify-center tw-transition-colors"
+                          title="Xóa đánh giá"
+                        >
                           <i class="bi bi-trash"></i>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <p class="tw-text-gray-600">{{ review.content }}</p>
+                  <p class="tw-text-gray-700 tw-my-4 tw-leading-relaxed">{{ review.content }}</p>
                   
                   <!-- Hiển thị hình ảnh đánh giá -->
-                  <div v-if="review.images && review.images.length > 0" class="tw-mt-3 tw-flex tw-flex-wrap tw-gap-2">
-                    <div v-for="image in review.images" :key="image.id" class="tw-relative tw-group">
+                  <div v-if="review.images && review.images.length > 0" class="tw-mt-4 tw-flex tw-flex-wrap tw-gap-3">
+                    <div v-for="image in review.images" :key="image.id" class="tw-relative tw-group tw-overflow-hidden tw-rounded-lg tw-shadow-sm">
                       <img 
                         :src="runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path" 
                         :alt="'Hình ảnh đánh giá'" 
-                        class="tw-w-20 tw-h-20 tw-object-cover tw-rounded-md tw-cursor-pointer"
+                        class="tw-w-24 tw-h-24 tw-object-cover tw-cursor-pointer tw-transition-transform tw-duration-300 group-hover:tw-scale-110"
                         @click="openImageModal(runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path)"
                       />
+                      <div class="tw-absolute tw-inset-0 tw-bg-black tw-bg-opacity-0 group-hover:tw-bg-opacity-20 tw-transition-all tw-duration-300 tw-flex tw-items-center tw-justify-center">
+                        <i class="bi bi-zoom-in tw-text-white tw-opacity-0 group-hover:tw-opacity-100 tw-text-xl tw-transition-opacity tw-duration-300"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
