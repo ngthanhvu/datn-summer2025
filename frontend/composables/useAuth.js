@@ -245,6 +245,9 @@ export const useAuth = () => {
             throw err
         }
     }
+    const getToken = () => {
+        return token.value
+    }
 
     return {
         user,
@@ -264,5 +267,6 @@ export const useAuth = () => {
         resetPassword,
         updateUserProfile,
         resetPasswordProfile,
+        getToken
     }
 }

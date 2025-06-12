@@ -87,4 +87,6 @@ Route::get('/product-reviews/{id}', [ProductReviewController::class, 'show']);
 Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update']);
 Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy']);
 Route::get('/product-reviews/product/{slug}', [ProductReviewController::class, 'getByProductSlug']);
+Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview']);
 Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
+

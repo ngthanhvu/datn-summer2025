@@ -157,20 +157,17 @@
 
           <!-- Reviews -->
           <div v-if="activeTab === 'reviews'" class="tw-space-y-6">
+            <!-- Review stats section (existing code) -->
             <div class="tw-flex tw-items-center tw-gap-4 tw-mb-6">
               <div class="tw-text-center">
-                <div class="tw-text-4xl tw-font-bold">4.5</div>
+                <div class="tw-text-4xl tw-font-bold">{{ reviewStats.average }}</div>
                 <div class="tw-text-yellow-400 tw-flex tw-gap-1">
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-half"></i>
+                  <i v-for="n in 5" :key="n" :class="n <= Math.round(reviewStats.average) ? 'bi bi-star-fill' : (n <= reviewStats.average + 0.5 ? 'bi bi-star-half' : 'bi bi-star')"></i>
                 </div>
-                <div class="tw-text-sm tw-text-gray-500">Dựa trên 120 đánh giá</div>
+                <div class="tw-text-sm tw-text-gray-500">Dựa trên {{ reviewStats.total }} đánh giá</div>
               </div>
               <div class="tw-flex-1">
-                <div v-for="rating in ratings" :key="rating.stars" class="tw-flex tw-items-center tw-gap-2 tw-mb-2">
+                <div v-for="rating in reviewStats.distribution" :key="rating.stars" class="tw-flex tw-items-center tw-gap-2 tw-mb-2">
                   <span class="tw-w-16">{{ rating.stars }} sao</span>
                   <div class="tw-flex-1 tw-h-2 tw-bg-gray-200 tw-rounded-full">
                     <div class="tw-h-full tw-bg-yellow-400 tw-rounded-full" :style="{ width: rating.percentage + '%' }">
@@ -180,23 +177,153 @@
                 </div>
               </div>
             </div>
-
-            <!-- Review List -->
-            <div class="tw-space-y-6">
-              <div v-for="review in reviews" :key="review.id" class="tw-border-b tw-pb-6">
-                <div class="tw-flex tw-justify-between tw-mb-2">
-                  <div class="tw-flex tw-items-center tw-gap-2">
-                    <img :src="review.avatar" :alt="review.name" class="tw-w-10 tw-h-10 tw-rounded-full" />
-                    <div>
-                      <div class="tw-font-medium">{{ review.name }}</div>
-                      <div class="tw-text-sm tw-text-gray-500">{{ review.date }}</div>
-                    </div>
-                  </div>
-                  <div class="tw-text-yellow-400">
-                    <i v-for="n in 5" :key="n" :class="n <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+            
+            <!-- Review Form -->
+            <div id="review-form" class="tw-bg-gray-50 tw-p-4 tw-rounded-lg tw-mb-6">
+              <h3 class="tw-text-lg tw-font-medium tw-mb-4">
+                {{ editingReviewId ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá' }}
+              </h3>
+              
+              <div v-if="!isAuthenticated" class="tw-text-center tw-py-4">
+                <p class="tw-mb-2">Vui lòng đăng nhập để đánh giá sản phẩm</p>
+                <NuxtLink to="/login" class="tw-bg-primary tw-text-white tw-px-4 tw-py-2 tw-rounded-md tw-inline-block">
+                  Đăng nhập
+                </NuxtLink>
+              </div>
+              
+              <div v-else-if="userHasReviewed && !editingReviewId" class="tw-text-center tw-py-4">
+                <p class="tw-mb-2">Bạn đã đánh giá sản phẩm này rồi</p>
+                <button 
+                  @click="editReview(userReview)" 
+                  class="tw-bg-blue tw-text-black tw-px-4 tw-py-2 tw-rounded-md tw-inline-block"
+                >
+                  Chỉnh sửa đánh giá của bạn
+                </button>
+              </div>
+              
+              <form v-else @submit.prevent="submitReview" class="tw-space-y-4">
+                <!-- Rating -->
+                <div>
+                  <label class="tw-block tw-mb-2 tw-font-medium">Đánh giá</label>
+                  <div class="tw-flex tw-text-2xl tw-text-yellow-400">
+                    <button 
+                      v-for="star in 5" 
+                      :key="star" 
+                      type="button"
+                      @click="reviewForm.rating = star" 
+                      class="tw-focus:outline-none"
+                    >
+                      <i :class="star <= reviewForm.rating ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                    </button>
                   </div>
                 </div>
-                <p class="tw-text-gray-600">{{ review.comment }}</p>
+                
+                <!-- Content -->
+                <div>
+                  <label for="review-content" class="tw-block tw-mb-2 tw-font-medium">Nội dung đánh giá</label>
+                  <textarea 
+                    id="review-content" 
+                    v-model="reviewForm.content" 
+                    rows="4" 
+                    class="tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-p-2"
+                    placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này"
+                    required
+                  ></textarea>
+                </div>
+                
+                <!-- Image Upload -->
+                <div>
+                  <label class="tw-block tw-mb-2 tw-font-medium">Hình ảnh (tùy chọn)</label>
+                  <input 
+                    type="file" 
+                    @change="handleImageUpload" 
+                    accept="image/*" 
+                    multiple 
+                    class="tw-border tw-border-gray-300 tw-rounded-md tw-p-2 tw-w-full"
+                  >
+                  
+                  <!-- Image Previews -->
+                  <div v-if="previewImages.length > 0" class="tw-flex tw-flex-wrap tw-gap-2 tw-mt-2">
+                    <div v-for="(image, index) in previewImages" :key="index" class="tw-relative tw-w-24 tw-h-24">
+                      <img :src="image.url" class="tw-w-full tw-h-full tw-object-cover tw-rounded-md">
+                      <button 
+                        type="button" 
+                        @click="removeImage(index)" 
+                        class="tw-absolute tw-top-1 tw-right-1 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center"
+                      >
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Submit Buttons -->
+                <div class="tw-flex tw-gap-2">
+                  <button 
+                    type="submit" 
+                    class="tw-bg-blue tw-text-black tw-px-4 tw-py-2 tw-rounded-md"
+                    :disabled="isSubmitting"
+                  >
+                    <span v-if="isSubmitting">
+                      <i class="bi bi-arrow-repeat tw-animate-spin tw-inline-block"></i> Đang xử lý...
+                    </span>
+                    <span v-else>
+                      {{ editingReviewId ? 'Cập nhật đánh giá' : 'Gửi đánh giá' }}
+                    </span>
+                  </button>
+                  
+                  <button 
+                    v-if="editingReviewId" 
+                    type="button" 
+                    @click="cancelEdit" 
+                    class="tw-bg-gray-300 tw-text-gray-700 tw-px-4 tw-py-2 tw-rounded-md"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </form>
+            </div>
+          
+            <div class="tw-space-y-6">
+              <div class="tw-space-y-6">
+                <div v-for="review in reviews" :key="review.id" class="tw-border-b tw-pb-6">
+                  <div class="tw-flex tw-justify-between tw-mb-2">
+                    <div class="tw-flex tw-items-center tw-gap-2">
+                      <img :src="review.user?.avatar ? (review.user.avatar.startsWith('http') ? review.user.avatar : runtimeConfig.public.apiBaseUrl + '/storage/avatars/' + review.user.avatar.split('/').pop()) : '/images/default-avatar.png'" :alt="review.user?.name" class="tw-w-10 tw-h-10 tw-rounded-full" />
+                      <div>
+                        <div class="tw-font-medium">{{ review.user?.username || review.user?.name }}</div>
+                        <div class="tw-text-sm tw-text-gray-500">{{ new Date(review.created_at).toLocaleDateString() }}</div>
+                      </div>
+                    </div>
+                    <div class="tw-flex tw-items-center tw-gap-2">
+                      <div class="tw-text-yellow-400">
+                        <i v-for="n in 5" :key="n" :class="n <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                      </div>
+                      <!-- Nút sửa và xóa đánh giá -->
+                      <div v-if="canModifyReview(review)" class="tw-flex tw-gap-2 tw-ml-4">
+                        <button @click="editReview(review)" class="tw-text-blue-600 hover:tw-text-blue-800 tw-p-1">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button @click="removeReview(review.id)" class="tw-text-red-600 hover:tw-text-red-800 tw-p-1">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="tw-text-gray-600">{{ review.content }}</p>
+                  
+                  <!-- Hiển thị hình ảnh đánh giá -->
+                  <div v-if="review.images && review.images.length > 0" class="tw-mt-3 tw-flex tw-flex-wrap tw-gap-2">
+                    <div v-for="image in review.images" :key="image.id" class="tw-relative tw-group">
+                      <img 
+                        :src="runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path" 
+                        :alt="'Hình ảnh đánh giá'" 
+                        class="tw-w-20 tw-h-20 tw-object-cover tw-rounded-md tw-cursor-pointer"
+                        @click="openImageModal(runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path)"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -243,17 +370,28 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import Card from '~/components/home/Card.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import useCarts from '~/composables/useCarts'
 import { useCookie } from '#app'
+import { useReviews } from '~/composables/useReviews'
+import { useAuth } from '~/composables/useAuth'
+
+// Thêm dòng này để lấy cấu hình API URL
+const runtimeConfig = useRuntimeConfig()
 
 const route = useRoute()
 const { getProducts, getProductBySlug } = useProducts()
 const { getInventories } = useInventories()
 const { addToCart: addToCartComposable, getUserId, transferCartFromSessionToUser, fetchCart } = useCarts()
+const { getReviewsByProductSlug, addReview, updateReview, deleteReview, checkUserReview } = useReviews()
+const { user, isAuthenticated } = useAuth()
+
+// Thêm biến để kiểm tra người dùng đã đánh giá chưa
+const userHasReviewed = ref(false)
+const userReview = ref(null)
 
 // Product data
 const { data, pending, error, refresh } = await useAsyncData(
@@ -345,32 +483,67 @@ const tabs = [
 ]
 const activeTab = ref('description')
 
-const ratings = [
-  { stars: 5, percentage: 70 },
-  { stars: 4, percentage: 20 },
-  { stars: 3, percentage: 5 },
-  { stars: 2, percentage: 3 },
-  { stars: 1, percentage: 2 },
-]
 
-const reviews = [
-  {
-    id: 1,
-    name: 'Nguyễn Văn A',
-    avatar: 'https://placehold.co/40',
-    date: '20/03/2024',
-    rating: 5,
-    comment: 'Sản phẩm chất lượng tốt, đúng như mô tả. Giao hàng nhanh chóng.',
-  },
-  {
-    id: 2,
-    name: 'Trần Thị B',
-    avatar: 'https://placehold.co/40',
-    date: '19/03/2024',
-    rating: 4,
-    comment: 'Áo đẹp, vải mềm mại. Size hơi rộng hơn một chút so với thông thường.',
-  },
-]
+
+const reviews = ref([])
+const reviewStats = ref({
+  average: 0,
+  total: 0,
+  distribution: [
+    { stars: 5, percentage: 0 },
+    { stars: 4, percentage: 0 },
+    { stars: 3, percentage: 0 },
+    { stars: 2, percentage: 0 },
+    { stars: 1, percentage: 0 }
+  ]
+})
+
+const fetchReviews = async () => {
+  try {
+    const response = await getReviewsByProductSlug(data.value.slug)
+    reviews.value = response
+    
+    if (reviews.value.length > 0) {
+      const total = reviews.value.length
+      const sum = reviews.value.reduce((acc, review) => acc + review.rating, 0)
+      const average = sum / total
+      
+      // Tính phân phối sao
+      const distribution = [5, 4, 3, 2, 1].map(stars => {
+        const count = reviews.value.filter(r => r.rating === stars).length
+        return {
+          stars,
+          percentage: Math.round((count / total) * 100)
+        }
+      })
+      
+      reviewStats.value = {
+        average: parseFloat(average.toFixed(1)),
+        total,
+        distribution
+      }
+    }
+    
+    // Kiểm tra xem người dùng đã đánh giá chưa
+    if (isAuthenticated.value && user.value) {
+      await checkUserHasReviewed()
+    }
+  } catch (error) {
+    console.error('Error fetching reviews:', error)
+  }
+}
+
+onMounted(() => {
+  if (data.value) {
+    fetchReviews()
+  }
+})
+
+watch(data, () => {
+  if (data.value) {
+    fetchReviews()
+  }
+}, { immediate: true })
 
 const relatedProducts = ref([])
 
@@ -396,7 +569,6 @@ const formatPrice = (price) => {
 
 const addToCart = async () => {
   try {
-    // Tìm variant dựa trên size và color đã chọn
     const selectedVariant = data.value.variants.find(v =>
       v.size === selectedSize.value &&
       v.color === selectedColor.value?.name
@@ -417,7 +589,6 @@ const addToCart = async () => {
   }
 }
 
-// Gọi hàm này sau khi đăng nhập thành công
 const mergeCartAfterLogin = async () => {
   await transferCartFromSessionToUser()
   await fetchCart()
@@ -433,6 +604,173 @@ useHead(() => ({
     },
   ],
 }))
+
+
+const reviewForm = ref({
+  rating: 5,
+  content: '',
+  images: []
+})
+
+const editingReviewId = ref(null)
+const isSubmitting = ref(false)
+const previewImages = ref([])
+
+const handleImageUpload = (event) => {
+  const files = event.target.files
+  if (!files.length) return
+  
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+    reviewForm.value.images.push(file)
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewImages.value.push({
+        url: e.target.result,
+        file: file
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const removeImage = (index) => {
+  previewImages.value.splice(index, 1)
+  reviewForm.value.images.splice(index, 1)
+}
+
+const submitReview = async () => {
+  if (!isAuthenticated.value) {
+    alert('Vui lòng đăng nhập để đánh giá sản phẩm')
+    return
+  }
+  
+  if (!reviewForm.value.content.trim()) {
+    alert('Vui lòng nhập nội dung đánh giá')
+    return
+  }
+  
+  try {
+    isSubmitting.value = true
+    
+    const reviewData = {
+      user_id: user.value.id,
+      product_slug: data.value.slug,
+      rating: reviewForm.value.rating,
+      content: reviewForm.value.content,
+      images: reviewForm.value.images
+    }
+    
+    if (editingReviewId.value) {
+      await updateReview(editingReviewId.value, reviewData)
+      alert('Đã cập nhật đánh giá thành công')
+    } else {
+      await addReview(reviewData)
+      alert('Đã gửi đánh giá thành công')
+    }
+    
+    reviewForm.value = {
+      rating: 5,
+      content: '',
+      images: []
+    }
+    previewImages.value = []
+    editingReviewId.value = null
+    
+    await fetchReviews()
+  } catch (error) {
+    console.error('Lỗi khi gửi đánh giá:', error)
+    
+    // Kiểm tra nếu lỗi là do người dùng đã đánh giá
+    if (error.response && error.response.status === 422) {
+      alert('Bạn đã đánh giá sản phẩm này rồi. Vui lòng chỉnh sửa đánh giá hiện có thay vì tạo mới.')
+      await checkUserHasReviewed() // Cập nhật trạng thái đánh giá
+    } else {
+      alert('Có lỗi xảy ra khi gửi đánh giá')
+    }
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const editReview = (review) => {
+  editingReviewId.value = review.id
+  reviewForm.value.rating = review.rating
+  reviewForm.value.content = review.content
+  reviewForm.value.images = []
+  
+  previewImages.value = []
+  if (review.images && review.images.length > 0) {
+    review.images.forEach(image => {
+      previewImages.value.push({
+        url: runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path,
+        id: image.id,
+        existing: true
+      })
+    })
+  }
+  
+  document.getElementById('review-form').scrollIntoView({ behavior: 'smooth' })
+}
+
+const cancelEdit = () => {
+  editingReviewId.value = null
+  reviewForm.value = {
+    rating: 5,
+    content: '',
+    images: []
+  }
+  previewImages.value = []
+}
+
+const removeReview = async (reviewId) => {
+  if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return
+  
+  try {
+    await deleteReview(reviewId)
+    alert('Đã xóa đánh giá thành công')
+    await fetchReviews()
+  } catch (error) {
+    console.error('Lỗi khi xóa Đánh giá:', error)
+    alert('Có lỗi xảy ra khi xóa đánh giá')
+  }
+}
+
+const canModifyReview = (review) => {
+  return  isAuthenticated.value && user.value && review.user_id === user.value.id
+}
+
+
+const checkUserHasReviewed = async () => {
+  if (!isAuthenticated.value || !user.value || !data.value) return
+  
+  try {
+    const response = await checkUserReview(user.value.id, data.value.slug)
+    userHasReviewed.value = response.hasReviewed
+    userReview.value = response.review || null
+    
+    // Nếu đang chỉnh sửa và người dùng đã có đánh giá, cập nhật form
+    if (userHasReviewed.value && userReview.value && !editingReviewId.value) {
+      editingReviewId.value = userReview.value.id
+      reviewForm.value.rating = userReview.value.rating
+      reviewForm.value.content = userReview.value.content
+      
+      previewImages.value = []
+      if (userReview.value.images && userReview.value.images.length > 0) {
+        userReview.value.images.forEach(image => {
+          previewImages.value.push({
+            url: runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path,
+            id: image.id,
+            existing: true
+          })
+        })
+      }
+    }
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra đánh giá của người dùng:', error)
+  }
+}
 </script>
 
 <style scoped>

@@ -26,8 +26,20 @@ class ProductReviewController extends Controller
             'is_admin_reply' => 'boolean',
             'is_approved' => 'boolean',
             'is_hidden' => 'boolean',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048' 
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
+
+        // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
+        $existingReview = ProductReview::where('user_id', $request->user_id)
+            ->where('product_slug', $request->product_slug)
+            ->whereNull('parent_id') // Chỉ kiểm tra đánh giá chính, không phải phản hồi
+            ->first();
+
+        if ($existingReview) {
+            return response()->json([
+                'message' => 'Bạn đã đánh giá sản phẩm này rồi. Vui lòng chỉnh sửa đánh giá hiện có thay vì tạo mới.'
+            ], 422);
+        }
 
         $review = ProductReview::create($validated);
 
@@ -51,45 +63,45 @@ class ProductReviewController extends Controller
         return response()->json($review);
     }
 
-public function update(Request $request, $id)
-{
-    $review = ProductReview::with('images')->findOrFail($id);
+    public function update(Request $request, $id)
+    {
+        $review = ProductReview::with('images')->findOrFail($id);
 
-    $validated = $request->validate([
-        'rating' => 'nullable|integer|min:1|max:5',
-        'content' => 'nullable|string',
-        'is_approved' => 'nullable|boolean',
-        'is_hidden' => 'nullable|boolean',
-        'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-        'delete_image_ids' => 'nullable|array',
-        'delete_image_ids.*' => 'integer|exists:review_images,id'
-    ]);
+        $validated = $request->validate([
+            'rating' => 'nullable|integer|min:1|max:5',
+            'content' => 'nullable|string',
+            'is_approved' => 'nullable|boolean',
+            'is_hidden' => 'nullable|boolean',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'delete_image_ids' => 'nullable|array',
+            'delete_image_ids.*' => 'integer|exists:review_images,id'
+        ]);
 
-    $review->update($validated);
+        $review->update($validated);
 
-    if (!empty($validated['delete_image_ids'])) {
-        foreach ($validated['delete_image_ids'] as $imageId) {
-            $image = ReviewImage::where('review_id', $review->id)->where('id', $imageId)->first();
-            if ($image) {
-                Storage::disk('public')->delete($image->image_path);
-                $image->delete();
+        if (!empty($validated['delete_image_ids'])) {
+            foreach ($validated['delete_image_ids'] as $imageId) {
+                $image = ReviewImage::where('review_id', $review->id)->where('id', $imageId)->first();
+                if ($image) {
+                    Storage::disk('public')->delete($image->image_path);
+                    $image->delete();
+                }
             }
         }
-    }
 
-    if ($request->hasFile('images')) {
-        foreach ($request->file('images') as $imageFile) {
-            $path = $imageFile->store('review_images', 'public');
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $imageFile) {
+                $path = $imageFile->store('review_images', 'public');
 
-            ReviewImage::create([
-                'review_id' => $review->id,
-                'image_path' => $path,
-            ]);
+                ReviewImage::create([
+                    'review_id' => $review->id,
+                    'image_path' => $path,
+                ]);
+            }
         }
-    }
 
-    return response()->json($review->fresh(['images']));
-}
+        return response()->json($review->fresh(['images']));
+    }
 
 
 
@@ -110,10 +122,7 @@ public function update(Request $request, $id)
     public function getByProductSlug($slug)
     {
         $reviews = ProductReview::with(['user', 'replies.images', 'images'])
-            ->where('product_slug', $slug)
-            ->whereNull('parent_id')
-            ->where('is_hidden', 0)
-            ->where('is_approved', 1)
+            ->where('product_slug', 'LIKE', '%' . $slug . '%')
             ->orderByDesc('created_at')
             ->get();
 
@@ -156,5 +165,25 @@ public function update(Request $request, $id)
         }
 
         return response()->json($reply->load(['images']), 201);
+    }
+
+    public function checkUserReview(Request $request, $userId, $productSlug)
+    {
+        $review = ProductReview::where('user_id', $userId)
+            ->where('product_slug', $productSlug)
+            ->whereNull('parent_id') 
+            ->with(['images'])
+            ->first();
+
+        if ($review) {
+            return response()->json([
+                'hasReviewed' => true,
+                'review' => $review
+            ]);
+        }
+
+        return response()->json([
+            'hasReviewed' => false
+        ]);
     }
 }
