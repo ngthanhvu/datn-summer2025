@@ -11,6 +11,9 @@ use App\Http\Controllers\VariantController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CouponsController;
+use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\PaymentController;
+
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -31,6 +34,10 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/cart/{id}', [CartController::class, 'update']);
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
     Route::post('/cart/transfer-session-to-user', [CartController::class, 'transferCartFromSessionToUser']);
+
+    Route::get('/orders', [OrdersController::class, 'index']);
+    Route::get('/orders/{id}', [OrdersController::class, 'show']);
+    Route::post('/orders', [OrdersController::class, 'store']);
 });
 
 Route::get('/brands', [BrandsController::class, 'index']);
@@ -77,4 +84,8 @@ Route::post('/coupons', [CouponsController::class, 'store']);
 Route::get('/coupons/{id}', [CouponsController::class, 'show']);
 Route::put('/coupons/{id}', [CouponsController::class, 'update']);
 Route::delete('/coupons/{id}', [CouponsController::class, 'destroy']);
-Route::post('/coupons/validate', [CouponsController::class, 'validate']);
+Route::post('/coupons/validate', [CouponsController::class, 'validate_coupon']);
+
+Route::post('/payment/vnpay', [PaymentController::class, 'generateVnpayUrl']);
+Route::post('/payment/momo', [PaymentController::class, 'generateMomoUrl']);
+Route::post('/payment/paypal', [PaymentController::class, 'generatePaypalUrl']);

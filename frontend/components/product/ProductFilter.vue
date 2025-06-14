@@ -1,6 +1,6 @@
 <template>
   <aside :class="[
-    'tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-z-[999]',
+    'tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-z-[0]',
     'md:tw-block md:tw-static md:tw-w-72',
     modelValue
       ? 'tw-fixed tw-inset-0 tw-w-full tw-h-full tw-overflow-y-auto'

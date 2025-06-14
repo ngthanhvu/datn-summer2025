@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-flex tw-items-center tw-justify-center tw-p-4 sm:tw-p-8">
+    <div class="tw-flex tw-items-center tw-justify-center tw-p-4 sm:tw-p-8 tw-mt-12 tw-mb-12">
         <main
             class="tw-max-w-6xl tw-w-full tw-bg-white tw-flex tw-flex-col md:tw-flex-row tw-shadow-lg tw-rounded-md tw-overflow-hidden">
             <section class="tw-flex-1 tw-p-4 sm:tw-p-6 md:tw-p-10">
@@ -20,10 +20,9 @@
                     <div class="tw-overflow-x-auto tw-w-full">
                         <table class="tw-w-full tw-min-w-[800px]">
                             <tbody>
-                                <CartItem v-for="item in cartItems" :key="item.id" :product="item" :quantity="item.quantity"
-                                    @remove="handleRemove(item.id)" 
-                                    @decrease="handleDecrease(item.id)"
-                                    @increase="handleIncrease(item.id)"
+                                <CartItem v-for="item in cartItems" :key="item.id" :product="item"
+                                    :quantity="item.quantity" @remove="handleRemove(item.id)"
+                                    @decrease="handleDecrease(item.id)" @increase="handleIncrease(item.id)"
                                     @update:quantity="handleUpdateQuantity(item.id, $event)" />
                             </tbody>
                         </table>
@@ -109,7 +108,7 @@ const handleUpdateQuantity = async (itemId, newQuantity) => {
     } catch (error) {
         const errorMessage = error.response?.data?.error || error
         alert(errorMessage || 'Có lỗi xảy ra khi cập nhật số lượng')
-        
+
         await fetchCart()
     }
 }
@@ -117,7 +116,7 @@ const handleUpdateQuantity = async (itemId, newQuantity) => {
 const handleIncrease = async (itemId) => {
     const item = cartItems.value.find(i => i.id === itemId)
     if (!item) return
-    
+
     try {
         await handleUpdateQuantity(itemId, item.quantity + 1)
     } catch (error) {
@@ -128,7 +127,7 @@ const handleIncrease = async (itemId) => {
 const handleDecrease = async (itemId) => {
     const item = cartItems.value.find(i => i.id === itemId)
     if (!item) return
-    
+
     if (item.quantity > 1) {
         await handleUpdateQuantity(itemId, item.quantity - 1)
     }

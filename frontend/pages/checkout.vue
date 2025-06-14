@@ -3,6 +3,9 @@
 </template>
 
 <script setup>
+definePageMeta({
+    middleware: "auth"
+})
 import CheckoutContent from '~/components/checkout/CheckoutContent.vue';
 
 useHead({
@@ -13,6 +16,4 @@ useHead({
 })
 </script>
 
-<style scoped>
-/* Add any component-specific styles here */
-</style>
+<style scoped></style>

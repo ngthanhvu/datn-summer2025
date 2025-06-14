@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Coupons extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'coupons';
-    
+
     protected $fillable = [
         'name',                  // Tên giảm giá
         'code',                  // Mã giảm giá
@@ -24,7 +24,7 @@ class Coupons extends Model
         'end_date',              // Ngày kết thúc
         'is_active',             // Trạng thái
     ];
-    
+
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
@@ -39,7 +39,7 @@ class Coupons extends Model
     {
         $now = now();
         return $this->is_active &&
-               $now->between($this->start_date, $this->end_date) &&
-               ($this->usage_limit === null || $this->used_count < $this->usage_limit);
+            $now->isBefore($this->end_date) &&
+            ($this->usage_limit === null || $this->used_count < $this->usage_limit);
     }
 }

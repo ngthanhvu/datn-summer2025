@@ -255,7 +255,6 @@ const { getProducts, getProductBySlug } = useProducts()
 const { getInventories } = useInventories()
 const { addToCart: addToCartComposable, getUserId, transferCartFromSessionToUser, fetchCart } = useCarts()
 
-// Product data
 const { data, pending, error, refresh } = await useAsyncData(
   'product',
   async () => {

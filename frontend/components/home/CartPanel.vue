@@ -2,14 +2,14 @@
     <div class="cart-panel" :class="{ 'cart-panel-open': isOpen }">
         <div class="cart-panel-content">
             <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
-                <h6 class="tw-font-bold tw-m-0">Giỏ hàng ({{ items.length || 0 }})</h6>
+                <h6 class="tw-font-bold tw-m-0">Giỏ hàng ({{ cart?.length || 0 }})</h6>
                 <button @click="$emit('close')" class="tw-text-gray-500 hover:tw-text-gray-700">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
             <!-- Cart Items -->
             <div class="tw-space-y-4 tw-max-h-[calc(100vh-200px)] tw-overflow-y-auto">
-                <div v-if="items.length === 0" class="tw-text-center tw-py-8">
+                <div v-if="!cart?.length" class="tw-text-center tw-py-8">
                     <div class="tw-text-gray-500 tw-mb-4">
                         <i class="bi bi-cart tw-text-4xl tw-block tw-mb-3"></i>
                         <p class="tw-text-lg">Giỏ hàng của bạn đang trống</p>
@@ -19,9 +19,9 @@
                         <i class="bi bi-bag tw-mr-2"></i> Mua sắm ngay
                     </NuxtLink>
                 </div>
-                <div v-else v-for="item in items" :key="item.id" class="tw-flex tw-gap-4 tw-pb-4 tw-border-b">
-                    <img :src="runtimeConfig.public.apiBaseUrl + '/' + item?.variant?.product?.main_image?.image_path"
-                        :alt="item?.variant?.product?.name" class="tw-w-20 tw-h-20 tw-object-cover tw-rounded">
+                <div v-else v-for="item in cart" :key="item.id" class="tw-flex tw-gap-4 tw-pb-4 tw-border-b">
+                    <img :src="item?.variant?.product?.main_image?.image_path" :alt="item?.variant?.product?.name"
+                        class="tw-w-20 tw-h-20 tw-object-cover tw-rounded">
                     <div class="tw-flex-1">
                         <h6 class="tw-font-medium tw-mb-1">{{ item?.variant?.product?.name }}</h6>
                         <p class="tw-text-sm tw-text-gray-600 tw-mb-1">
@@ -48,7 +48,7 @@
                 </div>
             </div>
             <!-- Cart Summary -->
-            <div v-if="items.length > 0" class="tw-mt-4 tw-pt-4 tw-border-t">
+            <div v-if="cart?.length > 0" class="tw-mt-4 tw-pt-4 tw-border-t">
                 <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
                     <span class="tw-font-medium">Tổng tiền:</span>
                     <span class="tw-font-bold tw-text-lg">{{ formatPrice(subtotal) }}</span>
@@ -82,24 +82,29 @@ const props = defineProps({
     }
 })
 
+
 defineEmits(['close'])
 
 const { cart, fetchCart, removeFromCart, updateQuantity, increaseQuantity, decreaseQuantity } = useCart()
 
-const items = ref([])
-
-watch(() => cart.value, (newCart) => {
-    if (newCart) {
-        items.value = newCart
-    }
-}, { immediate: true })
 
 onMounted(() => {
     fetchCart()
 })
 
+// Watch isOpen prop
+watch(() => props.isOpen, (newValue) => {
+    if (newValue) {
+        fetchCart()
+    }
+})
+
+// Watch cart changes
+watch(() => cart.value, (newCart) => {
+}, { deep: true })
+
 const subtotal = computed(() => {
-    return items.value.reduce((total, item) => total + (item.price * item.quantity), 0)
+    return cart.value?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0
 })
 
 const formatPrice = (price) => {
@@ -137,6 +142,8 @@ const handleDecrease = async (cartId) => {
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     transition: right 0.3s ease;
+    visibility: visible;
+    display: block;
 }
 
 .cart-panel-open {
@@ -148,6 +155,7 @@ const handleDecrease = async (cartId) => {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 .cart-overlay {
@@ -160,7 +168,7 @@ const handleDecrease = async (cartId) => {
     z-index: 999;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .cart-overlay-open {

@@ -35,7 +35,6 @@ export const useCoupon = () => {
     const getCoupons = async () => {
         try {
             const response = await API.get('/api/coupons')
-            console.log('Coupons response:', response.data)
 
             if (response.data) {
                 if (Array.isArray(response.data)) {
@@ -136,7 +135,13 @@ export const useCoupon = () => {
             return response.data
         } catch (error) {
             console.error('Error validating coupon:', error)
-            throw error
+            if (error.response?.data?.message) {
+                throw new Error(error.response.data.message)
+            } else if (error.response?.data?.error) {
+                throw new Error(error.response.data.error)
+            } else {
+                throw new Error('Có lỗi xảy ra khi kiểm tra mã giảm giá')
+            }
         }
     }
 

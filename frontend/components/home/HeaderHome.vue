@@ -54,7 +54,8 @@
             @click="toggleCart">
             <i class="bi bi-cart tw-text-xl"></i>
             <span
-              class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">2</span>
+              class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">{{
+                cart?.length || 0 }}</span>
           </div>
           <CartPanel :is-open="isCartOpen" @close="toggleCart" />
         </div>
@@ -84,7 +85,9 @@ import CartPanel from './CartPanel.vue'
 import AuthMenu from './AuthMenu.vue'
 import UserMenu from './UserMenu.vue'
 import MobileMenu from './MobileMenu.vue'
+import { useCart } from '~/composables/useCarts'
 
+const { cart } = useCart()
 const isCartOpen = ref(false)
 const isMobileMenuOpen = ref(false)
 const token = useCookie('token')

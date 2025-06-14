@@ -24,7 +24,6 @@ const useCarts = () => {
         } else {
             token = useCookie('token').value
         }
-        console.log('Token:', token)
         return token
     }
 
@@ -53,8 +52,11 @@ const useCarts = () => {
                 withCredentials: true
             })
             cart.value = response.data
+            return response.data
         } catch (err) {
+            console.error('Error fetching cart:', err)
             error.value = err.response?.data?.error || 'Có lỗi xảy ra'
+            throw err
         } finally {
             isLoading.value = false
         }
@@ -80,6 +82,7 @@ const useCarts = () => {
             await fetchCart()
             return response.data
         } catch (err) {
+            console.error('Error adding to cart:', err)
             if (err.response?.status === 401) {
                 const tokenCookie = useCookie('token')
                 tokenCookie.value = null
@@ -156,7 +159,6 @@ const useCarts = () => {
             await fetchCart()
         } catch (error) {
             console.error('Transfer cart error:', error)
-            // Không throw error để không làm gián đoạn quá trình login
         }
     }
 
@@ -199,7 +201,6 @@ const useCarts = () => {
     }
 
     const userId = getUserId()
-    console.log('User ID:', userId)
 
     const increaseQuantity = async (cartId) => {
         try {
