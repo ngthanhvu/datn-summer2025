@@ -34,6 +34,10 @@ const subtotal = computed(() => {
     }, 0)
 })
 
+const total = computed(() => {
+    return Math.round(subtotal.value + shipping.value - discount.value)
+})
+
 const editingAddress = computed(() => {
     if (editingAddressIndex.value === null) return null
     return addresses.value[editingAddressIndex.value]
@@ -225,18 +229,22 @@ const placeOrder = async () => {
             payment_method: paymentMethods[selectedPaymentMethod.value].code,
             coupon_id: appliedCoupon.value?.id || null,
             items: items,
-            note: ''
+            note: '',
+            total_price: subtotal.value,
+            shipping_fee: shipping.value,
+            discount_price: discount.value,
+            final_price: total.value
         }
 
         console.log('Creating order with data:', orderData)
         const result = await checkoutService.createOrder(orderData)
         console.log('Order creation result:', result)
 
-        // Kiểm tra nếu có id trong response
-        if (result.id) {
+        // Kiểm tra nếu có order trong response
+        if (result && result.order) {
             const paymentMethod = paymentMethods[selectedPaymentMethod.value].code
-            const orderId = result.id
-            const amount = result.final_price
+            const orderId = result.order.id
+            const amount = result.order.final_price
 
             console.log('Payment method:', paymentMethod)
             console.log('Order ID:', orderId)

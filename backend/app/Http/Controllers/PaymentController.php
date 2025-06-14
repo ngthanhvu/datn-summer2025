@@ -459,4 +459,108 @@ class PaymentController extends Controller
         }
         return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thanh toán PayPal đã bị hủy'));
     }
+
+    public function handlePayment(Request $request)
+    {
+        try {
+            $order = Orders::findOrFail($request->order_id);
+
+            // Kiểm tra trạng thái đơn hàng
+            if ($order->status === 'cancelled') {
+                return response()->json([
+                    'message' => 'Đơn hàng đã bị hủy',
+                    'status' => 'canceled'
+                ], 400);
+            }
+
+            // Xác định trạng thái thanh toán dựa trên phương thức
+            if ($order->payment_method === 'cod') {
+                $order->payment_status = 'pending';
+            } else if (in_array($order->payment_method, ['vnpay', 'momo', 'paypal'])) {
+                $order->payment_status = 'paid';
+            }
+
+            $order->save();
+
+            return response()->json([
+                'message' => 'Cập nhật trạng thái thanh toán thành công',
+                'status' => $order->payment_status
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Có lỗi xảy ra',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function handlePaymentCallback(Request $request)
+    {
+        try {
+            $order = Orders::findOrFail($request->order_id);
+
+            // Kiểm tra trạng thái đơn hàng
+            if ($order->status === 'cancelled') {
+                return response()->json([
+                    'message' => 'Đơn hàng đã bị hủy',
+                    'status' => 'canceled'
+                ], 400);
+            }
+
+            // Xử lý callback từ cổng thanh toán
+            if ($request->status === 'success') {
+                $order->payment_status = 'paid';
+            } else {
+                $order->payment_status = 'failed';
+            }
+
+            $order->save();
+
+            return response()->json([
+                'message' => 'Cập nhật trạng thái thanh toán thành công',
+                'status' => $order->payment_status
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Có lỗi xảy ra',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function refundPayment(Request $request)
+    {
+        try {
+            $order = Orders::findOrFail($request->order_id);
+
+            // Kiểm tra trạng thái đơn hàng
+            if ($order->status === 'cancelled') {
+                return response()->json([
+                    'message' => 'Đơn hàng đã bị hủy',
+                    'status' => 'canceled'
+                ], 400);
+            }
+
+            // Chỉ cho phép hoàn tiền nếu đã thanh toán
+            if ($order->payment_status !== 'paid') {
+                return response()->json([
+                    'message' => 'Không thể hoàn tiền cho đơn hàng chưa thanh toán',
+                    'status' => $order->payment_status
+                ], 400);
+            }
+
+            $order->payment_status = 'refunded';
+            $order->save();
+
+            return response()->json([
+                'message' => 'Hoàn tiền thành công',
+                'status' => $order->payment_status
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Có lỗi xảy ra',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
