@@ -1,38 +1,3 @@
-<template>
-    <div class="tw-max-w-7xl tw-mx-auto tw-px-4 md:tw-px-6 tw-py-8">
-        <h1 class="tw-text-2xl tw-font-bold tw-mb-8">Thanh toán</h1>
-
-        <div v-if="isLoading" class="tw-flex tw-justify-center tw-items-center tw-py-12">
-            <div
-                class="tw-animate-spin tw-rounded-full tw-h-12 tw-w-12 tw-border-t-2 tw-border-b-2 tw-border-[#81AACC]">
-            </div>
-        </div>
-
-        <div v-else-if="error" class="tw-bg-red-50 tw-p-4 tw-rounded-md tw-text-red-600 tw-mb-6">
-            {{ error }}
-        </div>
-
-        <div v-else class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-8">
-            <div class="tw-space-y-8">
-                <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm">
-                    <AddressList :addresses="addresses" :selected-address="selectedAddress"
-                        @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
-                        @add="openAddressModal" />
-
-                    <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
-                        @select="selectedPaymentMethod = $event" />
-                </div>
-            </div>
-            <div class="tw-space-y-8">
-                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
-                    @place-order="placeOrder" @apply-coupon="applyCoupon" />
-            </div>
-        </div>
-        <AddressForm :show="showAddressForm" :editing-index="editingAddressIndex" :address="editingAddress"
-            @close="closeAddressModal" @save="saveAddress" />
-    </div>
-</template>
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AddressList from '~/components/checkout/AddressList.vue'
@@ -43,11 +8,13 @@ import { useAddress } from '~/composables/useAddress'
 import { useCart } from '~/composables/useCarts'
 import { useCheckout } from '~/composables/useCheckout'
 import { useCoupon } from '~/composables/useCoupon'
+import { usePayment } from '~/composables/usePayment'
 
 const addressService = useAddress()
 const cartService = useCart()
 const checkoutService = useCheckout()
 const couponService = useCoupon()
+const paymentService = usePayment()
 
 const showAddressForm = ref(false)
 const editingAddressIndex = ref(null)
@@ -248,7 +215,7 @@ const placeOrder = async () => {
         const cart = await cartService.fetchCart()
 
         const items = cart.map(item => ({
-            variant_id: item.variant.id,  // Sử dụng variant.id thay vì cart item id
+            variant_id: item.variant.id,
             quantity: item.quantity,
             price: item.variant.price || 0
         }))
@@ -261,12 +228,64 @@ const placeOrder = async () => {
             note: ''
         }
 
+        console.log('Creating order with data:', orderData)
         const result = await checkoutService.createOrder(orderData)
+        console.log('Order creation result:', result)
 
-        if (result.success) {
-            navigateTo(`/profile/orders/${result.order_id}`)
+        // Kiểm tra nếu có id trong response
+        if (result.id) {
+            const paymentMethod = paymentMethods[selectedPaymentMethod.value].code
+            const orderId = result.id
+            const amount = result.final_price
+
+            console.log('Payment method:', paymentMethod)
+            console.log('Order ID:', orderId)
+            console.log('Amount:', amount)
+
+            if (paymentMethod === 'cod') {
+                // For COD, redirect to status page with success
+                navigateTo(`/status?status=success&orderId=${orderId}&amount=${amount}`)
+            } else {
+                // For online payments, get payment URL and redirect
+                let paymentUrl
+                let paymentResult
+
+                switch (paymentMethod) {
+                    case 'vnpay':
+                        console.log('Generating VNPay URL...')
+                        paymentResult = await paymentService.generateVnpayUrl(orderId, amount)
+                        console.log('VNPay result:', paymentResult)
+                        paymentUrl = paymentResult.payment_url
+                        break
+                    case 'momo':
+                        console.log('Generating MoMo URL...')
+                        paymentResult = await paymentService.generateMomoUrl(orderId, amount)
+                        console.log('MoMo result:', paymentResult)
+                        paymentUrl = paymentResult.payment_url
+                        break
+                    case 'paypal':
+                        console.log('Generating PayPal URL...')
+                        paymentResult = await paymentService.generatePaypalUrl(orderId, amount)
+                        console.log('PayPal result:', paymentResult)
+                        paymentUrl = paymentResult.payment_url
+                        break
+                }
+
+                console.log('Payment URL:', paymentUrl)
+
+                if (paymentUrl) {
+                    // Redirect to payment gateway
+                    console.log('Redirecting to payment gateway...')
+                    window.location.href = paymentUrl
+                } else {
+                    throw new Error('Không thể tạo URL thanh toán')
+                }
+            }
+        } else {
+            throw new Error('Không thể tạo đơn hàng')
         }
     } catch (err) {
+        console.error('Error in placeOrder:', err)
         error.value = err.message || 'Có lỗi xảy ra khi đặt hàng'
     } finally {
         isLoading.value = false
@@ -287,6 +306,42 @@ onMounted(async () => {
     }
 })
 </script>
+
+<template>
+    <div class="tw-max-w-7xl tw-mx-auto tw-px-4 md:tw-px-6 tw-py-8">
+        <h1 class="tw-text-2xl tw-font-bold tw-mb-8">Thanh toán</h1>
+
+        <div v-if="isLoading" class="tw-flex tw-justify-center tw-items-center tw-py-12">
+            <div
+                class="tw-animate-spin tw-rounded-full tw-h-12 tw-w-12 tw-border-t-2 tw-border-b-2 tw-border-[#81AACC]">
+            </div>
+        </div>
+
+        <div v-else-if="error" class="tw-bg-red-50 tw-p-4 tw-rounded-md tw-text-red-600 tw-mb-6">
+            {{ error }}
+        </div>
+
+        <div v-else class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-8">
+            <div class="tw-space-y-8">
+                <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm">
+                    <AddressList :addresses="addresses" :selected-address="selectedAddress"
+                        @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
+                        @add="openAddressModal" />
+
+                    <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
+                        @select="selectedPaymentMethod = $event" />
+                </div>
+            </div>
+            <div class="tw-space-y-8">
+                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
+                    @place-order="placeOrder" @apply-coupon="applyCoupon" />
+            </div>
+        </div>
+        <AddressForm :show="showAddressForm" :editing-index="editingAddressIndex" :address="editingAddress"
+            @close="closeAddressModal" @save="saveAddress" />
+    </div>
+</template>
+
 
 <style scoped>
 /* Add any component-specific styles here */

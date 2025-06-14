@@ -2,7 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Orders;
+use App\Models\Products;
+use App\Mail\PaymentConfirmation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentController extends Controller
 {
@@ -18,7 +24,7 @@ class PaymentController extends Controller
         $vnp_TmnCode = env('VNPAY_TMN_CODE');
         $vnp_HashSecret = env('VNPAY_HASH_SECRET');
         $vnp_Url = env('VNPAY_URL');
-        $vnp_Returnurl = "https://localhost:8000/api/payment/vnpay-callback";
+        $vnp_Returnurl = env('APP_URL') . "/api/payment/vnpay-callback";
 
         $vnp_TxnRef = $orderId;
         $vnp_OrderInfo = "Thanh toán đơn hàng #$vnp_TxnRef";
@@ -196,5 +202,261 @@ class PaymentController extends Controller
             'message' => 'Không tìm thấy approve URL từ PayPal',
             'response' => $result
         ], 500);
+    }
+
+    public function vnpayCallback(Request $request)
+    {
+        $vnp_HashSecret = env('VNPAY_HASH_SECRET');
+        $inputData = $request->all();
+        $vnp_SecureHash = $inputData['vnp_SecureHash'];
+
+        unset($inputData['vnp_SecureHashType']);
+        unset($inputData['vnp_SecureHash']);
+
+        ksort($inputData);
+
+        $hashData = '';
+        foreach ($inputData as $key => $value) {
+            $hashData .= ($hashData ? '&' : '') . urlencode($key) . "=" . urlencode($value);
+        }
+
+        $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+
+        if ($secureHash === $vnp_SecureHash) {
+            $order = Orders::where('id', $inputData['vnp_TxnRef'])->first();
+
+            if ($order) {
+                $responseCode = $inputData['vnp_ResponseCode'];
+
+                if ($responseCode === "00") {
+                    $order->payment_status = 'paid';
+                    $order->status = 'processing';
+                    $order->save();
+
+                    $orderItems = $order->orderDetails;
+                    foreach ($orderItems as $orderItem) {
+                        if ($orderItem->variant_id) {
+                            $inventory = DB::table('inventories')
+                                ->where('variant_id', $orderItem->variant_id)
+                                ->first();
+
+                            if ($inventory) {
+                                DB::table('inventories')
+                                    ->where('variant_id', $orderItem->variant_id)
+                                    ->update([
+                                        'quantity' => DB::raw('quantity - ' . $orderItem->quantity)
+                                    ]);
+                            }
+                        }
+                    }
+
+                    // Xóa giỏ hàng sau khi thanh toán thành công
+                    DB::table('carts')
+                        ->where('user_id', $order->user_id)
+                        ->delete();
+
+                    $user = $order->user;
+                    if ($user && !empty($user->email)) {
+                        Mail::to($user->email)->send(new PaymentConfirmation($order));
+                    }
+
+                    return redirect()->to(env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price);
+                } else {
+                    $order->status = ($responseCode === "24") ? 'canceled' : 'failed';
+                    $order->save();
+                    return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&orderId=' . $order->id . '&amount=' . $order->final_price . '&message=' . urlencode('Thanh toán thất bại'));
+                }
+            }
+        }
+        return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Xác thực thanh toán thất bại'));
+    }
+
+    public function momoCallback(Request $request)
+    {
+        $data = $request->all();
+        $secretKey = env('MOMO_SECRET_KEY');
+        $accessKey = env('MOMO_ACCESS_KEY');
+
+        Log::info('MoMo Callback Data: ', $data);
+
+        if (!isset($data['orderId']) || !isset($data['resultCode'])) {
+            Log::error('Invalid MoMo callback data', $data);
+            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Dữ liệu callback không hợp lệ'));
+        }
+
+        $orderIdParts = explode('MOMOPAY', $data['orderId']);
+        $originalOrderId = $orderIdParts[0];
+
+        $amount = $data['amount'];
+        $extraData = $data['extraData'] ?? '';
+        $message = $data['message'] ?? '';
+        $orderInfo = $data['orderInfo'] ?? '';
+        $orderType = $data['orderType'] ?? '';
+        $partnerCode = $data['partnerCode'] ?? '';
+        $payType = $data['payType'] ?? '';
+        $requestId = $data['requestId'] ?? '';
+        $responseTime = $data['responseTime'] ?? '';
+        $resultCode = $data['resultCode'] ?? '';
+        $transId = $data['transId'] ?? '';
+
+        $rawSignature = "accessKey=" . $accessKey .
+            "&amount=" . $amount .
+            "&extraData=" . $extraData .
+            "&message=" . $message .
+            "&orderId=" . $data['orderId'] .
+            "&orderInfo=" . $orderInfo .
+            "&orderType=" . $orderType .
+            "&partnerCode=" . $partnerCode .
+            "&payType=" . $payType .
+            "&requestId=" . $requestId .
+            "&responseTime=" . $responseTime .
+            "&resultCode=" . $resultCode .
+            "&transId=" . $transId;
+
+        $calculatedSignature = hash_hmac('sha256', $rawSignature, $secretKey);
+
+        if ($calculatedSignature === $data['signature']) {
+            $order = Orders::where('id', $originalOrderId)->first();
+
+            if ($order) {
+                if ($resultCode == '0') {
+                    $order->payment_status = 'paid';
+                    $order->status = 'processing';
+                    $order->save();
+
+                    $orderItems = $order->orderDetails;
+                    foreach ($orderItems as $orderItem) {
+                        if ($orderItem->variant_id) {
+                            $inventory = DB::table('inventories')
+                                ->where('variant_id', $orderItem->variant_id)
+                                ->first();
+
+                            if ($inventory) {
+                                DB::table('inventories')
+                                    ->where('variant_id', $orderItem->variant_id)
+                                    ->update([
+                                        'quantity' => DB::raw('quantity - ' . $orderItem->quantity)
+                                    ]);
+                            }
+                        }
+                    }
+
+                    // Xóa giỏ hàng sau khi thanh toán thành công
+                    DB::table('carts')
+                        ->where('user_id', $order->user_id)
+                        ->delete();
+
+                    $user = $order->user;
+                    if ($user && !empty($user->email)) {
+                        Mail::to($user->email)->send(new PaymentConfirmation($order));
+                    }
+
+                    return redirect()->to(env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price);
+                } else {
+                    Log::error('MoMo payment failed', ['orderId' => $originalOrderId, 'resultCode' => $resultCode]);
+                    $order->status = 'failed';
+                    $order->save();
+                    return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&orderId=' . $order->id . '&amount=' . $order->final_price . '&message=' . urlencode('Thanh toán thất bại'));
+                }
+            }
+        }
+        return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Xác thực thanh toán thất bại'));
+    }
+
+    public function paypalCallback(Request $request)
+    {
+        $apiUrl = env('PAYPAL_API_URL', 'https://api-m.sandbox.paypal.com');
+        $clientId = env('PAYPAL_CLIENT_ID');
+        $clientSecret = env('PAYPAL_SECRET');
+        $orderId = $request->input('token');
+
+        // Lấy access token
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "$apiUrl/v1/oauth2/token");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERPWD, "$clientId:$clientSecret");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Accept-Language: en_US']);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            Log::error('PayPal access token request failed', ['response' => $response]);
+            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Không thể xác thực PayPal'));
+        }
+
+        $tokenData = json_decode($response, true);
+        $accessToken = $tokenData['access_token'];
+
+        // Capture thanh toán
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "$apiUrl/v2/checkout/orders/$orderId/capture");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $accessToken
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 201) {
+            Log::error('PayPal capture failed', ['response' => $response]);
+            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thanh toán PayPal thất bại'));
+        }
+
+        $result = json_decode($response, true);
+        if ($result['status'] === 'COMPLETED') {
+            $order = Orders::where('id', $result['purchase_units'][0]['reference_id'])->first();
+            if ($order) {
+                $order->payment_status = 'paid';
+                $order->status = 'processing';
+                $order->save();
+
+                $orderItems = $order->orderDetails;
+                foreach ($orderItems as $orderItem) {
+                    if ($orderItem->variant_id) {
+                        $inventory = DB::table('inventories')
+                            ->where('variant_id', $orderItem->variant_id)
+                            ->first();
+
+                        if ($inventory) {
+                            DB::table('inventories')
+                                ->where('variant_id', $orderItem->variant_id)
+                                ->update([
+                                    'quantity' => DB::raw('quantity - ' . $orderItem->quantity)
+                                ]);
+                        }
+                    }
+                }
+
+                // Xóa giỏ hàng sau khi thanh toán thành công
+                DB::table('carts')
+                    ->where('user_id', $order->user_id)
+                    ->delete();
+
+                $user = $order->user;
+                if ($user && !empty($user->email)) {
+                    Mail::to($user->email)->send(new PaymentConfirmation($order));
+                }
+
+                return redirect()->to(env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price);
+            }
+        }
+
+        return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thanh toán PayPal thất bại'));
+    }
+
+    public function paypalCancel(Request $request)
+    {
+        $order = Orders::where('id', $request->input('token'))->first();
+        if ($order) {
+            $order->status = 'canceled';
+            $order->save();
+        }
+        return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thanh toán PayPal đã bị hủy'));
     }
 }

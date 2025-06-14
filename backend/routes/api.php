@@ -86,6 +86,15 @@ Route::put('/coupons/{id}', [CouponsController::class, 'update']);
 Route::delete('/coupons/{id}', [CouponsController::class, 'destroy']);
 Route::post('/coupons/validate', [CouponsController::class, 'validate_coupon']);
 
-Route::post('/payment/vnpay', [PaymentController::class, 'generateVnpayUrl']);
-Route::post('/payment/momo', [PaymentController::class, 'generateMomoUrl']);
-Route::post('/payment/paypal', [PaymentController::class, 'generatePaypalUrl']);
+// Payment routes
+Route::prefix('payment')->group(function () {
+    Route::post('vnpay', [PaymentController::class, 'generateVnpayUrl']);
+    Route::post('momo', [PaymentController::class, 'generateMomoUrl']);
+    Route::post('paypal', [PaymentController::class, 'generatePaypalUrl']);
+
+    // Callback routes
+    Route::get('vnpay-callback', [PaymentController::class, 'vnpayCallback']);
+    Route::get('momo-callback', [PaymentController::class, 'momoCallback']);
+    Route::get('paypal-callback', [PaymentController::class, 'paypalCallback']);
+    Route::get('paypal-cancel', [PaymentController::class, 'paypalCancel']);
+});

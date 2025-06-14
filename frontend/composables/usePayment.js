@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const usePayment = () => {
+export const usePayment = () => {
     const config = useRuntimeConfig()
     const baseUrl = config.public.apiBaseUrl
 
@@ -10,24 +10,33 @@ const usePayment = () => {
     }
 
     const generateVnpayUrl = async (orderId, amount) => {
+        console.log('Calling VNPay API with:', { orderId, amount })
         const response = await axios.post(`${baseUrl}/api/payment/vnpay`, {
             order_id: orderId,
             amount: amount
         })
+        console.log('VNPay API response:', response.data)
+        return response.data
     }
 
     const generateMomoUrl = async (orderId, amount) => {
+        console.log('Calling MoMo API with:', { orderId, amount })
         const response = await axios.post(`${baseUrl}/api/payment/momo`, {
             order_id: orderId,
             amount: amount
         })
+        console.log('MoMo API response:', response.data)
+        return response.data
     }
 
     const generatePaypalUrl = async (orderId, amount) => {
+        console.log('Calling PayPal API with:', { orderId, amount })
         const response = await axios.post(`${baseUrl}/api/payment/paypal`, {
             order_id: orderId,
             amount: amount
         })
+        console.log('PayPal API response:', response.data)
+        return response.data
     }
 
     return {
@@ -36,4 +45,6 @@ const usePayment = () => {
         generatePaypalUrl
     }
 }
+
+export default usePayment
 
