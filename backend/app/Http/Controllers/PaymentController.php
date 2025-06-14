@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Orders;
-use App\Models\Products;
 use App\Mail\PaymentConfirmation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -250,7 +249,6 @@ class PaymentController extends Controller
                         }
                     }
 
-                    // Xóa giỏ hàng sau khi thanh toán thành công
                     DB::table('carts')
                         ->where('user_id', $order->user_id)
                         ->delete();
@@ -341,7 +339,6 @@ class PaymentController extends Controller
                         }
                     }
 
-                    // Xóa giỏ hàng sau khi thanh toán thành công
                     DB::table('carts')
                         ->where('user_id', $order->user_id)
                         ->delete();
@@ -370,7 +367,6 @@ class PaymentController extends Controller
         $clientSecret = env('PAYPAL_SECRET');
         $orderId = $request->input('token');
 
-        // Lấy access token
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "$apiUrl/v1/oauth2/token");
         curl_setopt($ch, CURLOPT_POST, true);
@@ -390,7 +386,6 @@ class PaymentController extends Controller
         $tokenData = json_decode($response, true);
         $accessToken = $tokenData['access_token'];
 
-        // Capture thanh toán
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "$apiUrl/v2/checkout/orders/$orderId/capture");
         curl_setopt($ch, CURLOPT_POST, true);
@@ -433,7 +428,6 @@ class PaymentController extends Controller
                     }
                 }
 
-                // Xóa giỏ hàng sau khi thanh toán thành công
                 DB::table('carts')
                     ->where('user_id', $order->user_id)
                     ->delete();
@@ -465,7 +459,6 @@ class PaymentController extends Controller
         try {
             $order = Orders::findOrFail($request->order_id);
 
-            // Kiểm tra trạng thái đơn hàng
             if ($order->status === 'cancelled') {
                 return response()->json([
                     'message' => 'Đơn hàng đã bị hủy',
@@ -473,7 +466,6 @@ class PaymentController extends Controller
                 ], 400);
             }
 
-            // Xác định trạng thái thanh toán dựa trên phương thức
             if ($order->payment_method === 'cod') {
                 $order->payment_status = 'pending';
             } else if (in_array($order->payment_method, ['vnpay', 'momo', 'paypal'])) {
@@ -499,7 +491,6 @@ class PaymentController extends Controller
         try {
             $order = Orders::findOrFail($request->order_id);
 
-            // Kiểm tra trạng thái đơn hàng
             if ($order->status === 'cancelled') {
                 return response()->json([
                     'message' => 'Đơn hàng đã bị hủy',
@@ -507,7 +498,6 @@ class PaymentController extends Controller
                 ], 400);
             }
 
-            // Xử lý callback từ cổng thanh toán
             if ($request->status === 'success') {
                 $order->payment_status = 'paid';
             } else {
@@ -533,7 +523,6 @@ class PaymentController extends Controller
         try {
             $order = Orders::findOrFail($request->order_id);
 
-            // Kiểm tra trạng thái đơn hàng
             if ($order->status === 'cancelled') {
                 return response()->json([
                     'message' => 'Đơn hàng đã bị hủy',
@@ -541,7 +530,6 @@ class PaymentController extends Controller
                 ], 400);
             }
 
-            // Chỉ cho phép hoàn tiền nếu đã thanh toán
             if ($order->payment_status !== 'paid') {
                 return response()->json([
                     'message' => 'Không thể hoàn tiền cho đơn hàng chưa thanh toán',

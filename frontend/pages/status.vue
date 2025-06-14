@@ -1,6 +1,5 @@
 <template>
     <div class="tw-mt-10 tw-flex tw-items-center tw-justify-center tw-p-4">
-        <!-- Trạng thái thành công -->
         <div v-if="isSuccess"
             class="tw-bg-white tw-p-8 tw-rounded-lg tw-shadow-md tw-max-w-md tw-w-full tw-text-center">
             <div
@@ -20,7 +19,6 @@
             </button>
         </div>
 
-        <!-- Trạng thái thất bại -->
         <div v-else class="tw-bg-white tw-p-8 tw-rounded-lg tw-shadow-md tw-max-w-md tw-w-full tw-text-center">
             <div
                 class="tw-w-16 tw-h-16 tw-bg-red-100 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-mx-auto tw-mb-4">
@@ -70,7 +68,6 @@ onMounted(() => {
     orderId.value = id || 'N/A'
     amount.value = total ? parseFloat(total) : 0
 
-    // If there's a custom message from payment gateway, show it
     if (message) {
         errorMessage.value = decodeURIComponent(message)
     }

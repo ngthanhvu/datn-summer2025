@@ -2,7 +2,6 @@
     <div class="tw-bg-white tw-p-6 tw-rounded tw-shadow">
         <h2 class="tw-font-bold tw-text-lg tw-mb-6">Đơn hàng của tôi</h2>
 
-        <!-- Filters -->
         <div class="tw-flex tw-gap-4 tw-mb-6">
             <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
                 <option value="">Tất cả trạng thái</option>
@@ -15,7 +14,6 @@
                 placeholder="dd/mm/yyyy" />
         </div>
 
-        <!-- Orders Table -->
         <div class="tw-overflow-x-auto">
             <table class="tw-w-full tw-text-left tw-bg-white tw-text-sm">
                 <thead>
@@ -80,7 +78,6 @@
             </table>
         </div>
 
-        <!-- Empty State -->
         <div v-if="orders.length === 0" class="tw-text-center tw-py-12">
             <svg class="tw-mx-auto tw-h-12 tw-w-12 tw-text-gray-400" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
@@ -91,7 +88,6 @@
             <p class="tw-mt-1 tw-text-sm tw-text-gray-500">Bạn chưa có đơn hàng nào.</p>
         </div>
 
-        <!-- Order Detail Modal -->
         <div v-if="showModal"
             class="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-50 tw-flex tw-items-center tw-justify-center tw-z-50">
             <div
@@ -107,7 +103,6 @@
                 </div>
 
                 <div v-if="selectedOrder" class="tw-space-y-8">
-                    <!-- Order Timeline -->
                     <div class="tw-border-b tw-pb-6">
                         <h4 class="tw-font-semibold tw-mb-4">Trạng thái đơn hàng</h4>
                         <div class="tw-flex tw-items-center tw-justify-between">
@@ -172,9 +167,7 @@
                         </div>
                     </div>
 
-                    <!-- Order Info -->
                     <div class="tw-grid tw-grid-cols-2 tw-gap-6">
-                        <!-- Shipping Info -->
                         <div class="tw-bg-gray-50 tw-p-4 tw-rounded-lg">
                             <h4 class="tw-font-semibold tw-mb-4">Thông tin giao hàng</h4>
                             <div class="tw-space-y-2">
@@ -207,7 +200,6 @@
                             </div>
                         </div>
 
-                        <!-- Payment Info -->
                         <div class="tw-bg-gray-50 tw-p-4 tw-rounded-lg">
                             <h4 class="tw-font-semibold tw-mb-4">Thông tin thanh toán</h4>
                             <div class="tw-space-y-2">
@@ -234,7 +226,6 @@
                         </div>
                     </div>
 
-                    <!-- Order Items -->
                     <div>
                         <h4 class="tw-font-semibold tw-mb-4">Sản phẩm</h4>
                         <div class="tw-space-y-4">
@@ -256,7 +247,6 @@
                         </div>
                     </div>
 
-                    <!-- Order Summary -->
                     <div class="tw-border-t tw-pt-4">
                         <div class="tw-space-y-2">
                             <div class="tw-flex tw-justify-between">
@@ -333,12 +323,10 @@ const fetchOrders = async () => {
         const response = await orderService.getOrders()
         let filteredOrders = response.data
 
-        // Apply status filter
         if (selectedStatus.value) {
             filteredOrders = filteredOrders.filter(order => order.status === selectedStatus.value)
         }
 
-        // Apply date filter
         if (selectedDate.value) {
             const filterDate = new Date(selectedDate.value)
             filteredOrders = filteredOrders.filter(order => {
@@ -358,13 +346,12 @@ const fetchOrders = async () => {
 }
 
 const handleFilterChange = (filters) => {
-    // Implement filter logic here
-    console.log('Filters changed:', filters)
+    // console.log('Filters changed:', filters)
 }
 
 const openOrderDetail = (order) => {
     selectedOrder.value = order
-    console.log('Selected Order for detail:', selectedOrder.value)
+    // console.log('Selected Order for detail:', selectedOrder.value)
     showModal.value = true
 }
 

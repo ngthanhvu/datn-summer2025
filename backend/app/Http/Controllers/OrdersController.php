@@ -15,7 +15,43 @@ class OrdersController extends Controller
 
     public function index()
     {
-        $orders = Orders::with(['user', 'address', 'orderDetails.variant'])->paginate(10);
+        $orders = Orders::with([
+            'user:id,username,email,phone,avatar',
+            'address:id,full_name,phone,province,district,ward,street',
+            'orderDetails:id,order_id,variant_id,quantity,price,total_price',
+            'orderDetails.variant:id,color,size,price,sku,product_id',
+            'orderDetails.variant.product:id,name,price,description,slug',
+            'orderDetails.variant.product.mainImage:id,image_path,is_main,product_id'
+        ])->select([
+            'id',
+            'user_id',
+            'address_id',
+            'status',
+            'payment_method',
+            'payment_status',
+            'total_price',
+            'discount_price',
+            'final_price',
+            'coupon_id',
+            'note',
+            'created_at',
+            'updated_at'
+        ])->paginate(10);
+
+        $orders->getCollection()->transform(function ($order) {
+            if ($order->orderDetails) {
+                foreach ($order->orderDetails as $orderDetail) {
+                    if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
+                        $imagePath = $orderDetail->variant->product->mainImage->image_path;
+                        $imagePath = preg_replace('/^https?:\/\/[^\/]+\/storage\/?/', '', $imagePath);
+                        $imagePath = ltrim($imagePath, '/');
+                        $orderDetail->variant->product->mainImage->image_path = url('storage/' . $imagePath);
+                    }
+                }
+            }
+            return $order;
+        });
+
         return response()->json($orders);
     }
 
@@ -39,7 +75,6 @@ class OrdersController extends Controller
 
             DB::beginTransaction();
 
-            // Tạo đơn hàng
             $order = Orders::create([
                 'user_id' => Auth::user()->id,
                 'address_id' => $validated['address_id'],
@@ -54,7 +89,6 @@ class OrdersController extends Controller
                 'payment_status' => $validated['payment_method'] === 'cod' ? 'pending' : 'paid'
             ]);
 
-            // Tạo chi tiết đơn hàng
             foreach ($validated['items'] as $item) {
                 Orders_detail::create([
                     'order_id' => $order->id,
@@ -64,7 +98,6 @@ class OrdersController extends Controller
                     'total_price' => $item['quantity'] * $item['price']
                 ]);
 
-                // Kiểm tra và cập nhật số lượng trong kho
                 $inventory = DB::table('inventories')
                     ->where('variant_id', $item['variant_id'])
                     ->first();
@@ -84,7 +117,6 @@ class OrdersController extends Controller
                     ]);
             }
 
-            // Xóa giỏ hàng sau khi tạo đơn hàng thành công
             DB::table('carts')
                 ->where('user_id', Auth::user()->id)
                 ->delete();
@@ -103,12 +135,6 @@ class OrdersController extends Controller
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Lỗi khi tạo đơn hàng: ' . $e->getMessage(), [
-                'user_id' => Auth::user()->id,
-                'request_data' => $request->all(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             return response()->json([
                 'message' => 'Có lỗi xảy ra khi đặt hàng',
                 'error' => $e->getMessage()
@@ -118,18 +144,16 @@ class OrdersController extends Controller
 
     public function show(Orders $orders)
     {
-        $order = $orders->load(['user', 'address', 'orderDetails.variant.product.main_image']);
+        $order = $orders->load(['user', 'address', 'orderDetails.variant.product.mainImage']);
 
-        // Ensure image_path is a full URL
         if ($order->orderDetails) {
             foreach ($order->orderDetails as $orderDetail) {
-                if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->main_image) {
-                    $orderDetail->variant->product->main_image->image_path = url('storage/' . $orderDetail->variant->product->main_image->image_path);
+                if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
+                    $orderDetail->variant->product->mainImage->image_path = url('storage/' . $orderDetail->variant->product->mainImage->image_path);
                 }
             }
         }
 
-        // Ensure price fields are numeric
         $order->total_price = (int) $order->total_price;
         $order->shipping_fee = (int) $order->shipping_fee;
         $order->discount_price = (int) $order->discount_price;
@@ -143,14 +167,12 @@ class OrdersController extends Controller
         try {
             $order = Orders::findOrFail($id);
 
-            // Kiểm tra quyền hủy đơn hàng
             if ($order->user_id !== Auth::user()->id) {
                 return response()->json([
                     'message' => 'Bạn không có quyền hủy đơn hàng này'
                 ], 403);
             }
 
-            // Kiểm tra trạng thái đơn hàng
             if ($order->status === 'cancelled') {
                 return response()->json([
                     'message' => 'Đơn hàng đã bị hủy trước đó'
@@ -163,7 +185,6 @@ class OrdersController extends Controller
                 ], 400);
             }
 
-            // Cập nhật trạng thái đơn hàng và thanh toán
             $order->status = 'cancelled';
             $order->payment_status = 'canceled';
             $order->save();
