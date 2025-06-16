@@ -27,8 +27,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/admin/user', [AuthController::class, 'listUser']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']); // Thêm route này
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
+
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
+
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart', [CartController::class, 'store']);
     Route::put('/cart/{id}', [CartController::class, 'update']);
@@ -38,6 +40,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/orders', [OrdersController::class, 'index']);
     Route::get('/orders/{id}', [OrdersController::class, 'show']);
     Route::post('/orders', [OrdersController::class, 'store']);
+
+    Route::get('/me/address', [AddressController::class, 'getMyAddress']);
+    Route::get('/addresses', [AddressController::class, 'index']);
+    Route::post('/addresses', [AddressController::class, 'store']);
+    Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
+    Route::put('/addresses/{id}', [AddressController::class, 'update']);
 });
 
 Route::get('/brands', [BrandsController::class, 'index']);
@@ -68,11 +76,6 @@ Route::get('/products/{id}/favorite', [ProductsController::class, 'favorite']);
 Route::get('/inventory', [InventoryController::class, 'index']);
 
 Route::get('/variants', [VariantController::class, 'index']);
-
-Route::get('/addresses', [AddressController::class, 'index']);
-Route::post('/addresses', [AddressController::class, 'store']);
-Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
-Route::put('/addresses/{id}', [AddressController::class, 'update']);
 
 Route::get('/guest-cart', [CartController::class, 'index']);
 Route::post('/guest-cart', [CartController::class, 'store']);

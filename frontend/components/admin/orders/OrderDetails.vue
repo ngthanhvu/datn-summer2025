@@ -1,93 +1,159 @@
 <template>
     <div class="order-info">
-        <div class="info-group">
-            <h3>Thông tin khách hàng</h3>
-            <p><strong>Tên:</strong> {{ order?.customerName }}</p>
-            <p><strong>Email:</strong> {{ order?.customerEmail }}</p>
-            <p><strong>SĐT:</strong> {{ order?.customerPhone }}</p>
-            <p><strong>Địa chỉ:</strong> {{ order?.shippingAddress }}</p>
+        <div v-if="loading" class="tw-p-4 tw-text-center">
+            <div
+                class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-4 tw-border-primary tw-border-t-transparent">
+            </div>
         </div>
 
-        <div class="info-group">
-            <h3>Thông tin đơn hàng</h3>
-            <p><strong>Ngày đặt:</strong> {{ order?.orderDate }}</p>
-            <p><strong>Phương thức thanh toán:</strong> {{ order?.paymentMethod }}</p>
-            <p><strong>Trạng thái thanh toán:</strong>
-                <span :class="['status-badge', order?.isPaid ? 'active' : 'inactive']">
-                    {{ order?.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán' }}
-                </span>
-            </p>
+        <div v-else-if="error" class="tw-p-4 tw-text-center tw-text-red-500">
+            {{ error }}
         </div>
 
-        <div class="info-group">
-            <h3>Sản phẩm</h3>
-            <table class="products-table">
-                <thead>
-                    <tr>
-                        <th>Sản phẩm</th>
-                        <th>Số lượng</th>
-                        <th>Đơn giá</th>
-                        <th>Thành tiền</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="item in order?.items" :key="item.id">
-                        <td>{{ item.name }}</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>{{ formatPrice(item.price) }}</td>
-                        <td>{{ formatPrice(item.price * item.quantity) }}</td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Tổng tiền:</td>
-                        <td>{{ formatPrice(order?.total) }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
+        <template v-else-if="currentOrder">
+            <div class="info-group">
+                <h3>Thông tin khách hàng</h3>
+                <p><strong>Tên:</strong> {{ currentOrder.user?.username }}</p>
+                <p><strong>Email:</strong> {{ currentOrder.user?.email }}</p>
+                <p><strong>SĐT:</strong> {{ currentOrder.user?.phone }}</p>
+                <p><strong>Địa chỉ:</strong> {{ currentOrder.address?.full_name }}, {{ currentOrder.address?.phone }},
+                    {{ currentOrder.address?.street }}, {{ currentOrder.address?.ward }}, {{
+                        currentOrder.address?.district }}, {{ currentOrder.address?.province }}</p>
+            </div>
 
-        <div class="order-status">
-            <h3>Cập nhật trạng thái</h3>
-            <Form :fields="[{
-                name: 'status',
-                label: '',
-                type: 'select',
-                options: statusOptions
-            }]" :initial-data="{ status: order?.status }" @submit="updateOrderStatus" />
-        </div>
+            <div class="info-group">
+                <h3>Thông tin đơn hàng</h3>
+                <p><strong>Mã đơn:</strong> #{{ currentOrder.id }}</p>
+                <p><strong>Ngày đặt:</strong> {{ new Date(currentOrder.created_at).toLocaleDateString('vi-VN') }}</p>
+                <p><strong>Phương thức thanh toán:</strong> {{ getPaymentMethod(currentOrder.payment_method) }}</p>
+                <p><strong>Trạng thái thanh toán:</strong>
+                    <span :class="[
+                        'status-badge',
+                        {
+                            'active': currentOrder.payment_status === 'paid',
+                            'inactive': currentOrder.payment_status === 'pending' || currentOrder.payment_status === 'failed' || currentOrder.payment_status === 'canceled'
+                        }
+                    ]">
+                        {{ getPaymentStatus(currentOrder.payment_status) }}
+                    </span>
+                </p>
+            </div>
+
+            <div class="info-group">
+                <h3>Sản phẩm</h3>
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Phân loại</th>
+                            <th>Số lượng</th>
+                            <th>Đơn giá</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in currentOrder.orderDetails" :key="item.id">
+                            <td>
+                                <div class="tw-flex tw-items-center">
+                                    <img :src="item.variant?.product?.mainImage?.image_path"
+                                        :alt="item.variant?.product?.name"
+                                        class="tw-w-12 tw-h-12 tw-object-cover tw-rounded">
+                                    <div class="tw-ml-3">
+                                        <div class="tw-font-medium">{{ item.variant?.product?.name }}</div>
+                                        <div class="tw-text-xs tw-text-gray-500">SKU: {{ item.variant?.sku }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tw-text-sm">
+                                    <span class="tw-text-gray-500">Màu:</span> {{ item.variant?.color }}
+                                </div>
+                                <div class="tw-text-sm">
+                                    <span class="tw-text-gray-500">Size:</span> {{ item.variant?.size }}
+                                </div>
+                            </td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ formatPrice(item.price) }}</td>
+                            <td>{{ formatPrice(item.total_price) }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="tw-text-right">Tổng tiền hàng:</td>
+                            <td>{{ formatPrice(currentOrder.total_price) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="tw-text-right">Phí vận chuyển:</td>
+                            <td>{{ formatPrice(currentOrder.shipping_fee || 0) }}</td>
+                        </tr>
+                        <tr v-if="currentOrder.discount_price > 0">
+                            <td colspan="4" class="tw-text-right">Giảm giá:</td>
+                            <td>-{{ formatPrice(currentOrder.discount_price) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="tw-text-right tw-font-bold">Thành tiền:</td>
+                            <td class="tw-font-bold">{{ formatPrice(currentOrder.final_price) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="order-status">
+                <h3>Cập nhật trạng thái</h3>
+                <Form :fields="[{
+                    name: 'status',
+                    label: '',
+                    type: 'select',
+                    options: statusOptions
+                }]" :initial-data="{ status: currentOrder.status }" @submit="handleUpdateStatus" />
+            </div>
+        </template>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Form from '~/components/admin/Form.vue'
+import { useOrder } from '~/composables/useOrder'
 
 const props = defineProps({
-    order: {
-        type: Object,
+    orderId: {
+        type: [String, Number],
         required: true
     }
 })
 
-const emit = defineEmits(['update-status'])
+const {
+    currentOrder,
+    loading,
+    error,
+    getOrder,
+    updateOrderStatus,
+    getOrderStatus,
+    getPaymentStatus,
+    getPaymentMethod,
+    formatPrice
+} = useOrder()
 
 const statusOptions = [
     { value: 'pending', label: 'Chờ xử lý' },
     { value: 'processing', label: 'Đang giao' },
+    { value: 'shipping', label: 'Đang giao hàng' },
     { value: 'completed', label: 'Hoàn thành' },
     { value: 'cancelled', label: 'Đã hủy' }
 ]
 
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-    }).format(price)
-}
+onMounted(async () => {
+    await getOrder(props.orderId)
+})
 
-const updateOrderStatus = (data) => {
-    emit('update-status', { id: props.order.id, status: data.status })
+const handleUpdateStatus = async (data) => {
+    try {
+        await updateOrderStatus(props.orderId, data.status)
+        await getOrder(props.orderId)
+    } catch (err) {
+        console.error('Failed to update order status:', err)
+    }
 }
 </script>
 

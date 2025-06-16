@@ -1,7 +1,7 @@
 <template>
     <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm">
         <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Đơn hàng của bạn</h2>
-        <div class="tw-space-y-4 tw-mb-6">
+        <div class="tw-space-y-4 tw-mb-6 tw-max-h-[300px] tw-overflow-y-auto tw-pr-2">
             <div v-for="(item, index) in items" :key="index" class="tw-flex tw-items-center tw-gap-4">
                 <img :src="item.image" :alt="item.name" class="tw-w-20 tw-h-20 tw-object-cover">
                 <div class="tw-flex-1">

@@ -5,7 +5,7 @@
                 <i class="fas fa-clock"></i>
             </div>
             <div class="stat-content">
-                <h3>Chờ xử lý</h3>
+                <h3>Chờ xác nhận</h3>
                 <p>{{ pendingOrders }}</p>
             </div>
         </div>
@@ -14,8 +14,17 @@
                 <i class="fas fa-shipping-fast"></i>
             </div>
             <div class="stat-content">
-                <h3>Đang giao</h3>
+                <h3>Đang xử lý</h3>
                 <p>{{ processingOrders }}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon shipping">
+                <i class="fas fa-truck"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Đang giao hàng</h3>
+                <p>{{ shippingOrders }}</p>
             </div>
         </div>
         <div class="stat-card">
@@ -50,26 +59,30 @@ const props = defineProps({
 })
 
 const pendingOrders = computed(() =>
-    props.orders.filter(order => order.status === 'pending').length
+    props.orders.filter(order => order?.status === 'pending').length
 )
 
 const processingOrders = computed(() =>
-    props.orders.filter(order => order.status === 'processing').length
+    props.orders.filter(order => order?.status === 'processing').length
+)
+
+const shippingOrders = computed(() =>
+    props.orders.filter(order => order?.status === 'shipping').length
 )
 
 const completedOrders = computed(() =>
-    props.orders.filter(order => order.status === 'completed').length
+    props.orders.filter(order => order?.status === 'completed').length
 )
 
 const cancelledOrders = computed(() =>
-    props.orders.filter(order => order.status === 'cancelled').length
+    props.orders.filter(order => order?.status === 'cancelled').length
 )
 </script>
 
 <style scoped>
 .stats-cards {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -104,6 +117,11 @@ const cancelledOrders = computed(() =>
     color: #1d4ed8;
 }
 
+.stat-icon.shipping {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
 .stat-icon.completed {
     background: #f0fdf4;
     color: #15803d;
@@ -124,5 +142,23 @@ const cancelledOrders = computed(() =>
     font-size: 1.5rem;
     font-weight: 600;
     color: #111827;
+}
+
+@media (max-width: 1280px) {
+    .stats-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
 }
 </style>

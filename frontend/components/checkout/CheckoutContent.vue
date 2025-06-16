@@ -160,7 +160,7 @@ const applyCoupon = async (code) => {
 
         if (result.discount !== undefined) {
             appliedCoupon.value = result.coupon
-            discount.value = result.discount
+            discount.value = Math.round(result.discount)
             error.value = null // Clear any previous errors
         } else {
             error.value = 'Mã giảm giá không hợp lệ'
@@ -215,7 +215,6 @@ const placeOrder = async () => {
 
         isLoading.value = true
 
-        // Cần lấy lại dữ liệu giỏ hàng gốc để có variant_id
         const cart = await cartService.fetchCart()
 
         const items = cart.map(item => ({
@@ -240,7 +239,6 @@ const placeOrder = async () => {
         const result = await checkoutService.createOrder(orderData)
         console.log('Order creation result:', result)
 
-        // Kiểm tra nếu có order trong response
         if (result && result.order) {
             const paymentMethod = paymentMethods[selectedPaymentMethod.value].code
             const orderId = result.order.id
@@ -251,39 +249,26 @@ const placeOrder = async () => {
             console.log('Amount:', amount)
 
             if (paymentMethod === 'cod') {
-                // For COD, redirect to status page with success
                 navigateTo(`/status?status=success&orderId=${orderId}&amount=${amount}`)
             } else {
-                // For online payments, get payment URL and redirect
                 let paymentUrl
                 let paymentResult
 
                 switch (paymentMethod) {
                     case 'vnpay':
-                        console.log('Generating VNPay URL...')
                         paymentResult = await paymentService.generateVnpayUrl(orderId, amount)
-                        console.log('VNPay result:', paymentResult)
                         paymentUrl = paymentResult.payment_url
                         break
                     case 'momo':
-                        console.log('Generating MoMo URL...')
                         paymentResult = await paymentService.generateMomoUrl(orderId, amount)
-                        console.log('MoMo result:', paymentResult)
                         paymentUrl = paymentResult.payment_url
                         break
                     case 'paypal':
-                        console.log('Generating PayPal URL...')
                         paymentResult = await paymentService.generatePaypalUrl(orderId, amount)
-                        console.log('PayPal result:', paymentResult)
                         paymentUrl = paymentResult.payment_url
                         break
                 }
-
-                console.log('Payment URL:', paymentUrl)
-
                 if (paymentUrl) {
-                    // Redirect to payment gateway
-                    console.log('Redirecting to payment gateway...')
                     window.location.href = paymentUrl
                 } else {
                     throw new Error('Không thể tạo URL thanh toán')

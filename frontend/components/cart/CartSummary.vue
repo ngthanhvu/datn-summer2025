@@ -27,7 +27,7 @@
 
         <button type="button"
             class="tw-bg-[#81AACC] tw-text-white tw-text-sm tw-font-semibold tw-uppercase tw-py-3 tw-rounded tw-w-full tw-mt-2 hover:tw-bg-[#427fb1] tw-transition-colors"
-            @click="$emit('checkout')">
+            @click="handleCheckout">
             Thanh toán
         </button>
     </aside>
@@ -71,4 +71,8 @@ const formatPrice = (price) => {
 }
 
 defineEmits(['update:shipping', 'checkout'])
+
+const handleCheckout = () => {
+    navigateTo('/checkout')
+}
 </script>

@@ -7,9 +7,17 @@ export const useAddress = () => {
     const config = useRuntimeConfig()
     const apiBaseUrl = config.public.apiBaseUrl
     const notyf = useNuxtApp().$notyf
+    const token = useCookie('token')
 
     const API = axios.create({
         baseURL: apiBaseUrl
+    })
+
+    API.interceptors.request.use((req) => {
+        if (token.value) {
+            req.headers.Authorization = `Bearer ${token.value}`
+        }
+        return req
     })
 
     const PROVINCE_API = axios.create({
@@ -64,6 +72,16 @@ export const useAddress = () => {
         } catch (error) {
             console.error('Error getting addresses:', error)
             throw error
+        }
+    }
+
+    const getMyAddress = async () => {
+        try {
+            const res = await API.get('/api/me/address')
+            return res.data
+        } catch (err) {
+            console.log('Errors get my address:', err);
+            throw err
         }
     }
 
@@ -155,6 +173,7 @@ export const useAddress = () => {
         getDistricts,
         getWards,
         getAddresses,
+        getMyAddress,
         createAddress,
         updateAddress,
         deleteAddress,

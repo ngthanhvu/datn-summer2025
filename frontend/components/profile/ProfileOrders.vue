@@ -2,80 +2,118 @@
     <div class="tw-bg-white tw-p-6 tw-rounded tw-shadow">
         <h2 class="tw-font-bold tw-text-lg tw-mb-6">Đơn hàng của tôi</h2>
 
-        <div class="tw-flex tw-gap-4 tw-mb-6">
-            <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
+        <div class="tw-flex tw-flex-col md:tw-flex-row tw-gap-4 tw-mb-6">
+            <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-full md:tw-w-56">
                 <option value="">Tất cả trạng thái</option>
                 <option v-for="status in orderStatuses" :key="status.value" :value="status.value">
                     {{ status.label }}
                 </option>
             </select>
 
-            <input v-model="selectedDate" type="text" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56"
+            <input v-model="selectedDate" type="text" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-full md:tw-w-56"
                 placeholder="dd/mm/yyyy" />
         </div>
 
-        <div class="tw-overflow-x-auto">
-            <table class="tw-w-full tw-text-left tw-bg-white tw-text-sm">
+        <!-- Desktop Table -->
+        <div class="tw-hidden md:tw-block tw-overflow-x-auto">
+            <table class="tw-w-full tw-text-left tw-bg-white tw-text-xs">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
-                        <th class="tw-px-3 tw-py-2">Mã đơn</th>
-                        <th class="tw-px-3 tw-py-2">Ngày đặt</th>
-                        <th class="tw-px-3 tw-py-2">Sản phẩm</th>
-                        <th class="tw-px-3 tw-py-2">Tổng tiền</th>
-                        <th class="tw-px-3 tw-py-2">Thanh toán</th>
-                        <th class="tw-px-3 tw-py-2">Trạng thái</th>
-                        <th class="tw-px-3 tw-py-2">Thao tác</th>
+                        <th class="tw-px-2 tw-py-2">Mã đơn</th>
+                        <th class="tw-px-2 tw-py-2">Ngày đặt</th>
+                        <th class="tw-px-2 tw-py-2">Sản phẩm</th>
+                        <th class="tw-px-2 tw-py-2">Tổng tiền</th>
+                        <th class="tw-px-2 tw-py-2">Thanh toán</th>
+                        <th class="tw-px-2 tw-py-2">Trạng thái</th>
+                        <th class="tw-px-2 tw-py-2">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="order in orders" :key="order.id" class="tw-border-b hover:tw-bg-gray-50">
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-2 tw-py-2">
                             <span class="tw-font-medium">#{{ order.id }}</span>
                         </td>
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-2 tw-py-2">
                             {{ formatDate(order.created_at) }}
                         </td>
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-2 tw-py-2">
                             <div class="tw-flex tw-items-center tw-gap-2">
                                 <img :src="order.order_details[0]?.variant?.product?.main_image?.image_path"
-                                    class="tw-w-8 tw-h-8 tw-object-cover tw-rounded"
+                                    class="tw-w-6 tw-h-6 tw-object-cover tw-rounded"
                                     :alt="order.order_details[0]?.variant?.product?.name" />
                                 <div>
-                                    <p class="tw-font-medium tw-text-sm">{{
-                                        order.order_details[0]?.variant?.product?.name }}</p>
-                                    <p class="tw-text-xs tw-text-gray-500">
+                                    <p class="tw-font-medium">{{ order.order_details[0]?.variant?.product?.name }}</p>
+                                    <p class="tw-text-gray-500">
                                         {{ order.order_details.length }} sản phẩm
                                     </p>
                                 </div>
                             </div>
                         </td>
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-2 tw-py-2">
                             <span class="tw-font-medium">{{ formatPrice(order.final_price) }}đ</span>
                         </td>
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-2 tw-py-2">
                             <div class="tw-flex tw-flex-col tw-gap-1">
                                 <span :class="badgeClass(order.payment_status)">
                                     {{ getPaymentStatusLabel(order.payment_status) }}
                                 </span>
-                                <span class="tw-text-xs tw-text-gray-500">
-                                    {{ getPaymentMethodLabel(order.payment_method) }}
-                                </span>
                             </div>
                         </td>
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-2 tw-py-2">
                             <span :class="badgeClass(order.status)">
                                 {{ getStatusLabel(order.status) }}
                             </span>
                         </td>
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-2 tw-py-2">
                             <button @click="openOrderDetail(order)"
-                                class="tw-bg-blue-600 tw-text-white tw-rounded tw-px-3 tw-py-1 tw-text-sm hover:tw-bg-blue-700">
+                                class="tw-bg-blue-600 tw-text-white tw-rounded tw-px-2 tw-py-1 hover:tw-bg-blue-700">
                                 Chi tiết
                             </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="md:tw-hidden tw-space-y-4">
+            <div v-for="order in orders" :key="order.id"
+                class="tw-bg-white tw-border tw-rounded-lg tw-p-4 tw-space-y-3">
+                <div class="tw-flex tw-justify-between tw-items-start">
+                    <div>
+                        <span class="tw-font-medium">#{{ order.id }}</span>
+                        <p class="tw-text-gray-500 tw-text-sm">{{ formatDate(order.created_at) }}</p>
+                    </div>
+                    <button @click="openOrderDetail(order)"
+                        class="tw-bg-blue-600 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-text-xs hover:tw-bg-blue-700">
+                        Chi tiết
+                    </button>
+                </div>
+
+                <div class="tw-flex tw-items-center tw-gap-2">
+                    <img :src="order.order_details[0]?.variant?.product?.main_image?.image_path"
+                        class="tw-w-12 tw-h-12 tw-object-cover tw-rounded"
+                        :alt="order.order_details[0]?.variant?.product?.name" />
+                    <div>
+                        <p class="tw-font-medium tw-text-sm">{{ order.order_details[0]?.variant?.product?.name }}</p>
+                        <p class="tw-text-gray-500 tw-text-xs">
+                            {{ order.order_details.length }} sản phẩm
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tw-flex tw-justify-between tw-items-center">
+                    <span class="tw-font-medium">{{ formatPrice(order.final_price) }}đ</span>
+                    <div class="tw-flex tw-flex-col tw-items-end tw-gap-1">
+                        <span :class="badgeClass(order.payment_status)">
+                            {{ getPaymentStatusLabel(order.payment_status) }}
+                        </span>
+                        <span :class="badgeClass(order.status)">
+                            {{ getStatusLabel(order.status) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div v-if="orders.length === 0" class="tw-text-center tw-py-12">

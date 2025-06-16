@@ -15,28 +15,35 @@ class OrdersController extends Controller
 
     public function index()
     {
-        $orders = Orders::with([
+        $query = Orders::with([
             'user:id,username,email,phone,avatar',
             'address:id,full_name,phone,province,district,ward,street',
             'orderDetails:id,order_id,variant_id,quantity,price,total_price',
             'orderDetails.variant:id,color,size,price,sku,product_id',
             'orderDetails.variant.product:id,name,price,description,slug',
             'orderDetails.variant.product.mainImage:id,image_path,is_main,product_id'
-        ])->select([
-            'id',
-            'user_id',
-            'address_id',
-            'status',
-            'payment_method',
-            'payment_status',
-            'total_price',
-            'discount_price',
-            'final_price',
-            'coupon_id',
-            'note',
-            'created_at',
-            'updated_at'
-        ])->paginate(10);
+        ])
+            ->select([
+                'id',
+                'user_id',
+                'address_id',
+                'status',
+                'payment_method',
+                'payment_status',
+                'total_price',
+                'discount_price',
+                'final_price',
+                'coupon_id',
+                'note',
+                'created_at',
+                'updated_at'
+            ]);
+
+        if (!Auth::user()->is_admin) {
+            $query->where('user_id', Auth::id());
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
 
         $orders->getCollection()->transform(function ($order) {
             if ($order->orderDetails) {

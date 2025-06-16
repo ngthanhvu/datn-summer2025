@@ -54,6 +54,7 @@ import CartHeader from '~/components/cart/CartHeader.vue'
 import CartItem from '~/components/cart/CartItem.vue'
 import CartSummary from '~/components/cart/CartSummary.vue'
 import { useCart } from '~/composables/useCarts'
+const notyf = useNuxtApp().$notyf
 
 const { cart, fetchCart, removeFromCart, updateQuantity, clearCart } = useCart()
 
