@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Variants;
-use App\Models\Inventory; 
+use App\Models\Inventory;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
@@ -18,25 +18,23 @@ class CartController extends Controller
                 'variant.product.brand',
                 'variant.inventory'
             ]);
-        
+
             if (Auth::check()) {
                 $query->where('user_id', Auth::id());
             } else {
                 $sessionId = $request->header('X-Session-Id');
                 $query->where('session_id', $sessionId);
             }
-        
+
             $carts = $query->get();
-        
+
             foreach ($carts as $cart) {
                 if ($cart->variant && $cart->variant->product && $cart->variant->product->mainImage) {
-                    $originalPath = $cart->variant->product->mainImage->image_path;
-                    if (!str_starts_with($originalPath, 'storage/')) {
-                        $cart->variant->product->mainImage->image_path = 'storage/' . $originalPath;
-                    }
+                    $path = $cart->variant->product->mainImage->image_path;
+                    $cart->variant->product->mainImage->image_path = url('storage/' . $path);
                 }
             }
-        
+
             return response()->json($carts);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Đã xảy ra lỗi khi lấy dữ liệu giỏ hàng'], 500);
@@ -51,7 +49,7 @@ class CartController extends Controller
         ]);
 
         $variant = Variants::with('inventory')->findOrFail($request->variant_id);
-        
+
         if (!$variant->inventory) {
             return response()->json(['error' => 'Không thể xác định số lượng tồn kho'], 422);
         }
@@ -73,7 +71,7 @@ class CartController extends Controller
 
         if (Auth::check()) {
             $data['user_id'] = Auth::id();
-            $data['session_id'] = null; 
+            $data['session_id'] = null;
         } else {
             $data['session_id'] = $request->header('X-Session-Id');
             $data['user_id'] = null;
@@ -110,21 +108,21 @@ class CartController extends Controller
         if (Auth::check() && $item->user_id !== Auth::id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
-    
+
         if (!$variant->inventory) {
             return response()->json(['error' => 'Không thể xác định số lượng tồn kho'], 422);
         }
-    
+
         if ($request->quantity > $variant->inventory->quantity) {
             return response()->json([
                 'error' => 'Số lượng vượt quá tồn kho',
                 'available_quantity' => $variant->inventory->quantity
             ], 422);
         }
-    
+
         $item->quantity = $request->quantity;
         $item->save();
-    
+
         return response()->json($item);
     }
 

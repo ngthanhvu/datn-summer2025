@@ -47,14 +47,15 @@
         <NuxtLink to="/wishlist" class="tw-text-gray-700 tw-relative">
           <i class="bi bi-heart tw-text-xl"></i>
           <span
-            class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">2</span>
+            class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">0</span>
         </NuxtLink>
         <div class="cart-dropdown">
           <div class="cart-toggle tw-bg-transparent tw-border-0 tw-text-gray-700 tw-relative tw-cursor-pointer"
             @click="toggleCart">
             <i class="bi bi-cart tw-text-xl"></i>
             <span
-              class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">2</span>
+              class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">{{
+                cart?.length || 0 }}</span>
           </div>
           <CartPanel :is-open="isCartOpen" @close="toggleCart" />
         </div>
@@ -84,18 +85,29 @@ import CartPanel from './CartPanel.vue'
 import AuthMenu from './AuthMenu.vue'
 import UserMenu from './UserMenu.vue'
 import MobileMenu from './MobileMenu.vue'
+import { useCart } from '~/composables/useCarts'
 
+const { cart, fetchCart } = useCart()
 const isCartOpen = ref(false)
 const isMobileMenuOpen = ref(false)
 const token = useCookie('token')
 const userInfo = useCookie('user')
 
-const toggleCart = () => {
+onMounted(async () => {
+  await fetchCart()
+})
+
+watch(() => cart.value, (newCart) => {
+  console.log('Cart updated in header:', newCart?.length)
+}, { deep: true })
+
+const toggleCart = async () => {
   isCartOpen.value = !isCartOpen.value
   if (isCartOpen.value) {
     document.body.style.overflow = 'hidden'
   } else {
     document.body.style.overflow = ''
+    await fetchCart()
   }
 }
 

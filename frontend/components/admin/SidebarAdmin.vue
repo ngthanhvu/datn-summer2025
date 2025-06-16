@@ -34,7 +34,7 @@
         </NuxtLink>
         <NuxtLink to="/admin/promotions" class="nav-item">
           <i class="fa-solid fa-ticket"></i>
-          <span>Khuyến mãi giảm giá</span>
+          <span>Khuyến mãi</span>
         </NuxtLink>
 
         <!-- Inventory Management -->

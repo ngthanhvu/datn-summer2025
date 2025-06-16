@@ -249,13 +249,13 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import useCarts from '~/composables/useCarts'
 import { useCookie } from '#app'
+const notyf = useNuxtApp().$notyf
 
 const route = useRoute()
 const { getProducts, getProductBySlug } = useProducts()
 const { getInventories } = useInventories()
 const { addToCart: addToCartComposable, getUserId, transferCartFromSessionToUser, fetchCart } = useCarts()
 
-// Product data
 const { data, pending, error, refresh } = await useAsyncData(
   'product',
   async () => {
@@ -410,7 +410,7 @@ const addToCart = async () => {
       return
     }
     await addToCartComposable(selectedVariant.id, quantity.value)
-    alert('Đã thêm vào giỏ hàng')
+    notyf.success('Đã thêm vào giỏ hàng')
   } catch (error) {
     console.error('Error adding to cart:', error)
     alert('Có lỗi xảy ra khi thêm vào giỏ hàng')
