@@ -64,8 +64,15 @@ class BlogsController extends Controller
 
     public function store(Request $request)
     {
-        \Log::info('Store method called', ['request' => $request->all()]);
         try {
+
+            if (!Auth::check()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Please login to create a blog post.'
+                ], 401);
+            }
+
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
                 'description' => 'required|string|max:500',
@@ -84,8 +91,8 @@ class BlogsController extends Controller
             }
 
             $blogData = $request->except('image');
-            // Gán author_id mặc định nếu không có
-            $blogData['author_id'] = 1;
+
+            $blogData['author_id'] = Auth::id();
 
             if ($blogData['status'] === 'published' && empty($blogData['published_at'])) {
                 $blogData['published_at'] = now();
@@ -107,7 +114,6 @@ class BlogsController extends Controller
                 'message' => 'Blog created successfully'
             ], 201);
         } catch (\Exception $e) {
-            \Log::error('Blog creation error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create blog: ' . $e->getMessage()
@@ -119,7 +125,7 @@ class BlogsController extends Controller
     {
         try {
             $blog = Blogs::findOrFail($id);
-            
+
             $validator = Validator::make($request->all(), [
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'sometimes|required|string|max:500',
@@ -163,7 +169,6 @@ class BlogsController extends Controller
                 'data' => $blog,
                 'message' => 'Blog updated successfully'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -176,19 +181,18 @@ class BlogsController extends Controller
     {
         try {
             $blog = Blogs::findOrFail($id);
-            
+
             if ($blog->image) {
                 $imagePath = str_replace('/storage/', 'public/', $blog->image);
                 Storage::delete($imagePath);
             }
-            
+
             $blog->delete();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Blog deleted successfully'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

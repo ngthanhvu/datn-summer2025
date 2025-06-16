@@ -21,16 +21,16 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/admin/user', [AuthController::class, 'listUser']);
-    Route::post('/update-profile', [AuthController::class, 'updateProfile']); // Thêm route này
+    Route::post('/update-profile', [AuthController::class, 'updateProfile']);
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
+
+    Route::post('/blogs', [BlogsController::class, 'store']);
+    Route::put('/blogs/{id}', [BlogsController::class, 'update']);
+    Route::delete('/blogs/{id}', [BlogsController::class, 'destroy']);
 });
 
-// Các route blogs đều nằm ngoài middleware
-Route::post('/blogs', [BlogsController::class, 'store']);
-Route::put('/blogs/{id}', [BlogsController::class, 'update']);
-Route::delete('/blogs/{id}', [BlogsController::class, 'destroy']);
 Route::get('/blogs', [BlogsController::class, 'index']);
 Route::get('/blogs/{id}', [BlogsController::class, 'show']);
 Route::get('/blogs/slug/{slug}', [BlogsController::class, 'showBySlug']);
@@ -69,4 +69,3 @@ Route::get('/addresses', [AddressController::class, 'index']);
 Route::post('/addresses', [AddressController::class, 'store']);
 Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 Route::put('/addresses/{id}', [AddressController::class, 'update']);
-

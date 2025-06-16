@@ -1,12 +1,21 @@
 import axios from "axios";
 import { ref } from "vue";
+import { useCookie } from '#app';
 
 export const useBlog = () => {
     const config = useRuntimeConfig();
     const apiBaseUrl = config.public.apiBaseUrl || 'http://127.0.0.1:8000/api';
+    const token = useCookie('token');
 
     const API = axios.create({
         baseURL: apiBaseUrl
+    });
+
+    API.interceptors.request.use((req) => {
+        if (token.value) {
+            req.headers.Authorization = `Bearer ${token.value}`;
+        }
+        return req;
     });
 
     const blogs = ref([]);
@@ -21,7 +30,7 @@ export const useBlog = () => {
         try {
             const params = { page, ...filters };
             const response = await API.get('/api/blogs', { params });
-            
+
             if (response.data.success) {
                 blogs.value = response.data.data.data;
                 pagination.value = {
@@ -65,9 +74,11 @@ export const useBlog = () => {
         loading.value = true;
         error.value = null;
         try {
+            console.log('Creating blog - Token:', token.value);
             const response = await API.post('/api/blogs', blogData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token.value}`
                 }
             });
             if (response.data.success) {
@@ -76,6 +87,7 @@ export const useBlog = () => {
                 throw new Error(response.data.message || 'Failed to create blog');
             }
         } catch (err) {
+            console.log('Error creating blog:', err.response?.data);
             const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
             const validationErrors = err.response?.data?.errors || null;
             error.value = errorMessage;

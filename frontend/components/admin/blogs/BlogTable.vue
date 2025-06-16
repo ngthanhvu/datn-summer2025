@@ -2,11 +2,13 @@
     <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
         <!-- Loading state -->
         <div v-if="loading" class="tw-flex tw-justify-center tw-py-8">
-            <div class="tw-animate-spin tw-rounded-full tw-h-12 tw-w-12 tw-border-t-2 tw-border-b-2 tw-border-primary"></div>
+            <div class="tw-animate-spin tw-rounded-full tw-h-12 tw-w-12 tw-border-t-2 tw-border-b-2 tw-border-primary">
+            </div>
         </div>
 
         <!-- Error state -->
-        <div v-if="error" class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-4">
+        <div v-if="error"
+            class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-4">
             {{ error }}
         </div>
 
@@ -40,13 +42,10 @@
                 <tbody>
                     <tr v-for="blog in blogs" :key="blog.id" class="tw-border-b hover:tw-bg-gray-50">
                         <td class="tw-px-4 tw-py-3">
-                            <img
-                              v-if="blog.image"
-                              :src="getImageUrl(blog.image)"
-                              class="tw-w-14 tw-h-14 tw-object-cover tw-rounded"
-                              :alt="blog.title"
-                            />
-                            <div v-else class="tw-w-14 tw-h-14 tw-bg-gray-200 tw-rounded tw-flex tw-items-center tw-justify-center">
+                            <img v-if="blog.image" :src="getImageUrl(blog.image)"
+                                class="tw-w-14 tw-h-14 tw-object-cover tw-rounded" :alt="blog.title" />
+                            <div v-else
+                                class="tw-w-14 tw-h-14 tw-bg-gray-200 tw-rounded tw-flex tw-items-center tw-justify-center">
                                 <span class="tw-text-gray-400">No Image</span>
                             </div>
                         </td>
@@ -57,7 +56,7 @@
                             {{ blog.description }}
                         </td>
                         <td class="tw-px-4 tw-py-3">
-                            {{ blog.author?.name || 'Unknown' }}
+                            {{ blog.author?.username || 'Unknown' }}
                         </td>
                         <td class="tw-px-4 tw-py-3">
                             <span :class="getStatusBadgeClass(blog.status)">
@@ -88,22 +87,16 @@
                 Hiển thị {{ blogs.length }} trong tổng số {{ pagination.total }} bài viết
             </div>
             <div class="tw-flex tw-gap-2">
-                <button 
-                    @click="changePage(pagination.current_page - 1)"
-                    :disabled="pagination.current_page === 1"
+                <button @click="changePage(pagination.current_page - 1)" :disabled="pagination.current_page === 1"
                     class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50 disabled:tw-opacity-50">
                     Trước
                 </button>
-                <button 
-                    v-for="page in pagination.last_page" 
-                    :key="page"
-                    @click="changePage(page)"
-                    :class="{'tw-bg-blue-500 tw-text-white': pagination.current_page === page}"
+                <button v-for="page in pagination.last_page" :key="page" @click="changePage(page)"
+                    :class="{ 'tw-bg-blue-500 tw-text-white': pagination.current_page === page }"
                     class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50">
                     {{ page }}
                 </button>
-                <button 
-                    @click="changePage(pagination.current_page + 1)"
+                <button @click="changePage(pagination.current_page + 1)"
                     :disabled="pagination.current_page === pagination.last_page"
                     class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50 disabled:tw-opacity-50">
                     Sau
@@ -121,16 +114,13 @@ import { useRouter } from 'vue-router'
 const { blogs, loading, error, pagination, fetchBlogs, deleteBlog } = useBlog()
 const router = useRouter()
 
-// Filter states
 const selectedStatus = ref('')
 const searchQuery = ref('')
 
-// Fetch blogs on mount
 onMounted(async () => {
     await fetchBlogs()
 })
 
-// Watch for filter changes
 watch([selectedStatus, searchQuery], async () => {
     await fetchBlogs(1, {
         status: selectedStatus.value,
@@ -138,7 +128,6 @@ watch([selectedStatus, searchQuery], async () => {
     })
 })
 
-// Handle page change
 const changePage = async (page) => {
     if (page < 1 || page > pagination.value.last_page) return
     await fetchBlogs(page, {
@@ -147,12 +136,10 @@ const changePage = async (page) => {
     })
 }
 
-// Handle edit
 const handleEdit = (blog) => {
     router.push(`/admin/blogs/${blog.id}/edit`)
 }
 
-// Handle delete
 const handleDelete = async (blog) => {
     if (confirm(`Bạn có chắc chắn muốn xóa bài viết "${blog.title}"?`)) {
         await deleteBlog(blog.id)
@@ -160,7 +147,6 @@ const handleDelete = async (blog) => {
     }
 }
 
-// Helper functions
 function getStatusLabel(status) {
     const labels = {
         draft: 'Bản nháp',
@@ -191,7 +177,6 @@ function formatDate(dateString) {
 
 function getImageUrl(path) {
     if (!path) return ''
-    // Prepend the backend domain if the path starts with /storage/
     return path.startsWith('/storage/') ? `http://localhost:8000${path}` : path
 }
 </script>
