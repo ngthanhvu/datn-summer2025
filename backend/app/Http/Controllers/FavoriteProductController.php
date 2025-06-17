@@ -68,4 +68,20 @@ class FavoriteProductController extends Controller
             'is_favorite' => $exists,
         ]);
     }
+
+    public function count()
+    {
+        try {
+            if (!Auth::check()) {
+                return response()->json(['count' => 0]);
+            }
+
+            $user = Auth::user();
+            $count = FavoriteProduct::where('user_id', $user->id)->count();
+            
+            return response()->json(['count' => $count]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to get favorite count'], 500);
+        }
+    }
 }
