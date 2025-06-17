@@ -25,10 +25,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useProducts } from '@/composables/useProducts'
 
 const props = defineProps({
-  productId: {
-    type: [Number, String],
+  productSlug: {
+    type: String,
     required: true
   }
 })
@@ -38,7 +39,7 @@ const isFavoriteState = ref(false)
 
 onMounted(async () => {
   try {
-    isFavoriteState.value = await isFavorite(props.productId)
+    isFavoriteState.value = await isFavorite(props.productSlug)
   } catch (error) {
     console.error('Error checking favorite status:', error)
   }
@@ -46,10 +47,17 @@ onMounted(async () => {
 
 const toggleFavoriteStatus = async () => {
   try {
-    await toggleFavorite(props.productId)
+    await toggleFavorite(props.productSlug)
     isFavoriteState.value = !isFavoriteState.value
+
+    if (isFavoriteState.value) {
+      alert(' Đã thêm vào danh sách yêu thích!')
+    } else {
+      alert(' Đã xóa khỏi danh sách yêu thích!')
+    }
   } catch (error) {
     console.error('Error toggling favorite:', error)
+    alert('Đã xảy ra lỗi, vui lòng thử lại!')
   }
 }
 </script>
@@ -58,8 +66,7 @@ const toggleFavoriteStatus = async () => {
 .favorite-button {
   @apply tw-p-2 tw-rounded-full hover:tw-bg-gray-100 tw-transition-colors tw-duration-200;
 }
-
 .favorite-button.is-favorite {
   @apply tw-text-red-500;
 }
-</style> 
+</style>

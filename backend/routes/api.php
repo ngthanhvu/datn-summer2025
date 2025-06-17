@@ -13,6 +13,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CouponsController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\FavoriteProductController;
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -46,6 +47,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/addresses', [AddressController::class, 'store']);
     Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
     Route::put('/addresses/{id}', [AddressController::class, 'update']);
+
+    Route::get('/favorites', [FavoriteProductController::class, 'index']);
+    Route::post('/favorites', [FavoriteProductController::class, 'store']);
+    Route::get('/favorites/check/{slug}', [FavoriteProductController::class, 'check']);
+    Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
 });
 
 Route::get('/brands', [BrandsController::class, 'index']);
