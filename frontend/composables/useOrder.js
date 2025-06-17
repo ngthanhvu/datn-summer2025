@@ -63,6 +63,15 @@ export const useOrder = () => {
         } catch (err) {
             error.value = err.response?.data?.message || err.message
             console.error('Create order error:', err.response?.data || err.message)
+            if (router) {
+                 router.push({
+                    path: '/status',
+                    query: {
+                        status: 'failed',
+                        message: err.response?.data?.message || err.message,
+                    }
+                });
+            }
             throw err
         } finally {
             loading.value = false
@@ -138,6 +147,22 @@ export const useOrder = () => {
         }).format(price)
     }
 
+    const getOrderByTrackingCode = async (trackingCode) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const res = await API.get(`/api/orders/track/${trackingCode}`);
+            currentOrder.value = res.data;
+            return res.data;
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message;
+            console.error('Get order by tracking code error:', err.response?.data || err.message);
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    };
+
     return {
         orders,
         currentOrder,
@@ -151,6 +176,7 @@ export const useOrder = () => {
         getOrderStatus,
         getPaymentStatus,
         getPaymentMethod,
-        formatPrice
+        formatPrice,
+        getOrderByTrackingCode
     }
 } 

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('final_price');
             $table->foreignId('coupon_id')->nullable()->constrained()->nullOnDelete();
             $table->string('note')->nullable();
+            $table->string('tracking_code')->nullable()->unique();
             $table->timestamps();
         });
     }

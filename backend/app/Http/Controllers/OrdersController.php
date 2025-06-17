@@ -93,7 +93,8 @@ class OrdersController extends Controller
                 'discount_price' => $validated['discount_price'],
                 'final_price' => $validated['final_price'],
                 'status' => 'pending',
-                'payment_status' => $validated['payment_method'] === 'cod' ? 'pending' : 'paid'
+                'payment_status' => $validated['payment_method'] === 'cod' ? 'pending' : 'paid',
+                'tracking_code' => $this->generateUniqueTrackingCode(),
             ]);
 
             foreach ($validated['items'] as $item) {
@@ -169,6 +170,32 @@ class OrdersController extends Controller
         return response()->json($order);
     }
 
+    public function getOrderByTrackingCode($tracking_code)
+    {
+        $order = Orders::with(['user', 'address', 'orderDetails.variant.product.mainImage'])
+            ->where('tracking_code', $tracking_code)
+            ->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        if ($order->orderDetails) {
+            foreach ($order->orderDetails as $orderDetail) {
+                if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
+                    $orderDetail->variant->product->mainImage->image_path = url('storage/' . $orderDetail->variant->product->mainImage->image_path);
+                }
+            }
+        }
+
+        $order->total_price = (int) $order->total_price;
+        $order->shipping_fee = (int) $order->shipping_fee;
+        $order->discount_price = (int) $order->discount_price;
+        $order->final_price = (int) $order->final_price;
+
+        return response()->json($order);
+    }
+
     public function cancel(Request $request, $id)
     {
         try {
@@ -206,5 +233,16 @@ class OrdersController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function generateUniqueTrackingCode()
+    {
+        $trackingCode = null;
+        do {
+            $randomNumber = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $trackingCode = 'DG' . $randomNumber;
+        } while (Orders::where('tracking_code', $trackingCode)->exists());
+
+        return $trackingCode;
     }
 }
