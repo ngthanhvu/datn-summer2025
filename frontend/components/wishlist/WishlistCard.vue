@@ -126,4 +126,5 @@ const removeFromWishlist = () => {
 </script>
 
 <style scoped>
+/* Add any additional styling here */
 </style>
