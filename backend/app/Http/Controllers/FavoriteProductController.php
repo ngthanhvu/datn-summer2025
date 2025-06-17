@@ -10,9 +10,23 @@ class FavoriteProductController extends Controller
 {
     public function index()
     {
-        $favorites = FavoriteProduct::with('product')
+        $favorites = FavoriteProduct::with(['product' => function($query) {
+            $query->with(['images' => function($query) {
+                $query->select('id', 'image_path', 'is_main', 'product_id');
+            }]);
+        }])
             ->where('user_id', Auth::id())
             ->get();
+
+        $favorites->transform(function ($favorite) {
+            if ($favorite->product && $favorite->product->images) {
+                $favorite->product->images->transform(function ($image) {
+                    $image->image_path = url('storage/' . $image->image_path);
+                    return $image;
+                });
+            }
+            return $favorite;
+        });
 
         return response()->json($favorites);
     }

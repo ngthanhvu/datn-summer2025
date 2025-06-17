@@ -26,6 +26,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useProducts } from '@/composables/useProducts'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   productSlug: {
@@ -34,30 +35,42 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['favorite-changed'])
+const router = useRouter()
+
 const { toggleFavorite, isFavorite } = useProducts()
 const isFavoriteState = ref(false)
 
-onMounted(async () => {
+const checkFavorite = async () => {
   try {
     isFavoriteState.value = await isFavorite(props.productSlug)
   } catch (error) {
+    isFavoriteState.value = false
     console.error('Error checking favorite status:', error)
   }
-})
+}
+
+onMounted(checkFavorite)
 
 const toggleFavoriteStatus = async () => {
   try {
-    await toggleFavorite(props.productSlug)
-    isFavoriteState.value = !isFavoriteState.value
+    const newState = await toggleFavorite(props.productSlug)
+    isFavoriteState.value = newState
+    emit('favorite-changed', newState)
 
-    if (isFavoriteState.value) {
-      alert(' Đã thêm vào danh sách yêu thích!')
+    if (newState) {
+      alert('Đã thêm vào danh sách yêu thích!')
     } else {
-      alert(' Đã xóa khỏi danh sách yêu thích!')
+      alert('Đã xóa khỏi danh sách yêu thích!')
     }
   } catch (error) {
+    if (error.message && error.message.includes('đăng nhập')) {
+      alert('Bạn chưa đăng nhập, vui lòng đăng nhập rồi thử lại!')
+      router.push('/login')
+    } else {
+      alert('Có lỗi xảy ra, vui lòng thử lại!')
+    }
     console.error('Error toggling favorite:', error)
-    alert('Đã xảy ra lỗi, vui lòng thử lại!')
   }
 }
 </script>
