@@ -7,12 +7,16 @@ export const useAdminReviews = () => {
     const API = axios.create({ baseURL: apiBaseUrl })
     const { getToken } = useAuth()
 
-    const getAllReviews = async () => {
+    const getAllReviews = async (page = 1, perPage = 5) => {
         try {
             const token = await getToken()
             const response = await API.get('/api/product-reviews', {
                 headers: {
                     'Authorization': `Bearer ${token}`
+                },
+                params: {
+                    page,
+                    per_page: perPage
                 }
             })
             return response.data
@@ -71,12 +75,16 @@ export const useAdminReviews = () => {
         }
     }
 
-    const getReviewsByCategory = async (categoryId) => {
+    const getReviewsByCategory = async (categoryId, page = 1, perPage = 5) => {
         try {
             const token = await getToken()
             const response = await API.get(`/api/product-reviews/category/${categoryId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
+                },
+                params: {
+                    page,
+                    per_page: perPage
                 }
             })
             return response.data
@@ -86,12 +94,16 @@ export const useAdminReviews = () => {
         }
     }
 
-    const getReviewsByBrand = async (brandId) => {
+    const getReviewsByBrand = async (brandId, page = 1, perPage = 5) => {
         try {
             const token = await getToken()
             const response = await API.get(`/api/product-reviews/brand/${brandId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
+                },
+                params: {
+                    page,
+                    per_page: perPage
                 }
             })
             return response.data

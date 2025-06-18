@@ -10,9 +10,13 @@ use App\Models\Products;
 
 class ProductReviewController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $reviews = ProductReview::with(['user', 'product', 'replies', 'images'])->get();
+        $perPage = $request->get('per_page', 5);
+        $reviews = ProductReview::with(['user', 'product', 'replies', 'images'])
+            ->whereNull('parent_id')
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
         return response()->json($reviews);
     }
 
@@ -204,28 +208,30 @@ class ProductReviewController extends Controller
         return response()->json($reply->fresh());
     }
 
-    public function getByCategory($categoryId)
+    public function getByCategory($categoryId, Request $request)
     {
+        $perPage = $request->get('per_page', 5);
         $reviews = ProductReview::with(['user', 'product', 'replies', 'images'])
             ->whereHas('product', function ($query) use ($categoryId) {
                 $query->where('categories_id', $categoryId);
             })
             ->whereNull('parent_id')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($perPage);
 
         return response()->json($reviews);
     }
 
-    public function getByBrand($brandId)
+    public function getByBrand($brandId, Request $request)
     {
+        $perPage = $request->get('per_page', 5);
         $reviews = ProductReview::with(['user', 'product', 'replies', 'images'])
             ->whereHas('product', function ($query) use ($brandId) {
                 $query->where('brand_id', $brandId);
             })
             ->whereNull('parent_id')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($perPage);
 
         return response()->json($reviews);
     }

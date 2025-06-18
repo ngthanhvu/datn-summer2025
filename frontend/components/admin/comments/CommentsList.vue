@@ -27,7 +27,20 @@
         </div>
         <!-- Table -->
         <div class="tw-p-0">
-            <table class="tw-w-full tw-text-sm tw-border-collapse">
+            <!-- Loading State -->
+            <div v-if="loading" class="tw-p-8 tw-text-center">
+                <div class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-primary"></div>
+                <p class="tw-mt-2 tw-text-gray-600">Đang tải dữ liệu...</p>
+            </div>
+            
+            <!-- Empty State -->
+            <div v-else-if="!loading && filteredComments.length === 0" class="tw-p-8 tw-text-center">
+                <i class="fas fa-comments tw-text-4xl tw-text-gray-300 tw-mb-4"></i>
+                <p class="tw-text-gray-600">Không có đánh giá nào</p>
+            </div>
+            
+            <!-- Table Content -->
+            <table v-else class="tw-w-full tw-text-sm tw-border-collapse">
                 <thead>
                     <tr class="tw-bg-gray-50">
                         <th class="tw-px-4 tw-py-2 tw-text-left tw-w-12"><input type="checkbox" /></th>
@@ -84,7 +97,13 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="tw-px-4 tw-py-2 tw-text-center">{{ comment.date }}</td>
+                        <td class="tw-px-4 tw-py-2 tw-text-center">
+                            <div class="tw-flex tw-flex-col tw-items-center">
+                                <span class="tw-font-medium">{{ comment.date }}</span>
+                                <span v-if="comment.time" class="tw-text-xs tw-text-gray-500">{{ comment.time }}</span>
+                                <span v-if="isRecentReview(comment.date)" class="tw-bg-green-100 tw-text-green-700 tw-text-xs tw-px-2 tw-py-1 tw-rounded-full tw-mt-1">Mới</span>
+                            </div>
+                        </td>
                         <td class="tw-px-4 tw-py-2 tw-text-center">
                             <span :class="[
                                 'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
@@ -120,10 +139,18 @@ const props = defineProps({
     comments: {
         type: Array,
         required: true
+    },
+    pagination: {
+        type: Object,
+        default: null
+    },
+    loading: {
+        type: Boolean,
+        default: false
     }
 })
 
-const emit = defineEmits(['update-status', 'delete', 'add-reply', 'update-reply'])
+const emit = defineEmits(['update-status', 'delete', 'add-reply', 'update-reply', 'page-change'])
 
 const searchQuery = ref('')
 const filterStatus = ref('')
@@ -145,15 +172,36 @@ const getImageUrl = (url) => {
 }
 
 const filteredComments = computed(() => {
-    return props.comments.filter(comment => {
-        const matchesSearch = comment.content.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    let filtered = props.comments
+    
+    if (searchQuery.value) {
+        filtered = filtered.filter(comment => 
+            comment.content.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             comment.userName.toLowerCase().includes(searchQuery.value.toLowerCase())
-        const matchesStatus = !filterStatus.value || comment.status === filterStatus.value
-        const matchesRating = !filterRating.value || comment.rating === parseInt(filterRating.value)
-        const matchesHasImage = !filterHasImage.value || (comment.productInfo && comment.productInfo.image)
-        const matchesUnread = !filterUnread.value || (comment.status === 'pending' && !comment.isRead)
-        return matchesSearch && matchesStatus && matchesRating && matchesHasImage && matchesUnread
-    })
+        )
+    }
+    
+    if (filterStatus.value) {
+        filtered = filtered.filter(comment => comment.status === filterStatus.value)
+    }
+    
+    if (filterRating.value) {
+        filtered = filtered.filter(comment => comment.rating === parseInt(filterRating.value))
+    }
+    
+    if (filterHasImage.value) {
+        if (filterHasImage.value === 'yes') {
+            filtered = filtered.filter(comment => comment.images && comment.images.length > 0)
+        } else if (filterHasImage.value === 'no') {
+            filtered = filtered.filter(comment => !comment.images || comment.images.length === 0)
+        }
+    }
+    
+    if (filterUnread.value) {
+        filtered = filtered.filter(comment => comment.status === 'pending' && !comment.isRead)
+    }
+    
+    return filtered
 })
 
 const getStatusText = (status) => {
@@ -200,6 +248,14 @@ const saveEditReply = (comment) => {
     if (!comment.editReplyText.trim()) return
     emit('update-reply', { id: comment.id, content: comment.editReplyText })
     comment.isEditingReply = false
+}
+
+const isRecentReview = (date) => {
+    const reviewDate = new Date(date)
+    const now = new Date()
+    const diffTime = Math.abs(now - reviewDate)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays <= 7
 }
 </script>
 

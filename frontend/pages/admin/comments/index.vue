@@ -3,22 +3,22 @@
         <div class="page-header tw-flex tw-justify-between tw-items-center tw-mb-6">
             <div>
                 <h1 class="tw-text-2xl tw-font-semibold tw-text-gray-900">Đánh giá</h1>
-                <p class="tw-text-gray-600">Quản lý đánh giá sản phẩm</p>
+                <p class="tw-text-gray-600">Quản lý đánh giá sản phẩm - Đánh giá mới nhất hiển thị đầu tiên</p>
             </div>
             <div class="tw-flex tw-gap-3">
-                <select v-model="filterCategory" class="tw-border tw-rounded tw-px-4 tw-py-2">
+                <select v-model="filterCategory" @change="handleFilterChange" class="tw-border tw-rounded tw-px-4 tw-py-2">
                     <option value="">Tất cả danh mục</option>
                     <option v-for="category in categories" :key="category.id" :value="category.id">
                         {{ category.name }}
                     </option>
                 </select>
-                <select v-model="filterBrand" class="tw-border tw-rounded tw-px-4 tw-py-2">
+                <select v-model="filterBrand" @change="handleFilterChange" class="tw-border tw-rounded tw-px-4 tw-py-2">
                     <option value="">Tất cả thương hiệu</option>
                     <option v-for="brand in brands" :key="brand.id" :value="brand.id">
                         {{ brand.name }}
                     </option>
                 </select>
-                <button @click="fetchReviews" class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2">
+                <button @click="handleFilterChange" class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2">
                     <i class="fas fa-sync-alt tw-mr-2"></i>Làm mới
                 </button>
             </div>
@@ -33,15 +33,90 @@
                     Sản phẩm đánh giá
                 </button>
             </div>
+            
+            <!-- Pagination Summary -->
+            <div v-if="activeTab === 'reviews' && paginationData" class="tw-p-4 tw-bg-gray-50 tw-border-t">
+                <div class="tw-flex tw-justify-between tw-items-center tw-text-sm">
+                    <div class="tw-text-gray-600">
+                        <i class="fas fa-info-circle tw-mr-1"></i>
+                        Trang {{ currentPage }} / {{ totalPages }} - Tổng {{ totalItems }} đánh giá
+                    </div>
+                    <div class="tw-text-gray-500">
+                        <i class="fas fa-clock tw-mr-1"></i>
+                        Đánh giá mới nhất hiển thị đầu tiên
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div v-if="error" class="tw-mt-6 tw-bg-red-50 tw-border tw-border-red-200 tw-rounded-lg tw-p-4">
+            <div class="tw-flex tw-items-center">
+                <i class="fas fa-exclamation-triangle tw-text-red-400 tw-mr-2"></i>
+                <span class="tw-text-red-700">{{ error }}</span>
+                <button @click="fetchReviews(currentPage)" class="tw-ml-auto tw-text-red-600 hover:tw-text-red-800">
+                    <i class="fas fa-refresh tw-mr-1"></i>Thử lại
+                </button>
+            </div>
         </div>
 
         <ProductReviewMenu v-if="activeTab === 'products'" />
         <CommentsList v-else :comments="filteredReviews"
+            :pagination="paginationData"
+            :loading="loading"
             @update-status="handleUpdateStatus"
             @delete="handleDelete"
             @add-reply="handleAddReply"
             @update-reply="handleUpdateReply"
+            @page-change="handlePageChange"
         />
+        
+        <!-- Empty State -->
+        <div v-if="activeTab === 'reviews' && !loading && (!paginationData || totalItems === 0)" class="tw-mt-6 tw-bg-white tw-rounded-lg tw-shadow tw-p-8 tw-text-center">
+            <i class="fas fa-comments tw-text-4xl tw-text-gray-300 tw-mb-4"></i>
+            <h3 class="tw-text-lg tw-font-semibold tw-text-gray-700 tw-mb-2">Không có đánh giá nào</h3>
+            <p class="tw-text-gray-600">Chưa có đánh giá sản phẩm nào trong hệ thống.</p>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div v-if="activeTab === 'reviews' && paginationData && totalPages > 1" class="tw-mt-6 tw-flex tw-justify-between tw-items-center tw-bg-white tw-rounded-lg tw-shadow tw-p-4">
+            <div class="tw-text-sm tw-text-gray-600">
+                <span v-if="loading">Đang tải...</span>
+                <span v-else>Hiển thị {{ paginationData.from }} - {{ paginationData.to }} trong tổng số {{ totalItems }} đánh giá ({{ perPage }} đánh giá/trang)</span>
+            </div>
+            <div class="tw-flex tw-gap-2">
+                <button 
+                    @click="handlePageChange(currentPage - 1)" 
+                    :disabled="currentPage === 1 || loading"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed hover:tw-bg-gray-50"
+                >
+                    <i class="fas fa-chevron-left tw-mr-1"></i>Trước
+                </button>
+                <div class="tw-flex tw-gap-1">
+                    <button 
+                        v-for="page in getVisiblePages()" 
+                        :key="page"
+                        @click="handlePageChange(page)"
+                        :disabled="loading"
+                        :class="[
+                            'tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed',
+                            page === currentPage 
+                                ? 'tw-bg-primary tw-text-white tw-border-primary' 
+                                : 'tw-bg-white tw-text-gray-700 hover:tw-bg-gray-50'
+                        ]"
+                    >
+                        {{ page }}
+                    </button>
+                </div>
+                <button 
+                    @click="handlePageChange(currentPage + 1)" 
+                    :disabled="currentPage === totalPages || loading"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed hover:tw-bg-gray-50"
+                >
+                    Sau<i class="fas fa-chevron-right tw-ml-1"></i>
+                </button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -76,6 +151,13 @@ const filterCategory = ref('')
 const filterBrand = ref('')
 const activeTab = ref('reviews')
 
+// Pagination state
+const currentPage = ref(1)
+const perPage = ref(5)
+const totalPages = ref(1)
+const totalItems = ref(0)
+const paginationData = ref(null)
+
 const fetchCategories = async () => {
     try {
         const response = await fetch(`${useRuntimeConfig().public.apiBaseUrl}/api/categories`)
@@ -96,25 +178,39 @@ const fetchBrands = async () => {
     }
 }
 
-const fetchReviews = async () => {
+const fetchReviews = async (page = 1) => {
     loading.value = true
     error.value = null
     try {
         let data
         if (filterCategory.value && filterBrand.value) {
-            data = await getReviewsByCategory(filterCategory.value)
-            data = data.filter(review => {
+            data = await getReviewsByCategory(filterCategory.value, page, perPage.value)
+            data.data = data.data.filter(review => {
                 return review.product && review.product.brand_id == filterBrand.value
             })
         } else if (filterCategory.value) {
-            data = await getReviewsByCategory(filterCategory.value)
+            data = await getReviewsByCategory(filterCategory.value, page, perPage.value)
         } else if (filterBrand.value) {
-            data = await getReviewsByBrand(filterBrand.value)
+            data = await getReviewsByBrand(filterBrand.value, page, perPage.value)
         } else {
-            data = await getAllReviews()
+            data = await getAllReviews(page, perPage.value)
         }
         
-        reviews.value = await Promise.all(data.map(async (review) => {
+        // Store pagination data
+        paginationData.value = {
+            current_page: data.current_page,
+            last_page: data.last_page,
+            per_page: data.per_page,
+            total: data.total,
+            from: data.from,
+            to: data.to
+        }
+        
+        currentPage.value = data.current_page
+        totalPages.value = data.last_page
+        totalItems.value = data.total
+        
+        reviews.value = await Promise.all(data.data.map(async (review) => {
             if (review.parent_id) return null
             
             let productInfo = null
@@ -149,13 +245,15 @@ const fetchReviews = async () => {
                 userAvatar: review.user?.avatar || 'https://randomuser.me/api/portraits/men/1.jpg',
                 rating: review.rating,
                 content: review.content,
-                date: new Date(review.created_at).toISOString().split('T')[0],
+                date: new Date(review.created_at).toLocaleDateString('vi-VN'),
+                time: new Date(review.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
                 status: review.is_approved ? 'approved' : (review.is_hidden ? 'rejected' : 'pending'),
                 productInfo,
                 reply: adminReply ? {
                     id: adminReply.id,  
                     content: adminReply.content,
-                    date: new Date(adminReply.created_at).toISOString().split('T')[0]
+                    date: new Date(adminReply.created_at).toLocaleDateString('vi-VN'),
+                    time: new Date(adminReply.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
                 } : null,
                 replyText: '',
                 isApproved: review.is_approved,
@@ -177,11 +275,18 @@ const fetchReviews = async () => {
 }
 
 const filteredReviews = computed(() => {
-    if (!filterCategory.value) return reviews.value
-    return reviews.value.filter(review => 
-        review.productInfo && review.productInfo.category_id == filterCategory.value
-    )
+    return reviews.value
 })
+
+const handlePageChange = (page) => {
+    currentPage.value = page
+    fetchReviews(page)
+}
+
+const handleFilterChange = () => {
+    currentPage.value = 1
+    fetchReviews(1)
+}
 
 const handleUpdateStatus = async ({ id, status }) => {
     try {
@@ -315,6 +420,23 @@ async function handleUpdateReply({ id, content }) {
         console.error('Lỗi khi cập nhật phản hồi:', err)
         alert('Không thể cập nhật phản hồi. Vui lòng thử lại.')
     }
+}
+
+const getVisiblePages = () => {
+    const pages = []
+    const maxVisible = 5
+    let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+    let end = Math.min(totalPages.value, start + maxVisible - 1)
+    
+    if (end - start + 1 < maxVisible) {
+        start = Math.max(1, end - maxVisible + 1)
+    }
+    
+    for (let i = start; i <= end; i++) {
+        pages.push(i)
+    }
+    
+    return pages
 }
 
 onMounted(() => {
