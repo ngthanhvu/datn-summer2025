@@ -9,9 +9,10 @@
             <h1 class="tw-text-2xl tw-font-bold tw-text-gray-800 tw-mb-2">Thanh toán thành công!</h1>
             <p class="tw-text-gray-600 tw-mb-6">Đơn hàng của bạn đã được xử lý thành công. Cảm ơn bạn đã mua sắm!</p>
             <div class="tw-bg-gray-100 tw-p-4 tw-rounded-lg tw-mb-6 tw-text-left">
-                <p class="tw-text-gray-700"><span class="tw-font-medium">Mã vận đơn:</span> {{ trackingCode }}</p>
+                <p class="tw-text-gray-700"><span class="tw-font-medium">Mã đơn hàng:</span> {{ orderId }}</p>
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Số tiền:</span> {{ formatPrice(amount) }}</p>
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Ngày:</span> {{ formatDate(date) }}</p>
+                <p v-if="trackingCode" class="tw-text-gray-700"><span class="tw-font-medium">Mã theo dõi:</span> {{ trackingCode }}</p>
             </div>
             <button @click="goToHome"
                 class="tw-w-full tw-bg-[#81AACC] hover:tw-bg-[#377db6] tw-text-white tw-font-medium tw-py-2 tw-px-4 tw-rounded-lg tw-transition tw-duration-200">
@@ -29,7 +30,7 @@
             <p v-else class="tw-text-gray-600 tw-mb-6">Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại
                 sau.</p>
             <div class="tw-bg-gray-100 tw-p-4 tw-rounded-lg tw-mb-6 tw-text-left">
-                <p class="tw-text-gray-700"><span class="tw-font-medium">Mã vận đơn:</span> {{ trackingCode }}</p>
+                <p class="tw-text-gray-700"><span class="tw-font-medium">Mã đơn hàng:</span> {{ orderId }}</p>
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Số tiền:</span> {{ formatPrice(amount) }}</p>
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Ngày:</span> {{ formatDate(date) }}</p>
             </div>
@@ -44,15 +45,14 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useOrder } from '~/composables/useOrder'
 
 const router = useRouter()
 const isSuccess = ref(false)
-const trackingCode = ref('')
+const orderId = ref('')
 const amount = ref(0)
 const date = ref(new Date())
 const errorMessage = ref('')
-const { createOrder } = useOrder()
+const trackingCode = ref('')
 
 useHead({
     title: computed(() => isSuccess.value ? 'Thanh toán thành công' : 'Thanh toán thất bại')
@@ -61,14 +61,16 @@ useHead({
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const status = urlParams.get('status')
-    const receivedTrackingCode = urlParams.get('trackingCode')
+    const id = urlParams.get('orderId')
     const total = urlParams.get('amount')
     const paymentMethod = urlParams.get('payment_method')
     const message = urlParams.get('message')
+    const tracking = urlParams.get('tracking_code')
 
     isSuccess.value = status === 'success'
-    trackingCode.value = receivedTrackingCode || 'N/A'
+    orderId.value = id || 'N/A'
     amount.value = total ? parseFloat(total) : 0
+    trackingCode.value = tracking ? decodeURIComponent(tracking) : ''
 
     if (message) {
         errorMessage.value = decodeURIComponent(message)
@@ -92,14 +94,6 @@ const formatDate = (date) => {
 
 const goToHome = () => {
     router.push('/')
-}
-
-const handleOrderSubmission = async (data) => {
-    try {
-        await createOrder(data, router)
-    } catch (error) {
-        console.error('Order processing failed:', error)
-    }
 }
 </script>
 

@@ -258,7 +258,11 @@ class PaymentController extends Controller
                         Mail::to($user->email)->send(new PaymentConfirmation($order));
                     }
 
-                    return redirect()->to(env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price);
+                    $redirectUrl = env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price;
+                    if ($order->tracking_code) {
+                        $redirectUrl .= '&tracking_code=' . urlencode($order->tracking_code);
+                    }
+                    return redirect()->to($redirectUrl);
                 } else {
                     $order->status = ($responseCode === "24") ? 'canceled' : 'failed';
                     $order->save();
@@ -348,7 +352,11 @@ class PaymentController extends Controller
                         Mail::to($user->email)->send(new PaymentConfirmation($order));
                     }
 
-                    return redirect()->to(env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price);
+                    $redirectUrl = env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price;
+                    if ($order->tracking_code) {
+                        $redirectUrl .= '&tracking_code=' . urlencode($order->tracking_code);
+                    }
+                    return redirect()->to($redirectUrl);
                 } else {
                     Log::error('MoMo payment failed', ['orderId' => $originalOrderId, 'resultCode' => $resultCode]);
                     $order->status = 'failed';
@@ -437,7 +445,11 @@ class PaymentController extends Controller
                     Mail::to($user->email)->send(new PaymentConfirmation($order));
                 }
 
-                return redirect()->to(env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price);
+                $redirectUrl = env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price;
+                if ($order->tracking_code) {
+                    $redirectUrl .= '&tracking_code=' . urlencode($order->tracking_code);
+                }
+                return redirect()->to($redirectUrl);
             }
         }
 

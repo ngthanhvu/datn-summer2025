@@ -249,7 +249,7 @@ const placeOrder = async () => {
             console.log('Amount:', amount)
 
             if (paymentMethod === 'cod') {
-                navigateTo(`/status?status=success&orderId=${orderId}&amount=${amount}`)
+                navigateTo(`/status?status=success&orderId=${orderId}&amount=${amount}&tracking_code=${result.order.tracking_code}`)
             } else {
                 let paymentUrl
                 let paymentResult

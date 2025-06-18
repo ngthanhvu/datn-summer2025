@@ -36,7 +36,8 @@ class OrdersController extends Controller
                 'coupon_id',
                 'note',
                 'created_at',
-                'updated_at'
+                'updated_at',
+                'tracking_code'
             ]);
 
         if (!Auth::user()->is_admin) {
