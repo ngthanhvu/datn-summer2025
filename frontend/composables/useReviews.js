@@ -7,9 +7,14 @@ export const useReviews = () => {
     const API = axios.create({ baseURL: apiBaseUrl })
     const { getToken } = useAuth()
 
-    const getReviewsByProductSlug = async (productSlug) => {
+    const getReviewsByProductSlug = async (productSlug, page = 1, perPage = 3) => {
         try {
-            const response = await API.get(`/api/product-reviews/product/${productSlug}`)
+            const response = await API.get(`/api/product-reviews/product/${productSlug}`, {
+                params: {
+                    page,
+                    per_page: perPage
+                }
+            })
             return response.data
         } catch (error) {
             console.error('Lỗi không thể hiển thị:', error)

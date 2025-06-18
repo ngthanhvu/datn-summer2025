@@ -308,11 +308,19 @@
                 <i class="bi bi-chat-square-text tw-text-blue-600"></i> Đánh giá từ khách hàng
               </h3>
               
-              <div v-if="reviews.length === 0" class="tw-text-center tw-py-10 tw-bg-gray-50 tw-rounded-lg">
+              <!-- Loading State -->
+              <div v-if="reviewsLoading" class="tw-text-center tw-py-10 tw-bg-gray-50 tw-rounded-lg">
+                <div class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-blue-600 tw-mb-4"></div>
+                <p class="tw-text-gray-500">Đang tải đánh giá...</p>
+              </div>
+              
+              <!-- Empty State -->
+              <div v-else-if="reviews.length === 0" class="tw-text-center tw-py-10 tw-bg-gray-50 tw-rounded-lg">
                 <i class="bi bi-chat-square tw-text-4xl tw-text-gray-300 tw-mb-3 tw-block"></i>
                 <p class="tw-text-gray-500">Chưa có đánh giá nào cho sản phẩm này</p>
               </div>
               
+              <!-- Reviews Content -->
               <div v-else class="tw-space-y-6">
                 <div 
                   v-for="review in reviews" 
@@ -414,6 +422,46 @@
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+              
+              <!-- Review Pagination -->
+              <div v-if="reviewPaginationData && totalReviewPages > 1" class="tw-flex tw-justify-between tw-items-center tw-bg-white tw-rounded-lg tw-shadow tw-p-4 tw-mt-6">
+                <div class="tw-text-sm tw-text-gray-600">
+                  <span v-if="reviewsLoading">Đang tải...</span>
+                  <span v-else>Hiển thị {{ reviewPaginationData.from }} - {{ reviewPaginationData.to }} trong tổng số {{ totalReviews }} đánh giá ({{ reviewsPerPage }} đánh giá/trang)</span>
+                </div>
+                <div class="tw-flex tw-gap-2">
+                  <button 
+                    @click="handleReviewPageChange(currentReviewPage - 1)" 
+                    :disabled="currentReviewPage === 1 || reviewsLoading"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed hover:tw-bg-gray-50"
+                  >
+                    <i class="bi bi-chevron-left tw-mr-1"></i>Trước
+                  </button>
+                  <div class="tw-flex tw-gap-1">
+                    <button 
+                      v-for="page in getVisibleReviewPages()" 
+                      :key="page"
+                      @click="handleReviewPageChange(page)"
+                      :disabled="reviewsLoading"
+                      :class="[
+                        'tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed',
+                        page === currentReviewPage 
+                          ? 'tw-bg-blue-600 tw-text-white tw-border-blue-600' 
+                          : 'tw-bg-white tw-text-gray-700 hover:tw-bg-gray-50'
+                      ]"
+                    >
+                      {{ page }}
+                    </button>
+                  </div>
+                  <button 
+                    @click="handleReviewPageChange(currentReviewPage + 1)" 
+                    :disabled="currentReviewPage === totalReviewPages || reviewsLoading"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed hover:tw-bg-gray-50"
+                  >
+                    Sau<i class="bi bi-chevron-right tw-ml-1"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -570,8 +618,6 @@ const tabs = [
 ]
 const activeTab = ref('description')
 
-
-
 const reviews = ref([])
 const reviewStats = ref({
   average: 0,
@@ -585,13 +631,35 @@ const reviewStats = ref({
   ]
 })
 
-const fetchReviews = async () => {
+const currentReviewPage = ref(1)
+const reviewsPerPage = ref(3)
+const totalReviewPages = ref(1)
+const totalReviews = ref(0)
+const reviewPaginationData = ref(null)
+const reviewsLoading = ref(false)
+
+const fetchReviews = async (page = 1) => {
   try {
-    const response = await getReviewsByProductSlug(data.value.slug)
-    reviews.value = response.filter(review => !review.parent_id)
+    reviewsLoading.value = true
+    const response = await getReviewsByProductSlug(data.value.slug, page, reviewsPerPage.value)
+    
+    reviewPaginationData.value = {
+      current_page: response.current_page,
+      last_page: response.last_page,
+      per_page: response.per_page,
+      total: response.total,
+      from: response.from,
+      to: response.to
+    }
+    
+    currentReviewPage.value = response.current_page
+    totalReviewPages.value = response.last_page
+    totalReviews.value = response.total
+    
+    reviews.value = response.data
     
     if (reviews.value.length > 0) {
-      const total = reviews.value.length
+      const total = response.total
       const sum = reviews.value.reduce((acc, review) => acc + review.rating, 0)
       const average = sum / total
       
@@ -615,6 +683,8 @@ const fetchReviews = async () => {
     }
   } catch (error) {
     console.error('Error fetching reviews:', error)
+  } finally {
+    reviewsLoading.value = false
   }
 }
 
@@ -689,7 +759,6 @@ useHead(() => ({
     },
   ],
 }))
-
 
 const reviewForm = ref({
   rating: 5,
@@ -773,7 +842,7 @@ const submitReview = async () => {
     deleteImageIds.value = []
     editingReviewId.value = null
     
-    await fetchReviews()
+    await fetchReviews(1)
   } catch (error) {
     console.error('Lỗi khi gửi đánh giá:', error)
     
@@ -825,7 +894,13 @@ const removeReview = async (reviewId) => {
   try {
     await deleteReview(reviewId)
     alert('Đã xóa đánh giá thành công')
-    await fetchReviews()
+    
+    const currentPageReviews = reviews.value.length
+    if (currentPageReviews === 1 && currentReviewPage.value > 1) {
+      await fetchReviews(currentReviewPage.value - 1)
+    } else {
+      await fetchReviews(currentReviewPage.value)
+    }
   } catch (error) {
     console.error('Lỗi khi xóa Đánh giá:', error)
     alert('Có lỗi xảy ra khi xóa đánh giá')
@@ -835,7 +910,6 @@ const removeReview = async (reviewId) => {
 const canModifyReview = (review) => {
   return  isAuthenticated.value && user.value && review.user_id === user.value.id
 }
-
 
 const checkUserHasReviewed = async () => {
   if (!isAuthenticated.value || !user.value || !data.value) return
@@ -864,6 +938,28 @@ const checkUserHasReviewed = async () => {
   } catch (error) {
     console.error('Lỗi khi kiểm tra đánh giá của người dùng:', error)
   }
+}
+
+const handleReviewPageChange = (page) => {
+  currentReviewPage.value = page
+  fetchReviews(page)
+}
+
+const getVisibleReviewPages = () => {
+  const pages = []
+  const maxVisible = 5
+  let start = Math.max(1, currentReviewPage.value - Math.floor(maxVisible / 2))
+  let end = Math.min(totalReviewPages.value, start + maxVisible - 1)
+  
+  if (end - start + 1 < maxVisible) {
+    start = Math.max(1, end - maxVisible + 1)
+  }
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  
+  return pages
 }
 </script>
 

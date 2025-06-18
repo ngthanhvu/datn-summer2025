@@ -160,7 +160,6 @@ const filterUnread = ref('')
 
 const getImageUrl = (url) => {
     if (!url) return 'https://via.placeholder.com/150'
-    // Nếu đã là URL tuyệt đối
     if (url.startsWith('http')) return url
     if (url.startsWith('review_images/')) {
         return `${runtimeConfig.public.apiBaseUrl}/storage/${url}`

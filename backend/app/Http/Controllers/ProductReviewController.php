@@ -34,10 +34,9 @@ class ProductReviewController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
         $existingReview = ProductReview::where('user_id', $request->user_id)
             ->where('product_slug', $request->product_slug)
-            ->whereNull('parent_id') // Chỉ kiểm tra đánh giá chính, không phải phản hồi
+            ->whereNull('parent_id') 
             ->first();
 
         if ($existingReview) {
@@ -122,12 +121,14 @@ class ProductReviewController extends Controller
         return response()->json(['message' => 'Xóa thành công']);
     }
 
-    public function getByProductSlug($slug)
+    public function getByProductSlug($slug, Request $request)
     {
+        $perPage = $request->get('per_page', 3);
         $reviews = ProductReview::with(['user', 'replies.images', 'images'])
             ->where('product_slug', 'LIKE', '%' . $slug . '%')
+            ->whereNull('parent_id')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($perPage);
 
         return response()->json($reviews);
     }
@@ -192,15 +193,12 @@ class ProductReviewController extends Controller
 
     public function updateAdminReply(Request $request, $id)
     {
-        // Tìm kiếm phản hồi admin đã tồn tại dựa trên ID trong URL
         $reply = ProductReview::findOrFail($id);
         
-        // Nếu đã tìm thấy reply theo ID, chỉ validate content
         $validated = $request->validate([
             'content' => 'required|string',
         ]);
         
-        // Cập nhật phản hồi đã tồn tại
         $reply->update([
             'content' => $validated['content'],
         ]);
