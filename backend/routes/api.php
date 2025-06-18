@@ -14,7 +14,7 @@ use App\Http\Controllers\CouponsController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FavoriteProductController;
-
+use App\Http\Controllers\ProductImportController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -107,4 +107,12 @@ Route::prefix('payment')->group(function () {
     Route::get('momo-callback', [PaymentController::class, 'momoCallback']);
     Route::get('paypal-callback', [PaymentController::class, 'paypalCallback']);
     Route::get('paypal-cancel', [PaymentController::class, 'paypalCancel']);
+});
+
+
+Route::prefix('products')->group(function () {
+    Route::get('import', [ProductImportController::class, 'index']);
+    Route::post('import', [ProductImportController::class, 'import']);
+    Route::get('import/template', [ProductImportController::class, 'downloadTemplate']);
+    Route::get('import/history', [ProductImportController::class, 'getImportHistory']);
 });

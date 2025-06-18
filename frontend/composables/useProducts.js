@@ -236,6 +236,31 @@ export const useProducts = () => {
         }
     }
 
+    const getTemplateSheet = async () => {
+        try {
+            const res = await API.get('/api/products/import/template', {
+                responseType: 'blob',
+            })
+            return res.data
+        } catch (err) {
+            console.error('Error fetch template', err)
+        }
+    }
+
+    const importFile = async (file) => {
+        try {
+            const res = await API.post('/api/products/import', file, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
+                }
+            })
+            return res.data
+        } catch (err) {
+            console.log('Error import:', err)
+        }
+    }
+
     return {
         getProducts,
         getProductById,
@@ -249,6 +274,8 @@ export const useProducts = () => {
         getBrands,
         getCategories,
         getFilterOptions,
-        searchProducts
+        searchProducts,
+        getTemplateSheet,
+        importFile
     }
 }
