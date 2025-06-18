@@ -184,7 +184,7 @@
             </div>
             
             <!-- Review Form -->
-            <div id="review-form" class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-border tw-border-gray-100 tw-mb-8 tw-transition-all hover:tw-shadow-md">
+            <div id="review-form" v-if="showReviewForm" class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-border tw-border-gray-100 tw-mb-8 tw-transition-all hover:tw-shadow-md">
               <h3 class="tw-text-xl tw-font-semibold tw-mb-6 tw-flex tw-items-center tw-gap-2">
                 <i class="bi bi-pencil-square tw-text-blue-600"></i>
                 {{ editingReviewId ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá' }}
@@ -196,17 +196,6 @@
                 <NuxtLink to="/login" class="tw-bg-blue-600 tw-text-white tw-px-6 tw-py-2 tw-rounded-md tw-inline-block tw-font-medium tw-transition-colors hover:tw-bg-blue-700">
                   <i class="bi bi-box-arrow-in-right tw-mr-1"></i> Đăng nhập
                 </NuxtLink>
-              </div>
-              
-              <div v-else-if="userHasReviewed && !editingReviewId" class="tw-text-center tw-py-6 tw-bg-gray-50 tw-rounded-lg">
-                <i class="bi bi-check-circle tw-text-3xl tw-text-green-500 tw-mb-2 tw-block"></i>
-                <p class="tw-mb-4 tw-text-gray-600">Bạn đã đánh giá sản phẩm này rồi</p>
-                <button 
-                  @click="editReview(userReview)" 
-                  class="tw-bg-blue-600 tw-text-white tw-px-6 tw-py-2 tw-rounded-md tw-inline-block tw-font-medium tw-transition-colors hover:tw-bg-blue-700"
-                >
-                  <i class="bi bi-pencil tw-mr-1"></i> Chỉnh sửa đánh giá của bạn
-                </button>
               </div>
               
               <form v-else @submit.prevent="submitReview" class="tw-space-y-6">
@@ -291,15 +280,38 @@
                   </button>
                   
                   <button 
-                    v-if="editingReviewId" 
                     type="button" 
                     @click="cancelEdit" 
                     class="tw-bg-gray-200 tw-text-gray-700 tw-px-6 tw-py-3 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-gray-300"
                   >
-                    <i class="bi bi-x-lg tw-mr-2"></i> Hủy
+                    <i class="bi bi-x-lg tw-mr-2"></i> {{ editingReviewId ? 'Hủy' : 'Đóng' }}
                   </button>
                 </div>
               </form>
+            </div>
+            
+            <!-- Review Form Toggle Button -->
+            <div v-if="!showReviewForm && isAuthenticated && !userHasReviewed" class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-border tw-border-gray-100 tw-mb-8 tw-text-center">
+              <i class="bi bi-chat-square-text tw-text-3xl tw-text-gray-400 tw-mb-3 tw-block"></i>
+              <p class="tw-mb-4 tw-text-gray-600">Bạn chưa đánh giá sản phẩm này</p>
+              <button 
+                @click="showReviewForm = true" 
+                class="tw-bg-blue-600 tw-text-white tw-px-6 tw-py-3 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-blue-700 tw-inline-flex tw-items-center tw-gap-2"
+              >
+                <i class="bi bi-pencil-square"></i> Viết đánh giá
+              </button>
+            </div>
+            
+            <!-- Edit Review Button for users who have already reviewed -->
+            <div v-if="!showReviewForm && isAuthenticated && userHasReviewed" class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-border tw-border-gray-100 tw-mb-8 tw-text-center">
+              <i class="bi bi-check-circle tw-text-3xl tw-text-green-500 tw-mb-3 tw-block"></i>
+              <p class="tw-mb-4 tw-text-gray-600">Bạn đã đánh giá sản phẩm này rồi</p>
+              <button 
+                @click="editReview(userReview)" 
+                class="tw-bg-blue-600 tw-text-white tw-px-6 tw-py-3 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-blue-700 tw-inline-flex tw-items-center tw-gap-2"
+              >
+                <i class="bi bi-pencil"></i> Chỉnh sửa đánh giá của bạn
+              </button>
             </div>
           
             <!-- Review List -->
@@ -771,6 +783,8 @@ const isSubmitting = ref(false)
 const previewImages = ref([])
 const deleteImageIds = ref([]) 
 
+const showReviewForm = ref(false)
+
 const handleImageUpload = (event) => {
   const files = event.target.files
   if (!files.length) return
@@ -841,6 +855,7 @@ const submitReview = async () => {
     previewImages.value = []
     deleteImageIds.value = []
     editingReviewId.value = null
+    showReviewForm.value = false
     
     await fetchReviews(1)
   } catch (error) {
@@ -874,6 +889,7 @@ const editReview = (review) => {
     })
   }
   
+  showReviewForm.value = true
   document.getElementById('review-form').scrollIntoView({ behavior: 'smooth' })
 }
 
@@ -886,6 +902,7 @@ const cancelEdit = () => {
   }
   previewImages.value = []
   deleteImageIds.value = [] 
+  showReviewForm.value = false
 }
 
 const removeReview = async (reviewId) => {
@@ -919,22 +936,6 @@ const checkUserHasReviewed = async () => {
     userHasReviewed.value = response.hasReviewed
     userReview.value = response.review || null
     
-    if (userHasReviewed.value && userReview.value && !editingReviewId.value) {
-      editingReviewId.value = userReview.value.id
-      reviewForm.value.rating = userReview.value.rating
-      reviewForm.value.content = userReview.value.content
-      
-      previewImages.value = []
-      if (userReview.value.images && userReview.value.images.length > 0) {
-        userReview.value.images.forEach(image => {
-          previewImages.value.push({
-            url: runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path,
-            id: image.id,
-            existing: true
-          })
-        })
-      }
-    }
   } catch (error) {
     console.error('Lỗi khi kiểm tra đánh giá của người dùng:', error)
   }
