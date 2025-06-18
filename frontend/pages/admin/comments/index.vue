@@ -24,19 +24,24 @@
             </div>
         </div>
 
-        <div v-if="loading" class="tw-flex tw-justify-center tw-items-center tw-py-10">
-            <div class="tw-animate-spin tw-rounded-full tw-h-10 tw-w-10 tw-border-t-2 tw-border-b-2 tw-border-primary"></div>
+        <div class="tw-bg-white tw-rounded-lg tw-shadow tw-mb-6">
+            <div class="tw-p-4 tw-border-b tw-flex tw-items-center tw-gap-4">
+                <button :class="['tw-font-semibold tw-pb-2', activeTab === 'reviews' ? 'tw-border-b-2 tw-border-primary tw-text-primary' : 'tw-text-gray-500']" @click="activeTab = 'reviews'">
+                    Danh sách đánh giá <span v-if="filteredReviews.length > 0" class="tw-bg-primary tw-text-white tw-rounded-full tw-px-2 tw-ml-1 tw-text-xs">{{ filteredReviews.length }}</span>
+                </button>
+                <button :class="['tw-font-semibold tw-pb-2', activeTab === 'products' ? 'tw-border-b-2 tw-border-primary tw-text-primary' : 'tw-text-gray-500']" @click="activeTab = 'products'">
+                    Sản phẩm đánh giá
+                </button>
+            </div>
         </div>
-        <div v-else-if="error" class="tw-bg-red-100 tw-text-red-700 tw-p-4 tw-rounded tw-mb-4">
-            {{ error }}
-        </div>
-        <div v-else>
-            <CommentsList :comments="filteredReviews" 
-                @update-status="handleUpdateStatus" 
-                @delete="handleDelete"
-                @add-reply="handleAddReply" 
-                @update-reply="handleUpdateReply" />
-        </div>
+
+        <ProductReviewMenu v-if="activeTab === 'products'" />
+        <CommentsList v-else :comments="filteredReviews"
+            @update-status="handleUpdateStatus"
+            @delete="handleDelete"
+            @add-reply="handleAddReply"
+            @update-reply="handleUpdateReply"
+        />
     </div>
 </template>
 
@@ -56,6 +61,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useAdminReviews } from '~/composables/useAdminReviews'
 import CommentsList from '~/components/admin/comments/CommentsList.vue'
+import ProductReviewMenu from '~/components/admin/comments/ProductReviewMenu.vue'
 
 const { getUser, getToken, user } = useAuth()
 
@@ -68,6 +74,7 @@ const loading = ref(false)
 const error = ref(null)
 const filterCategory = ref('')
 const filterBrand = ref('')
+const activeTab = ref('reviews')
 
 const fetchCategories = async () => {
     try {
@@ -155,7 +162,8 @@ const fetchReviews = async () => {
                 isHidden: review.is_hidden,
                 isEditing: false,  
                 editReplyText: '',  
-                replies: review.replies  
+                replies: review.replies,
+                images: review.images || []
             }
         }))
         

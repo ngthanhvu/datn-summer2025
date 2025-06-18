@@ -94,4 +94,5 @@ Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::c
 Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
 Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
 Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
+Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedProducts']);
 

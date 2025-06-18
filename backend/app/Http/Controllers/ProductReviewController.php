@@ -6,6 +6,7 @@ use App\Models\ProductReview;
 use App\Models\ReviewImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Products;
 
 class ProductReviewController extends Controller
 {
@@ -102,8 +103,6 @@ class ProductReviewController extends Controller
 
         return response()->json($review->fresh(['images']));
     }
-
-
 
     public function destroy($id)
     {
@@ -229,5 +228,32 @@ class ProductReviewController extends Controller
             ->get();
 
         return response()->json($reviews);
+    }
+
+    public function getReviewedProducts()
+    {
+        $products = Products::with(['images'])
+            ->get()
+            ->map(function ($product) {
+                $reviews = ProductReview::where('product_slug', $product->slug)
+                    ->whereNull('parent_id');
+                $reviewCount = $reviews->count();
+                $averageRating = $reviews->avg('rating');
+                $latestReview = $reviews->orderByDesc('created_at')->first();
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'image' => $product->images->first() ? $product->images->first()->image_path : null,
+                    'review_count' => $reviewCount,
+                    'average_rating' => $averageRating ?? 0,
+                    'latest_review_date' => $latestReview ? $latestReview->created_at : null,
+                    'slug' => $product->slug
+                ];
+            })
+            ->filter(function ($item) {
+                return $item['review_count'] > 0;
+            })
+            ->values();
+        return response()->json($products);
     }
 }
