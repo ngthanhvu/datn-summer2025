@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blogs;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 
 class BlogsController extends Controller
 {
@@ -29,26 +32,32 @@ class BlogsController extends Controller
     }
 
     public function show($id)
-    {
-        try {
-            $blog = Blogs::with('author')->findOrFail($id);
-            return response()->json([
-                'success' => true,
-                'data' => $blog,
-                'message' => 'Blog retrieved successfully'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve blog: ' . $e->getMessage()
-            ], 500);
-        }
+{
+    try {
+        $blog = Blogs::with('author')->findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'data' => $blog,
+            'message' => 'Blog retrieved successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Blog not found'
+        ], 404);
     }
+}
 
     public function showBySlug($slug)
     {
         try {
-            $blog = Blogs::with('author')->where('slug', $slug)->firstOrFail();
+            $blog = Blogs::with('author')->where('slug', $slug)->first();
+            if (!$blog) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Blog not found'
+                ], 404);
+            }
             return response()->json([
                 'success' => true,
                 'data' => $blog,
@@ -104,6 +113,14 @@ class BlogsController extends Controller
                 $path = $image->storeAs('public/blogs', $imageName);
                 $blogData['image'] = \Storage::url($path);
             }
+
+            $slug = Str::slug($request->title);
+            $originalSlug = $slug;
+            $counter = 1;
+            while (Blogs::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter++;
+            }
+            $blogData['slug'] = $slug;
 
             $blog = Blogs::create($blogData);
             $blog->load('author');
@@ -161,6 +178,14 @@ class BlogsController extends Controller
                 $blogData['image'] = Storage::url($path);
             }
 
+            $slug = Str::slug($request->title);
+            $originalSlug = $slug;
+            $counter = 1;
+            while (Blogs::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter++;
+            }
+            $blogData['slug'] = $slug;
+
             $blog->update($blogData);
             $blog->load('author');
 
@@ -200,4 +225,5 @@ class BlogsController extends Controller
             ], 500);
         }
     }
+
 }

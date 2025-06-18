@@ -60,11 +60,13 @@ export const useBlog = () => {
             if (response.data.success) {
                 blog.value = response.data.data;
             } else {
-                throw new Error(response.data.message || 'Failed to fetch blog');
+                blog.value = null;
+                throw new Error(response.data.message || 'Blog not found');
             }
         } catch (err) {
-            error.value = err.response?.data?.message || err.message || 'An error occurred';
-            throw err;
+            error.value = err.response?.data?.message || err.message || 'Blog not found';
+            blog.value = null; // Đảm bảo không giữ lại blog cũ khi lỗi
+            // Không throw lại lỗi để tránh Vue warn khi 404, chỉ set error
         } finally {
             loading.value = false;
         }
@@ -101,33 +103,12 @@ export const useBlog = () => {
         }
     };
 
-    const updateBlog = async (id, blogData) => {
-        loading.value = true;
-        error.value = null;
-        try {
-            const response = await API.put(`/api/blogs/${id}`, blogData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            if (response.data.success) {
-                return response.data;
-            } else {
-                throw new Error(response.data.message || 'Failed to update blog');
-            }
-        } catch (err) {
-            const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
-            const validationErrors = err.response?.data?.errors || null;
-            error.value = errorMessage;
-            const errorObj = new Error(errorMessage);
-            if (validationErrors) {
-                errorObj.errors = validationErrors;
-            }
-            throw errorObj;
-        } finally {
-            loading.value = false;
-        }
-    };
+    const updateBlog = async (id, formData) => {
+        return await $fetch(`/api/admin/blogs/${id}`, {
+            method: 'POST', // hoặc 'PUT' nếu backend nhận PUT
+            body: formData
+        })
+    }
 
     const deleteBlog = async (id) => {
         loading.value = true;

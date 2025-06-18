@@ -89,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBlog } from '@/composables/useBlog'
 
@@ -146,17 +146,28 @@ const quillOptions = {
 onMounted(async () => {
     if (isEditMode.value) {
         await fetchBlog(route.params.id)
-        if (blog.value) {
-            formData.value = {
-                title: blog.value.title,
-                description: blog.value.description,
-                content: blog.value.content,
-                status: blog.value.status,
-                image: blog.value.image
-            }
-        }
+        // Không set formData ở đây nữa, sẽ dùng watch phía dưới
     }
 })
+
+// Đồng bộ formData khi blog thay đổi (kể cả khi fetch xong hoặc chuyển id)
+watch(
+    () => blog.value,
+    (val) => {
+        if (isEditMode.value && val) {
+            formData.value = {
+                title: val.title || '',
+                description: val.description || '',
+                content: val.content || '',
+                status: val.status || 'draft',
+                image: val.image || null,
+                imageFile: null
+            }
+        }
+    },
+    { immediate: true }
+)
+
 
 // Get text length from HTML content
 const getTextLength = (htmlContent) => {
@@ -230,19 +241,16 @@ const handleSubmit = async () => {
         data.append('description', formData.value.description)
         data.append('content', formData.value.content)
         data.append('status', formData.value.status)
-        
-        // Chỉ append image nếu là File object (tức là upload mới)
         if (formData.value.imageFile instanceof File) {
             data.append('image', formData.value.imageFile)
         }
-        // Nếu là string (URL cũ), KHÔNG append image, backend sẽ giữ ảnh cũ
-
         if (isEditMode.value) {
+            // Thêm dòng này nếu backend Laravel dùng resource controller
+            data.append('_method', 'PUT')
             await updateBlog(route.params.id, data)
         } else {
             await createBlog(data)
         }
-        
         router.push('/admin/blogs')
     } catch (err) {
         if (err.errors) {

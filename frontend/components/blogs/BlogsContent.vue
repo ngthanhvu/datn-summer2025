@@ -1,94 +1,102 @@
 <template>
-    <section class="tw-max-w-7xl tw-mx-auto tw-px-6 tw-py-12">
-        <div class="tw-text-center tw-max-w-xl tw-mx-auto tw-mb-12">
-            <h2 class="tw-text-gray-900 tw-font-semibold tw-text-2xl sm:tw-text-3xl tw-mb-2">
-                Our latest blogs
-            </h2>
-            <p class="tw-text-gray-500 tw-text-sm sm:tw-text-base">
-                A daily dose of knowledge will keep build you to your next stage
-            </p>
+  <div class="tw-container tw-mx-auto tw-px-4 tw-py-8">
+    <div class="tw-text-center tw-mb-12">
+      <h1 class="tw-text-4xl tw-font-bold tw-mb-4">Tin tức mới nhất</h1>
+      <p class="tw-text-lg tw-text-gray-600">Cập nhật những bài viết và kiến thức mới nhất</p>
+    </div>
+
+    <div v-if="loading" class="tw-text-center tw-py-12">
+      <div class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-blue-500"></div>
+    </div>
+
+    <div v-else-if="error" class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-6">
+      {{ error }}
+    </div>
+
+    <div v-else>
+      <div v-if="filteredBlogs.length > 0" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-8 tw-mb-8">
+        <div
+          v-for="blog in filteredBlogs"
+          :key="blog.id"
+          class="tw-bg-white tw-rounded-lg tw-shadow-md tw-overflow-hidden hover:tw-shadow-lg tw-transition-shadow"
+        >
+          <NuxtLink :to="`/blog/${blog.slug}`" class="tw-no-underline tw-text-gray-900">
+            <div class="tw-relative tw-h-48 tw-overflow-hidden">
+              <img v-if="blog.image" :src="blog.image" :alt="blog.title" class="tw-w-full tw-h-full tw-object-cover" />
+              <div v-else class="tw-bg-gray-200 tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center">
+                <span class="tw-text-gray-500">Không có hình ảnh</span>
+              </div>
+            </div>
+            <div class="tw-p-6">
+              <div class="tw-flex tw-items-center tw-text-sm tw-text-gray-500 tw-mb-2">
+                <span>{{ formatDate(blog.published_at || blog.created_at) }}</span>
+                <span class="tw-mx-2">•</span>
+                <span>{{ blog.author?.username || 'Unknown' }}</span>
+              </div>
+              <h3 class="tw-text-xl tw-font-semibold tw-mb-2 tw-line-clamp-2">{{ blog.title }}</h3>
+              <p class="tw-text-gray-600 tw-mb-4 tw-line-clamp-3">{{ blog.description }}</p>
+              <div class="tw-text-primary tw-font-medium hover:tw-underline">Đọc thêm</div>
+            </div>
+          </NuxtLink>
         </div>
-        <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-3 tw-gap-8">
-            <article v-for="(blog, index) in blogs" :key="index">
-                <img :alt="blog.alt" class="tw-w-full tw-h-48 sm:tw-h-56 tw-object-cover tw-rounded" loading="lazy"
-                    :src="blog.image" width="600" />
-                <time class="tw-block tw-mt-4 tw-mb-1 tw-text-xs tw-text-gray-500" :datetime="blog.date">
-                    {{ formatDate(blog.date) }}
-                </time>
-                <a class="tw-text-blue-700 tw-font-semibold tw-text-sm sm:tw-text-base tw-leading-snug hover:tw-underline tw-inline-block tw-mb-1"
-                    :href="blog.link">
-                    {{ blog.title }}
-                </a>
-                <p class="tw-text-gray-500 tw-text-sm sm:tw-text-base tw-leading-relaxed">
-                    {{ blog.excerpt }}
-                </p>
-            </article>
-        </div>
-    </section>
+      </div>
+      <div v-else class="tw-text-center tw-text-gray-500 tw-py-12">
+        Không có bài viết nào.
+      </div>
+      <div v-if="pagination && filteredBlogs.length > 0" class="tw-flex tw-justify-center tw-mt-8">
+        <button
+          v-for="page in pagination.last_page"
+          :key="page"
+          @click="fetchBlogs(page)"
+          :class="{
+            'tw-bg-primary tw-text-white': page === pagination.current_page,
+            'tw-bg-white tw-text-gray-700': page !== pagination.current_page
+          }"
+          class="tw-px-4 tw-py-2 tw-mx-1 tw-rounded tw-border tw-border-gray-300 hover:tw-bg-gray-100"
+        >
+          {{ page }}
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-const blogs = [
-    {
-        title: '10 Tips for Capturing Stunning Landscape Photos',
-        date: '2023-05-25',
-        image: 'https://storage.googleapis.com/a1aa/image/0937c7ad-97ec-45f0-c69c-cdba4f61b684.jpg',
-        alt: 'Landscape with rolling hills and trees under soft pink sky',
-        excerpt: 'Landscape photography is one of the most popular genres among photographers.',
-        link: '#'
-    },
-    {
-        title: 'How Technology is Changing the Field of Architecture',
-        date: '2023-06-25',
-        image: 'https://storage.googleapis.com/a1aa/image/43aedf66-1620-4716-0b93-d93fec7c29d9.jpg',
-        alt: 'Minimalist 3D render of arched doorways in neutral tones',
-        excerpt: 'Macro photography is a fascinating genre that allows you to capture the intricate details.',
-        link: '#'
-    },
-    {
-        title: 'Preserving History: The Importance of Architectural Conservation and Restoration',
-        date: '2023-12-25',
-        image: 'https://storage.googleapis.com/a1aa/image/a6b704ba-4a4e-4794-5753-e7e477f9a1de.jpg',
-        alt: 'Ornate archway with colorful tile mosaic patterns',
-        excerpt: 'Preserving historic buildings and sites is an important consideration in the field of architecture',
-        link: '#'
-    },
-    {
-        title: 'Exploring the Beauty of Nature Photography',
-        date: '2024-01-15',
-        image: 'https://storage.googleapis.com/a1aa/image/12fb8a47-07cd-4e18-ef1a-e5c8ca90c806.jpg',
-        alt: 'Sunset over a calm lake with mountains in the background',
-        excerpt: 'Discover tips and techniques to capture the stunning beauty of natural landscapes and wildlife.',
-        link: '#'
-    },
-    {
-        title: 'Innovations in Sustainable Architecture',
-        date: '2024-02-10',
-        image: 'https://storage.googleapis.com/a1aa/image/4530f9e6-43ba-4f0f-3f85-d59f15aedcd3.jpg',
-        alt: 'Modern office building with glass facade reflecting the sky',
-        excerpt: 'Learn about the latest trends and innovations driving sustainability in modern architecture.',
-        link: '#'
-    },
-    {
-        title: 'The Art of Vintage Photography: Tips and Tricks',
-        date: '2024-03-05',
-        image: 'https://storage.googleapis.com/a1aa/image/f34a288c-b3e0-4585-bac4-cb25a220aa98.jpg',
-        alt: 'Close-up of a vintage camera on a wooden table',
-        excerpt: 'Explore how to create timeless vintage-style photos with simple techniques and equipment.',
-        link: '#'
-    }
-];
+import { computed, onMounted } from 'vue'
+import { useBlog } from '~/composables/useBlog'
 
-const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    });
-};
+const { blogs, loading, error, pagination, fetchBlogs } = useBlog()
+onMounted(fetchBlogs)
+
+const filteredBlogs = computed(() =>
+  blogs.value ? blogs.value.filter(blog => blog.status === 'published') : []
+)
+
+const formatDate = dateString => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('vi-VN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
 </script>
 
 <style scoped>
-/* Add any custom styles here if needed */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tw-text-primary {
+  color: #3bb77e;
+}
 </style>
