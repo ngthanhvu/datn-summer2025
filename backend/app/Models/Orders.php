@@ -20,6 +20,7 @@ class Orders extends Model
         'final_price',
         'coupon_id',
         'note',
+        'tracking_code',
     ];
 
     public function user()

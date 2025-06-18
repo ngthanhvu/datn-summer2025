@@ -12,6 +12,7 @@
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Mã đơn hàng:</span> {{ orderId }}</p>
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Số tiền:</span> {{ formatPrice(amount) }}</p>
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Ngày:</span> {{ formatDate(date) }}</p>
+                <p v-if="trackingCode" class="tw-text-gray-700"><span class="tw-font-medium">Mã theo dõi:</span> {{ trackingCode }}</p>
             </div>
             <button @click="goToHome"
                 class="tw-w-full tw-bg-[#81AACC] hover:tw-bg-[#377db6] tw-text-white tw-font-medium tw-py-2 tw-px-4 tw-rounded-lg tw-transition tw-duration-200">
@@ -51,6 +52,7 @@ const orderId = ref('')
 const amount = ref(0)
 const date = ref(new Date())
 const errorMessage = ref('')
+const trackingCode = ref('')
 
 useHead({
     title: computed(() => isSuccess.value ? 'Thanh toán thành công' : 'Thanh toán thất bại')
@@ -63,10 +65,12 @@ onMounted(() => {
     const total = urlParams.get('amount')
     const paymentMethod = urlParams.get('payment_method')
     const message = urlParams.get('message')
+    const tracking = urlParams.get('tracking_code')
 
     isSuccess.value = status === 'success'
     orderId.value = id || 'N/A'
     amount.value = total ? parseFloat(total) : 0
+    trackingCode.value = tracking ? decodeURIComponent(tracking) : ''
 
     if (message) {
         errorMessage.value = decodeURIComponent(message)
