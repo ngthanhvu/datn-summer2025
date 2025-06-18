@@ -512,6 +512,7 @@ import useCarts from '~/composables/useCarts'
 import { useCookie } from '#app'
 import { useReviews } from '~/composables/useReviews'
 import { useAuth } from '~/composables/useAuth'
+const notyf = useNuxtApp().$notyf
 
 const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
@@ -732,7 +733,7 @@ const addToCart = async () => {
       return
     }
     await addToCartComposable(selectedVariant.id, quantity.value)
-    alert('Đã thêm vào giỏ hàng')
+    notyf.success('Đã thêm vào giỏ hàng')
   } catch (error) {
     console.error('Error adding to cart:', error)
     alert('Có lỗi xảy ra khi thêm vào giỏ hàng')

@@ -12,6 +12,10 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CouponsController;
 use App\Http\Controllers\ProductReviewController;
+use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\FavoriteProductController;
+use App\Http\Controllers\ProductImportController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -25,13 +29,31 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/admin/user', [AuthController::class, 'listUser']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']); // Thêm route này
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
+
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
+
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart', [CartController::class, 'store']);
     Route::put('/cart/{id}', [CartController::class, 'update']);
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
     Route::post('/cart/transfer-session-to-user', [CartController::class, 'transferCartFromSessionToUser']);
+
+    Route::get('/orders', [OrdersController::class, 'index']);
+    Route::get('/orders/{id}', [OrdersController::class, 'show']);
+    Route::post('/orders', [OrdersController::class, 'store']);
+    Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
+
+    Route::get('/me/address', [AddressController::class, 'getMyAddress']);
+    Route::get('/addresses', [AddressController::class, 'index']);
+    Route::post('/addresses', [AddressController::class, 'store']);
+    Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
+    Route::put('/addresses/{id}', [AddressController::class, 'update']);
+
+    Route::get('/favorites', [FavoriteProductController::class, 'index']);
+    Route::post('/favorites', [FavoriteProductController::class, 'store']);
+    Route::get('/favorites/check/{slug}', [FavoriteProductController::class, 'check']);
+    Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
 });
 
 Route::get('/brands', [BrandsController::class, 'index']);
@@ -63,11 +85,6 @@ Route::get('/inventory', [InventoryController::class, 'index']);
 
 Route::get('/variants', [VariantController::class, 'index']);
 
-Route::get('/addresses', [AddressController::class, 'index']);
-Route::post('/addresses', [AddressController::class, 'store']);
-Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
-Route::put('/addresses/{id}', [AddressController::class, 'update']);
-
 Route::get('/guest-cart', [CartController::class, 'index']);
 Route::post('/guest-cart', [CartController::class, 'store']);
 Route::put('/guest-cart/{id}', [CartController::class, 'update']);
@@ -79,7 +96,6 @@ Route::get('/coupons/{id}', [CouponsController::class, 'show']);
 Route::put('/coupons/{id}', [CouponsController::class, 'update']);
 Route::delete('/coupons/{id}', [CouponsController::class, 'destroy']);
 Route::post('/coupons/validate', [CouponsController::class, 'validate']);
-
 
 Route::get('/product-reviews', [ProductReviewController::class, 'index']);
 Route::post('/product-reviews', [ProductReviewController::class, 'store']);
@@ -96,3 +112,24 @@ Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class,
 Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
 Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedProducts']);
 
+Route::post('/coupons/validate', [CouponsController::class, 'validate_coupon']);
+
+// Payment routes
+Route::prefix('payment')->group(function () {
+    Route::post('vnpay', [PaymentController::class, 'generateVnpayUrl']);
+    Route::post('momo', [PaymentController::class, 'generateMomoUrl']);
+    Route::post('paypal', [PaymentController::class, 'generatePaypalUrl']);
+
+    // Callback routes
+    Route::get('vnpay-callback', [PaymentController::class, 'vnpayCallback']);
+    Route::get('momo-callback', [PaymentController::class, 'momoCallback']);
+    Route::get('paypal-callback', [PaymentController::class, 'paypalCallback']);
+    Route::get('paypal-cancel', [PaymentController::class, 'paypalCancel']);
+});
+
+Route::prefix('products')->group(function () {
+    Route::get('import', [ProductImportController::class, 'index']);
+    Route::post('import', [ProductImportController::class, 'import']);
+    Route::get('import/template', [ProductImportController::class, 'downloadTemplate']);
+    Route::get('import/history', [ProductImportController::class, 'getImportHistory']);
+});

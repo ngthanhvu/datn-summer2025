@@ -106,7 +106,9 @@ class AuthController extends Controller
                 ]
             );
 
-            Mail::to($user->email)->send(new WelcomeEmail($user));
+            if ($user->wasRecentlyCreated) {
+                Mail::to($user->email)->send(new WelcomeEmail($user));
+            }
 
             $token = JWTAuth::fromUser($user);
 
@@ -215,10 +217,10 @@ class AuthController extends Controller
     }
 
     public function resetPasswordProfile(Request $request)
-    {   
+    {
         try {
             $user = Auth::user();
-            
+
             $validator = Validator::make($request->all(), [
                 'current_password' => 'required',
                 'password' => 'required|min:6|confirmed',
@@ -246,7 +248,6 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Cập nhật mật khẩu thành công'
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Failed to reset password: ' . $e->getMessage());
 
@@ -314,7 +315,7 @@ class AuthController extends Controller
                 }
 
                 $avatarPath = $request->file('avatar')->store('avatars', 'public');
-                $updateData['avatar'] = '/storage/' . $avatarPath; 
+                $updateData['avatar'] = '/storage/' . $avatarPath;
             }
 
             $user->update($updateData);

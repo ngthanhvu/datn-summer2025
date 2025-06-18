@@ -2,7 +2,7 @@
     <tr class="tw-border-b tw-border-gray-200">
         <td class="tw-py-4 tw-w-[40%]">
             <div class="tw-flex tw-items-center tw-gap-4">
-                <img :src="runtimeConfig.public.apiBaseUrl + '/' + product?.variant?.product?.main_image?.image_path"
+                <img :src="product?.variant?.product?.main_image?.image_path"
                     :alt="product?.variant?.product?.name || 'Product image'"
                     class="tw-w-20 tw-h-20 tw-object-cover tw-rounded-md" />
                 <div>

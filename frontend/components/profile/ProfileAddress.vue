@@ -2,7 +2,7 @@
     <div class="tw-bg-white tw-p-6 tw-rounded tw-shadow">
         <h2 class="tw-font-bold tw-text-lg tw-mb-6">Địa chỉ</h2>
         <form @submit.prevent="handleSubmit" class="tw-mb-8">
-            <div class="tw-grid tw-grid-cols-2 tw-gap-4">
+            <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
                 <div class="tw-mb-4">
                     <label class="tw-block tw-text-sm tw-font-medium tw-mb-2">Họ và tên</label>
                     <input v-model="form.full_name" type="text"
@@ -64,7 +64,8 @@
             </button>
         </form>
 
-        <div class="tw-overflow-x-auto">
+        <!-- Desktop Table -->
+        <div class="tw-hidden md:tw-block tw-overflow-x-auto">
             <table class="tw-min-w-full tw-divide-y tw-divide-gray-200">
                 <thead class="tw-bg-gray-50">
                     <tr>
@@ -106,6 +107,33 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Mobile Cards -->
+        <div class="md:tw-hidden tw-space-y-4">
+            <div v-for="address in addresses" :key="address.id"
+                class="tw-bg-white tw-border tw-rounded-lg tw-p-4 tw-space-y-2">
+                <div class="tw-flex tw-justify-between tw-items-center">
+                    <p class="tw-font-medium tw-text-sm">{{ address.full_name }}</p>
+                    <div class="tw-flex tw-gap-2">
+                        <button @click="handleDeleteAddress(address.id)"
+                            class="tw-text-red-600 hover:tw-text-red-800 tw-text-lg">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button @click="editAddress(address)"
+                            class="tw-text-blue-600 hover:tw-text-blue-800 tw-text-lg">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="tw-text-gray-700 tw-text-sm"><span class="tw-font-semibold">SĐT:</span> {{ address.phone }}
+                </p>
+                <p class="tw-text-gray-700 tw-text-sm"><span class="tw-font-semibold">Địa chỉ:</span> {{
+                    getFullAddress(address) }}</p>
+            </div>
+            <div v-if="addresses.length === 0" class="tw-text-center tw-py-4 tw-text-gray-500 tw-text-sm">
+                Không có địa chỉ nào
+            </div>
+        </div>
     </div>
 </template>
 
@@ -129,7 +157,7 @@ const {
     getProvinces,
     getDistricts,
     getWards,
-    getAddresses,
+    getMyAddress,
     createAddress,
     deleteAddress,
     validateForm,
@@ -163,10 +191,11 @@ const fetchWards = async () => {
 
 const fetchAddresses = async () => {
     try {
-        const res = await getAddresses()
-        addresses.value = res.data || []
+        const res = await getMyAddress()
+        addresses.value = Array.isArray(res) ? res : []
     } catch (error) {
-        console.log(error)
+        console.error('Error fetching addresses:', error)
+        addresses.value = []
     }
 }
 

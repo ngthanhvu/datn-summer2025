@@ -8,7 +8,7 @@
             <span>{{ formatPrice(subtotal) }}</span>
         </div>
 
-        <div>
+        <!-- <div>
             <p class="tw-text-sm tw-font-semibold tw-text-black tw-uppercase tw-mb-2">Phương thức giao hàng</p>
             <select class="tw-w-full tw-text-sm tw-border tw-border-gray-300 tw-rounded tw-px-3 tw-py-2"
                 aria-label="Shipping options" v-model="selectedShipping"
@@ -17,16 +17,17 @@
                     {{ option.label }} - {{ formatPrice(option.price) }}
                 </option>
             </select>
-        </div>
+        </div> -->
 
-        <div class="tw-flex tw-justify-between tw-text-sm tw-font-semibold tw-text-black tw-uppercase">
-            <span>Tổng cộng</span>
-            <span>{{ formatPrice(total) }}</span>
+        <div class="tw-flex tw-justify-between tw-text-sm tw-font-semibold tw-text-black tw-uppercase tw-border-t">
+            <span class="tw-mt-5">Tổng cộng</span>
+            <span class="tw-mt-5">{{ formatPrice(total) }}</span>
+
         </div>
 
         <button type="button"
             class="tw-bg-[#81AACC] tw-text-white tw-text-sm tw-font-semibold tw-uppercase tw-py-3 tw-rounded tw-w-full tw-mt-2 hover:tw-bg-[#427fb1] tw-transition-colors"
-            @click="$emit('checkout')">
+            @click="handleCheckout">
             Thanh toán
         </button>
     </aside>
@@ -70,4 +71,8 @@ const formatPrice = (price) => {
 }
 
 defineEmits(['update:shipping', 'checkout'])
+
+const handleCheckout = () => {
+    navigateTo('/checkout')
+}
 </script>

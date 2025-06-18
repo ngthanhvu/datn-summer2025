@@ -22,7 +22,7 @@
                 <span
                     class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">2</span>
             </NuxtLink>
-            <NuxtLink to="/login" class="tw-text-gray-700" @click="close">
+            <NuxtLink to="/profile" class="tw-text-gray-700" @click="close">
                 <i class="bi bi-person tw-text-xl"></i>
             </NuxtLink>
         </div>

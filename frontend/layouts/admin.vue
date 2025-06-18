@@ -16,23 +16,24 @@
           </div>
         </div>
         <div class="header-right">
-          <button class="header-btn"><i class="fas fa-bell"></i><span class="badge">3</span></button>
-          <div class="avatar-dropdown">
-            <div class="avatar-wrapper" @click="isDropdownOpen = !isDropdownOpen">
-              <img :src="user?.avatar" alt="User Avatar" class="avatar">
-              <span class="user-name">Xin chào <b>{{ user?.username }}</b></span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="dropdown-menu menu-drop" :class="{ 'show': isDropdownOpen }">
-              <div class="user-info">
-                <span class="name">{{ user?.username }}</span>
-                <span class="email">{{ user?.email }}</span>
-              </div>
-              <div class="dropdown-item tw-cursor-pointer" @click="handleBackHome">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Trở về trang chủ</span>
-              </div>
-            </div>
+          <div class="tw-flex tw-items-center tw-space-x-2">
+            <NuxtLink v-if="isAdmin" to="/" class="tw-p-2 hover:tw-bg-gray-100 tw-rounded-lg" title="Cài đặt">
+              <svg class="tw-w-5 tw-h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </NuxtLink>
+            <button class="tw-p-2 hover:tw-bg-gray-100 tw-rounded-lg tw-text-red-600" title="Đăng xuất"
+              @click="handleBackHome">
+              <svg class="tw-w-5 tw-h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                </path>
+              </svg>
+            </button>
           </div>
         </div>
       </header>
@@ -90,12 +91,13 @@ const handleBackHome = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem 1rem 2rem;
+  padding: 0.75rem 2rem;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
   position: sticky;
   top: 0;
   z-index: 10;
+  height: 64px;
 }
 
 .header-left {
@@ -115,7 +117,8 @@ const handleBackHome = () => {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   background: #f7f8fa;
-  font-size: 1rem;
+  font-size: 0.875rem;
+  height: 40px;
 }
 
 .search-bar i {
@@ -150,78 +153,5 @@ const handleBackHome = () => {
   border-radius: 50%;
   font-size: 0.7rem;
   padding: 2px 6px;
-}
-
-.avatar-dropdown {
-  position: relative;
-}
-
-.avatar-wrapper {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
-}
-
-.avatar-wrapper:hover {
-  background-color: #f3f4f6;
-}
-
-.user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.dropdown-menu {
-  min-width: 240px;
-  padding: 8px 0;
-}
-
-.user-info {
-  padding: 12px 16px;
-}
-
-.user-info .name {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.user-info .email {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin-top: 2px;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  color: #4b5563;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.dropdown-item i {
-  font-size: 16px;
-  color: #6b7280;
-}
-
-.dropdown-divider {
-  margin: 8px 0;
 }
 </style>

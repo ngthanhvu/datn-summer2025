@@ -5,8 +5,8 @@
       <p class="text-gray-600">Quản lý danh sách sản phẩm của bạn</p>
     </div>
 
-    <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands"
-      @delete="handleDelete" />
+    <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands" @delete="handleDelete"
+      @refresh="handleRefresh" />
   </div>
 </template>
 
@@ -102,6 +102,19 @@ const handleDelete = async (product) => {
       }
     }
   })
+}
+
+const handleRefresh = async () => {
+  try {
+    const productsData = await getProducts()
+    products.value = productsData.map(product => ({
+      ...product,
+      brand: brands.value.find(b => b.value === product.brand)?.value || 'N/A',
+      category: categories.value.find(c => c.value === product.category)?.value || 'N/A'
+    }))
+  } catch (error) {
+    console.error('Error refreshing products:', error)
+  }
 }
 </script>
 

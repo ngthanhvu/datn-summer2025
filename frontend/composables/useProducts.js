@@ -110,32 +110,69 @@ export const useProducts = () => {
         }
     }
 
-    const toggleFavorite = async (productId) => {
+    const getTokenFromCookie = () => {
+        const cookie = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('token='))
+        return cookie ? cookie.split('=')[1] : null
+    }
+
+    const toggleFavorite = async (productSlug) => {
         try {
-            const response = await API.post(`/api/products/${productId}/favorite`)
-            return response.data
+            const token = getTokenFromCookie()
+            if (!token) throw new Error('Bạn chưa đăng nhập')
+
+            const favorites = await getFavoriteProducts()
+            const exists = favorites.find(item => item.product_slug === productSlug)
+
+            if (exists) {
+                await API.delete(`/api/favorites/${productSlug}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+                return false
+            } else {
+                await API.post('/api/favorites', { product_slug: productSlug }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+                return true
+            }
         } catch (error) {
-            console.error('Error toggling favorite:', error)
             throw error
         }
     }
 
     const getFavoriteProducts = async () => {
         try {
-            const response = await API.get('/api/products/favorites')
+            const token = getTokenFromCookie()
+            if (!token) return []
+
+            const response = await API.get('/api/favorites', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
             return response.data
         } catch (error) {
-            console.error('Error getting favorite products:', error)
-            throw error
+            return []
         }
     }
 
-    const isFavorite = async (productId) => {
+    const isFavorite = async (productSlug) => {
         try {
-            const response = await API.get(`/api/products/${productId}/favorite`)
+            const token = getTokenFromCookie()
+            if (!token) return false
+
+            const response = await API.get(`/api/favorites/check/${productSlug}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
             return response.data.is_favorite
         } catch (error) {
-            console.error('Error checking favorite status:', error)
             return false
         }
     }
@@ -199,6 +236,31 @@ export const useProducts = () => {
         }
     }
 
+    const getTemplateSheet = async () => {
+        try {
+            const res = await API.get('/api/products/import/template', {
+                responseType: 'blob',
+            })
+            return res.data
+        } catch (err) {
+            console.error('Error fetch template', err)
+        }
+    }
+
+    const importFile = async (file) => {
+        try {
+            const res = await API.post('/api/products/import', file, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
+                }
+            })
+            return res.data
+        } catch (err) {
+            console.log('Error import:', err)
+        }
+    }
+
     return {
         getProducts,
         getProductById,
@@ -212,6 +274,8 @@ export const useProducts = () => {
         getBrands,
         getCategories,
         getFilterOptions,
-        searchProducts
+        searchProducts,
+        getTemplateSheet,
+        importFile
     }
 }
