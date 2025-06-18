@@ -11,6 +11,7 @@ use App\Http\Controllers\VariantController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CouponsController;
+use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FavoriteProductController;
@@ -94,6 +95,23 @@ Route::post('/coupons', [CouponsController::class, 'store']);
 Route::get('/coupons/{id}', [CouponsController::class, 'show']);
 Route::put('/coupons/{id}', [CouponsController::class, 'update']);
 Route::delete('/coupons/{id}', [CouponsController::class, 'destroy']);
+Route::post('/coupons/validate', [CouponsController::class, 'validate']);
+
+Route::get('/product-reviews', [ProductReviewController::class, 'index']);
+Route::post('/product-reviews', [ProductReviewController::class, 'store']);
+Route::get('/product-reviews/{id}', [ProductReviewController::class, 'show']);
+Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update']);
+Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy']);
+Route::get('/product-reviews/product/{slug}', [ProductReviewController::class, 'getByProductSlug']);
+Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview']);
+Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
+Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
+Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
+Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
+Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
+Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
+Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedProducts']);
+
 Route::post('/coupons/validate', [CouponsController::class, 'validate_coupon']);
 
 // Payment routes
@@ -108,7 +126,6 @@ Route::prefix('payment')->group(function () {
     Route::get('paypal-callback', [PaymentController::class, 'paypalCallback']);
     Route::get('paypal-cancel', [PaymentController::class, 'paypalCancel']);
 });
-
 
 Route::prefix('products')->group(function () {
     Route::get('import', [ProductImportController::class, 'index']);

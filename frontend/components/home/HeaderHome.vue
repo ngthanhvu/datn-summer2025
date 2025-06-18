@@ -3,8 +3,7 @@
   <nav class="navbar navbar-expand-lg navbar-light tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-shadow-sm">
     <div class="container">
       <NuxtLink to="/" class="navbar-brand">
-        <img src="https://ngthanhvu.github.io/z6626419002677_17d1cb4617e8fe122076281de3bf4722-removebg-preview.png"
-          alt="EGA MEN" class="tw-w-20">
+        <img src="https://i.imgur.com/rugQu4F.png" alt="EGA MEN" class="tw-w-20">
       </NuxtLink>
 
       <!-- Desktop Navigation -->
@@ -137,7 +136,7 @@ const closeMobileMenu = () => {
 }
 
 .nav-link:hover {
-  color: #2563eb;
+  color: #81aacc;
 }
 
 .has-megamenu {

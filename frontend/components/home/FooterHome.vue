@@ -5,7 +5,7 @@
         <!-- Cột 1: Thông tin liên hệ -->
         <div>
           <div class="tw-mb-4 tw-font-bold tw-text-2xl tw-flex tw-items-center tw-gap-2">
-            <img src="#" alt="EGA MEN" class="">
+            <img src="https://i.imgur.com/AOs1h7Z.png" alt="EGA MEN" class="">
           </div>
           <div class=" tw-flex tw-items-start tw-gap-2 tw-mb-2">
             <i class="bi bi-geo-alt-fill"></i>
