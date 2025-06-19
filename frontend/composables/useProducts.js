@@ -110,6 +110,18 @@ export const useProducts = () => {
         }
     }
 
+    const bulkDeleteProducts = async (ids) => {
+        try {
+            const response = await API.delete('/api/products/bulk-delete', {
+                data: { ids }
+            })
+            return response.data
+        } catch (error) {
+            console.error('Error bulk deleting products:', error)
+            throw error
+        }
+    }
+
     const getTokenFromCookie = () => {
         const cookie = document.cookie
             .split('; ')
@@ -276,6 +288,7 @@ export const useProducts = () => {
         getFilterOptions,
         searchProducts,
         getTemplateSheet,
-        importFile
+        importFile,
+        bulkDeleteProducts
     }
 }

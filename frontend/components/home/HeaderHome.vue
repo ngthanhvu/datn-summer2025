@@ -3,7 +3,7 @@
   <nav class="navbar navbar-expand-lg navbar-light tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-shadow-sm">
     <div class="container">
       <NuxtLink to="/" class="navbar-brand">
-        <img src="https://i.imgur.com/rugQu4F.png" alt="EGA MEN" class="tw-w-20">
+        <img src="../../assets/logo.png" alt="EGA MEN" class="tw-w-20">
       </NuxtLink>
 
       <!-- Desktop Navigation -->

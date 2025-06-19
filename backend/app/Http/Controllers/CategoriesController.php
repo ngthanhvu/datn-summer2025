@@ -145,4 +145,31 @@ class CategoriesController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    public function bulkDestroy(Request $request)
+    {
+        try {
+            $ids = $request->input('ids', []);
+
+            if (empty($ids) || !is_array($ids)) {
+                return response()->json(['message' => 'No category ids provided'], 400);
+            }
+
+            $categories = Categories::whereIn('id', $ids)->get();
+
+            foreach ($categories as $category) {
+                if ($category->image && Storage::disk('public')->exists($category->image)) {
+                    Storage::disk('public')->delete($category->image);
+                }
+                $category->delete();
+            }
+
+            return response()->json(['message' => 'Categories deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Bulk delete failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

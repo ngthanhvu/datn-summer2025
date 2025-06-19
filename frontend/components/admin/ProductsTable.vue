@@ -33,11 +33,15 @@
             </div>
 
             <div class="tw-flex tw-gap-2">
+                <button v-if="selectedRows.length > 0" @click="handleBulkDelete"
+                    class="tw-bg-red-600 tw-text-white tw-rounded tw-px-3 tw-py-1.5 tw-flex tw-items-center tw-gap-2 tw-text-sm hover:tw-bg-red-700">
+                    <i class="fas fa-trash"></i>
+                    Xoá đã chọn
+                </button>
                 <button @click="showImportModal = true"
                     class="tw-bg-primary tw-text-white tw-rounded tw-px-3 tw-py-1.5 tw-flex tw-items-center tw-gap-2 tw-text-sm hover:tw-bg-primary-dark">
                     <i class="fa-solid fa-file-import"></i>Nhập excel
                 </button>
-
                 <NuxtLink to="/admin/products/create"
                     class="tw-bg-primary tw-text-white tw-rounded tw-px-3 tw-py-1.5 tw-flex tw-items-center tw-gap-2 tw-text-sm hover:tw-bg-primary-dark">
                     <i class="fas fa-plus"></i>
@@ -104,6 +108,9 @@
             <table class="tw-w-full tw-text-left tw-text-sm">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
+                        <th class="tw-px-3 tw-py-2">
+                            <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
+                        </th>
                         <th v-for="column in columns" :key="column.key" class="tw-px-3 tw-py-2 tw-font-semibold"
                             @click="sortBy(column.key)">
                             {{ column.label }}
@@ -115,6 +122,10 @@
                 </thead>
                 <tbody>
                     <tr v-for="(item, index) in paginatedData" :key="index" class="tw-border-b hover:tw-bg-gray-50">
+                        <td class="tw-px-3 tw-py-2">
+                            <input type="checkbox" :checked="selectedRows.includes(item.id)"
+                                @change="toggleSelectRow(item.id)" />
+                        </td>
                         <td v-for="column in columns" :key="column.key" class="tw-px-3 tw-py-2">
                             <template v-if="column.type === 'main_image'">
                                 <img :src="getMainImage(item.images)?.image_path"
@@ -164,7 +175,7 @@
                         </td>
                     </tr>
                     <tr v-if="paginatedData.length === 0">
-                        <td colspan="10" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
+                        <td colspan="11" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
                             Không có dữ liệu
                         </td>
                     </tr>
@@ -197,6 +208,8 @@
 import { ref, computed, watch } from 'vue'
 import Badges from './Badges.vue'
 import { useProducts } from '~/composables/useProducts'
+import Swal from 'sweetalert2'
+
 const notyf = useNuxtApp().$notyf
 
 const props = defineProps({
@@ -238,7 +251,9 @@ const showImportModal = ref(false)
 const selectedFile = ref(null)
 const fileInput = ref(null)
 const isLoading = ref(false)
-const { getTemplateSheet, importFile, getProducts } = useProducts()
+const { getTemplateSheet, importFile, getProducts, bulkDeleteProducts } = useProducts()
+
+const selectedRows = ref([])
 
 const filteredData = computed(() => {
     let result = [...props.data]
@@ -381,6 +396,50 @@ const handleImport = async () => {
         console.error('Error importing file:', error)
     } finally {
         isLoading.value = false
+    }
+}
+
+const isAllSelected = computed(() => {
+    return paginatedData.value.length > 0 && paginatedData.value.every(item => selectedRows.value.includes(item.id))
+})
+
+const toggleSelectAll = () => {
+    if (isAllSelected.value) {
+        selectedRows.value = []
+    } else {
+        selectedRows.value = paginatedData.value.map(item => item.id)
+    }
+}
+
+const toggleSelectRow = (id) => {
+    if (selectedRows.value.includes(id)) {
+        selectedRows.value = selectedRows.value.filter(rowId => rowId !== id)
+    } else {
+        selectedRows.value.push(id)
+    }
+}
+
+const handleBulkDelete = async () => {
+    if (selectedRows.value.length === 0) return
+    const result = await Swal.fire({
+        title: 'Bạn có chắc muốn xoá các sản phẩm đã chọn?',
+        text: 'Hành động này không thể hoàn tác!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Xoá',
+        cancelButtonText: 'Huỷ'
+    })
+    if (!result.isConfirmed) return
+    try {
+        await bulkDeleteProducts(selectedRows.value)
+        notyf.success('Xoá sản phẩm thành công')
+        selectedRows.value = []
+        await getProducts()
+        emit('refresh')
+    } catch (e) {
+        notyf.error('Xoá sản phẩm thất bại')
     }
 }
 </script>

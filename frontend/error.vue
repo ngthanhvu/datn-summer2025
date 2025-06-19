@@ -1,6 +1,6 @@
 <template>
     <NuxtLayout>
-        <div class="tw-mt-[100px] tw-flex tw-flex-col tw-items-center tw-justify-center">
+        <div class="tw-mt-[100px] tw-mb-[100px] tw-flex tw-flex-col tw-items-center tw-justify-center">
             <div class="tw-text-center">
                 <p class="tw-font-bold tw-text-gray-800" style="font-size: 100px;">{{ error.statusCode }}</p>
                 <p class="tw-text-xl tw-text-gray-600 tw-mb-6">{{ error.message }}</p>

@@ -71,6 +71,10 @@ Route::delete('/categories/{id}', [CategoriesController::class, 'destroy']);
 Route::get('/google', [AuthController::class, 'redirectToGoogle']);
 Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
+Route::delete('/products/bulk-delete', [ProductsController::class, 'bulkDestroy']);
+Route::post('/brands/bulk-delete', [BrandsController::class, 'bulkDestroy']);
+Route::post('/categories/bulk-delete', [CategoriesController::class, 'bulkDestroy']);
+
 Route::get('/products/search', [ProductsController::class, 'search']);
 Route::get('/products/filter-options', [ProductsController::class, 'getFilterOptions']);
 Route::get('/products', [ProductsController::class, 'index']);

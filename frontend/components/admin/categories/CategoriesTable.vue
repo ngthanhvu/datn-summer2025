@@ -1,9 +1,22 @@
 <template>
     <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-4">
+        <div class="tw-flex tw-justify-end tw-mb-4" v-if="categories.length > 0">
+            <button v-if="selectedCategories.size > 0" @click="$emit('bulkDelete', selectedCategories)"
+                class="tw-bg-red-500 tw-text-white tw-rounded tw-px-3 tw-py-1 hover:tw-bg-red-600 tw-flex tw-items-center tw-gap-2">
+                <i class="fas fa-trash"></i>
+                Xóa {{ selectedCategories.size }} mục đã chọn
+            </button>
+        </div>
         <div class="tw-overflow-x-auto">
             <table class="tw-w-full tw-text-sm">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
+                        <th class="tw-px-3 tw-py-2 tw-text-left">
+                            <div class="tw-flex tw-items-center">
+                                <input type="checkbox" :checked="selectedCategories.size === categories.length"
+                                    @change="toggleSelectAll" class="tw-rounded">
+                            </div>
+                        </th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">ID</th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">Ảnh</th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">Tên danh mục</th>
@@ -15,6 +28,10 @@
                 </thead>
                 <tbody>
                     <tr v-for="category in categories" :key="category.id" class="tw-border-b hover:tw-bg-gray-50">
+                        <td class="tw-px-3 tw-py-2">
+                            <input type="checkbox" :checked="selectedCategories.has(category.id)"
+                                @change="toggleSelect(category.id)" class="tw-rounded">
+                        </td>
                         <td class="tw-px-3 tw-py-2">#{{ category.id }}</td>
                         <td class="tw-px-3 tw-py-2">
                             <img :src="category.image" :alt="category.name"
@@ -46,7 +63,7 @@
                         </td>
                     </tr>
                     <tr v-if="categories.length === 0">
-                        <td colspan="7" class="tw-py-4">
+                        <td colspan="8" class="tw-py-4">
                             <div class="tw-text-center tw-text-gray-500">
                                 <i class="fas fa-box-open tw-text-3xl tw-mb-2"></i>
                                 <p class="tw-text-sm">Không có danh mục nào</p>
@@ -69,7 +86,25 @@ const props = defineProps({
     }
 })
 
-const emit = defineEmits(['delete'])
+const selectedCategories = ref(new Set())
+
+const toggleSelectAll = (event) => {
+    if (event.target.checked) {
+        selectedCategories.value = new Set(props.categories.map(category => category.id))
+    } else {
+        selectedCategories.value.clear()
+    }
+}
+
+const toggleSelect = (categoryId) => {
+    if (selectedCategories.value.has(categoryId)) {
+        selectedCategories.value.delete(categoryId)
+    } else {
+        selectedCategories.value.add(categoryId)
+    }
+}
+
+const emit = defineEmits(['delete', 'bulkDelete'])
 
 const handleDelete = async (category) => {
     Swal.fire({

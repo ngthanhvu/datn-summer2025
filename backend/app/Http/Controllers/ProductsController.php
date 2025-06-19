@@ -326,6 +326,23 @@ class ProductsController extends Controller
         }
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        try {
+            $ids = $request->input('ids', []);
+            if (empty($ids) || !is_array($ids)) {
+                return response()->json(['message' => 'No product ids provided'], 400);
+            }
+            Products::whereIn('id', $ids)->delete();
+            return response()->json(['message' => 'Products deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Bulk delete failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function search(Request $request)
     {
         $q = $request->query('q');
