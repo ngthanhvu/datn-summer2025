@@ -68,11 +68,25 @@ export const useCategory = () => {
         }
     }
 
+    const bulkDeleteCategories = async (ids) => {
+        try {
+            const response = await API.post('/api/categories/bulk-delete', {
+                ids: Array.from(ids)
+            })
+            return response.data
+        } catch (error) {
+            console.error('Error bulk deleting categories:', error.response?.data || error)
+            throw error
+        }
+    }
+
+
     return {
         getCategories,
         getCategoryById,
         createCategory,
         updateCategory,
-        deleteCategory
+        deleteCategory,
+        bulkDeleteCategories
     }
 }

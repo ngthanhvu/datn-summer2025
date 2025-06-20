@@ -12,7 +12,7 @@
             </NuxtLink>
         </div>
 
-        <CategoriesTable :categories="categories" @delete="handleDelete" />
+        <CategoriesTable :categories="categories" @delete="handleDelete" @bulk-delete="handleBulkDelete" />
     </div>
 </template>
 
@@ -31,7 +31,7 @@ import { useCategory } from '~/composables/useCategory'
 import Swal from 'sweetalert2'
 import CategoriesTable from '~/components/admin/categories/CategoriesTable.vue'
 
-const { getCategories, deleteCategory } = useCategory()
+const { getCategories, deleteCategory, bulkDeleteCategories } = useCategory()
 const categories = ref([])
 
 const handleDelete = async (category) => {
@@ -51,6 +51,42 @@ const handleDelete = async (category) => {
         })
     } catch (error) {
         console.error('Failed to delete category:', error)
+        Swal.fire('Có lỗi xảy ra khi xóa danh mục', error.message, 'error')
+    }
+}
+
+const handleBulkDelete = async (selectedCategories) => {
+    try {
+        const result = await Swal.fire({
+            title: 'Xác nhận xóa hàng loạt',
+            text: `Bạn có chắc chắn muốn xóa ${selectedCategories.size} danh mục đã chọn?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        })
+
+        if (result.isConfirmed) {
+            await bulkDeleteCategories(selectedCategories)
+            categories.value = await getCategories()
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            })
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Đã xóa thành công các danh mục đã chọn'
+            })
+        }
+    } catch (error) {
+        console.error('Failed to bulk delete categories:', error)
         Swal.fire('Có lỗi xảy ra khi xóa danh mục', error.message, 'error')
     }
 }

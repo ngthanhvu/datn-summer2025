@@ -2,10 +2,9 @@
     <div class="tw-mb-6">
         <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Địa chỉ giao hàng</h2>
         <div class="tw-space-y-4">
-            <!-- Existing Addresses -->
             <div v-for="(address, index) in addresses" :key="index"
                 class="tw-p-4 tw-border tw-rounded-md tw-cursor-pointer hover:tw-bg-gray-50"
-                :class="{ 'tw-border-black': selectedAddress === index }" @click="$emit('select', index)">
+                :class="{ 'tw-border-[#81AACC]': selectedAddress === index }" @click="$emit('select', index)">
                 <div class="tw-flex tw-justify-between tw-items-start">
                     <div>
                         <p class="tw-font-medium">{{ address.fullName }}</p>
@@ -22,8 +21,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Add New Address Button -->
             <button @click="$emit('add')"
                 class="tw-w-full tw-p-3 tw-border-2 tw-border-dashed tw-border-gray-300 tw-rounded-md tw-text-gray-600 hover:tw-border-gray-400 hover:tw-text-gray-800">
                 <i class="fas fa-plus tw-mr-2"></i>

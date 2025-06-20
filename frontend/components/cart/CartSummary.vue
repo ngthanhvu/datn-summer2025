@@ -8,7 +8,7 @@
             <span>{{ formatPrice(subtotal) }}</span>
         </div>
 
-        <div>
+        <!-- <div>
             <p class="tw-text-sm tw-font-semibold tw-text-black tw-uppercase tw-mb-2">Phương thức giao hàng</p>
             <select class="tw-w-full tw-text-sm tw-border tw-border-gray-300 tw-rounded tw-px-3 tw-py-2"
                 aria-label="Shipping options" v-model="selectedShipping"
@@ -17,16 +17,17 @@
                     {{ option.label }} - {{ formatPrice(option.price) }}
                 </option>
             </select>
-        </div>
+        </div> -->
 
-        <div class="tw-flex tw-justify-between tw-text-sm tw-font-semibold tw-text-black tw-uppercase">
-            <span>Tổng cộng</span>
-            <span>{{ formatPrice(total) }}</span>
+        <div class="tw-flex tw-justify-between tw-text-sm tw-font-semibold tw-text-black tw-uppercase tw-border-t">
+            <span class="tw-mt-5">Tổng cộng</span>
+            <span class="tw-mt-5">{{ formatPrice(total) }}</span>
+
         </div>
 
         <button type="button"
             class="tw-bg-[#81AACC] tw-text-white tw-text-sm tw-font-semibold tw-uppercase tw-py-3 tw-rounded tw-w-full tw-mt-2 hover:tw-bg-[#427fb1] tw-transition-colors"
-            @click="$emit('checkout')">
+            @click="handleCheckout">
             Thanh toán
         </button>
     </aside>
@@ -51,19 +52,27 @@ const props = defineProps({
 })
 
 const shippingOptions = [
-    { label: 'Giao hàng tiêu chuẩn', value: 'standard', price: 10 },
-    { label: 'Giao hàng nhanh', value: 'express', price: 20 }
+    { label: 'Giao hàng tiêu chuẩn', value: 'standard', price: 10000 },
+    { label: 'Giao hàng nhanh', value: 'express', price: 20000 }
 ]
 
-const selectedShipping = ref(props.shipping.value)
+const selectedShipping = ref(props.shipping?.value || shippingOptions[0].value)
 
 const total = computed(() => {
-    return props.subtotal + selectedShipping.value.price
+    const shippingPrice = shippingOptions.find(option => option.value === selectedShipping.value)?.price || 0
+    return props.subtotal + shippingPrice
 })
 
 const formatPrice = (price) => {
-    return `$${price.toFixed(2)}`
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(price)
 }
 
 defineEmits(['update:shipping', 'checkout'])
+
+const handleCheckout = () => {
+    navigateTo('/checkout')
+}
 </script>

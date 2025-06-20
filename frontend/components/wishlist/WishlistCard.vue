@@ -2,8 +2,8 @@
     <div class="tw-w-full tw-overflow-hidden tw-group tw-pb-4 tw-relative">
         <!-- Image wrapper -->
         <div class="tw-relative tw-overflow-hidden">
-            <img :src="product.image || 'https://product.hstatic.net/200000696635/product/frame_25_fb1b30c611ec4ebb88fc27d011201815_d572fde53b934b5ea502c2dd0a56a0d7_large.png'"
-                :alt="product.name || 'Product Image'"
+            <img :src="product.image"
+                :alt="product.name"
                 class="tw-w-full tw-object-cover tw-h-[400px] tw-transition-transform group-hover:tw-scale-105 tw-duration-300" />
 
             <!-- Hover overlay -->
@@ -27,8 +27,8 @@
 
                 <!-- Quick view -->
                 <button @click="quickView"
-                    class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
-                    title="Xem nhanh">
+                    class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200 tw-relative group/quickview"
+                    title="Xem chi tiết">
                     <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -36,6 +36,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
+                    <span class="tw-absolute tw-bottom-full tw-left-1/2 -tw-translate-x-1/2 tw-mb-2 tw-px-2 tw-py-1 tw-bg-gray-900 tw-text-white tw-text-xs tw-rounded tw-opacity-0 group-hover/quickview:tw-opacity-100 tw-transition-opacity tw-duration-200 tw-whitespace-nowrap">
+                        Xem chi tiết
+                    </span>
                 </button>
 
                 <!-- Remove from wishlist -->

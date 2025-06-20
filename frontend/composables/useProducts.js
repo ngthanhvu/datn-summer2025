@@ -32,7 +32,6 @@ export const useProducts = () => {
                 params.append('sort_direction', filters.sort_direction || 'asc')
             }
 
-            // Gọi API với các tham số lọc
             const response = await API.get(`/api/products?${params.toString()}`)
             return response.data
         } catch (error) {
@@ -111,32 +110,81 @@ export const useProducts = () => {
         }
     }
 
-    const toggleFavorite = async (productId) => {
+    const bulkDeleteProducts = async (ids) => {
         try {
-            const response = await API.post(`/api/products/${productId}/favorite`)
+            const response = await API.delete('/api/products/bulk-delete', {
+                data: { ids }
+            })
             return response.data
         } catch (error) {
-            console.error('Error toggling favorite:', error)
+            console.error('Error bulk deleting products:', error)
+            throw error
+        }
+    }
+
+    const getTokenFromCookie = () => {
+        const cookie = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('token='))
+        return cookie ? cookie.split('=')[1] : null
+    }
+
+    const toggleFavorite = async (productSlug) => {
+        try {
+            const token = getTokenFromCookie()
+            if (!token) throw new Error('Bạn chưa đăng nhập')
+
+            const favorites = await getFavoriteProducts()
+            const exists = favorites.find(item => item.product_slug === productSlug)
+
+            if (exists) {
+                await API.delete(`/api/favorites/${productSlug}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+                return false
+            } else {
+                await API.post('/api/favorites', { product_slug: productSlug }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+                return true
+            }
+        } catch (error) {
             throw error
         }
     }
 
     const getFavoriteProducts = async () => {
         try {
-            const response = await API.get('/api/products/favorites')
+            const token = getTokenFromCookie()
+            if (!token) return []
+
+            const response = await API.get('/api/favorites', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
             return response.data
         } catch (error) {
-            console.error('Error getting favorite products:', error)
-            throw error
+            return []
         }
     }
 
-    const isFavorite = async (productId) => {
+    const isFavorite = async (productSlug) => {
         try {
-            const response = await API.get(`/api/products/${productId}/favorite`)
+            const token = getTokenFromCookie()
+            if (!token) return false
+
+            const response = await API.get(`/api/favorites/check/${productSlug}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
             return response.data.is_favorite
         } catch (error) {
-            console.error('Error checking favorite status:', error)
             return false
         }
     }
@@ -157,9 +205,7 @@ export const useProducts = () => {
             if (query) {
                 params.append('q', query)
             }
-            // Thêm các tham số lọc nếu có
             if (filters.color && filters.color.length > 0) {
-                // Assuming filters.color is an array based on previous changes
                 if (Array.isArray(filters.color)) {
                     filters.color.forEach(c => params.append('color[]', c));
                 } else {
@@ -173,7 +219,6 @@ export const useProducts = () => {
                 params.append('max_price', filters.max_price)
             }
             if (filters.category && filters.category.length > 0) {
-                // Assuming filters.category is an array based on previous changes
                 if (Array.isArray(filters.category)) {
                     filters.category.forEach(c => params.append('category[]', c));
                 } else {
@@ -181,7 +226,6 @@ export const useProducts = () => {
                 }
             }
             if (filters.brand && filters.brand.length > 0) {
-                // Assuming filters.brand is an array based on previous changes
                 if (Array.isArray(filters.brand)) {
                     filters.brand.forEach(b => params.append('brand[]', b));
                 } else {
@@ -189,7 +233,6 @@ export const useProducts = () => {
                 }
             }
             if (filters.size && filters.size.length > 0) {
-                // Assuming filters.size is an array based on previous changes
                 if (Array.isArray(filters.size)) {
                     filters.size.forEach(s => params.append('size[]', s));
                 } else {
@@ -198,11 +241,35 @@ export const useProducts = () => {
             }
 
             const response = await API.get(`/api/products/search?${params.toString()}`)
-            // Ensure the response data is an array
             return Array.isArray(response.data) ? response.data : []
         } catch (error) {
             console.error('Error searching products:', error)
             return []
+        }
+    }
+
+    const getTemplateSheet = async () => {
+        try {
+            const res = await API.get('/api/products/import/template', {
+                responseType: 'blob',
+            })
+            return res.data
+        } catch (err) {
+            console.error('Error fetch template', err)
+        }
+    }
+
+    const importFile = async (file) => {
+        try {
+            const res = await API.post('/api/products/import', file, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
+                }
+            })
+            return res.data
+        } catch (err) {
+            console.log('Error import:', err)
         }
     }
 
@@ -219,6 +286,9 @@ export const useProducts = () => {
         getBrands,
         getCategories,
         getFilterOptions,
-        searchProducts
+        searchProducts,
+        getTemplateSheet,
+        importFile,
+        bulkDeleteProducts
     }
 }

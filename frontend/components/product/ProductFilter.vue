@@ -1,6 +1,6 @@
 <template>
   <aside :class="[
-    'tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-z-[999]',
+    'tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-z-[0]',
     'md:tw-block md:tw-static md:tw-w-72',
     modelValue
       ? 'tw-fixed tw-inset-0 tw-w-full tw-h-full tw-overflow-y-auto'
@@ -81,7 +81,7 @@
 
       <!-- Apply Filters Button -->
       <button @click="applyFilters"
-        class="tw-w-full tw-bg-blue-600 tw-text-white tw-py-2 tw-px-4 tw-rounded hover:tw-bg-blue-700">
+        class="tw-w-full tw-bg-[#81AACC] tw-text-white tw-py-2 tw-px-4 tw-rounded hover:tw-bg-[#6ba0cc]">
         Áp dụng bộ lọc
       </button>
     </div>

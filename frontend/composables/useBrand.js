@@ -64,11 +64,24 @@ export const useBrand = () => {
         }
     }
 
+    const bulkDeleteBrands = async (ids) => {
+        try {
+            const response = await API.post('/api/brands/bulk-delete', {
+                ids: Array.from(ids)
+            })
+            return response.data
+        } catch (error) {
+            console.error('Error bulk deleting brands:', error.response?.data || error)
+            throw error
+        }
+    }
+
     return {
         getBrands,
         getBrandById,
         createBrand,
         updateBrand,
-        deleteBrand
+        deleteBrand,
+        bulkDeleteBrands
     }
 }
