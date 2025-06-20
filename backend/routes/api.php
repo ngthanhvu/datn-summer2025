@@ -17,6 +17,7 @@ use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\ProductImportController;
+use App\Models\Inventory;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -35,6 +36,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
+    Route::get('/inventory', [InventoryController::class, 'index']);
 
     Route::post('/blogs', [BlogsController::class, 'store']);
     Route::put('/blogs/{id}', [BlogsController::class, 'update']);

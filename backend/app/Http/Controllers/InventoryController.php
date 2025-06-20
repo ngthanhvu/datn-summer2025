@@ -12,7 +12,7 @@ class InventoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = \App\Models\Inventory::with([
+        $query = Inventory::with([
             'variant' => function ($q) {
                 $q->select('id', 'color', 'size', 'price', 'sku', 'product_id')
                     ->with([

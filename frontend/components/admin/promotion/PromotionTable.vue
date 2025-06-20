@@ -115,14 +115,24 @@
                             </span>
                         </td>
                         <td class="tw-px-4 tw-py-3">
-                            <div class="tw-flex tw-gap-2">
+                            <div class="tw-flex tw-items-center tw-gap-2">
                                 <NuxtLink :to="'/admin/promotions/' + item.id"
-                                    class="tw-bg-blue-600 tw-text-white tw-rounded tw-p-2 hover:tw-bg-blue-700 tw-transition-colors">
-                                    <i class="fas fa-edit"></i>
+                                    class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-blue-600 hover:tw-text-blue-900 hover:tw-bg-blue-50 tw-rounded-lg tw-transition-colors tw-duration-150"
+                                    title="Xem/Chỉnh sửa khuyến mãi">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                        </path>
+                                    </svg>
                                 </NuxtLink>
                                 <button @click="handleDelete(item)"
-                                    class="tw-bg-red-600 tw-text-white tw-rounded tw-p-2 hover:tw-bg-red-700 tw-transition-colors">
-                                    <i class="fas fa-trash"></i>
+                                    class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-red-600 hover:tw-text-red-900 hover:tw-bg-red-50 tw-rounded-lg tw-transition-colors tw-duration-150"
+                                    title="Xóa khuyến mãi">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
                                 </button>
                             </div>
                         </td>
