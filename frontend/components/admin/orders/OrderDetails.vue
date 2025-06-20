@@ -11,109 +11,295 @@
         </div>
 
         <template v-else-if="currentOrder">
-            <div class="info-group">
-                <h3>Thông tin khách hàng</h3>
-                <p><strong>Tên:</strong> {{ currentOrder.user?.username }}</p>
-                <p><strong>Email:</strong> {{ currentOrder.user?.email }}</p>
-                <p><strong>SĐT:</strong> {{ currentOrder.user?.phone }}</p>
-                <p><strong>Địa chỉ:</strong> {{ currentOrder.address?.full_name }}, {{ currentOrder.address?.phone }},
-                    {{ currentOrder.address?.street }}, {{ currentOrder.address?.ward }}, {{
-                        currentOrder.address?.district }}, {{ currentOrder.address?.province }}</p>
-            </div>
+            <div class="tw-space-y-8">
+                <!-- Trạng thái đơn hàng -->
+                <div class="tw-border-b tw-pb-6">
+                    <h4 class="tw-font-semibold tw-mb-4">Trạng thái đơn hàng</h4>
+                    <div class="tw-flex tw-items-center tw-justify-between">
+                        <div class="tw-flex tw-flex-col tw-items-center tw-relative">
+                            <div
+                                class="tw-w-10 tw-h-10 tw-rounded-full tw-bg-green-500 tw-flex tw-items-center tw-justify-center tw-text-white">
+                                <svg class="tw-w-6 tw-h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <span class="tw-text-sm tw-mt-2">Đặt hàng</span>
+                            <span class="tw-text-xs tw-text-gray-500">{{ formatDate(currentOrder.created_at) }}</span>
+                        </div>
+                        <div class="tw-flex-1 tw-h-0.5 tw-bg-gray-200 tw-mx-4"></div>
+                        <div class="tw-flex tw-flex-col tw-items-center tw-relative">
+                            <div :class="[
+                                'tw-w-10 tw-h-10 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-text-white',
+                                currentOrder.status === 'pending' ? 'tw-bg-yellow-500' : 'tw-bg-green-500'
+                            ]">
+                                <svg class="tw-w-6 tw-h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </div>
+                            <span class="tw-text-sm tw-mt-2">Xác nhận</span>
+                            <span class="tw-text-xs tw-text-gray-500">
+                                {{ currentOrder.status === 'pending' ? 'Đang chờ' : formatDate(currentOrder.updated_at)
+                                }}</span>
+                        </div>
+                        <div class="tw-flex-1 tw-h-0.5 tw-bg-gray-200 tw-mx-4"></div>
+                        <div class="tw-flex tw-flex-col tw-items-center tw-relative">
+                            <div :class="[
+                                'tw-w-10 tw-h-10 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-text-white',
+                                ['shipping', 'completed'].includes(currentOrder.status) ? 'tw-bg-green-500' : 'tw-bg-gray-300'
+                            ]">
+                                <svg class="tw-w-6 tw-h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                            </div>
+                            <span class="tw-text-sm tw-mt-2">Giao hàng</span>
+                            <span class="tw-text-xs tw-text-gray-500">{{ ['shipping',
+                                'completed'].includes(currentOrder.status) ? 'Đang giao' : 'Chờ xử lý' }}</span>
+                        </div>
+                        <div class="tw-flex-1 tw-h-0.5 tw-bg-gray-200 tw-mx-4"></div>
+                        <div v-if="currentOrder.status === 'completed'"
+                            class="tw-flex tw-flex-col tw-items-center tw-relative">
+                            <div :class="[
+                                'tw-w-10 tw-h-10 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-text-white',
+                                'tw-bg-green-500'
+                            ]">
+                                <svg class="tw-w-6 tw-h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <span class="tw-text-sm tw-mt-2">Hoàn thành</span>
+                            <span class="tw-text-xs tw-text-gray-500">
+                                {{ formatDate(currentOrder.updated_at) }}
+                            </span>
+                        </div>
+                        <div v-else-if="currentOrder.status === 'cancelled'"
+                            class="tw-flex tw-flex-col tw-items-center tw-relative">
+                            <div :class="[
+                                'tw-w-10 tw-h-10 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-text-white',
+                                'tw-bg-red-500'
+                            ]">
+                                <svg class="tw-w-6 tw-h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <span class="tw-text-sm tw-mt-2">Đã huỷ</span>
+                            <span class="tw-text-xs tw-text-gray-500">
+                                {{ formatDate(currentOrder.updated_at) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="info-group">
-                <h3>Thông tin đơn hàng</h3>
-                <p><strong>Mã đơn:</strong> #{{ currentOrder.id }}</p>
-                <p><strong>Ngày đặt:</strong> {{ new Date(currentOrder.created_at).toLocaleDateString('vi-VN') }}</p>
-                <p><strong>Phương thức thanh toán:</strong> {{ getPaymentMethod(currentOrder.payment_method) }}</p>
-                <p><strong>Trạng thái thanh toán:</strong>
-                    <span :class="[
-                        'status-badge',
-                        {
-                            'active': currentOrder.payment_status === 'paid',
-                            'inactive': currentOrder.payment_status === 'pending' || currentOrder.payment_status === 'failed' || currentOrder.payment_status === 'canceled'
-                        }
-                    ]">
-                        {{ getPaymentStatus(currentOrder.payment_status) }}
-                    </span>
-                </p>
-            </div>
+                <!-- Thông tin khách hàng và thanh toán -->
+                <div class="tw-grid tw-grid-cols-2 tw-gap-6">
+                    <div class="tw-bg-gray-50 tw-p-4 tw-rounded-lg">
+                        <h4 class="tw-font-semibold tw-mb-4">Thông tin khách hàng</h4>
+                        <div class="tw-space-y-2">
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                {{ currentOrder.user?.username }}
+                            </p>
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                {{ currentOrder.user?.email }}
+                            </p>
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                {{ currentOrder.user?.phone }}
+                            </p>
+                        </div>
+                    </div>
 
-            <div class="info-group">
-                <h3>Sản phẩm</h3>
-                <table class="products-table">
-                    <thead>
-                        <tr>
-                            <th>Sản phẩm</th>
-                            <th>Phân loại</th>
-                            <th>Số lượng</th>
-                            <th>Đơn giá</th>
-                            <th>Thành tiền</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="item in currentOrder.orderDetails" :key="item.id">
-                            <td>
-                                <div class="tw-flex tw-items-center">
-                                    <img :src="item.variant?.product?.mainImage?.image_path"
-                                        :alt="item.variant?.product?.name"
-                                        class="tw-w-12 tw-h-12 tw-object-cover tw-rounded">
-                                    <div class="tw-ml-3">
-                                        <div class="tw-font-medium">{{ item.variant?.product?.name }}</div>
-                                        <div class="tw-text-xs tw-text-gray-500">SKU: {{ item.variant?.sku }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="tw-text-sm">
-                                    <span class="tw-text-gray-500">Màu:</span> {{ item.variant?.color }}
-                                </div>
-                                <div class="tw-text-sm">
-                                    <span class="tw-text-gray-500">Size:</span> {{ item.variant?.size }}
-                                </div>
-                            </td>
-                            <td>{{ item.quantity }}</td>
-                            <td>{{ formatPrice(item.price) }}</td>
-                            <td>{{ formatPrice(item.total_price) }}</td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="4" class="tw-text-right">Tổng tiền hàng:</td>
-                            <td>{{ formatPrice(currentOrder.total_price) }}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="4" class="tw-text-right">Phí vận chuyển:</td>
-                            <td>{{ formatPrice(currentOrder.shipping_fee || 0) }}</td>
-                        </tr>
-                        <tr v-if="currentOrder.discount_price > 0">
-                            <td colspan="4" class="tw-text-right">Giảm giá:</td>
-                            <td>-{{ formatPrice(currentOrder.discount_price) }}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="4" class="tw-text-right tw-font-bold">Thành tiền:</td>
-                            <td class="tw-font-bold">{{ formatPrice(currentOrder.final_price) }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+                    <div class="tw-bg-gray-50 tw-p-4 tw-rounded-lg">
+                        <h4 class="tw-font-semibold tw-mb-4">Thông tin giao hàng</h4>
+                        <div class="tw-space-y-2">
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                {{ currentOrder.address?.full_name }}
+                            </p>
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                {{ currentOrder.address?.phone }}
+                            </p>
+                            <p class="tw-flex tw-items-start">
+                                {{ getFullAddress(currentOrder.address) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="order-status">
-                <h3>Cập nhật trạng thái</h3>
-                <Form :fields="[{
-                    name: 'status',
-                    label: '',
-                    type: 'select',
-                    options: statusOptions
-                }]" :initial-data="{ status: currentOrder.status }" @submit="handleUpdateStatus" />
+                <!-- Thông tin thanh toán -->
+                <div class="tw-bg-gray-50 tw-p-4 tw-rounded-lg">
+                    <h4 class="tw-font-semibold tw-mb-4">Thông tin thanh toán</h4>
+                    <div class="tw-grid tw-grid-cols-3 tw-gap-4">
+                        <div class="tw-space-y-2">
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                Phương thức: {{ getPaymentMethod(currentOrder.payment_method) }}
+                            </p>
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Trạng thái:
+                                <span :class="badgeClass(currentOrder.payment_status)" class="tw-ml-2">
+                                    {{ getPaymentStatus(currentOrder.payment_status) }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="tw-space-y-2">
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                Tổng sản phẩm:
+                                <span class="tw-ml-2 tw-font-medium tw-text-blue-600">{{ getTotalItems() }} sản
+                                    phẩm</span>
+                            </p>
+                            <p class="tw-flex tw-items-center">
+                                Mã tra cứu:
+                                <span class="tw-ml-2 tw-font-medium tw-text-blue-600">{{ currentOrder?.tracking_code ||
+                                    'Chưa có mã' }}</span>
+                            </p>
+                        </div>
+                        <div class="tw-space-y-2">
+                            <p class="tw-flex tw-items-center">
+                                <svg class="tw-w-5 tw-h-5 tw-text-gray-500 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Ngày đặt: {{ formatDate(currentOrder.created_at) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sản phẩm -->
+                <div>
+                    <h4 class="tw-font-semibold tw-mb-4">Sản phẩm ({{ getTotalItems() }} sản phẩm)</h4>
+
+                    <div v-if="!getOrderDetails() || getOrderDetails().length === 0"
+                        class="tw-bg-yellow-100 tw-border tw-border-yellow-400 tw-text-yellow-700 tw-px-4 tw-py-3 tw-rounded tw-mb-4">
+                        <p class="tw-font-medium">Không có dữ liệu sản phẩm</p>
+                    </div>
+
+                    <div v-else class="tw-space-y-4">
+                        <div v-for="item in getOrderDetails()" :key="item.id"
+                            class="tw-flex tw-items-center tw-gap-4 tw-p-4 tw-bg-gray-50 tw-rounded">
+                            <img :src="item.variant?.product?.main_image?.image_path"
+                                class="tw-w-20 tw-h-20 tw-object-cover tw-rounded" :alt="item.variant?.product?.name" />
+                            <div class="tw-flex-1">
+                                <h5 class="tw-font-medium">
+                                    <template v-if="item.variant?.product?.slug">
+                                        <a :href="`/products/${item.variant.product.slug}`" target="_blank"
+                                            class="tw-text-primary tw-underline">
+                                            {{ item.variant?.product?.name }}
+                                        </a>
+                                    </template>
+                                    <template v-else>
+                                        {{ item.variant?.product?.name }}
+                                    </template>
+                                </h5>
+                                <div class="tw-grid tw-grid-cols-2 tw-gap-2 tw-mt-2">
+                                    <p class="tw-text-gray-600">Màu: {{ item.variant?.color }}</p>
+                                    <p class="tw-text-gray-600">Size: {{ item.variant?.size }}</p>
+                                    <p class="tw-text-gray-600">SKU: {{ item.variant?.sku }}</p>
+                                    <p class="tw-text-gray-600">Mã SP: {{ item.variant?.product?.id }}</p>
+                                </div>
+                            </div>
+                            <div class="tw-text-right tw-min-w-[120px]">
+                                <div
+                                    class="tw-bg-blue-100 tw-text-blue-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-sm tw-font-medium tw-mb-2">
+                                    Số lượng: {{ item.quantity }}
+                                </div>
+                                <p class="tw-font-medium">{{ formatPrice(item.price) }}đ</p>
+                                <p class="tw-text-gray-600">Tổng: {{ formatPrice(item.total_price) }}đ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tổng tiền -->
+                <div class="tw-border-t tw-pt-4">
+                    <div class="tw-space-y-2">
+                        <div class="tw-flex tw-justify-between">
+                            <span class="tw-text-gray-600">Tổng tiền hàng</span>
+                            <span>{{ formatPrice(currentOrder.total_price) }}đ</span>
+                        </div>
+                        <div class="tw-flex tw-justify-between">
+                            <span class="tw-text-gray-600">Phí vận chuyển</span>
+                            <span>{{ formatPrice(currentOrder.shipping_fee || 0) }}đ</span>
+                        </div>
+                        <div v-if="currentOrder.discount_price > 0" class="tw-flex tw-justify-between">
+                            <span class="tw-text-gray-600">Giảm giá</span>
+                            <span>-{{ formatPrice(currentOrder.discount_price) }}đ</span>
+                        </div>
+                        <div class="tw-flex tw-justify-between tw-font-bold tw-text-lg tw-border-t tw-pt-2">
+                            <span>Thành tiền</span>
+                            <span>{{ formatPrice(currentOrder.final_price) }}đ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cập nhật trạng thái -->
+                <div class="order-status">
+                    <h3>Cập nhật trạng thái</h3>
+                    <div class="tw-flex tw-items-center tw-gap-4 tw-mb-2">
+                        <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
+                            <option v-for="opt in statusOptions" :value="opt.value" :key="opt.value">{{ opt.label }}
+                            </option>
+                        </select>
+                        <select v-model="selectedPaymentStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
+                            <option v-for="opt in paymentStatusOptions" :value="opt.value" :key="opt.value">{{ opt.label
+                                }}</option>
+                        </select>
+                        <button
+                            @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })"
+                            class="tw-bg-primary tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-primary-dark">
+                            Gửi
+                        </button>
+                    </div>
+                </div>
             </div>
         </template>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import Form from '~/components/admin/Form.vue'
+import { ref, onMounted, watch } from 'vue'
 import { useOrder } from '~/composables/useOrder'
 
 const props = defineProps({
@@ -143,80 +329,102 @@ const statusOptions = [
     { value: 'cancelled', label: 'Đã hủy' }
 ]
 
+const paymentStatusOptions = [
+    { value: 'pending', label: 'Chờ thanh toán' },
+    { value: 'paid', label: 'Đã thanh toán' },
+    { value: 'failed', label: 'Thanh toán thất bại' },
+    { value: 'refunded', label: 'Đã hoàn tiền' },
+    { value: 'canceled', label: 'Đã huỷ' }
+]
+
+const selectedStatus = ref(currentOrder.value?.status || 'pending')
+const selectedPaymentStatus = ref(currentOrder.value?.payment_status || 'pending')
+
+watch(() => currentOrder.value?.status, (val) => {
+    selectedStatus.value = val
+})
+
+watch(() => currentOrder.value?.payment_status, (val) => {
+    selectedPaymentStatus.value = val
+})
+
 onMounted(async () => {
     await getOrder(props.orderId)
+    console.log('Current Order:', currentOrder.value)
+    console.log('Order Details:', currentOrder.value?.orderDetails)
 })
 
 const handleUpdateStatus = async (data) => {
     try {
-        await updateOrderStatus(props.orderId, data.status)
+        await updateOrderStatus(props.orderId, data.status, data.payment_status)
         await getOrder(props.orderId)
     } catch (err) {
         console.error('Failed to update order status:', err)
     }
+}
+
+const formatDate = (date) => {
+    if (!date) return ''
+    return new Date(date).toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    })
+}
+
+const getFullAddress = (address) => {
+    if (!address) return ''
+    const parts = [
+        address.street,
+        address.hamlet,
+        address.ward,
+        address.district,
+        address.province
+    ].filter(Boolean)
+    return parts.join(', ')
+}
+
+const badgeClass = (status) => {
+    switch (status) {
+        case 'pending':
+            return 'tw-bg-yellow-100 tw-text-yellow-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'processing':
+            return 'tw-bg-blue-100 tw-text-blue-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'shipping':
+            return 'tw-bg-purple-100 tw-text-purple-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'completed':
+            return 'tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'cancelled':
+            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'paid':
+            return 'tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'failed':
+            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'canceled':
+            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'refunded':
+            return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        default:
+            return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+    }
+}
+
+const getTotalItems = () => {
+    const details = currentOrder.value?.orderDetails || currentOrder.value?.order_details
+    if (!details) return 0
+    return details.reduce((total, item) => total + item.quantity, 0)
+}
+
+const getOrderDetails = () => {
+    return currentOrder.value?.orderDetails || currentOrder.value?.order_details || []
 }
 </script>
 
 <style scoped>
 .order-info {
     padding: 1.5rem;
-}
-
-.info-group {
-    margin-bottom: 2rem;
-}
-
-.info-group h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 1rem;
-}
-
-.info-group p {
-    margin-bottom: 0.5rem;
-    color: #4b5563;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.status-badge.active {
-    background-color: #f0fdf4;
-    color: #15803d;
-}
-
-.status-badge.inactive {
-    background-color: #fef2f2;
-    color: #dc2626;
-}
-
-.products-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.products-table th,
-.products-table td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.products-table th {
-    font-weight: 500;
-    color: #6b7280;
-    background-color: #f9fafb;
-}
-
-.products-table tfoot td {
-    font-weight: 600;
-    color: #111827;
 }
 
 .order-status {

@@ -160,9 +160,9 @@ class OrdersController extends Controller
         }
     }
 
-    public function show(Orders $orders)
+    public function show($id)
     {
-        $order = $orders->load(['user', 'address', 'orderDetails.variant.product.mainImage']);
+        $order = Orders::with(['user', 'address', 'orderDetails.variant.product.mainImage'])->findOrFail($id);
 
         if ($order->orderDetails) {
             foreach ($order->orderDetails as $orderDetail) {
@@ -243,6 +243,26 @@ class OrdersController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,processing,shipping,completed,cancelled',
+            'payment_status' => 'nullable|in:pending,paid,failed,refunded,canceled'
+        ]);
+
+        $order = Orders::findOrFail($id);
+        $order->status = $request->status;
+        if ($request->has('payment_status')) {
+            $order->payment_status = $request->payment_status;
+        }
+        $order->save();
+
+        return response()->json([
+            'message' => 'Cập nhật trạng thái thành công',
+            'order' => $order
+        ]);
     }
 
     private function generateUniqueTrackingCode()

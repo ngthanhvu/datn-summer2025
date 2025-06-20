@@ -50,6 +50,10 @@
                         </th>
                         <th
                             class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            Mã tra cứu
+                        </th>
+                        <th
+                            class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                             Trạng thái
                         </th>
                         <th
@@ -57,7 +61,7 @@
                             Thanh toán
                         </th>
                         <th
-                            class="tw-px-4 tw-py-3 tw-text-right tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                            class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                             Thao tác
                         </th>
                     </tr>
@@ -75,12 +79,17 @@
                         <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">
                             {{ formatPrice(order.final_price) }}
                         </td>
+                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">
+                            <span class="tw-font-mono tw-text-xs tw-bg-gray-100 tw-px-2 tw-py-1 tw-rounded">{{
+                                order.tracking_code || '-' }}</span>
+                        </td>
                         <td class="tw-px-4 tw-py-3">
                             <span :class="[
                                 'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
                                 {
                                     'tw-bg-yellow-100 tw-text-yellow-700': order.status === 'pending',
                                     'tw-bg-blue-100 tw-text-blue-700': order.status === 'processing',
+                                    'tw-bg-purple-100 tw-text-purple-700': order.status === 'shipping',
                                     'tw-bg-green-100 tw-text-green-700': order.status === 'completed',
                                     'tw-bg-red-100 tw-text-red-700': order.status === 'cancelled'
                                 }
@@ -104,7 +113,7 @@
                                 {{ getPaymentMethod(order.payment_method) }}
                             </div>
                         </td>
-                        <td class="tw-px-4 tw-py-3 tw-text-right tw-text-sm tw-font-medium">
+                        <td class="tw-px-4 tw-py-3 tw-text-center tw-text-sm tw-font-medium">
                             <button @click="handleView(order)" class="tw-text-primary tw-hover:tw-text-primary-dark">
                                 <i class="fas fa-eye"></i>
                             </button>

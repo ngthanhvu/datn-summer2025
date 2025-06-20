@@ -64,7 +64,7 @@ export const useOrder = () => {
             error.value = err.response?.data?.message || err.message
             console.error('Create order error:', err.response?.data || err.message)
             if (router) {
-                 router.push({
+                router.push({
                     path: '/status',
                     query: {
                         status: 'failed',
@@ -93,11 +93,13 @@ export const useOrder = () => {
         }
     }
 
-    const updateOrderStatus = async (id, status) => {
+    const updateOrderStatus = async (id, status, payment_status) => {
         loading.value = true
         error.value = null
         try {
-            const res = await API.put(`/api/orders/${id}/status`, { status })
+            const payload = { status }
+            if (payment_status !== undefined) payload.payment_status = payment_status
+            const res = await API.put(`/api/orders/${id}/status`, payload)
             return res.data
         } catch (err) {
             error.value = err.response?.data?.message || err.message
