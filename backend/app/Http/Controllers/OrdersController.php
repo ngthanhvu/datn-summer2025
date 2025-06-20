@@ -124,6 +124,15 @@ class OrdersController extends Controller
                     ->update([
                         'quantity' => DB::raw('quantity - ' . $item['quantity'])
                     ]);
+
+                // Ghi nhận lịch sử xuất kho
+                \App\Models\InventoryMovement::create([
+                    'variant_id' => $item['variant_id'],
+                    'type' => 'export',
+                    'quantity' => $item['quantity'],
+                    'note' => 'Xuất kho khi đặt hàng',
+                    'user_id' => Auth::id(),
+                ]);
             }
 
             DB::table('carts')

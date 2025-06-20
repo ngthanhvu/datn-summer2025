@@ -1,9 +1,7 @@
 <template>
     <div class="tw-p-6">
         <div class="tw-mb-6">
-            <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Nhập kho</h1>
-
-            <!-- Import Form -->
+            <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Nhập/Xuất kho</h1>
             <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-md tw-mb-6">
                 <form @submit.prevent="handleImport" class="tw-space-y-4">
                     <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
@@ -30,65 +28,64 @@
                         </div>
                     </div>
                     <button type="submit"
-                        class="tw-bg-blue-500 tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-blue-600">
+                        class="tw-bg-[#3BB77E] tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-[#5ebd91]">
                         Nhập kho
                     </button>
                 </form>
             </div>
-
-            <!-- Recent Imports Table -->
+            <!-- Tabs for Import/Export History -->
+            <div class="tw-mb-4">
+                <button @click="activeTab = 'import'" :class="tabClass('import')">Lịch sử nhập kho</button>
+                <button @click="activeTab = 'export'" :class="tabClass('export')">Lịch sử xuất kho</button>
+            </div>
             <div class="tw-bg-white tw-rounded-lg tw-shadow-md">
                 <div class="tw-p-4">
                     <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
-                        <h2 class="tw-text-xl tw-font-semibold">Lịch sử nhập kho</h2>
+                        <h2 class="tw-text-xl tw-font-semibold">
+                            {{ activeTab === 'import' ? 'Lịch sử nhập kho' : 'Lịch sử xuất kho' }}
+                        </h2>
                         <div class="tw-flex tw-gap-2">
-                            <select v-model="filters.type" class="tw-border tw-rounded-md tw-p-2">
-                                <option value="all">Tất cả</option>
-                                <option value="import">Nhập kho</option>
-                                <option value="export">Xuất kho</option>
-                                <option value="adjustment">Điều chỉnh</option>
-                            </select>
                             <input type="date" v-model="filters.date" class="tw-border tw-rounded-md tw-p-2">
                         </div>
                     </div>
                     <div class="tw-overflow-x-auto">
-                        <table class="tw-min-w-full">
+                        <table class="tw-min-w-full tw-text-sm">
                             <thead>
                                 <tr class="tw-bg-gray-50">
                                     <th
-                                        class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                                         Thời gian</th>
                                     <th
-                                        class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                                         Sản phẩm</th>
                                     <th
-                                        class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                                         Loại</th>
                                     <th
-                                        class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                                         Số lượng</th>
                                     <th
-                                        class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                                         Ghi chú</th>
                                     <th
-                                        class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
                                         Người thực hiện</th>
+                                    <th
+                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
+                                        Tải PDF</th>
                                 </tr>
                             </thead>
                             <tbody class="tw-divide-y tw-divide-gray-200">
                                 <tr v-for="movement in filteredMovements" :key="movement.id"
                                     class="hover:tw-bg-gray-50">
-                                    <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap">
-                                        {{ movement.created_at ? formatDate(movement.created_at) : '-' }}
-                                    </td>
-                                    <td class="tw-px-6 tw-py-4">
+                                    <td class="tw-px-3 tw-py-2 tw-whitespace-nowrap">{{ movement.created_at ?
+                                        formatDate(movement.created_at) : '-' }}</td>
+                                    <td class="tw-px-3 tw-py-2">
                                         <div class="tw-font-medium">{{ movement.variant.product.name }}</div>
-                                        <div class="tw-text-sm tw-text-gray-500">
-                                            {{ movement.variant.color }} - {{ movement.variant.size }} (SKU: {{
-                                                movement.variant.sku }})
-                                        </div>
+                                        <div class="tw-text-xs tw-text-gray-500">{{ movement.variant.color }} - {{
+                                            movement.variant.size }} (SKU: {{ movement.variant.sku }})</div>
                                     </td>
-                                    <td class="tw-px-6 tw-py-4">
+                                    <td class="tw-px-3 tw-py-2">
                                         <span :class="{
                                             'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium': true,
                                             'tw-bg-green-100 tw-text-green-800': movement.type === 'import',
@@ -98,7 +95,7 @@
                                             {{ getMovementTypeLabel(movement.type) }}
                                         </span>
                                     </td>
-                                    <td class="tw-px-6 tw-py-4">
+                                    <td class="tw-px-3 tw-py-2">
                                         <span :class="{
                                             'tw-font-medium': true,
                                             'tw-text-green-600': movement.type === 'import',
@@ -109,17 +106,22 @@
                                             }}{{ movement.quantity }}
                                         </span>
                                     </td>
-                                    <td class="tw-px-6 tw-py-4">{{ movement.note || '-' }}</td>
-                                    <td class="tw-px-6 tw-py-4">
+                                    <td class="tw-px-3 tw-py-2">{{ movement.note || '-' }}</td>
+                                    <td class="tw-px-3 tw-py-2">
                                         <div class="tw-flex tw-items-center">
-                                            <div class="tw-text-sm tw-font-medium">
-                                                {{ movement.user ? movement.user.username : 'Không xác định' }}
-                                            </div>
+                                            <div class="tw-text-xs tw-font-medium">{{ movement.user ?
+                                                movement.user.username : 'Không xác định' }}</div>
                                         </div>
+                                    </td>
+                                    <td class="tw-px-3 tw-py-2">
+                                        <button @click="downloadMovementPdf(movement.id)"
+                                            class="tw-bg-[#3BB77E] tw-text-white tw-px-2 tw-py-1 tw-rounded hover:tw-bg-[#5ebd91] tw-text-xs">
+                                            Tải PDF
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredMovements.length === 0">
-                                    <td colspan="7" class="tw-px-4 tw-py-3 tw-text-center tw-text-gray-500">Không có dữ
+                                    <td colspan="7" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">Không có dữ
                                         liệu</td>
                                 </tr>
                             </tbody>
@@ -143,12 +145,14 @@
 </template>
 
 <script setup>
+import jsPDF from 'jspdf'
+
 definePageMeta({
     layout: 'admin',
     middleware: 'admin'
 })
 
-const { getInventories, updateStock, getMovements, getVariants } = useInventories()
+const { getInventories, updateStock, getMovements, getVariants, downloadMovementPdf } = useInventories()
 const variants = ref([])
 const recentImports = ref([])
 const importForm = ref({
@@ -157,10 +161,21 @@ const importForm = ref({
     note: ''
 })
 
+const activeTab = ref('import')
+
+const tabClass = (tab) => {
+    return [
+        'tw-px-4 tw-py-2 tw-rounded-t-md tw-font-semibold',
+        activeTab.value === tab ? 'tw-bg-[#3BB77E] tw-text-white' : 'tw-bg-white tw-text-gray-700',
+        'tw-mr-2'
+    ].join(' ')
+}
+
 const filters = ref({
-    type: 'all',
     date: ''
 })
+
+const recentMovements = ref([])
 
 const fetchVariants = async () => {
     try {
@@ -171,14 +186,12 @@ const fetchVariants = async () => {
     }
 }
 
-const fetchRecentImports = async () => {
+const fetchRecentMovements = async () => {
     try {
-        const data = await getMovements({
-            limit: 10
-        })
-        recentImports.value = data
+        const data = await getMovements({ limit: 20 })
+        recentMovements.value = data
     } catch (error) {
-        console.error('Error fetching recent imports:', error)
+        console.error('Error fetching movements:', error)
     }
 }
 
@@ -201,7 +214,7 @@ const handleImport = async () => {
             note: ''
         }
 
-        await fetchRecentImports()
+        await fetchRecentMovements()
 
         alert('Nhập kho thành công')
     } catch (error) {
@@ -234,38 +247,38 @@ const getMovementTypeLabel = (type) => {
 }
 
 const filteredMovements = computed(() => {
-    let result = recentImports.value
-
-    result = result.filter(m => m.type === 'import')
-
-    if (filters.value.type !== 'all') {
-        result = result.filter(m => m.type === filters.value.type)
-    }
-
+    let result = recentMovements.value.filter(m => m.type === activeTab.value)
     if (filters.value.date) {
         const filterDate = new Date(filters.value.date).toDateString()
         result = result.filter(m => new Date(m.created_at).toDateString() === filterDate)
     }
-
     return result
 })
 
 const loadMore = async () => {
     try {
-        const currentLength = recentImports.value.length
+        const currentLength = recentMovements.value.length
         const newData = await getMovements({
-            type: filters.value.type === 'all' ? undefined : filters.value.type,
+            type: activeTab.value,
             limit: 10,
             offset: currentLength
         })
-        recentImports.value = [...recentImports.value, ...newData]
+        recentMovements.value = [...recentMovements.value, ...newData]
     } catch (error) {
         console.error('Error loading more movements:', error)
     }
 }
 
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+function toVietnameseText(number) {
+    return number + ' đồng chẵn'
+}
+
 onMounted(() => {
     fetchVariants()
-    fetchRecentImports()
+    fetchRecentMovements()
 })
 </script>

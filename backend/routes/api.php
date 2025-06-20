@@ -37,6 +37,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
     Route::get('/inventory', [InventoryController::class, 'index']);
+    Route::get('inventory/movement/{id}/pdf', [InventoryController::class, 'exportMovementPdf']);
 
     Route::post('/blogs', [BlogsController::class, 'store']);
     Route::put('/blogs/{id}', [BlogsController::class, 'update']);
