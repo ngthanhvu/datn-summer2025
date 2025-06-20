@@ -14,67 +14,79 @@
 
         <!-- Filters section -->
         <div class="tw-flex tw-gap-4 tw-mb-4">
-            <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
+            <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-w-40">
                 <option value="">Tất cả trạng thái</option>
                 <option value="draft">Bản nháp</option>
                 <option value="published">Đã xuất bản</option>
                 <option value="archived">Lưu trữ</option>
             </select>
 
-            <input v-model="searchQuery" type="text" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56"
+            <input v-model="searchQuery" type="text" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-w-40"
                 placeholder="Tìm kiếm bài viết..." />
         </div>
 
         <!-- Table section -->
         <div class="tw-overflow-x-auto">
-            <table class="tw-w-full tw-text-left tw-bg-white">
+            <table class="tw-w-full tw-text-left tw-bg-white tw-text-sm">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
-                        <th class="tw-px-4 tw-py-3">Hình ảnh</th>
-                        <th class="tw-px-4 tw-py-3">Tên bài viết</th>
-                        <th class="tw-px-4 tw-py-3">Mô tả</th>
-                        <th class="tw-px-4 tw-py-3">Tác giả</th>
-                        <th class="tw-px-4 tw-py-3">Trạng thái</th>
-                        <th class="tw-px-4 tw-py-3">Ngày tạo</th>
-                        <th class="tw-px-4 tw-py-3">Hành động</th>
+                        <th class="tw-px-2 tw-py-1">Hình ảnh</th>
+                        <th class="tw-px-2 tw-py-1">Tên bài viết</th>
+                        <th class="tw-px-2 tw-py-1">Mô tả</th>
+                        <th class="tw-px-2 tw-py-1">Tác giả</th>
+                        <th class="tw-px-2 tw-py-1">Trạng thái</th>
+                        <th class="tw-px-2 tw-py-1">Ngày tạo</th>
+                        <th class="tw-px-2 tw-py-1">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="blog in blogs" :key="blog.id" class="tw-border-b hover:tw-bg-gray-50">
-                        <td class="tw-px-4 tw-py-3">
+                        <td class="tw-px-2 tw-py-1">
                             <img v-if="blog.image" :src="getImageUrl(blog.image)"
-                                class="tw-w-14 tw-h-14 tw-object-cover tw-rounded" :alt="blog.title" />
+                                class="tw-w-10 tw-h-10 tw-object-cover tw-rounded" :alt="blog.title" />
                             <div v-else
-                                class="tw-w-14 tw-h-14 tw-bg-gray-200 tw-rounded tw-flex tw-items-center tw-justify-center">
+                                class="tw-w-10 tw-h-10 tw-bg-gray-200 tw-rounded tw-flex tw-items-center tw-justify-center">
                                 <span class="tw-text-gray-400">No Image</span>
                             </div>
                         </td>
-                        <td class="tw-px-4 tw-py-3 tw-font-medium">
+                        <td class="tw-px-2 tw-py-1 tw-font-medium">
                             {{ blog.title }}
                         </td>
-                        <td class="tw-px-4 tw-py-3 tw-max-w-xs tw-truncate">
+                        <td class="tw-px-2 tw-py-1 tw-max-w-xs tw-truncate">
                             {{ blog.description }}
                         </td>
-                        <td class="tw-px-4 tw-py-3">
+                        <td class="tw-px-2 tw-py-1">
                             {{ blog.author?.username || 'Unknown' }}
                         </td>
-                        <td class="tw-px-4 tw-py-3">
+                        <td class="tw-px-2 tw-py-1">
                             <span :class="getStatusBadgeClass(blog.status)">
                                 {{ getStatusLabel(blog.status) }}
                             </span>
                         </td>
-                        <td class="tw-px-4 tw-py-3">
+                        <td class="tw-px-2 tw-py-1">
                             {{ formatDate(blog.created_at) }}
                         </td>
-                        <td class="tw-px-4 tw-py-3 tw-flex tw-gap-2">
-                            <button @click="handleEdit(blog)"
-                                class="tw-bg-teal-600 tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-teal-700">
-                                Sửa
-                            </button>
-                            <button @click="handleDelete(blog)"
-                                class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100">
-                                Xóa
-                            </button>
+                        <td class="tw-px-2 tw-py-1">
+                            <div class="tw-flex tw-items-center tw-gap-2">
+                                <button @click="handleEdit(blog)"
+                                    class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-blue-600 hover:tw-text-blue-900 hover:tw-bg-blue-50 tw-rounded-lg tw-transition-colors tw-duration-150"
+                                    title="Chỉnh sửa bài viết">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <button @click="handleDelete(blog)"
+                                    class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-red-600 hover:tw-text-red-900 hover:tw-bg-red-50 tw-rounded-lg tw-transition-colors tw-duration-150"
+                                    title="Xóa bài viết">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>

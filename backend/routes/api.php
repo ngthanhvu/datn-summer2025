@@ -29,6 +29,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/blogs', [BlogsController::class, 'store']);
     Route::put('/blogs/{id}', [BlogsController::class, 'update']);
     Route::delete('/blogs/{id}', [BlogsController::class, 'destroy']);
+    Route::get('/blogs/{id}', [BlogsController::class, 'show']);
 });
 
 Route::get('/blogs', [BlogsController::class, 'index']);
@@ -73,4 +74,3 @@ Route::put('/addresses/{id}', [AddressController::class, 'update']);
 Route::prefix('admin')->group(function () {
     Route::put('blogs/{id}', [BlogsController::class, 'update']);
 });
-
