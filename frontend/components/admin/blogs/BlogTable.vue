@@ -1,81 +1,92 @@
 <template>
     <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
+        <!-- Loading state -->
+        <div v-if="loading" class="tw-flex tw-justify-center tw-py-8">
+            <div class="tw-animate-spin tw-rounded-full tw-h-12 tw-w-12 tw-border-t-2 tw-border-b-2 tw-border-primary">
+            </div>
+        </div>
+
+        <!-- Error state -->
+        <div v-if="error"
+            class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-4">
+            {{ error }}
+        </div>
+
         <!-- Filters section -->
         <div class="tw-flex tw-gap-4 tw-mb-4">
-            <select v-model="selectedCategory" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
-                <option value="">Tất cả danh mục</option>
-                <option value="Photography">Photography</option>
-                <option value="Architecture">Architecture</option>
-                <option value="Technology">Technology</option>
-            </select>
-
-            <input v-model="selectedDate" type="text" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56"
-                placeholder="dd/mm/yyyy" />
-
-            <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2 tw-w-56">
+            <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-w-40">
                 <option value="">Tất cả trạng thái</option>
-                <option value="active">Hoạt động</option>
+                <option value="draft">Bản nháp</option>
+                <option value="published">Đã xuất bản</option>
                 <option value="archived">Lưu trữ</option>
-                <option value="disabled">Vô hiệu hóa</option>
             </select>
+
+            <input v-model="searchQuery" type="text" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-w-40"
+                placeholder="Tìm kiếm bài viết..." />
         </div>
 
         <!-- Table section -->
         <div class="tw-overflow-x-auto">
-            <table class="tw-w-full tw-text-left tw-bg-white">
+            <table class="tw-w-full tw-text-left tw-bg-white tw-text-sm">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
-                        <th class="tw-px-4 tw-py-3">
-                            <input type="checkbox" :checked="allSelected" @change="toggleSelectAll" />
-                        </th>
-                        <th class="tw-px-4 tw-py-3">Hình ảnh</th>
-                        <th class="tw-px-4 tw-py-3">Tên bài viết</th>
-                        <th class="tw-px-4 tw-py-3">Mô tả</th>
-                        <th class="tw-px-4 tw-py-3">Danh mục</th>
-                        <th class="tw-px-4 tw-py-3">Trạng thái</th>
-                        <th class="tw-px-4 tw-py-3">Lượt xem</th>
-                        <th class="tw-px-4 tw-py-3">Ngày tạo</th>
-                        <th class="tw-px-4 tw-py-3">Hành động</th>
+                        <th class="tw-px-2 tw-py-1">Hình ảnh</th>
+                        <th class="tw-px-2 tw-py-1">Tên bài viết</th>
+                        <th class="tw-px-2 tw-py-1">Mô tả</th>
+                        <th class="tw-px-2 tw-py-1">Tác giả</th>
+                        <th class="tw-px-2 tw-py-1">Trạng thái</th>
+                        <th class="tw-px-2 tw-py-1">Ngày tạo</th>
+                        <th class="tw-px-2 tw-py-1">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(blog, idx) in filteredBlogs" :key="idx" class="tw-border-b hover:tw-bg-gray-50">
-                        <td class="tw-px-4 tw-py-3">
-                            <input type="checkbox" v-model="selectedItems" :value="blog" />
+                    <tr v-for="blog in blogs" :key="blog.id" class="tw-border-b hover:tw-bg-gray-50">
+                        <td class="tw-px-2 tw-py-1">
+                            <img v-if="blog.image" :src="getImageUrl(blog.image)"
+                                class="tw-w-10 tw-h-10 tw-object-cover tw-rounded" :alt="blog.title" />
+                            <div v-else
+                                class="tw-w-10 tw-h-10 tw-bg-gray-200 tw-rounded tw-flex tw-items-center tw-justify-center">
+                                <span class="tw-text-gray-400">No Image</span>
+                            </div>
                         </td>
-                        <td class="tw-px-4 tw-py-3">
-                            <img :src="blog.image" class="tw-w-14 tw-h-14 tw-object-cover tw-rounded"
-                                :alt="blog.name" />
+                        <td class="tw-px-2 tw-py-1 tw-font-medium">
+                            {{ blog.title }}
                         </td>
-                        <td class="tw-px-4 tw-py-3 tw-font-medium">
-                            {{ blog.name }}
-                        </td>
-                        <td class="tw-px-4 tw-py-3 tw-max-w-xs tw-truncate">
+                        <td class="tw-px-2 tw-py-1 tw-max-w-xs tw-truncate">
                             {{ blog.description }}
                         </td>
-                        <td class="tw-px-4 tw-py-3">
-                            {{ blog.category }}
+                        <td class="tw-px-2 tw-py-1">
+                            {{ blog.author?.username || 'Unknown' }}
                         </td>
-                        <td class="tw-px-4 tw-py-3">
+                        <td class="tw-px-2 tw-py-1">
                             <span :class="getStatusBadgeClass(blog.status)">
-                                {{ blog.statusLabel }}
+                                {{ getStatusLabel(blog.status) }}
                             </span>
                         </td>
-                        <td class="tw-px-4 tw-py-3">
-                            {{ blog.views }}
-                        </td>
-                        <td class="tw-px-4 tw-py-3">
+                        <td class="tw-px-2 tw-py-1">
                             {{ formatDate(blog.created_at) }}
                         </td>
-                        <td class="tw-px-4 tw-py-3 tw-flex tw-gap-2">
-                            <button @click="handleEdit(blog)"
-                                class="tw-bg-teal-600 tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-teal-700">
-                                Sửa
-                            </button>
-                            <button @click="handleDelete(blog)"
-                                class="tw-border tw-border-gray-300 tw-rounded tw-px-4 tw-py-2 tw-bg-white hover:tw-bg-gray-100">
-                                Xóa
-                            </button>
+                        <td class="tw-px-2 tw-py-1">
+                            <div class="tw-flex tw-items-center tw-gap-2">
+                                <button @click="handleEdit(blog)"
+                                    class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-blue-600 hover:tw-text-blue-900 hover:tw-bg-blue-50 tw-rounded-lg tw-transition-colors tw-duration-150"
+                                    title="Chỉnh sửa bài viết">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <button @click="handleDelete(blog)"
+                                    class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-red-600 hover:tw-text-red-900 hover:tw-bg-red-50 tw-rounded-lg tw-transition-colors tw-duration-150"
+                                    title="Xóa bài viết">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -83,147 +94,101 @@
         </div>
 
         <!-- Pagination -->
-        <div class="tw-flex tw-justify-between tw-items-center tw-mt-4">
+        <div v-if="pagination" class="tw-flex tw-justify-between tw-items-center tw-mt-4">
             <div class="tw-text-sm tw-text-gray-500">
-                Hiển thị {{ filteredBlogs.length }} trong tổng số {{ blogs.length }} bài viết
+                Hiển thị {{ blogs.length }} trong tổng số {{ pagination.total }} bài viết
             </div>
             <div class="tw-flex tw-gap-2">
-                <button class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50">Trước</button>
-                <button class="tw-px-3 tw-py-1 tw-bg-blue-500 tw-text-white tw-rounded tw-text-sm">1</button>
-                <button class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50">2</button>
-                <button class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50">Sau</button>
+                <button @click="changePage(pagination.current_page - 1)" :disabled="pagination.current_page === 1"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50 disabled:tw-opacity-50">
+                    Trước
+                </button>
+                <button v-for="page in pagination.last_page" :key="page" @click="changePage(page)"
+                    :class="{ 'tw-bg-blue-500 tw-text-white': pagination.current_page === page }"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50">
+                    {{ page }}
+                </button>
+                <button @click="changePage(pagination.current_page + 1)"
+                    :disabled="pagination.current_page === pagination.last_page"
+                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm hover:tw-bg-gray-50 disabled:tw-opacity-50">
+                    Sau
+                </button>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-definePageMeta({
-    layout: 'admin',
-    middleware: 'admin',
-})
-useHead({
-    title: "Quản lý bài viết"
-})
-import { ref, computed } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useBlog } from '@/composables/useBlog'
+import { useRouter } from 'vue-router'
 
-// Sample blog data
-const blogs = ref([
-    {
-        id: 1,
-        name: '10 Tips for Capturing Stunning Landscape Photos',
-        description: 'Landscape photography is one of the most popular genres among photographers.',
-        image: 'https://storage.googleapis.com/a1aa/image/0937c7ad-97ec-45f0-c69c-cdba4f61b684.jpg',
-        category: 'Photography',
-        status: 'active',
-        statusLabel: 'Hoạt động',
-        created_at: '2023-05-25',
-        views: 1234,
-        tags: 'photography, landscape, tips'
-    },
-    {
-        id: 2,
-        name: 'How Technology is Changing Architecture',
-        description: 'Macro photography is a fascinating genre that allows you to capture intricate details.',
-        image: 'https://storage.googleapis.com/a1aa/image/43aedf66-1620-4716-0b93-d93fec7c29d9.jpg',
-        category: 'Architecture',
-        status: 'active',
-        statusLabel: 'Hoạt động',
-        created_at: '2023-06-25',
-        views: 856,
-        tags: 'architecture, technology, innovation'
-    },
-    {
-        id: 3,
-        name: 'The Art of Vintage Photography',
-        description: 'Explore how to create timeless vintage-style photos with simple techniques.',
-        image: 'https://storage.googleapis.com/a1aa/image/f34a288c-b3e0-4585-bac4-cb25a220aa98.jpg',
-        category: 'Photography',
-        status: 'archived',
-        statusLabel: 'Lưu trữ',
-        created_at: '2024-03-05',
-        views: 432,
-        tags: 'vintage, photography, art'
-    },
-    {
-        id: 4,
-        name: 'Sustainable Architecture Innovations',
-        description: 'Learn about the latest trends and innovations driving sustainability in modern architecture.',
-        image: 'https://storage.googleapis.com/a1aa/image/4530f9e6-43ba-4f0f-3f85-d59f15aedcd3.jpg',
-        category: 'Architecture',
-        status: 'disabled',
-        statusLabel: 'Vô hiệu hóa',
-        created_at: '2024-02-10',
-        views: 678,
-        tags: 'architecture, sustainability, green'
-    }
-])
+const { blogs, loading, error, pagination, fetchBlogs, deleteBlog } = useBlog()
+const router = useRouter()
 
-// Filter states
-const selectedCategory = ref('')
 const selectedStatus = ref('')
-const selectedDate = ref('')
-const selectedItems = ref([])
+const searchQuery = ref('')
 
-// Computed properties
-const allSelected = computed(() => {
-    return filteredBlogs.value.length > 0 && selectedItems.value.length === filteredBlogs.value.length
+onMounted(async () => {
+    await fetchBlogs()
 })
 
-const filteredBlogs = computed(() => {
-    let filtered = blogs.value
-
-    if (selectedCategory.value) {
-        filtered = filtered.filter(blog => blog.category === selectedCategory.value)
-    }
-
-    if (selectedStatus.value) {
-        filtered = filtered.filter(blog => blog.status === selectedStatus.value)
-    }
-
-    if (selectedDate.value) {
-        filtered = filtered.filter(blog => blog.created_at.includes(selectedDate.value))
-    }
-
-    return filtered
+watch([selectedStatus, searchQuery], async () => {
+    await fetchBlogs(1, {
+        status: selectedStatus.value,
+        search: searchQuery.value
+    })
 })
 
-// Methods
-function toggleSelectAll(event) {
-    selectedItems.value = event.target.checked ? [...filteredBlogs.value] : []
+const changePage = async (page) => {
+    if (page < 1 || page > pagination.value.last_page) return
+    await fetchBlogs(page, {
+        status: selectedStatus.value,
+        search: searchQuery.value
+    })
 }
 
-function handleEdit(blog) {
-    console.log('Edit blog:', blog)
-    navigateTo(`/admin/blogs/${blog.id}/edit`)
+const handleEdit = (blog) => {
+    router.push(`/admin/blogs/${blog.id}/edit`)
 }
 
-function handleDelete(blog) {
-    if (confirm(`Bạn có chắc chắn muốn xóa bài viết "${blog.name}"?`)) {
-        const index = blogs.value.findIndex(b => b.id === blog.id)
-        if (index > -1) {
-            blogs.value.splice(index, 1)
-        }
+const handleDelete = async (blog) => {
+    if (confirm(`Bạn có chắc chắn muốn xóa bài viết "${blog.title}"?`)) {
+        await deleteBlog(blog.id)
+        await fetchBlogs(pagination.value.current_page)
     }
+}
+
+function getStatusLabel(status) {
+    const labels = {
+        draft: 'Bản nháp',
+        published: 'Đã xuất bản',
+        archived: 'Lưu trữ'
+    }
+    return labels[status] || status
 }
 
 function getStatusBadgeClass(status) {
     switch (status) {
-        case 'active':
+        case 'published':
             return 'tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
         case 'archived':
             return 'tw-bg-orange-100 tw-text-orange-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-        case 'disabled':
-            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        case 'draft':
+            return 'tw-bg-blue-100 tw-text-blue-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
         default:
             return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
     }
 }
 
 function formatDate(dateString) {
+    if (!dateString) return ''
     const date = new Date(dateString)
     return date.toLocaleDateString('vi-VN')
 }
-</script>
 
-<style></style>
+function getImageUrl(path) {
+    if (!path) return ''
+    return path.startsWith('/storage/') ? `http://localhost:8000${path}` : path
+}
+</script>

@@ -19,7 +19,13 @@ export default defineNuxtConfig({
       },
       allowedHosts: [
         '6e6b-14-236-154-186.ngrok-free.app'
-      ]
+      ],
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+        }
+      }
     }
   },
   app: {
@@ -42,5 +48,5 @@ export default defineNuxtConfig({
       turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY,
       apiBaseUrl: process.env.NUXT_API_BASE_URL,
     },
-  },
+  }
 })

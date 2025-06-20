@@ -21,7 +21,7 @@ definePageMeta({
     layout: 'admin',
     middleware: 'admin'
 })
-import BlogTable from '../../components/admin/blogs/BlogTable.vue';
+import BlogTable from '@/components/admin/blogs/BlogTable.vue';
 </script>
 
 <style>
