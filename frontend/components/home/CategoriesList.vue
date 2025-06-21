@@ -3,7 +3,16 @@
         <div class="tw-container tw-mx-auto">
             <h2 class="tw-text-2xl tw-font-semibold tw-text-center tw-mb-10">Thời trang DevGang</h2>
 
-            <swiper :modules="[SwiperPagination]" :slides-per-view="5" :space-between="30"
+            <!-- Loading State -->
+            <div v-if="loading" class="tw-flex tw-gap-6 tw-justify-center tw-mb-6">
+                <div v-for="i in 5" :key="i" class="tw-flex tw-flex-col tw-items-center">
+                    <div class="tw-w-36 tw-h-36 tw-rounded-full tw-bg-gray-200 tw-animate-pulse"></div>
+                    <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-mt-4 tw-mb-2 tw-w-24"></div>
+                    <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-w-16"></div>
+                </div>
+            </div>
+            <!-- Swiper only show when not loading -->
+            <swiper v-else :modules="[SwiperPagination]" :slides-per-view="5" :space-between="30"
                 :pagination="{ clickable: true }" :breakpoints="{
                     '320': {
                         slidesPerView: 2,
@@ -50,14 +59,17 @@ import { ref, onMounted } from 'vue'
 
 const { getCategories, logCategoryStats } = useCategory()
 const categories = ref([])
+const loading = ref(true)
 
 onMounted(async () => {
     try {
+        loading.value = true
         categories.value = await getCategories()
-
         await logCategoryStats()
     } catch (error) {
         console.error('Error fetching categories:', error)
+    } finally {
+        loading.value = false
     }
 })
 </script>

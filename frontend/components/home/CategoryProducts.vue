@@ -27,7 +27,7 @@
         <!-- Loading State -->
         <div v-if="loading"
             class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
-            <div v-for="i in 8" :key="i"
+            <div v-for="i in 5" :key="i"
                 class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-overflow-hidden tw-animate-pulse">
                 <div class="tw-h-80 tw-bg-gray-200"></div>
                 <div class="tw-p-4">

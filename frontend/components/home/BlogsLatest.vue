@@ -1,8 +1,21 @@
 <template>
     <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800 tw-mb-3">Bài viết nổi bật</h2>
     <div>
-        <swiper :modules="[SwiperPagination]" :slides-per-view="1" :space-between="0" :pagination="{ clickable: true }"
-            :breakpoints="{
+        <!-- Loading State -->
+        <div v-if="loading" class="tw-flex tw-gap-6 tw-justify-center tw-mb-6">
+            <div v-for="i in 3" :key="i" class="blog-card" style="width: 100%; max-width: 400px;">
+                <div class="image-container tw-bg-gray-200 tw-animate-pulse"></div>
+                <div class="blog-card-content">
+                    <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-mb-2 tw-w-32"></div>
+                    <div class="tw-h-6 tw-bg-gray-200 tw-rounded tw-mb-2 tw-w-48"></div>
+                    <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-mb-2 tw-w-64"></div>
+                    <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-mb-2 tw-w-56"></div>
+                    <div class="tw-h-6 tw-bg-gray-200 tw-rounded tw-w-24"></div>
+                </div>
+            </div>
+        </div>
+        <swiper v-else :modules="[SwiperPagination]" :slides-per-view="1" :space-between="0"
+            :pagination="{ clickable: true }" :breakpoints="{
                 '640': { slidesPerView: 2, spaceBetween: 16 },
                 '1024': { slidesPerView: 3, spaceBetween: 24 }
             }" class="tw-w-full">
@@ -39,11 +52,17 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination as SwiperPagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useBlog } from '~/composables/useBlog'
 
 const { blogs, fetchBlogs } = useBlog()
-onMounted(fetchBlogs)
+const loading = ref(true)
+
+onMounted(async () => {
+    loading.value = true
+    await fetchBlogs()
+    loading.value = false
+})
 
 const latestBlogs = computed(() =>
     blogs.value
