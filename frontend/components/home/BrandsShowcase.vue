@@ -33,7 +33,7 @@
                         {{ brand.name }}
                     </h3>
                     <p class="tw-text-xs tw-text-gray-500 tw-mt-1">
-                        {{ brand.productCount || 0 }} sản phẩm
+                        {{ brand.products_count || 0 }} sản phẩm
                     </p>
                 </div>
             </div>
@@ -70,25 +70,25 @@
 <script setup>
 import { useHome } from '../../composables/useHome'
 
-const { getBrandsWithProductCount } = useHome()
+const { getBrandsWithProductCount, logBrandStats } = useHome()
 
 const brands = ref([])
 const loading = ref(true)
 const featuredBrand = ref(null)
 
-// Lấy danh sách thương hiệu
 const fetchBrands = async () => {
     try {
         loading.value = true
         const brandsData = await getBrandsWithProductCount()
         brands.value = brandsData
 
-        // Chọn thương hiệu nổi bật (có nhiều sản phẩm nhất)
         if (brandsData.length > 0) {
             featuredBrand.value = brandsData.reduce((prev, current) =>
-                (prev.productCount > current.productCount) ? prev : current
+                (prev.products_count > current.products_count) ? prev : current
             )
         }
+
+        await logBrandStats()
     } catch (error) {
         console.error('Error fetching brands:', error)
     } finally {
@@ -96,7 +96,6 @@ const fetchBrands = async () => {
     }
 }
 
-// Lấy logo thương hiệu
 const getBrandLogo = (brand) => {
     if (brand.logo) {
         return brand.logo.startsWith('http') ? brand.logo : `https://placehold.co/100x100?text=${brand.name.charAt(0)}`
@@ -104,18 +103,15 @@ const getBrandLogo = (brand) => {
     return `https://placehold.co/100x100?text=${brand.name.charAt(0)}`
 }
 
-// Xử lý lỗi ảnh
 const handleImageError = (event) => {
     const brandName = event.target.alt || 'Brand'
     event.target.src = `https://placehold.co/100x100?text=${brandName.charAt(0)}`
 }
 
-// Điều hướng đến trang thương hiệu
 const navigateToBrand = (brandId) => {
     navigateTo(`/brands/${brandId}`)
 }
 
-// Khởi tạo dữ liệu
 onMounted(() => {
     fetchBrands()
 })

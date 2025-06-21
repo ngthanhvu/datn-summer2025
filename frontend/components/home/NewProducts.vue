@@ -44,7 +44,6 @@ const { getNewProducts } = useHome()
 const newProducts = ref([])
 const loading = ref(true)
 
-// Lấy sản phẩm mới
 const fetchNewProducts = async () => {
     try {
         loading.value = true
@@ -57,7 +56,6 @@ const fetchNewProducts = async () => {
     }
 }
 
-// Khởi tạo dữ liệu
 onMounted(() => {
     fetchNewProducts()
 })
@@ -66,6 +64,7 @@ onMounted(() => {
 <style scoped>
 .line-clamp-2 {
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;

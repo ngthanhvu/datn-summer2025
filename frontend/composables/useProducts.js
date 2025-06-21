@@ -47,7 +47,9 @@ export const useProducts = () => {
 
     const getCategories = async () => {
         const response = await API.get('/api/categories')
-        return response.data
+        const categories = response.data
+
+        return categories
     }
 
     const getProductById = async (id) => {
@@ -273,6 +275,59 @@ export const useProducts = () => {
         }
     }
 
+    const logCategoryStats = async () => {
+        try {
+            const categories = await getCategories()
+
+            console.log('📊 THỐNG KÊ DANH MỤC VÀ SẢN PHẨM (useProducts)')
+            console.log('==================================================')
+
+            const totalCategories = categories.length
+            const totalProducts = categories.reduce((sum, cat) => sum + (cat.products_count || 0), 0)
+            const activeCategories = categories.filter(cat => cat.is_active).length
+
+            console.log(`📁 Tổng số danh mục: ${totalCategories}`)
+            console.log(`📦 Tổng số sản phẩm: ${totalProducts}`)
+            console.log(`✅ Danh mục đang hoạt động: ${activeCategories}`)
+            console.log(`❌ Danh mục không hoạt động: ${totalCategories - activeCategories}`)
+            console.log('')
+
+            // Danh mục có nhiều sản phẩm nhất
+            const topCategories = categories
+                .sort((a, b) => (b.products_count || 0) - (a.products_count || 0))
+                .slice(0, 3)
+
+            console.log('🏆 TOP 3 DANH MỤC CÓ NHIỀU SẢN PHẨM NHẤT:')
+            topCategories.forEach((cat, index) => {
+                console.log(`${index + 1}. ${cat.name}: ${cat.products_count || 0} sản phẩm`)
+            })
+            console.log('')
+
+            // Danh mục không có sản phẩm
+            const emptyCategories = categories.filter(cat => !cat.products_count || cat.products_count === 0)
+            if (emptyCategories.length > 0) {
+                console.log('⚠️ DANH MỤC KHÔNG CÓ SẢN PHẨM:')
+                emptyCategories.forEach(cat => {
+                    console.log(`- ${cat.name}`)
+                })
+                console.log('')
+            }
+
+            console.log('==================================================')
+
+            return {
+                totalCategories,
+                totalProducts,
+                activeCategories,
+                topCategories,
+                emptyCategories
+            }
+        } catch (error) {
+            console.error('❌ Lỗi khi lấy thống kê danh mục:', error)
+            return null
+        }
+    }
+
     return {
         getProducts,
         getProductById,
@@ -289,6 +344,7 @@ export const useProducts = () => {
         searchProducts,
         getTemplateSheet,
         importFile,
-        bulkDeleteProducts
+        bulkDeleteProducts,
+        logCategoryStats
     }
 }

@@ -1,7 +1,7 @@
 <template>
     <section class="tw-bg-white tw-py-10">
         <div class="tw-container tw-mx-auto">
-            <h2 class="tw-text-2xl tw-font-semibold tw-text-center tw-mb-10">Thời trang EGA</h2>
+            <h2 class="tw-text-2xl tw-font-semibold tw-text-center tw-mb-10">Thời trang DevGang</h2>
 
             <swiper :modules="[SwiperPagination]" :slides-per-view="5" :space-between="30"
                 :pagination="{ clickable: true }" :breakpoints="{
@@ -33,7 +33,7 @@
 
                         <!-- Label -->
                         <p class="tw-text-base tw-font-medium">{{ category.name }}</p>
-                        <p class="tw-text-sm tw-text-gray-500">{{ category.product_count || 0 }} sản phẩm</p>
+                        <p class="tw-text-sm tw-text-gray-500">{{ category.products_count || 0 }} sản phẩm</p>
                     </NuxtLink>
                 </swiper-slide>
             </swiper>
@@ -48,12 +48,14 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 import { ref, onMounted } from 'vue'
 
-const { getCategories } = useCategory()
+const { getCategories, logCategoryStats } = useCategory()
 const categories = ref([])
 
 onMounted(async () => {
     try {
         categories.value = await getCategories()
+
+        await logCategoryStats()
     } catch (error) {
         console.error('Error fetching categories:', error)
     }

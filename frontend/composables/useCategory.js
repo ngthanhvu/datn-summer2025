@@ -10,7 +10,9 @@ export const useCategory = () => {
 
     const getCategories = async () => {
         const response = await API.get('/api/categories')
-        return response.data
+        const categories = response.data
+
+        return categories
     }
 
     const getCategoryById = async (id) => {
@@ -80,6 +82,39 @@ export const useCategory = () => {
         }
     }
 
+    const logCategoryStats = async () => {
+        try {
+            const categories = await getCategories()
+
+            const totalCategories = categories.length
+            const totalProducts = categories.reduce((sum, cat) => sum + (cat.products_count || 0), 0)
+            const activeCategories = categories.filter(cat => cat.is_active).length
+
+            const topCategories = categories
+                .sort((a, b) => (b.products_count || 0) - (a.products_count || 0))
+                .slice(0, 3)
+
+            topCategories.forEach((cat, index) => {
+            })
+
+            const emptyCategories = categories.filter(cat => !cat.products_count || cat.products_count === 0)
+            if (emptyCategories.length > 0) {
+                emptyCategories.forEach(cat => {
+                })
+            }
+
+            return {
+                totalCategories,
+                totalProducts,
+                activeCategories,
+                topCategories,
+                emptyCategories
+            }
+        } catch (error) {
+            console.error('❌ Lỗi khi lấy thống kê danh mục:', error)
+            return null
+        }
+    }
 
     return {
         getCategories,
@@ -87,6 +122,7 @@ export const useCategory = () => {
         createCategory,
         updateCategory,
         deleteCategory,
-        bulkDeleteCategories
+        bulkDeleteCategories,
+        logCategoryStats
     }
 }

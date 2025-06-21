@@ -11,10 +11,12 @@ class BrandsController extends Controller
 {
     public function index()
     {
-        $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id', 'is_active')->get();
+        $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id', 'is_active')
+            ->withCount('products')
+            ->get();
 
         $brands->transform(function ($brand) {
-            $brand->image = url('storage/' . $brand->image);
+            $brand->image = $brand->image ? url('storage/' . $brand->image) : null;
             return $brand;
         });
 

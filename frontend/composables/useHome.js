@@ -46,27 +46,7 @@ export const useHome = () => {
             const response = await API.get('/api/brands')
             const brands = response.data
 
-            // Lấy số lượng sản phẩm cho mỗi thương hiệu
-            const brandsWithCount = await Promise.all(
-                brands.map(async (brand) => {
-                    try {
-                        const productsResponse = await API.get('/api/products', {
-                            params: { brand: brand.id, limit: 1 }
-                        })
-                        return {
-                            ...brand,
-                            productCount: productsResponse.data.length > 0 ? productsResponse.data[0].total || 0 : 0
-                        }
-                    } catch (error) {
-                        return {
-                            ...brand,
-                            productCount: 0
-                        }
-                    }
-                })
-            )
-
-            return brandsWithCount
+            return brands
         } catch (error) {
             console.error('Error getting brands with product count:', error)
             return []
@@ -147,6 +127,40 @@ export const useHome = () => {
         })
     }
 
+    const logBrandStats = async () => {
+        try {
+            const brands = await getBrandsWithProductCount()
+
+            const totalBrands = brands.length
+            const totalProducts = brands.reduce((sum, brand) => sum + (brand.products_count || 0), 0)
+            const activeBrands = brands.filter(brand => brand.is_active).length
+
+            const topBrands = brands
+                .sort((a, b) => (b.products_count || 0) - (a.products_count || 0))
+                .slice(0, 3)
+
+            topBrands.forEach((brand, index) => {
+            })
+
+            const emptyBrands = brands.filter(brand => !brand.products_count || brand.products_count === 0)
+            if (emptyBrands.length > 0) {
+                emptyBrands.forEach(brand => {
+                })
+            }
+
+            return {
+                totalBrands,
+                totalProducts,
+                activeBrands,
+                topBrands,
+                emptyBrands
+            }
+        } catch (error) {
+            console.error('❌ Lỗi khi lấy thống kê thương hiệu:', error)
+            return null
+        }
+    }
+
     return {
         getNewProducts,
         getProductsByCategory,
@@ -155,6 +169,7 @@ export const useHome = () => {
         getReviewStats,
         getCategories,
         formatPrice,
-        formatDate
+        formatDate,
+        logBrandStats
     }
 } 
