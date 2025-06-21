@@ -21,7 +21,8 @@
                     class="tw-w-full tw-px-3 tw-py-3 tw-border tw-border-gray-300 tw-rounded-md tw-text-sm tw-transition-colors tw-resize-y tw-font-inherit focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     :class="{ 'tw-border-red-500': errors.description }" placeholder="Nhập mô tả bài viết..."
                     rows="3"></textarea>
-                <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description }}</span>
+                <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description
+                    }}</span>
             </div>
 
             <!-- Image Upload -->
@@ -104,7 +105,7 @@ const QuillEditor = defineAsyncComponent(() => {
 
 const route = useRoute()
 const router = useRouter()
-const { blog, loading, error, fetchBlog, createBlog, updateBlog } = useBlog()
+const { blog, loading, error, fetchBlog, createBlog, updateBlog, updateBlogJson } = useBlog()
 
 const isEditMode = computed(() => route.params.id)
 
@@ -113,8 +114,8 @@ const formData = ref({
     description: '',
     content: '',
     status: 'draft',
-    image: null,      // URL hoặc base64 để preview
-    imageFile: null   // File object thực sự để gửi lên backend
+    image: null,
+    imageFile: null
 })
 
 const errors = ref({})
@@ -142,19 +143,25 @@ const quillOptions = {
     placeholder: 'Nhập nội dung bài viết...'
 }
 
-// Load blog data if in edit mode
+const dataLoaded = ref(false)
+
+watch(
+    () => route.params.id,
+    () => {
+        dataLoaded.value = false
+    }
+)
+
 onMounted(async () => {
     if (isEditMode.value) {
         await fetchBlog(route.params.id)
-        // Không set formData ở đây nữa, sẽ dùng watch phía dưới
     }
 })
 
-// Đồng bộ formData khi blog thay đổi (kể cả khi fetch xong hoặc chuyển id)
 watch(
     () => blog.value,
     (val) => {
-        if (isEditMode.value && val) {
+        if (isEditMode.value && val && !dataLoaded.value) {
             formData.value = {
                 title: val.title || '',
                 description: val.description || '',
@@ -163,13 +170,12 @@ watch(
                 image: val.image || null,
                 imageFile: null
             }
+            dataLoaded.value = true
         }
     },
     { immediate: true }
 )
 
-
-// Get text length from HTML content
 const getTextLength = (htmlContent) => {
     if (!htmlContent) return 0
     if (process.client) {
@@ -180,7 +186,6 @@ const getTextLength = (htmlContent) => {
     return 0
 }
 
-// Handle image upload
 const handleImageUpload = (event) => {
     const file = event.target.files[0]
     if (file) {
@@ -189,7 +194,6 @@ const handleImageUpload = (event) => {
             return
         }
         formData.value.imageFile = file
-        // Hiển thị preview
         const reader = new FileReader()
         reader.onload = (e) => {
             formData.value.image = e.target.result
@@ -199,7 +203,6 @@ const handleImageUpload = (event) => {
     }
 }
 
-// Remove image
 const removeImage = () => {
     formData.value.image = null
     formData.value.imageFile = null
@@ -207,7 +210,6 @@ const removeImage = () => {
     if (fileInput) fileInput.value = ''
 }
 
-// Validate form
 const validateForm = () => {
     errors.value = {}
     let isValid = true
@@ -231,24 +233,29 @@ const validateForm = () => {
     return isValid
 }
 
-// Handle form submission
 const handleSubmit = async () => {
     if (!validateForm()) return
 
     try {
-        const data = new FormData()
-        data.append('title', formData.value.title)
-        data.append('description', formData.value.description)
-        data.append('content', formData.value.content)
-        data.append('status', formData.value.status)
-        if (formData.value.imageFile instanceof File) {
-            data.append('image', formData.value.imageFile)
-        }
+
         if (isEditMode.value) {
-            // Thêm dòng này nếu backend Laravel dùng resource controller
-            data.append('_method', 'PUT')
-            await updateBlog(route.params.id, data)
+            const jsonData = {
+                title: formData.value.title,
+                description: formData.value.description,
+                content: formData.value.content,
+                status: formData.value.status
+            };
+
+            await updateBlogJson(route.params.id, jsonData)
         } else {
+            const data = new FormData()
+            data.append('title', formData.value.title)
+            data.append('description', formData.value.description)
+            data.append('content', formData.value.content)
+            data.append('status', formData.value.status)
+            if (formData.value.imageFile instanceof File) {
+                data.append('image', formData.value.imageFile)
+            }
             await createBlog(data)
         }
         router.push('/admin/blogs')
@@ -261,10 +268,10 @@ const handleSubmit = async () => {
     }
 }
 
-// Handle cancel
 const handleCancel = () => {
     router.push('/admin/blogs')
 }
+
 </script>
 
 <style scoped>

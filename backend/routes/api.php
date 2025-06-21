@@ -17,7 +17,6 @@ use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\ProductImportController;
-use App\Models\Inventory;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -70,7 +69,7 @@ Route::middleware('auth:api')->group(function () {
 
 // Public blog routes
 Route::get('/blogs', [BlogsController::class, 'index']);
-Route::get('/blogs/{slug}', [BlogsController::class, 'showBySlug']);
+Route::get('/blogs/slug/{slug}', [BlogsController::class, 'showBySlug']);
 
 // Brand routes
 Route::get('/brands', [BrandsController::class, 'index']);

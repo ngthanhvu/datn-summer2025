@@ -126,10 +126,6 @@ const closeMobileMenu = () => {
 </script>
 
 <style scoped>
-.navbar {
-  padding: 1rem 0;
-}
-
 .nav-link {
   padding: 0.5rem 1rem;
   color: #374151;

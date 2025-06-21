@@ -3,7 +3,8 @@
     <div v-if="loading" class="tw-text-center tw-py-12">
       <div class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-blue-500"></div>
     </div>
-    <div v-else-if="error" class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-6">
+    <div v-else-if="error"
+      class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-6">
       {{ error }}
     </div>
     <div v-else-if="blog" class="tw-space-y-8">
@@ -35,19 +36,12 @@
         <img :src="blog.image" :alt="blog.title" class="tw-w-full tw-h-auto tw-object-cover" />
       </div>
       <div v-if="blog.categories?.length || blog.tags?.length" class="tw-flex tw-flex-wrap tw-gap-2">
-        <NuxtLink
-          v-for="category in blog.categories"
-          :key="category.id"
-          :to="`/blogs/category/${category.slug}`"
-          class="tw-bg-gray-100 hover:tw-bg-gray-200 tw-text-gray-800 tw-px-3 tw-py-1 tw-rounded-full tw-text-sm"
-        >
+        <NuxtLink v-for="category in blog.categories" :key="category.id" :to="`/blogs/category/${category.slug}`"
+          class="tw-bg-gray-100 hover:tw-bg-gray-200 tw-text-gray-800 tw-px-3 tw-py-1 tw-rounded-full tw-text-sm">
           {{ category.name }}
         </NuxtLink>
-        <span
-          v-for="tag in blog.tags"
-          :key="tag"
-          class="tw-bg-blue-100 hover:tw-bg-blue-200 tw-text-blue-800 tw-px-3 tw-py-1 tw-rounded-full tw-text-sm"
-        >
+        <span v-for="tag in blog.tags" :key="tag"
+          class="tw-bg-blue-100 hover:tw-bg-blue-200 tw-text-blue-800 tw-px-3 tw-py-1 tw-rounded-full tw-text-sm">
           #{{ tag }}
         </span>
       </div>
@@ -56,32 +50,22 @@
       </article>
       <div class="tw-flex tw-items-center tw-gap-4 tw-pt-4 tw-border-t">
         <span class="tw-text-gray-600">Chia sẻ:</span>
-        <a
-          v-for="social in socialPlatforms"
-          :key="social.name"
-          :href="getShareUrl(social)"
-          target="_blank"
-          class="tw-text-gray-500 hover:tw-text-primary tw-text-xl"
-          :title="'Share on ' + social.name"
-        >
+        <a v-for="social in socialPlatforms" :key="social.name" :href="getShareUrl(social)" target="_blank"
+          class="tw-text-gray-500 hover:tw-text-primary tw-text-xl" :title="'Share on ' + social.name">
           <i :class="social.icon"></i>
         </a>
       </div>
       <div v-if="blog.author" class="tw-bg-gray-50 tw-rounded-xl tw-p-6 tw-flex tw-flex-col md:tw-flex-row tw-gap-6">
         <div class="tw-flex-shrink-0">
-          <img :src="blog.author.avatar || '/images/default-avatar.png'" :alt="blog.author.username || blog.author.name" class="tw-w-20 tw-h-20 tw-rounded-full tw-object-cover" />
+          <img :src="blog.author.avatar || '/images/default-avatar.png'" :alt="blog.author.username || blog.author.name"
+            class="tw-w-20 tw-h-20 tw-rounded-full tw-object-cover" />
         </div>
         <div>
           <h3 class="tw-text-xl tw-font-semibold">{{ blog.author.username || blog.author.name }}</h3>
           <p v-if="blog.author.bio" class="tw-text-gray-600 tw-mt-2">{{ blog.author.bio }}</p>
           <div v-if="blog.author.social_links" class="tw-flex tw-gap-3 tw-mt-3">
-            <a
-              v-for="(link, platform) in blog.author.social_links"
-              :key="platform"
-              :href="link"
-              target="_blank"
-              class="tw-text-gray-500 hover:tw-text-primary"
-            >
+            <a v-for="(link, platform) in blog.author.social_links" :key="platform" :href="link" target="_blank"
+              class="tw-text-gray-500 hover:tw-text-primary">
               <i :class="getSocialIcon(platform)"></i>
             </a>
           </div>
@@ -97,7 +81,7 @@ import { useAuth } from '~/composables/useAuth'
 
 const { isAuthenticated } = useAuth()
 const route = useRoute()
-const { blog, loading, error, fetchBlog } = useBlog()
+const { blog, loading, error, fetchBlogBySlug } = useBlog()
 
 const socialPlatforms = [
   { name: 'Facebook', icon: 'fab fa-facebook', url: 'https://www.facebook.com/sharer/sharer.php?u=' },
@@ -108,8 +92,8 @@ const socialPlatforms = [
 
 onMounted(async () => {
   try {
-    await fetchBlog(route.params.slug)
-    if (!blog.value || blog.value.status !== 'published') {
+    await fetchBlogBySlug(route.params.slug)
+    if (!blog.value) {
       error.value = 'Blog not found'
       return
     }
@@ -150,54 +134,54 @@ const getSocialIcon = (platform) => {
 
 <style scoped>
 .tw-prose :deep(img) {
-    border-radius: 0.5rem;
-    margin: 1rem 0;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
 }
 
 .tw-prose :deep(a) {
-    color: #3bb77e;
-    text-decoration: underline;
+  color: #3bb77e;
+  text-decoration: underline;
 }
 
 .tw-prose :deep(ul) {
-    list-style-type: disc;
-    padding-left: 1.5rem;
-    margin-bottom: 1.25rem;
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .tw-prose :deep(h2) {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 .tw-prose :deep(h3) {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .tw-prose :deep(blockquote) {
-    border-left: 4px solid #3bb77e;
-    padding-left: 1rem;
-    color: #555;
-    font-style: italic;
-    margin: 1rem 0;
+  border-left: 4px solid #3bb77e;
+  padding-left: 1rem;
+  color: #555;
+  font-style: italic;
+  margin: 1rem 0;
 }
 
 .tw-prose :deep(pre) {
-    background-color: #f8f8f8;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    overflow-x: auto;
+  background-color: #f8f8f8;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
 }
 
 .tw-prose :deep(code) {
-    background-color: #f8f8f8;
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.25rem;
-    font-family: monospace;
+  background-color: #f8f8f8;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
 }
 </style>
