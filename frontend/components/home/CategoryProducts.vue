@@ -6,6 +6,14 @@
 
         <!-- Category Tabs -->
         <div v-if="!categoriesLoading" class="tw-flex tw-flex-wrap tw-gap-2 tw-mb-6">
+            <button @click="selectCategory(null)" :class="[
+                'tw-px-4 tw-py-2 tw-rounded-full tw-text-sm tw-font-medium tw-transition-colors',
+                selectedCategory === null
+                    ? 'tw-bg-blue-600 tw-text-white'
+                    : 'tw-bg-gray-100 tw-text-gray-700 tw-hover:bg-gray-200'
+            ]">
+                Tất cả sản phẩm
+            </button>
             <button v-for="category in categories" :key="category.id" @click="selectCategory(category.id)" :class="[
                 'tw-px-4 tw-py-2 tw-rounded-full tw-text-sm tw-font-medium tw-transition-colors',
                 selectedCategory === category.id
@@ -33,7 +41,7 @@
 
         <!-- Products Grid -->
         <div v-else class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
-            <Card v-for="product in filteredProducts" :key="product.id" :product="product" />
+            <Card v-for="product in filteredProducts.slice(0, 5)" :key="product.id" :product="product" />
         </div>
 
         <!-- Empty State -->
@@ -110,5 +118,6 @@ onMounted(async () => {
         fetchCategories(),
         fetchAllProducts()
     ])
+    selectedCategory.value = null // Mặc định chọn "Tất cả sản phẩm"
 })
 </script>

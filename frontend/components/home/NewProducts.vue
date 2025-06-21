@@ -25,7 +25,7 @@
 
         <!-- Products Grid -->
         <div v-else class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
-            <Card v-for="product in newProducts" :key="product.id" :product="product" />
+            <Card v-for="product in newProducts.slice(0, 5)" :key="product.id" :product="product" />
         </div>
 
         <!-- Empty State -->
