@@ -76,6 +76,12 @@
 </template>
 
 <script setup>
+// useHead({
+//   title: ``,
+//   meta: [
+//     { name: 'description', content: 'My amazing site.' }
+//   ],
+// })
 import { useBlog } from '~/composables/useBlog'
 import { useAuth } from '~/composables/useAuth'
 
@@ -103,6 +109,41 @@ onMounted(async () => {
     blog.value = null
   }
 })
+
+watch(
+  () => blog.value,
+  (val) => {
+    if (val) {
+      useHead({
+        title: val.title,
+        meta: [
+          {
+            name: 'description',
+            content: val.description || val.title || 'Bài viết trên blog'
+          },
+          {
+            property: 'og:title',
+            content: val.title
+          },
+          {
+            property: 'og:description',
+            content: val.description || val.title
+          },
+          {
+            property: 'og:image',
+            content: val.image || '/default-og.jpg'
+          },
+          {
+            property: 'og:url',
+            content: window.location.href
+          }
+        ]
+      })
+    }
+  },
+  { immediate: true }
+)
+
 
 const formatDate = (dateString) => {
   if (!dateString) return ''

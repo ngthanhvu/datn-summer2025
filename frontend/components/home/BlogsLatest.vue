@@ -1,4 +1,5 @@
 <template>
+    <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800 tw-mb-3">Bài viết nổi bật</h2>
     <div>
         <swiper :modules="[SwiperPagination]" :slides-per-view="1" :space-between="0" :pagination="{ clickable: true }"
             :breakpoints="{

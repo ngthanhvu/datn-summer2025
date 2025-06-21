@@ -747,13 +747,18 @@ const mergeCartAfterLogin = async () => {
 }
 
 useHead(() => ({
-  title: data.value ? `${data.value.name} - DEVGANG` : 'Loading... - DEVGANG',
+  title: data.value ? `${data.value.name} - DEVGANG` : 'Đang tải sản phẩm...',
   meta: [
     {
       name: 'description',
-      content: data.value ? data.value.description : 'Loading product details...'
+      content: data.value?.description || data.value?.name || 'Sản phẩm nổi bật từ DEVGANG'
     },
-  ],
+    { property: 'og:title', content: data.value?.name || '' },
+    { property: 'og:description', content: data.value?.description || '' },
+    { property: 'og:image', content: data.value?.images?.[0]?.image_path || '/default-og.jpg' },
+    { property: 'og:type', content: 'product' },
+    { property: 'og:url', content: typeof window !== 'undefined' ? window.location.href : '' }
+  ]
 }))
 
 const reviewForm = ref({
