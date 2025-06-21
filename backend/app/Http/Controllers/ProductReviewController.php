@@ -36,7 +36,7 @@ class ProductReviewController extends Controller
 
         $existingReview = ProductReview::where('user_id', $request->user_id)
             ->where('product_slug', $request->product_slug)
-            ->whereNull('parent_id') 
+            ->whereNull('parent_id')
             ->first();
 
         if ($existingReview) {
@@ -175,7 +175,7 @@ class ProductReviewController extends Controller
     {
         $review = ProductReview::where('user_id', $userId)
             ->where('product_slug', $productSlug)
-            ->whereNull('parent_id') 
+            ->whereNull('parent_id')
             ->with(['images'])
             ->first();
 
@@ -194,15 +194,15 @@ class ProductReviewController extends Controller
     public function updateAdminReply(Request $request, $id)
     {
         $reply = ProductReview::findOrFail($id);
-        
+
         $validated = $request->validate([
             'content' => 'required|string',
         ]);
-        
+
         $reply->update([
             'content' => $validated['content'],
         ]);
-        
+
         return response()->json($reply->fresh());
     }
 
@@ -259,5 +259,16 @@ class ProductReviewController extends Controller
             })
             ->values();
         return response()->json($products);
+    }
+
+    public function latestReviews(Request $request)
+    {
+        $perPage = $request->get('per_page', 6);
+        $reviews = ProductReview::with(['user', 'product', 'images'])
+            ->whereNull('parent_id')
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+
+        return response()->json($reviews);
     }
 }

@@ -131,6 +131,7 @@ Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewContro
 Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
 Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
 Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
+Route::get('/reviews/latest', [ProductReviewController::class, 'latestReviews']);
 Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedProducts']);
 
 // Payment routes

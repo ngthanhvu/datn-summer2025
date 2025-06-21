@@ -54,16 +54,12 @@ export const useHome = () => {
     }
 
     // Lấy đánh giá gần nhất
-    const getLatestReviews = async (limit = 6) => {
+    const getLatestReviews = async (perPage = 6) => {
         try {
-            const response = await API.get('/api/product-reviews', {
-                params: {
-                    sort_by: 'created_at',
-                    sort_direction: 'desc',
-                    limit: limit
-                }
+            const response = await API.get('/api/reviews/latest', {
+                params: { per_page: perPage }
             })
-            return response.data
+            return response.data.data
         } catch (error) {
             console.error('Error getting latest reviews:', error)
             return []
