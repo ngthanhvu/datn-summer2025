@@ -35,7 +35,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
-    Route::get('/inventory', [InventoryController::class, 'index']);
     Route::get('inventory/movement/{id}/pdf', [InventoryController::class, 'exportMovementPdf']);
 
     Route::post('/blogs', [BlogsController::class, 'store']);
@@ -70,6 +69,7 @@ Route::middleware('auth:api')->group(function () {
 // Public blog routes
 Route::get('/blogs', [BlogsController::class, 'index']);
 Route::get('/blogs/slug/{slug}', [BlogsController::class, 'showBySlug']);
+Route::get('/inventory', [InventoryController::class, 'index']);
 
 // Brand routes
 Route::get('/brands', [BrandsController::class, 'index']);

@@ -17,7 +17,7 @@
                                     @change="toggleSelectAll" class="tw-rounded">
                             </div>
                         </th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">ID</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-left">#</th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">Logo</th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">Tên thương hiệu</th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">Mô tả</th>
@@ -27,13 +27,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <template v-if="brands.length > 0">
-                        <tr v-for="brand in brands" :key="brand.id" class="tw-border-b hover:tw-bg-gray-50">
+                    <!-- Skeleton loading -->
+                    <tr v-if="props.isLoading" v-for="n in 8" :key="'skeleton-' + n">
+                        <td v-for="i in 8" :key="i" class="tw-px-4 tw-py-3">
+                            <div class="skeleton-loader"></div>
+                        </td>
+                    </tr>
+                    <template v-else-if="brands.length > 0">
+                        <tr v-for="(brand, index) in brands" :key="brand.id" class="tw-border-b hover:tw-bg-gray-50">
                             <td class="tw-px-4 tw-py-3">
                                 <input type="checkbox" :checked="selectedBrands.has(brand.id)"
                                     @change="toggleSelect(brand.id)" class="tw-rounded">
                             </td>
-                            <td class="tw-px-4 tw-py-3">#{{ brand.id }}</td>
+                            <td class="tw-px-4 tw-py-3">{{ index + 1 }}</td>
                             <td class="tw-px-4 tw-py-3">
                                 <img :src="brand.image" :alt="brand.name"
                                     class="tw-w-10 tw-h-10 tw-object-cover tw-rounded">
@@ -93,6 +99,10 @@ const props = defineProps({
     brands: {
         type: Array,
         required: true
+    },
+    isLoading: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -149,3 +159,22 @@ const handleDelete = async (brand) => {
 
 const emit = defineEmits(['delete', 'bulkDelete'])
 </script>
+
+<style scoped>
+.skeleton-loader {
+    height: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+    border-radius: 4px;
+    animation: skeleton-loading 3.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+</style>

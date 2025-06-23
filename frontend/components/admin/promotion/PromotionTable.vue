@@ -27,11 +27,7 @@
                 Thêm mới
             </NuxtLink>
         </div>
-        <div v-if="loading" class="tw-flex tw-justify-center tw-items-center tw-py-8">
-            <div class="tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-primary"></div>
-            <span class="tw-ml-2">Đang tải...</span>
-        </div>
-        <div v-else-if="error"
+        <div v-if="error"
             class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-4">
             {{ error }}
         </div>
@@ -52,10 +48,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(item, index) in paginatedData" :key="index"
+                    <!-- Skeleton loading -->
+                    <tr v-if="props.isLoading" v-for="n in 13" :key="'skeleton-' + n">
+                        <td v-for="i in 13" :key="i" class="tw-px-4 tw-py-3">
+                            <div class="skeleton-loader"></div>
+                        </td>
+                    </tr>
+                    <tr v-else v-for="(item, index) in paginatedData" :key="index"
                         class="tw-border-b hover:tw-bg-gray-50 tw-transition-colors">
                         <td class="tw-px-4 tw-py-3 tw-text-gray-600">
-                            #{{ item.id }}
+                            {{ index + 1 }}
                         </td>
                         <td class="tw-px-4 tw-py-3">
                             <div class="tw-font-medium">{{ item.name }}</div>
@@ -68,27 +70,32 @@
                         <td class="tw-px-4 tw-py-3">
                             <span :class="[
                                 'tw-px-2 tw-py-1 tw-rounded tw-text-sm',
-                                item.type === 'percentage'
+                                item.type === 'percent'
                                     ? 'tw-bg-blue-100 tw-text-blue-700'
                                     : 'tw-bg-purple-100 tw-text-purple-700'
                             ]">
-                                {{ item.type === 'percentage' ? 'Giảm theo %' : 'Giảm số tiền' }}
+                                {{ item.type === 'percent' ? 'Giảm theo %' : 'Giảm số tiền' }}
                             </span>
                         </td>
                         <td class="tw-px-4 tw-py-3 tw-font-medium">
                             <span :class="[
-                                item.type === 'percentage'
+                                item.type === 'percent'
                                     ? 'tw-text-blue-600'
                                     : 'tw-text-purple-600'
                             ]">
-                                {{ item.type === 'percentage' ? item.value + '%' : formatPrice(item.value) }}
+                                {{ item.type === 'percent' ? Math.round(parseFloat(item.value)) + '%' :
+                                    formatPrice(item.value) }}
                             </span>
                         </td>
                         <td class="tw-px-4 tw-py-3">
                             {{ formatPrice(item.min_order_value) }}
                         </td>
                         <td class="tw-px-4 tw-py-3">
-                            {{ formatPrice(item.max_discount_value) }}
+                            <!-- {{ formatPrice(item.max_discount_value) }} -->
+                            {{
+                                item.max_discount_value != null ? formatPrice(item.max_discount_value) :
+                                    'Giảm theo phần trăm'
+                            }}
                         </td>
                         <td class="tw-px-4 tw-py-3">
                             {{ item.usage_limit === 0 ? 'Không giới hạn' : item.usage_limit }}
@@ -96,11 +103,6 @@
                         <td class="tw-px-4 tw-py-3">
                             <div class="tw-flex tw-items-center tw-gap-2">
                                 <span>{{ item.used_count }}</span>
-                                <div class="tw-w-16 tw-h-2 tw-bg-gray-200 tw-rounded-full">
-                                    <div class="tw-h-full tw-bg-primary tw-rounded-full"
-                                        :style="{ width: `${(item.used_count / (item.usage_limit || 1)) * 100}%` }">
-                                    </div>
-                                </div>
                             </div>
                         </td>
                         <td class="tw-px-4 tw-py-3">
@@ -137,7 +139,7 @@
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="!paginatedData.length">
+                    <tr v-if="!props.isLoading && !paginatedData.length">
                         <td colspan="12" class="tw-px-4 tw-py-3 tw-text-center tw-text-gray-600">
                             Không có dữ liệu
                         </td>
@@ -176,7 +178,7 @@ const emit = defineEmits(['delete', 'filter-change'])
 const { getCoupons, deleteCoupon } = useCoupon()
 
 const columns = [
-    { key: 'id', label: 'ID' },
+    { key: 'id', label: '#' },
     { key: 'name', label: 'Tên chương trình' },
     { key: 'code', label: 'Mã giảm giá' },
     { key: 'type', label: 'Loại' },
@@ -200,6 +202,13 @@ const currentPage = ref(1)
 const sortKey = ref('')
 const sortOrder = ref('asc')
 const itemsPerPage = 10
+
+const props = defineProps({
+    isLoading: {
+        type: Boolean,
+        default: false
+    }
+})
 
 const loadPromotions = async () => {
     try {
@@ -378,5 +387,22 @@ select {
 input:focus,
 select:focus {
     box-shadow: 0 0 0 2px rgba(59, 183, 126, 0.2);
+}
+
+.skeleton-loader {
+    height: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+    border-radius: 4px;
+    animation: skeleton-loading 2.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
 }
 </style>

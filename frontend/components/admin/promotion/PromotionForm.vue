@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form @submit.prevent="handleSubmit" class="form">
+        <form @submit.prevent="handleSubmit" class="form form-grid">
             <div class="form-group">
                 <label for="name">Tên chương trình</label>
                 <input id="name" v-model="formData.name" type="text" required
@@ -13,8 +13,8 @@
             <div class="form-group">
                 <label for="type">Loại giảm giá</label>
                 <select id="type" v-model="formData.type" required>
-                    <option value="percent">Giảm theo phần trăm</option>
                     <option value="fixed">Giảm số tiền cố định</option>
+                    <option value="percent">Giảm theo phần trăm</option>
                 </select>
             </div>
             <div class="form-group">
@@ -38,7 +38,7 @@
                 <label for="max_discount_value">Giảm tối đa</label>
                 <div class="input-with-suffix">
                     <input id="max_discount_value" v-model.number="formData.max_discount_value" type="number" required
-                        :min="0" :step="1000" />
+                        :min="0" :step="1000" :disabled="formData.type === 'percent'" />
                     <span class="suffix">đ</span>
                 </div>
             </div>
@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useCoupon } from '@/composables/useCoupon'
 import Swal from 'sweetalert2'
 
@@ -82,7 +82,7 @@ const { createCoupon } = useCoupon()
 const formData = ref({
     name: '',
     code: '',
-    type: 'percent',
+    type: 'fixed',
     value: 0,
     min_order_value: 0,
     max_discount_value: 0,
@@ -132,6 +132,12 @@ const handleSubmit = async () => {
         console.error('Lỗi khi tạo coupon:', error)
     }
 }
+
+watch(() => formData.value.type, (newType) => {
+    if (newType === 'percent') {
+        formData.value.max_discount_value = null
+    }
+})
 </script>
 
 <style scoped>
@@ -230,5 +236,17 @@ const handleSubmit = async () => {
 
 .tw-bg-primary-dark {
     background-color: #2ea16d;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 2rem;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>

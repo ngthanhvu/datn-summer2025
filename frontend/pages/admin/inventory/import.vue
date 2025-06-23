@@ -10,7 +10,7 @@ definePageMeta({
 useHead({
     title: 'Nhập kho'
 })
-import InventoryImport from '../../components/admin/inventory/InventoryImport.vue';
+import InventoryImport from '@/components/admin/inventory/InventoryImport.vue';
 </script>
 
 <style></style>

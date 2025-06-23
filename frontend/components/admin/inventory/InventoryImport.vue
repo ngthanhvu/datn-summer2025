@@ -76,54 +76,90 @@
                                 </tr>
                             </thead>
                             <tbody class="tw-divide-y tw-divide-gray-200">
-                                <tr v-for="movement in filteredMovements" :key="movement.id"
-                                    class="hover:tw-bg-gray-50">
-                                    <td class="tw-px-3 tw-py-2 tw-whitespace-nowrap">{{ movement.created_at ?
-                                        formatDate(movement.created_at) : '-' }}</td>
-                                    <td class="tw-px-3 tw-py-2">
-                                        <div class="tw-font-medium">{{ movement.variant.product.name }}</div>
-                                        <div class="tw-text-xs tw-text-gray-500">{{ movement.variant.color }} - {{
-                                            movement.variant.size }} (SKU: {{ movement.variant.sku }})</div>
-                                    </td>
-                                    <td class="tw-px-3 tw-py-2">
-                                        <span :class="{
-                                            'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium': true,
-                                            'tw-bg-green-100 tw-text-green-800': movement.type === 'import',
-                                            'tw-bg-red-100 tw-text-red-800': movement.type === 'export',
-                                            'tw-bg-yellow-100 tw-text-yellow-800': movement.type === 'adjustment'
-                                        }">
-                                            {{ getMovementTypeLabel(movement.type) }}
-                                        </span>
-                                    </td>
-                                    <td class="tw-px-3 tw-py-2">
-                                        <span :class="{
-                                            'tw-font-medium': true,
-                                            'tw-text-green-600': movement.type === 'import',
-                                            'tw-text-red-600': movement.type === 'export',
-                                            'tw-text-yellow-600': movement.type === 'adjustment'
-                                        }">
-                                            {{ movement.type === 'import' ? '+' : movement.type === 'export' ? '-' : ''
-                                            }}{{ movement.quantity }}
-                                        </span>
-                                    </td>
-                                    <td class="tw-px-3 tw-py-2">{{ movement.note || '-' }}</td>
-                                    <td class="tw-px-3 tw-py-2">
-                                        <div class="tw-flex tw-items-center">
-                                            <div class="tw-text-xs tw-font-medium">{{ movement.user ?
-                                                movement.user.username : 'Không xác định' }}</div>
-                                        </div>
-                                    </td>
-                                    <td class="tw-px-3 tw-py-2">
-                                        <button @click="downloadMovementPdf(movement.id)"
-                                            class="tw-bg-[#3BB77E] tw-text-white tw-px-2 tw-py-1 tw-rounded hover:tw-bg-[#5ebd91] tw-text-xs">
-                                            Tải PDF
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr v-if="filteredMovements.length === 0">
-                                    <td colspan="7" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">Không có dữ
-                                        liệu</td>
-                                </tr>
+                                <template v-if="loading">
+                                    <tr v-for="n in 5" :key="n">
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-20 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-32 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-16 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-10 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-24 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-20 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-12 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr v-for="movement in filteredMovements" :key="movement.id"
+                                        class="hover:tw-bg-gray-50">
+                                        <td class="tw-px-3 tw-py-2 tw-whitespace-nowrap">{{ movement.created_at ?
+                                            formatDate(movement.created_at) : '-' }}</td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-font-medium">{{ movement.variant.product.name }}</div>
+                                            <div class="tw-text-xs tw-text-gray-500">{{ movement.variant.color }} - {{
+                                                movement.variant.size }} (SKU: {{ movement.variant.sku }})</div>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <span :class="{
+                                                'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium': true,
+                                                'tw-bg-green-100 tw-text-green-800': movement.type === 'import',
+                                                'tw-bg-red-100 tw-text-red-800': movement.type === 'export',
+                                                'tw-bg-yellow-100 tw-text-yellow-800': movement.type === 'adjustment'
+                                            }">
+                                                {{ getMovementTypeLabel(movement.type) }}
+                                            </span>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <span :class="{
+                                                'tw-font-medium': true,
+                                                'tw-text-green-600': movement.type === 'import',
+                                                'tw-text-red-600': movement.type === 'export',
+                                                'tw-text-yellow-600': movement.type === 'adjustment'
+                                            }">
+                                                {{ movement.type === 'import' ? '+' : movement.type === 'export' ? '-' :
+                                                    ''
+                                                }}{{ movement.quantity }}
+                                            </span>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">{{ movement.note || '-' }}</td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <div class="tw-flex tw-items-center">
+                                                <div class="tw-text-xs tw-font-medium">{{ movement.user ?
+                                                    movement.user.username : 'Không xác định' }}</div>
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-3 tw-py-2">
+                                            <button @click="downloadMovementPdf(movement.id)"
+                                                class="tw-bg-[#3BB77E] tw-text-white tw-px-2 tw-py-1 tw-rounded hover:tw-bg-[#5ebd91] tw-text-xs">
+                                                Tải PDF
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="filteredMovements.length === 0">
+                                        <td colspan="7" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">Không có
+                                            dữ
+                                            liệu</td>
+                                    </tr>
+                                </template>
                             </tbody>
                         </table>
                     </div>
@@ -176,22 +212,29 @@ const filters = ref({
 })
 
 const recentMovements = ref([])
+const loading = ref(false)
 
 const fetchVariants = async () => {
     try {
+        loading.value = true
         const data = await getVariants()
         variants.value = data
     } catch (error) {
         console.error('Error fetching variants:', error)
+    } finally {
+        loading.value = false
     }
 }
 
 const fetchRecentMovements = async () => {
     try {
+        loading.value = true
         const data = await getMovements({ limit: 20 })
         recentMovements.value = data
     } catch (error) {
         console.error('Error fetching movements:', error)
+    } finally {
+        loading.value = false
     }
 }
 

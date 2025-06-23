@@ -6,7 +6,7 @@
         </div>
 
         <OrderStats :orders="orders" />
-        <OrdersTable :orders="orders" @view="handleView" />
+        <OrdersTable :orders="orders" :isLoading="isLoading" @view="handleView" />
 
         <Modal :show="showModal" :title="'Chi tiết đơn hàng #' + selectedOrder?.id" size="lg" @close="closeModal">
             <OrderDetails v-if="selectedOrder" :order="selectedOrder" @update-status="handleUpdateStatus" />
@@ -28,9 +28,12 @@ import { useOrder } from '~/composables/useOrder'
 
 // Sử dụng composable để lấy danh sách đơn hàng thực tế
 const { orders, getOrders, updateOrderStatus } = useOrder()
+const isLoading = ref(true)
 
-onMounted(() => {
-    getOrders()
+onMounted(async () => {
+    isLoading.value = true
+    await getOrders()
+    isLoading.value = false
 })
 
 // Modal state
@@ -49,8 +52,10 @@ const closeModal = () => {
 }
 
 const handleUpdateStatus = async ({ id, status, payment_status }) => {
+    isLoading.value = true
     await updateOrderStatus(id, status, payment_status)
     await getOrders() // reload lại danh sách sau khi cập nhật trạng thái
+    isLoading.value = false
 }
 </script>
 

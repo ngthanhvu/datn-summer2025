@@ -1,9 +1,14 @@
 <template>
+  <!-- Mobile Backdrop -->
+  <div v-if="modelValue" class="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-50 tw-z-40 md:tw-hidden"
+    @click="$emit('update:modelValue', false)">
+  </div>
+
   <aside :class="[
-    'tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-z-[0]',
-    'md:tw-block md:tw-static md:tw-w-72',
+    'tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6',
+    'md:tw-block md:tw-static md:tw-w-72 md:tw-z-0',
     modelValue
-      ? 'tw-fixed tw-inset-0 tw-w-full tw-h-full tw-overflow-y-auto'
+      ? 'tw-fixed tw-inset-0 tw-w-full tw-h-full tw-overflow-y-auto tw-z-50'
       : 'tw-hidden md:tw-block'
   ]" style="transition: all 0.3s;">
     <div class="tw-flex tw-justify-between tw-items-center tw-mb-4 md:tw-hidden">
@@ -16,10 +21,8 @@
       </button>
     </div>
     <h2 class="tw-text-lg tw-font-semibold tw-mb-4 md:tw-block tw-hidden">Tất cả sản phẩm</h2>
-    <div :class="[
-      'tw-w-64 tw-bg-white tw-p-4 tw-rounded-lg tw-shadow',
-      modelValue ? 'tw-block' : 'tw-hidden md:tw-block'
-    ]">
+
+    <div class="tw-w-full md:tw-w-64">
       <h3 class="tw-text-lg tw-font-medium tw-mb-4">Bộ lọc sản phẩm</h3>
 
       <!-- Price Range -->
@@ -152,11 +155,13 @@ onMounted(() => {
 @media (max-width: 768px) {
   aside {
     border-radius: 0 !important;
-    padding: 16px !important;
+    padding: 1.5rem !important;
     min-height: 100vh;
+    background-color: white !important;
+    z-index: 50 !important;
   }
 
-  .tw-w-64 {
+  .tw-w-full {
     width: 100% !important;
     max-width: 100vw !important;
   }

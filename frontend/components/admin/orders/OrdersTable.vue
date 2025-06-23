@@ -18,13 +18,7 @@
             </div>
         </div>
 
-        <div v-if="loading" class="tw-p-4 tw-text-center">
-            <div
-                class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-4 tw-border-primary tw-border-t-transparent">
-            </div>
-        </div>
-
-        <div v-else-if="error" class="tw-p-4 tw-text-center tw-text-red-500">
+        <div v-if="error" class="tw-p-4 tw-text-center tw-text-red-500">
             {{ error }}
         </div>
 
@@ -67,7 +61,13 @@
                     </tr>
                 </thead>
                 <tbody class="tw-divide-y tw-divide-gray-200">
-                    <tr v-for="order in filteredOrders" :key="order.id" class="tw-hover:tw-bg-gray-50">
+                    <!-- Skeleton loading -->
+                    <tr v-if="isLoading" v-for="n in 8" :key="'skeleton-' + n">
+                        <td v-for="i in 8" :key="i" class="tw-px-4 tw-py-3">
+                            <div class="skeleton-loader"></div>
+                        </td>
+                    </tr>
+                    <tr v-else v-for="order in filteredOrders" :key="order.id" class="tw-hover:tw-bg-gray-50">
                         <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">#{{ order.id }}</td>
                         <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900">
                             <div>{{ order.user?.username }}</div>
@@ -164,6 +164,17 @@ const filterStatus = ref('')
 const showModal = ref(false)
 const selectedOrder = ref(null)
 
+const props = defineProps({
+    orders: {
+        type: [Array, Object],
+        required: true
+    },
+    isLoading: {
+        type: Boolean,
+        default: false
+    }
+})
+
 onMounted(async () => {
     await getOrders()
 })
@@ -196,5 +207,22 @@ const closeModal = () => {
 
 .tw-text-primary-dark {
     color: #2d9d6a;
+}
+
+.skeleton-loader {
+    height: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+    border-radius: 4px;
+    animation: skeleton-loading 2.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
 }
 </style>

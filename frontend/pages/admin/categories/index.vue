@@ -12,7 +12,8 @@
             </NuxtLink>
         </div>
 
-        <CategoriesTable :categories="categories" @delete="handleDelete" @bulk-delete="handleBulkDelete" />
+        <CategoriesTable :categories="categories" :isLoading="isLoading" @delete="handleDelete"
+            @bulk-delete="handleBulkDelete" />
     </div>
 </template>
 
@@ -33,11 +34,14 @@ import CategoriesTable from '~/components/admin/categories/CategoriesTable.vue'
 
 const { getCategories, deleteCategory, bulkDeleteCategories } = useCategory()
 const categories = ref([])
+const isLoading = ref(true)
 
 const handleDelete = async (category) => {
     try {
         await deleteCategory(category.id)
+        isLoading.value = true
         categories.value = await getCategories()
+        isLoading.value = false
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -50,6 +54,7 @@ const handleDelete = async (category) => {
             title: 'Danh mục đã được xóa thành công'
         })
     } catch (error) {
+        isLoading.value = false
         console.error('Failed to delete category:', error)
         Swal.fire('Có lỗi xảy ra khi xóa danh mục', error.message, 'error')
     }
@@ -69,8 +74,10 @@ const handleBulkDelete = async (selectedCategories) => {
         })
 
         if (result.isConfirmed) {
+            isLoading.value = true
             await bulkDeleteCategories(selectedCategories)
             categories.value = await getCategories()
+            isLoading.value = false
 
             const Toast = Swal.mixin({
                 toast: true,
@@ -86,17 +93,20 @@ const handleBulkDelete = async (selectedCategories) => {
             })
         }
     } catch (error) {
+        isLoading.value = false
         console.error('Failed to bulk delete categories:', error)
         Swal.fire('Có lỗi xảy ra khi xóa danh mục', error.message, 'error')
     }
 }
 
 onMounted(async () => {
+    isLoading.value = true
     try {
         categories.value = await getCategories()
-        console.log(categories.value)
     } catch (error) {
         console.error('Failed to fetch categories:', error)
+    } finally {
+        isLoading.value = false
     }
 })
 </script>

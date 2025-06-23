@@ -111,6 +111,7 @@
                         <th class="tw-px-3 tw-py-2">
                             <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
                         </th>
+                        <th class="tw-px-3 tw-py-2">#</th>
                         <th v-for="column in columns" :key="column.key" class="tw-px-3 tw-py-2 tw-font-semibold"
                             @click="sortBy(column.key)">
                             {{ column.label }}
@@ -121,10 +122,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(item, index) in paginatedData" :key="index" class="tw-border-b hover:tw-bg-gray-50">
+                    <!-- Skeleton loading -->
+                    <tr v-if="props.isLoading" v-for="n in props.itemsPerPage" :key="'skeleton-' + n">
+                        <td v-for="i in columns.length + 3" :key="i" class="tw-px-3 tw-py-2">
+                            <div class="skeleton-loader"></div>
+                        </td>
+                    </tr>
+                    <tr v-else v-for="(item, index) in paginatedData" :key="index"
+                        class="tw-border-b hover:tw-bg-gray-50">
                         <td class="tw-px-3 tw-py-2">
                             <input type="checkbox" :checked="selectedRows.includes(item.id)"
                                 @change="toggleSelectRow(item.id)" />
+                        </td>
+                        <td class="tw-px-3 tw-py-2">
+                            {{ (currentPage - 1) * props.itemsPerPage + index + 1 }}
                         </td>
                         <td v-for="column in columns" :key="column.key" class="tw-px-3 tw-py-2">
                             <template v-if="column.type === 'main_image'">
@@ -184,8 +195,8 @@
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="paginatedData.length === 0">
-                        <td colspan="11" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
+                    <tr v-if="!props.isLoading && paginatedData.length === 0">
+                        <td :colspan="columns.length + 3" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
                             Không có dữ liệu
                         </td>
                     </tr>
@@ -244,6 +255,10 @@ const props = defineProps({
     itemsPerPage: {
         type: Number,
         default: 10
+    },
+    isLoading: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -475,5 +490,22 @@ const handleBulkDelete = async () => {
 
 .fa-spinner {
     animation: spin 1s linear infinite;
+}
+
+.skeleton-loader {
+    height: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+    border-radius: 4px;
+    animation: skeleton-loading 2.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
 }
 </style>

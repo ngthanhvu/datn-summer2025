@@ -22,7 +22,7 @@
                     <tr class="tw-bg-gray-50">
                         <th
                             class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                            ID
+                            #
                         </th>
                         <th
                             class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
@@ -51,8 +51,15 @@
                     </tr>
                 </thead>
                 <tbody class="tw-divide-y tw-divide-gray-200">
-                    <tr v-for="customer in filteredCustomers" :key="customer.id" class="tw-hover:tw-bg-gray-50">
-                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900 tw-text-center">{{ customer.id }}</td>
+                    <!-- Skeleton loading -->
+                    <tr v-if="props.isLoading" v-for="n in 7" :key="'skeleton-' + n">
+                        <td v-for="i in 7" :key="i" class="tw-px-4 tw-py-3">
+                            <div class="skeleton-loader"></div>
+                        </td>
+                    </tr>
+                    <tr v-else v-for="(customer, index) in filteredCustomers" :key="customer.id"
+                        class="tw-hover:tw-bg-gray-50">
+                        <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900 tw-text-center">{{ index + 1 }}</td>
                         <td class="tw-px-4 tw-py-3 tw-text-center">
                             <img :src="customer.avatar || defaultAvatar" :alt="customer.username"
                                 class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover tw-mx-auto" />
@@ -95,7 +102,7 @@
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="filteredCustomers.length === 0">
+                    <tr v-if="!props.isLoading && filteredCustomers.length === 0">
                         <td colspan="8" class="tw-text-center tw-text-gray-500">Không có dữ liệu</td>
                     </tr>
                 </tbody>
@@ -111,6 +118,10 @@ const props = defineProps({
     customers: {
         type: Array,
         required: true
+    },
+    isLoading: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -146,5 +157,22 @@ const handleDelete = (customer) => {
 
 .tw-text-primary-dark {
     color: #2d9d6a;
+}
+
+.skeleton-loader {
+    height: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+    border-radius: 4px;
+    animation: skeleton-loading 2.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
 }
 </style>
