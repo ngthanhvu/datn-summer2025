@@ -16,28 +16,24 @@
           </div>
         </div>
         <div class="header-right">
-          <button class="header-btn"><i class="fas fa-bell"></i><span class="badge">3</span></button>
-          <div class="avatar-dropdown">
-            <div class="avatar-wrapper" @click="isDropdownOpen = !isDropdownOpen">
-              <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User Avatar" class="avatar">
-            </div>
-            <div class="dropdown-menu" :class="{ 'show': isDropdownOpen }">
-              <div class="dropdown-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-              </div>
-              <div class="dropdown-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-              </div>
-              <div class="dropdown-divider"></div>
-              <div
-                class="dropdown-item text-danger tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2 tw-transition-colors hover:tw-bg-red-50 tw-rounded-md tw-mx-2 tw-cursor-pointer"
-                @click="handleLogout">
-                <i class="fas fa-sign-out-alt tw-text-red-500"></i>
-                <span class="tw-font-medium tw-text-red-600">Logout</span>
-              </div>
-            </div>
+          <div class="tw-flex tw-items-center tw-space-x-2">
+            <NuxtLink v-if="isAdmin" to="/" class="tw-p-2 hover:tw-bg-gray-100 tw-rounded-lg" title="Cài đặt">
+              <svg class="tw-w-5 tw-h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </NuxtLink>
+            <button class="tw-p-2 hover:tw-bg-gray-100 tw-rounded-lg tw-text-red-600" title="Đăng xuất"
+              @click="handleBackHome">
+              <svg class="tw-w-5 tw-h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                </path>
+              </svg>
+            </button>
           </div>
         </div>
       </header>
@@ -54,6 +50,8 @@ import SidebarAdmin from '~/components/admin/SidebarAdmin.vue'
 
 const isDropdownOpen = ref(false)
 
+const user = useCookie('user')
+
 onMounted(() => {
   if (!isAuthenticated.value) {
     checkAuth()
@@ -69,9 +67,19 @@ onMounted(() => {
     }
   })
 })
+
+const handleBackHome = () => {
+  navigateTo('/')
+}
 </script>
 
 <style scoped>
+.menu-drop {
+  position: absolute;
+  top: 60px;
+  right: 0;
+}
+
 .main-content {
   flex: 1;
   display: flex;
@@ -83,12 +91,13 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem 1rem 2rem;
+  padding: 0.75rem 2rem;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
   position: sticky;
   top: 0;
   z-index: 10;
+  height: 64px;
 }
 
 .header-left {
@@ -108,7 +117,8 @@ onMounted(() => {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   background: #f7f8fa;
-  font-size: 1rem;
+  font-size: 0.875rem;
+  height: 40px;
 }
 
 .search-bar i {
@@ -143,93 +153,5 @@ onMounted(() => {
   border-radius: 50%;
   font-size: 0.7rem;
   padding: 2px 6px;
-}
-
-.avatar-dropdown {
-  position: relative;
-}
-
-.avatar-wrapper {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  min-width: 200px;
-  z-index: 1000;
-  border: 1px solid #e5e7eb;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.2s ease-in-out;
-}
-
-.dropdown-menu.show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.dropdown-item:hover {
-  background: #f7f8fa;
-}
-
-.dropdown-item i {
-  width: 20px;
-  text-align: center;
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 0.5rem 0;
-}
-
-.text-danger {
-  color: #ef4444;
-}
-
-.text-danger:hover {
-  background: #fee2e2;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #3bb77e;
-}
-
-.content {
-  padding: 2rem 2rem 0 2rem;
-  flex: 1;
-}
-
-@media (max-width: 900px) {
-  .sidebar {
-    display: none;
-  }
-
-  .main-content {
-    margin-left: 0;
-    padding-left: 0;
-  }
-}
-
-.section-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  padding: 0.5rem 1rem;
-  margin-bottom: 0.5rem;
 }
 </style>

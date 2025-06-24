@@ -34,7 +34,7 @@
         </NuxtLink>
         <NuxtLink to="/admin/promotions" class="nav-item">
           <i class="fa-solid fa-ticket"></i>
-          <span>Khuyến mãi giảm giá</span>
+          <span>Khuyến mãi</span>
         </NuxtLink>
 
         <!-- Inventory Management -->
@@ -45,14 +45,16 @@
         <div v-show="showInventoryMenu" class="submenu">
           <NuxtLink to="/admin/inventory" class="nav-sub-item">Tổng quan kho</NuxtLink>
           <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập kho</NuxtLink>
-          <NuxtLink to="/admin/inventory/export" class="nav-sub-item">Xuất kho</NuxtLink>
-          <NuxtLink to="/admin/inventory/history" class="nav-sub-item">Lịch sử kho</NuxtLink>
         </div>
       </div>
 
       <!-- Communication Section -->
       <div class="nav-section">
         <div class="section-title text-muted tw-font-bold tw-text-[14px]">Giao tiếp</div>
+        <NuxtLink to="/admin/blogs" class="nav-item">
+          <i class="fa-solid fa-newspaper"></i>
+          Bài viết
+        </NuxtLink>
         <NuxtLink to="/admin/messages" class="nav-item">
           <i class="fas fa-envelope"></i>
           <span>Tin nhắn</span>
@@ -60,7 +62,7 @@
         </NuxtLink>
         <NuxtLink to="/admin/comments" class="nav-item">
           <i class="fas fa-comments"></i>
-          <span>Bình luận</span>
+          <span>Đánh giá</span>
           <span class="badge">12</span>
         </NuxtLink>
       </div>

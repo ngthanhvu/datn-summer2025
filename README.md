@@ -59,3 +59,7 @@ composer require tymon/jwt-auth
 ```bash
 php artisan jwt:secret
 ```
+#### 9. Thư viện hình ảnh
+```bash
+php artisan storage:link
+```

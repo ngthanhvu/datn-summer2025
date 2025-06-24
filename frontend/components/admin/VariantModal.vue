@@ -23,7 +23,6 @@
                             <div class="tw-text-sm tw-text-gray-600">
                                 <div>Kích thước: {{ variant.size || 'N/A' }}</div>
                                 <div>Màu sắc: {{ variant.colorName || variant.color || 'N/A' }}</div>
-                                <div>Số lượng: {{ variant.quantity || 0 }}</div>
                                 <div>Giá: {{ formatPrice(variant.price) }}</div>
                             </div>
                         </div>

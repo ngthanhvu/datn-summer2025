@@ -11,10 +11,12 @@ class BrandsController extends Controller
 {
     public function index()
     {
-        $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id', 'is_active')->get();
+        $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id', 'is_active')
+            ->withCount('products')
+            ->get();
 
         $brands->transform(function ($brand) {
-            $brand->image = url('storage/' . $brand->image);
+            $brand->image = $brand->image ? url('storage/' . $brand->image) : null;
             return $brand;
         });
 
@@ -133,6 +135,36 @@ class BrandsController extends Controller
             return response()->json(['message' => 'Brand deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        \Log::info($request->all());
+        try {
+            $ids = $request->input('ids', []);
+
+            if (empty($ids) || !is_array($ids)) {
+                return response()->json(['message' => 'No brand ids provided'], 400);
+            }
+
+            // Lấy danh sách brand cần xoá
+            $brands = Brands::whereIn('id', $ids)->get();
+
+            foreach ($brands as $brand) {
+                // Xoá ảnh nếu có
+                if ($brand->image && Storage::disk('public')->exists($brand->image)) {
+                    Storage::disk('public')->delete($brand->image);
+                }
+                $brand->delete();
+            }
+
+            return response()->json(['message' => 'Brands deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Bulk delete failed',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 }

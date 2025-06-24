@@ -12,7 +12,7 @@
             </NuxtLink>
         </div>
 
-        <Form :fields="formFields" v-model="formData" @submit="handleSubmit" />
+        <Form :fields="formFields" v-model="formData" @submit="handleSubmit" :errors="formErrors" />
 
         <div class="tw-mt-6">
             <ImageUpload v-model="imageData" label="Logo thương hiệu" required />
@@ -72,14 +72,21 @@ const formFields = ref([
         label: 'Tên thương hiệu',
         type: 'text',
         placeholder: 'Nhập tên thương hiệu',
-        required: true
+        required: true,
+        validation: {
+            required: 'Vui lòng nhập tên thương hiệu',
+            minLength: { value: 3, message: 'Tên thương hiệu phải có ít nhất 3 ký tự' }
+        }
     },
     {
         name: 'description',
         label: 'Mô tả',
         type: 'textarea',
         placeholder: 'Nhập mô tả thương hiệu',
-        rows: 4
+        rows: 4,
+        validation: {
+            minLength: { value: 10, message: 'Mô tả phải có ít nhất 10 ký tự' }
+        }
     },
     {
         name: 'parent_id',
@@ -97,14 +104,45 @@ const formFields = ref([
     }
 ])
 
-const handleSubmit = async () => {
+const formErrors = ref({
+    name: '',
+    description: '',
+    parent_id: '',
+    is_active: '',
+    image: ''
+})
+
+const validateForm = () => {
+    const errors = { ...formErrors.value }
+    let hasError = false
+
+    // Validate name
     if (!formData.value.name) {
-        alert('Vui lòng nhập tên thương hiệu')
-        return
+        errors.name = 'Vui lòng nhập tên thương hiệu'
+        hasError = true
+    } else if (formData.value.name.length < 3) {
+        errors.name = 'Tên thương hiệu phải có ít nhất 3 ký tự'
+        hasError = true
     }
 
+    // Validate description if provided
+    if (formData.value.description && formData.value.description.length < 10) {
+        errors.description = 'Mô tả phải có ít nhất 10 ký tự'
+        hasError = true
+    }
+
+    // Validate image
     if (!imageData.value) {
-        alert('Vui lòng chọn hình ảnh')
+        errors.image = 'Vui lòng chọn logo thương hiệu'
+        hasError = true
+    }
+
+    formErrors.value = errors
+    return !hasError
+}
+
+const handleSubmit = async () => {
+    if (!validateForm()) {
         return
     }
 

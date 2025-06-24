@@ -3,9 +3,7 @@
     <div class="tw-w-full tw-overflow-hidden tw-group tw-pb-4 tw-relative">
       <!-- Image wrapper -->
       <div class="tw-relative tw-overflow-hidden">
-        <img
-          :src="getMainImage"
-          :alt="product.name"
+        <img :src="getMainImage" :alt="product.name"
           class="tw-w-full tw-object-cover tw-h-80 tw-transition-transform group-hover:tw-scale-105 tw-duration-300" />
 
         <!-- Hover overlay -->
@@ -19,8 +17,7 @@
           <!-- Add to cart -->
           <button
             class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
-            title="Thêm vào giỏ"
-            @click.prevent="addToCart">
+            title="Thêm vào giỏ" @click.prevent="addToCart">
             <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -29,8 +26,7 @@
           </button>
 
           <!-- Quick view -->
-          <NuxtLink 
-            :to="`/products/${product.slug}`"
+          <NuxtLink :to="`/products/${product.slug}`"
             class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
             title="Xem chi tiết">
             <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
@@ -51,7 +47,8 @@
 
         <!-- Price -->
         <div class="tw-flex tw-items-center tw-gap-2 tw-mt-1">
-          <p class="tw-text-blue-600 tw-font-semibold tw-text-base">{{ formatPrice(product.discount_price || product.price) }}</p>
+          <p class="tw-text-[#81AACC] tw-font-semibold tw-text-base">{{ formatPrice(product.discount_price ||
+            product.price) }}</p>
           <template v-if="product.discount_price && product.discount_price < product.price">
             <p class="tw-text-gray-400 tw-line-through tw-text-sm">{{ formatPrice(product.price) }}</p>
             <span class="tw-bg-red-600 tw-text-white tw-text-xs tw-rounded-full tw-px-2 tw-py-[1px]">
@@ -63,9 +60,7 @@
         <!-- Variants & extra -->
         <div class="tw-flex tw-items-center tw-justify-between tw-mt-3">
           <div class="tw-flex tw-items-center tw-gap-1" v-if="product.variants && product.variants.length">
-            <div 
-              v-for="(variant, index) in displayedVariants" 
-              :key="index"
+            <div v-for="(variant, index) in displayedVariants" :key="index"
               class="tw-w-4 tw-h-4 tw-rounded-full tw-border tw-border-gray-300"
               :style="{ backgroundColor: variant.color }">
             </div>

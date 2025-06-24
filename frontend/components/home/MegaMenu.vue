@@ -157,6 +157,6 @@
 
 .megamenu ul li a:hover {
     padding-left: 0.5rem;
-    color: #2563eb;
+    color: #81aacc;
 }
 </style>

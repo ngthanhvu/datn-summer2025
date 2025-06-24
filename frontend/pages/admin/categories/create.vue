@@ -1,6 +1,6 @@
 <template>
-    <CategoryForm title="Thêm danh mục mới" description="Điền thông tin để tạo danh mục mới" submitText="Tạo danh mục"
-        @submit="handleSubmit" />
+    <CategoryForm ref="categoryForm" title="Thêm danh mục mới" description="Điền thông tin để tạo danh mục mới"
+        submitText="Tạo danh mục" @submit="handleSubmit" />
 </template>
 
 <script setup>

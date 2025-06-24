@@ -30,12 +30,27 @@
                     <ProductSort @sort="handleSort" />
                 </div>
 
+                <!-- Loading Skeleton -->
+                <div v-if="loading" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
+                    <div v-for="i in 12" :key="i"
+                        class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-overflow-hidden tw-animate-pulse">
+                        <div class="tw-h-80 tw-bg-gray-200"></div>
+                        <div class="tw-p-4">
+                            <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-mb-2"></div>
+                            <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-mb-2"></div>
+                            <div class="tw-h-6 tw-bg-gray-200 tw-rounded tw-mb-2"></div>
+                            <div class="tw-h-8 tw-bg-gray-200 tw-rounded"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Products Grid -->
-                <div class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
+                <div v-else class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
                     <Card v-for="product in paginatedProducts" :key="product.id" :product="product" />
                 </div>
 
-                <div v-if="totalPages > 1" class="tw-flex tw-justify-center tw-items-center tw-space-x-2 tw-mt-8">
+                <div v-if="totalPages > 1 && !loading"
+                    class="tw-flex tw-justify-center tw-items-center tw-space-x-2 tw-mt-8">
                     <!-- Previous -->
                     <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
                         class="tw-px-3 tw-py-2 tw-bg-white tw-border tw-rounded hover:tw-bg-gray-50 disabled:tw-opacity-50">
@@ -44,7 +59,7 @@
 
                     <!-- Page numbers -->
                     <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
-                        :class="page === currentPage ? 'tw-bg-blue-600 tw-text-white' : 'tw-bg-white'"
+                        :class="page === currentPage ? 'tw-bg-[#81aacc] tw-text-white' : 'tw-bg-white'"
                         class="tw-px-3 tw-py-2 tw-border tw-rounded hover:tw-bg-gray-50">
                         {{ page }}
                     </button>
@@ -57,7 +72,7 @@
                 </div>
 
                 <!-- Empty State -->
-                <div v-if="products.length === 0" class="tw-text-center tw-py-12">
+                <div v-if="products.length === 0 && !loading" class="tw-text-center tw-py-12">
                     <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-12 tw-w-12 tw-mx-auto tw-text-gray-400 tw-mb-4"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -80,20 +95,25 @@ import Card from '~/components/home/Card.vue'
 const showFilter = ref(false)
 const products = ref([])
 const searchQuery = ref('')
+const loading = ref(false)
 const { getProducts, searchProducts } = useProducts()
 const currentPage = ref(1)
 const itemsPerPage = 12
 const filters = ref({})
 
 onMounted(async () => {
+    loading.value = true
     try {
         products.value = await getProducts()
     } catch (error) {
         console.error('Error fetching products:', error)
+    } finally {
+        loading.value = false
     }
 })
 
 const handleSort = async (sortOption) => {
+    loading.value = true
     try {
         products.value = await getProducts({
             ...filters.value,
@@ -102,10 +122,13 @@ const handleSort = async (sortOption) => {
         })
     } catch (error) {
         console.error('Error sorting products:', error)
+    } finally {
+        loading.value = false
     }
 }
 
 const handleSearch = async () => {
+    loading.value = true
     try {
         if (searchQuery.value.trim() === '') {
             products.value = await getProducts(filters.value);
@@ -116,16 +139,21 @@ const handleSearch = async () => {
 
     } catch (e) {
         console.error('Lỗi khi tìm kiếm sản phẩm:', e)
+    } finally {
+        loading.value = false
     }
 }
 
 const handleFilter = async (newFilters) => {
     filters.value = newFilters
     currentPage.value = 1
+    loading.value = true
     try {
         products.value = await getProducts(filters.value)
     } catch (error) {
         console.error('Error filtering products:', error)
+    } finally {
+        loading.value = false
     }
 }
 

@@ -77,14 +77,6 @@ export const useAuth = () => {
         }
     }
 
-    const facebookLogin = async () => {
-        Swal.fire({
-            title: "Tính năng đang phát triển",
-            icon: "info",
-            confirmButtonText: "OK"
-        })
-    }
-
     const checkAuth = async () => {
         if (token.value) {
             try {
@@ -222,6 +214,41 @@ export const useAuth = () => {
         isAdmin.value = user.value?.role === 'admin'
     }
 
+    const updateUserProfile = async (formData) => {
+        try {
+            const response = await API.post('/api/update-profile', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+
+            if (response.data) {
+                await getUser()
+                return response.data
+            }
+        } catch (error) {
+            console.error('Update profile error:', error.response?.data || error.message)
+            throw error
+        }
+    }
+
+    const resetPasswordProfile = async (currentPassword, newPassword, newPasswordConfirmation) => {
+        try {
+            const res = await API.post('/api/reset-password-profile', {
+                current_password: currentPassword,
+                password: newPassword,
+                password_confirmation: newPasswordConfirmation
+            })
+            return res.data
+        } catch (err) {
+            console.error('Reset password profile error:', err.response?.data || err.message)
+            throw err
+        }
+    }
+    const getToken = () => {
+        return token.value
+    }
+
     return {
         user,
         token,
@@ -235,9 +262,11 @@ export const useAuth = () => {
         checkAdmin,
         googleLogin,
         handleGoogleCallback,
-        facebookLogin,
         getListUser,
         forgotPassword,
-        resetPassword
+        resetPassword,
+        updateUserProfile,
+        resetPasswordProfile,
+        getToken
     }
 }

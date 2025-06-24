@@ -10,9 +10,11 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@vueup/vue-quill": "^1.2.0",
     "axios": "^1.9.0",
     "bootstrap": "^5.3.5",
     "izitoast": "^1.4.0",
+    "jspdf": "^3.0.1",
     "notyf": "^3.10.0",
     "nuxt": "^3.17.3",
     "sweetalert2": "^11.21.2",

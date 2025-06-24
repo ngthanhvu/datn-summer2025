@@ -12,7 +12,6 @@ class Variants extends Model
         'color',
         'size',
         'price',
-        'quantity',
         'sku',
         'product_id',
     ];
@@ -20,5 +19,15 @@ class Variants extends Model
     public function product()
     {
         return $this->belongsTo(Products::class, 'product_id');
+    }
+
+    public function inventory()
+    {
+        return $this->hasOne(Inventory::class, 'variant_id');
+    }
+
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class);
     }
 }

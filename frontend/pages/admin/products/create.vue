@@ -16,11 +16,12 @@
       <div class="tw-grid tw-grid-cols-2 tw-gap-6">
         <div class="tw-space-y-4">
           <Form v-if="isDataLoaded" :fields="basicFields" :initial-data="formData" v-model="formData"
-            @submit="handleSubmit" />
+            @submit="handleSubmit" :errors="formErrors" />
           <div v-else class="tw-text-center tw-text-gray-500">Đang tải danh mục và thương hiệu...</div>
         </div>
         <div class="tw-space-y-4">
-          <Form :fields="imageFields" :initial-data="formData" v-model="formData" @submit="handleSubmit" />
+          <Form :fields="imageFields" :initial-data="formData" v-model="formData" @submit="handleSubmit"
+            :errors="formErrors" />
         </div>
       </div>
 
@@ -51,7 +52,8 @@
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
-              <Form :fields="variantFields" :initial-data="variant" v-model="formData.variants[index]" />
+              <Form :fields="variantFields" :initial-data="variant" v-model="formData.variants[index]"
+                :errors="formErrors.variants[index]" />
             </div>
           </div>
         </div>
@@ -62,9 +64,9 @@
       <NuxtLink to="/admin/products" class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
         Hủy
       </NuxtLink>
-      <button @click="handleSubmit"
-        class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
-        Tạo sản phẩm
+      <button @click="handleSubmit" :disabled="isSubmitting"
+        class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark disabled:tw-opacity-50 disabled:tw-cursor-not-allowed">
+        {{ isSubmitting ? 'Đang tạo...' : 'Tạo sản phẩm' }}
       </button>
     </div>
   </div>
@@ -86,7 +88,9 @@ import { useProducts } from '~/composables/useProducts'
 import { useCategory } from '~/composables/useCategory'
 import { useBrand } from '~/composables/useBrand'
 
+const notyf = useNuxtApp().$notyf
 const isDataLoaded = ref(false)
+const isSubmitting = ref(false)
 const basicFields = ref([
   {
     name: 'name',
@@ -121,14 +125,6 @@ const basicFields = ref([
     required: false,
     min: 0,
     step: 1000
-  },
-  {
-    name: 'quantity',
-    label: 'Số lượng',
-    type: 'number',
-    placeholder: 'Nhập số lượng',
-    required: true,
-    min: 0
   },
   {
     name: 'category',
@@ -185,14 +181,6 @@ const variantFields = [
     step: 1000
   },
   {
-    name: 'quantity',
-    label: 'Số lượng',
-    type: 'number',
-    placeholder: 'Nhập số lượng',
-    required: true,
-    min: 0
-  },
-  {
     name: 'sku',
     label: 'SKU',
     type: 'text',
@@ -222,7 +210,6 @@ const formData = ref({
   price: 0,
   original_price: 0,
   discount_price: 0,
-  quantity: 0,
   category: '',
   brand: '',
   description: '',
@@ -231,6 +218,17 @@ const formData = ref({
   mainImagePreview: null,
   additionalImages: [],
   additionalImagePreviews: [],
+  variants: []
+})
+
+const formErrors = ref({
+  name: '',
+  price: '',
+  original_price: '',
+  discount_price: '',
+  category: '',
+  brand: '',
+  description: '',
   variants: []
 })
 
@@ -269,26 +267,55 @@ onMounted(async () => {
   }
 })
 
+const validateForm = () => {
+  let hasError = false
+  const errors = { ...formErrors.value }
+
+  // Basic validation
+  if (!formData.value.name) {
+    errors.name = 'Vui lòng nhập tên sản phẩm'
+    hasError = true
+  }
+  if (!formData.value.price) {
+    errors.price = 'Vui lòng nhập giá sản phẩm'
+    hasError = true
+  }
+  if (!formData.value.category) {
+    errors.category = 'Vui lòng chọn danh mục'
+    hasError = true
+  }
+  if (!formData.value.brand) {
+    errors.brand = 'Vui lòng chọn thương hiệu'
+    hasError = true
+  }
+
+  formErrors.value = errors
+  return !hasError
+}
+
 const handleSubmit = async () => {
   try {
-    if (!formData.value.mainImage) {
-      alert('Vui lòng chọn ảnh chính cho sản phẩm')
+    if (!validateForm()) {
       return
     }
 
+    isSubmitting.value = true
     const productData = new FormData()
+
     productData.append('name', formData.value.name)
     productData.append('description', formData.value.description)
     productData.append('price', String(formData.value.price))
     productData.append('original_price', String(formData.value.original_price))
     productData.append('discount_price', String(formData.value.discount_price))
-    productData.append('quantity', String(formData.value.quantity))
     productData.append('is_active', formData.value.status ? '1' : '0')
     productData.append('categories_id', String(formData.value.category))
     productData.append('brand_id', String(formData.value.brand))
-    productData.append('is_main', formData.value.mainImage)
 
-    formData.value.additionalImages.forEach((img) => {
+    if (formData.value.mainImage) {
+      productData.append('is_main', formData.value.mainImage)
+    }
+
+    formData.value.additionalImages.forEach(img => {
       productData.append('image_path[]', img)
     })
 
@@ -297,16 +324,17 @@ const handleSubmit = async () => {
         productData.append(`variants[${idx}][color]`, variant.color)
         productData.append(`variants[${idx}][size]`, variant.size)
         productData.append(`variants[${idx}][price]`, String(variant.price))
-        productData.append(`variants[${idx}][quantity]`, String(variant.quantity))
         productData.append(`variants[${idx}][sku]`, variant.sku)
       })
     }
 
-    await createProduct(productData)
+    const response = await createProduct(productData)
+    notyf.success('Tạo sản phẩm thành công!')
     await navigateTo('/admin/products')
   } catch (error) {
-    console.error('Error creating product:', error)
-    alert('Có lỗi khi tạo sản phẩm')
+    notyf.error(error.response?.data?.message || 'Có lỗi khi tạo sản phẩm')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -315,18 +343,34 @@ const showVariantsSection = () => {
   addVariant()
 }
 
+const generateSKU = (name) => {
+  const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
+  const namePart = name
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .substring(0, 4)
+  return `${namePart}-${randomNum}`
+}
+
 const addVariant = () => {
+  const sku = generateSKU(formData.value.name)
   formData.value.variants.push({
     color: '',
     size: '',
     price: 0,
-    quantity: 0,
+    sku: sku
+  })
+  formErrors.value.variants.push({
+    color: '',
+    size: '',
+    price: '',
     sku: ''
   })
 }
 
 const removeVariant = (index) => {
   formData.value.variants.splice(index, 1)
+  formErrors.value.variants.splice(index, 1)
   if (formData.value.variants.length === 0) {
     showVariants.value = false
   }

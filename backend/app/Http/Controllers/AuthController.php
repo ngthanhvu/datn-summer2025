@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\WelcomeEmail;
 use App\Mail\OtpEmail;
 use Illuminate\Support\Facades\Mail;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
@@ -57,7 +58,9 @@ class AuthController extends Controller
             'id' => Auth::id(),
             'username' => Auth::user()->username,
             'email' => Auth::user()->email,
-            'role' => Auth::user()->role
+            'role' => Auth::user()->role,
+            'avatar' => Auth::user()->avatar,
+            'phone' => Auth::user()->phone,
         ]);
     }
 
@@ -103,7 +106,9 @@ class AuthController extends Controller
                 ]
             );
 
-            Mail::to($user->email)->send(new WelcomeEmail($user));
+            if ($user->wasRecentlyCreated) {
+                Mail::to($user->email)->send(new WelcomeEmail($user));
+            }
 
             $token = JWTAuth::fromUser($user);
 
@@ -123,7 +128,20 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $users = User::all();
+        $users = User::all()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'avatar' => $user->avatar ? url($user->avatar) : null,
+                'role' => $user->role,
+                'oauth_provider' => $user->oauth_provider,
+                'oauth_id' => $user->oauth_id,
+                'otp_expires_at' => $user->otp_expires_at,
+                'status' => $user->status,
+            ];
+        });
 
         return response()->json([
             'users' => $users
@@ -211,6 +229,47 @@ class AuthController extends Controller
         }
     }
 
+    public function resetPasswordProfile(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required',
+                'password' => 'required|min:6|confirmed',
+            ], [
+                'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại',
+                'password.required' => 'Vui lòng nhập mật khẩu mới',
+                'password.min' => 'Mật khẩu mới phải có ít nhất 6 ký tự',
+                'password.confirmed' => 'Xác nhận mật khẩu không khớp',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'error' => 'Mật khẩu hiện tại không đúng'
+                ], 400);
+            }
+
+            $user->update([
+                'password' => bcrypt($request->password)
+            ]);
+
+            return response()->json([
+                'message' => 'Cập nhật mật khẩu thành công'
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Failed to reset password: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => 'Có lỗi xảy ra khi cập nhật mật khẩu. Vui lòng thử lại.'
+            ], 500);
+        }
+    }
+
     public function verifyOtp(Request $request)
     {
         $request->validate([
@@ -236,5 +295,61 @@ class AuthController extends Controller
             'message' => 'Mã OTP hợp lệ',
             'expires_at' => $user->otp_expires_at->format('Y-m-d H:i:s')
         ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $validator = Validator::make($request->all(), [
+                'username' => 'sometimes|string|max:255',
+                'phone' => 'sometimes|string|max:20|nullable',
+                'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048|nullable',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $updateData = [];
+
+            if ($request->has('username')) {
+                $updateData['username'] = $request->username;
+            }
+
+            if ($request->has('phone')) {
+                $updateData['phone'] = $request->phone;
+            }
+
+            if ($request->hasFile('avatar')) {
+                if ($user->avatar && Storage::exists('public/avatars/' . basename($user->avatar))) {
+                    Storage::delete('public/avatars/' . basename($user->avatar));
+                }
+
+                $avatarPath = $request->file('avatar')->store('avatars', 'public');
+                $updateData['avatar'] = '/storage/' . $avatarPath;
+            }
+
+            $user->update($updateData);
+
+            return response()->json([
+                'message' => 'Cập nhật thông tin tài khoản thành công',
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'avatar' => $user->avatar,
+                    'role' => $user->role,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Failed to update profile: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => 'Có lỗi xảy ra khi cập nhật thông tin tài khoản. Vui lòng thử lại.'
+            ], 500);
+        }
     }
 }

@@ -5,56 +5,41 @@
             <p class="text-gray-600">Quản lý danh sách khách hàng của bạn</p>
         </div>
 
-        <CustomersTable :customers="customers" @delete="handleDelete" />
+        <CustomersTable :customers="customers" :isLoading="isLoading" @delete="handleDelete" />
     </div>
 </template>
 
 <script setup>
+useHead({
+    title: "Quản lý khách hàng",
+    meta: [
+        { name: "description", content: "Quản lý danh sách khách hàng của bạn" }
+    ]
+})
 definePageMeta({
-    layout: 'admin'
+    layout: 'admin',
+    middleware: 'admin'
+})
+import CustomersTable from '~/components/admin/customers/CustomersTable.vue'
+import { useAuth } from '~/composables/useAuth'
+
+const { getListUser } = useAuth()
+const customers = ref([])
+const isLoading = ref(true)
+
+onMounted(async () => {
+    isLoading.value = true
+    try {
+        const res = await getListUser()
+        customers.value = res.users
+    } catch (err) {
+        console.error('Get list user error:', err.response?.data || err.message)
+        throw err
+    } finally {
+        isLoading.value = false
+    }
 })
 
-import { ref } from 'vue'
-import CustomersTable from '~/components/admin/customers/CustomersTable.vue'
-
-// Mock data
-const customers = ref([
-    {
-        id: 1,
-        avatar: 'https://via.placeholder.com/150',
-        name: 'Nguyễn Văn A',
-        email: 'nguyenvana@email.com',
-        phone: '0123456789',
-        totalOrders: 5,
-        totalSpent: 15990000,
-        status: true,
-        address: '123 Đường ABC, Quận 1, TP.HCM'
-    },
-    {
-        id: 2,
-        avatar: 'https://via.placeholder.com/150',
-        name: 'Trần Thị B',
-        email: 'tranthib@email.com',
-        phone: '0987654321',
-        totalOrders: 3,
-        totalSpent: 8990000,
-        status: true,
-        address: '456 Đường XYZ, Quận 2, TP.HCM'
-    },
-    {
-        id: 3,
-        avatar: 'https://via.placeholder.com/150',
-        name: 'Lê Văn C',
-        email: 'levanc@email.com',
-        phone: '0369852147',
-        totalOrders: 0,
-        totalSpent: 0,
-        status: false,
-        address: '789 Đường DEF, Quận 3, TP.HCM'
-    }
-])
-
-// Handlers
 const handleDelete = (customer) => {
     const index = customers.value.findIndex(c => c.id === customer.id)
     if (index !== -1) {
