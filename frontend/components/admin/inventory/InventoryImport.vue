@@ -183,11 +183,6 @@
 <script setup>
 import jsPDF from 'jspdf'
 
-definePageMeta({
-    layout: 'admin',
-    middleware: 'admin'
-})
-
 const { getInventories, updateStock, getMovements, getVariants, downloadMovementPdf } = useInventories()
 const variants = ref([])
 const recentImports = ref([])

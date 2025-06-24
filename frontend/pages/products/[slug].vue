@@ -545,7 +545,7 @@ const { data, pending, error, refresh } = await useAsyncData(
     return product
   },
   {
-    watch: [route.params.slug]
+    watch: [() => route.params.slug]
   }
 )
 

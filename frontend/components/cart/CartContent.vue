@@ -42,8 +42,7 @@
                 </div>
             </section>
 
-            <CartSummary :item-count="cartItems.length" :subtotal="subtotal" :shipping="selectedShipping"
-                @update:shipping="updateShipping" @checkout="checkout" />
+            <CartSummary :item-count="cartItems.length" :subtotal="subtotal" :shipping="selectedShipping" />
         </main>
     </div>
 </template>
