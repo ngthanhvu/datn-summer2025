@@ -15,13 +15,129 @@
     <div class="tw-flex tw-flex-col tw-gap-6">
       <div class="tw-grid tw-grid-cols-2 tw-gap-6">
         <div class="tw-space-y-4">
-          <Form v-if="isDataLoaded" :fields="basicFields" :initial-data="formData" v-model="formData"
-            @submit="handleSubmit" :errors="formErrors" />
+          <div v-if="isDataLoaded">
+            <!-- Tên sản phẩm -->
+            <div class="tw-mb-4">
+              <label class="tw-block tw-font-medium">Tên sản phẩm</label>
+              <input v-model="formData.name" type="text" class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
+                placeholder="Nhập tên sản phẩm" />
+              <div v-if="formErrors.name" class="tw-text-red-500">{{ formErrors.name }}</div>
+            </div>
+            <!-- Giá -->
+            <div class="tw-mb-4">
+              <label class="tw-block tw-font-medium">Giá</label>
+              <input v-model="formData.price" type="number" min="0" step="1000"
+                class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá sản phẩm" />
+              <div v-if="formErrors.price" class="tw-text-red-500">{{ formErrors.price }}</div>
+            </div>
+            <!-- Giá gốc -->
+            <div class="tw-mb-4">
+              <label class="tw-block tw-font-medium">Giá gốc</label>
+              <input v-model="formData.original_price" type="number" min="0" step="1000"
+                class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá gốc" />
+              <div v-if="formErrors.original_price" class="tw-text-red-500">{{ formErrors.original_price }}</div>
+            </div>
+            <!-- Giá khuyến mãi -->
+            <div class="tw-mb-4">
+              <label class="tw-block tw-font-medium">Giá khuyến mãi</label>
+              <input v-model="formData.discount_price" type="number" min="0" step="1000"
+                class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá khuyến mãi" />
+              <div v-if="formErrors.discount_price" class="tw-text-red-500">{{ formErrors.discount_price }}</div>
+            </div>
+            <!-- Danh mục -->
+            <div class="tw-mb-4">
+              <label class="tw-block tw-font-medium">Danh mục</label>
+              <select v-model="formData.category" class="tw-input tw-w-full tw-border tw-rounded tw-p-2">
+                <option value="">Chọn danh mục</option>
+                <option v-for="opt in basicFields.find(f => f.name === 'category').options" :key="opt.value"
+                  :value="opt.value">{{ opt.label }}</option>
+              </select>
+              <div v-if="formErrors.category" class="tw-text-red-500">{{ formErrors.category }}</div>
+            </div>
+            <!-- Thương hiệu -->
+            <div class="tw-mb-4">
+              <label class="tw-block tw-font-medium">Thương hiệu</label>
+              <select v-model="formData.brand" class="tw-input tw-w-full tw-border tw-rounded tw-p-2">
+                <option value="">Chọn thương hiệu</option>
+                <option v-for="opt in basicFields.find(f => f.name === 'brand').options" :key="opt.value"
+                  :value="opt.value">{{ opt.label }}</option>
+              </select>
+              <div v-if="formErrors.brand" class="tw-text-red-500">{{ formErrors.brand }}</div>
+            </div>
+            <!-- Mô tả -->
+            <div class="tw-mb-4">
+              <label class="tw-block tw-font-medium">Mô tả</label>
+              <textarea v-model="formData.description" rows="4" class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
+                placeholder="Nhập mô tả sản phẩm"></textarea>
+              <div v-if="formErrors.description" class="tw-text-red-500">{{ formErrors.description }}</div>
+            </div>
+            <!-- Trạng thái -->
+            <!-- <div class="tw-mb-4 tw-flex tw-items-center">
+              <label class="tw-block tw-font-medium tw-mr-2">Trạng thái</label>
+              <input v-model="formData.status" type="checkbox" />
+              <span class="tw-ml-2">{{ formData.status ? 'Hiển thị' : 'Ẩn' }}</span>
+            </div> -->
+
+            <div class="toggle">
+              <input type="checkbox" id="status" v-model="formData.status" />
+              <label for="status"></label>
+            </div>
+            <span class="tw-ml-2">{{ formData.status ? 'Hiển thị' : 'Ẩn' }}</span>
+
+
+          </div>
           <div v-else class="tw-text-center tw-text-gray-500">Đang tải danh mục và thương hiệu...</div>
         </div>
         <div class="tw-space-y-4">
-          <Form :fields="imageFields" :initial-data="formData" v-model="formData" @submit="handleSubmit"
-            :errors="formErrors" />
+          <!-- Ảnh chính -->
+          <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium">Ảnh chính</label>
+            <div>
+              <label
+                class="tw-flex tw-flex-col tw-items-center tw-justify-center tw-w-full tw-h-40 tw-border-2 tw-border-gray-300 tw-border-dashed tw-rounded-lg tw-cursor-pointer hover:tw-bg-gray-50">
+                <div class="tw-flex tw-flex-col tw-items-center tw-justify-center">
+                  <i class="fas fa-cloud-upload-alt tw-text-3xl tw-text-gray-400 tw-mb-2"></i>
+                  <span class="tw-text-gray-500 tw-font-semibold">Click để tải ảnh lên</span>
+                  <span class="tw-text-xs tw-text-gray-400">PNG, JPG, GIF (tối đa 2MB)</span>
+                </div>
+                <input type="file" accept="image/*" class="tw-hidden" @change="onMainImageChange" />
+              </label>
+            </div>
+            <div v-if="formData.mainImagePreview" class="tw-relative tw-w-48 tw-h-48 tw-mt-4">
+              <img :src="formData.mainImagePreview"
+                class="tw-w-full tw-h-full tw-object-cover tw-rounded-lg tw-shadow" />
+              <button @click="removeMainImage"
+                class="tw-absolute tw-top-2 tw-right-2 tw-p-2 tw-rounded-full tw-bg-white tw-shadow hover:tw-bg-gray-100"
+                title="Xóa ảnh">
+                <i class="fas fa-times tw-text-red-500"></i>
+              </button>
+            </div>
+          </div>
+          <!-- Ảnh phụ -->
+          <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium">Ảnh phụ</label>
+            <div>
+              <label
+                class="tw-flex tw-flex-col tw-items-center tw-justify-center tw-w-full tw-h-40 tw-border-2 tw-border-gray-300 tw-border-dashed tw-rounded-lg tw-cursor-pointer hover:tw-bg-gray-50">
+                <div class="tw-flex tw-flex-col tw-items-center tw-justify-center">
+                  <i class="fas fa-cloud-upload-alt tw-text-3xl tw-text-gray-400 tw-mb-2"></i>
+                  <span class="tw-text-gray-500 tw-font-semibold">Click để tải ảnh lên</span>
+                  <span class="tw-text-xs tw-text-gray-400">PNG, JPG, GIF (tối đa 2MB)</span>
+                </div>
+                <input type="file" accept="image/*" multiple class="tw-hidden" @change="onAdditionalImagesChange" />
+              </label>
+            </div>
+            <div v-if="formData.additionalImagePreviews.length > 0" class="tw-grid tw-grid-cols-4 tw-gap-4 tw-mt-4">
+              <div v-for="(img, idx) in formData.additionalImagePreviews" :key="idx" class="tw-relative tw-group">
+                <img :src="img" class="tw-w-full tw-h-32 tw-object-cover tw-rounded-lg tw-shadow" />
+                <button @click="removeAdditionalImage(idx)"
+                  class="tw-absolute tw-top-2 tw-right-2 tw-p-2 tw-rounded-full tw-bg-white tw-shadow tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity"
+                  title="Xóa ảnh">
+                  <i class="fas fa-times tw-text-red-500"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -52,8 +168,38 @@
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
-              <Form :fields="variantFields" :initial-data="variant" v-model="formData.variants[index]"
-                :errors="formErrors.variants[index]" />
+              <!-- Màu sắc -->
+              <div class="tw-mb-2">
+                <label class="tw-block tw-font-medium">Màu sắc</label>
+                <input v-model="formData.variants[index].color" type="text"
+                  class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập màu sắc" />
+                <div v-if="formErrors.variants[index]?.color" class="tw-text-red-500">{{
+                  formErrors.variants[index].color }}</div>
+              </div>
+              <!-- Kích thước -->
+              <div class="tw-mb-2">
+                <label class="tw-block tw-font-medium">Kích thước</label>
+                <input v-model="formData.variants[index].size" type="text"
+                  class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập kích thước" />
+                <div v-if="formErrors.variants[index]?.size" class="tw-text-red-500">{{ formErrors.variants[index].size
+                }}</div>
+              </div>
+              <!-- Giá -->
+              <div class="tw-mb-2">
+                <label class="tw-block tw-font-medium">Giá</label>
+                <input v-model="formData.variants[index].price" type="number" min="0" step="1000"
+                  class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá biến thể" />
+                <div v-if="formErrors.variants[index]?.price" class="tw-text-red-500">{{
+                  formErrors.variants[index].price }}</div>
+              </div>
+              <!-- SKU -->
+              <div class="tw-mb-2">
+                <label class="tw-block tw-font-medium">SKU</label>
+                <input v-model="formData.variants[index].sku" type="text"
+                  class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mã SKU" />
+                <div v-if="formErrors.variants[index]?.sku" class="tw-text-red-500">{{ formErrors.variants[index].sku }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -83,7 +229,6 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
-import Form from '~/components/admin/Form.vue'
 import { useProducts } from '~/composables/useProducts'
 import { useCategory } from '~/composables/useCategory'
 import { useBrand } from '~/composables/useBrand'
@@ -101,7 +246,7 @@ const basicFields = ref([
   },
   {
     name: 'price',
-    label: 'Giá',
+    label: 'Giá bán',
     type: 'number',
     placeholder: 'Nhập giá sản phẩm',
     required: true,
@@ -110,7 +255,7 @@ const basicFields = ref([
   },
   {
     name: 'original_price',
-    label: 'Giá gốc',
+    label: 'Giá nhập',
     type: 'number',
     placeholder: 'Nhập giá gốc',
     required: false,
@@ -375,6 +520,44 @@ const removeVariant = (index) => {
     showVariants.value = false
   }
 }
+
+// Xử lý preview và xóa ảnh chính
+const onMainImageChange = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    formData.value.mainImage = file
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      formData.value.mainImagePreview = ev.target.result
+    }
+    reader.readAsDataURL(file)
+  } else {
+    formData.value.mainImage = null
+    formData.value.mainImagePreview = null
+  }
+}
+const removeMainImage = () => {
+  formData.value.mainImage = null
+  formData.value.mainImagePreview = null
+}
+
+// Xử lý preview và xóa ảnh phụ
+const onAdditionalImagesChange = (e) => {
+  const files = Array.from(e.target.files)
+  formData.value.additionalImages = files
+  formData.value.additionalImagePreviews = []
+  files.forEach(file => {
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      formData.value.additionalImagePreviews.push(ev.target.result)
+    }
+    reader.readAsDataURL(file)
+  })
+}
+const removeAdditionalImage = (idx) => {
+  formData.value.additionalImages.splice(idx, 1)
+  formData.value.additionalImagePreviews.splice(idx, 1)
+}
 </script>
 
 <style scoped>
@@ -384,5 +567,44 @@ const removeVariant = (index) => {
 
 .tw-bg-primary-dark {
   background-color: #2ea16d;
+}
+
+.toggle {
+  position: relative;
+  display: inline-block;
+}
+
+.toggle input {
+  display: none;
+}
+
+.toggle label {
+  display: block;
+  width: 48px;
+  height: 24px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle label::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle input:checked+label {
+  background: #3bb77e;
+}
+
+.toggle input:checked+label::after {
+  transform: translateX(24px);
 }
 </style>
