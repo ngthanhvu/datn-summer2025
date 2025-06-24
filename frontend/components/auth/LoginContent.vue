@@ -42,12 +42,13 @@
         </form>
 
         <div class="text-center mt-3">
-            <p class="mb-2">Hoặc đăng nhập bằng:</p>
+            <p class="mb-2">Hoặc</p>
             <div class="d-flex justify-content-center gap-2">
                 <button @click="googleLogin"
-                    class="btn btn-outline-danger w-100 tw-flex tw-items-center tw-justify-center tw-gap-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png"
-                        class="tw-w-[18px] tw-h-[18px] tw-object-contain" alt="#"> Google
+                    class="tw-bg-white tw-text-gray-800 tw-border tw-border-gray-200 tw-rounded-full tw-p-2 tw-w-[100%] tw-flex tw-items-center tw-justify-center tw-gap-2 tw-shadow-sm hover:tw-bg-gray-100">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                        style="width:24px;height:24px;" class="me-2" />
+                    <span class="tw-flex-1 tw-text-center">Đăng nhập bằng Google</span>
                 </button>
             </div>
         </div>

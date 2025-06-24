@@ -1,5 +1,5 @@
 <template>
-    <BrandForm title="Thêm thương hiệu mới" description="Điền thông tin để tạo thương hiệu mới"
+    <BrandForm ref="brandForm" title="Thêm thương hiệu mới" description="Điền thông tin để tạo thương hiệu mới"
         submitText="Tạo thương hiệu" @submit="handleSubmit" />
 </template>
 
