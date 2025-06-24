@@ -229,8 +229,27 @@ class OrdersController extends Controller
                 ], 400);
             }
 
+            if ($order->status !== 'pending') {
+                return response()->json([
+                    'message' => 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận'
+                ], 400);
+            }
+
+            $onlineMethods = ['momo', 'vnpay', 'paypal'];
+            if (in_array($order->payment_method, $onlineMethods)) {
+                $createdAt = $order->created_at;
+                $now = now();
+                if ($now->diffInHours($createdAt) > 24) {
+                    return response()->json([
+                        'message' => 'Chỉ có thể hủy đơn hàng thanh toán online trong vòng 24 giờ kể từ khi đặt hàng'
+                    ], 400);
+                }
+                $order->payment_status = 'refunded';
+            } else {
+                $order->payment_status = 'canceled';
+            }
+
             $order->status = 'cancelled';
-            $order->payment_status = 'canceled';
             $order->save();
 
             return response()->json([

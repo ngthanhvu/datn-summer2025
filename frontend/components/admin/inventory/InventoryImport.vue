@@ -181,8 +181,6 @@
 </template>
 
 <script setup>
-import jsPDF from 'jspdf'
-
 const { getInventories, updateStock, getMovements, getVariants, downloadMovementPdf } = useInventories()
 const variants = ref([])
 const recentImports = ref([])

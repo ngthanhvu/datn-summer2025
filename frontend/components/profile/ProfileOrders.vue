@@ -316,6 +316,11 @@
                                 <span>{{ formatPrice(selectedOrder.final_price) }}đ</span>
                             </div>
                         </div>
+                        <div v-if="canCancelOrder(selectedOrder)" class="tw-mt-4 tw-text-right">
+                            <button @click="handleCancelOrder" class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
+                                Hủy đơn hàng
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -509,6 +514,32 @@ watch([selectedStatus, selectedDate], () => {
         date: selectedDate.value
     })
 })
+
+const canCancelOrder = (order) => {
+    if (!order) return false
+    if (order.status !== 'pending') return false
+    const onlineMethods = ['momo', 'vnpay', 'paypal']
+    if (onlineMethods.includes(order.payment_method)) {
+        const createdAt = new Date(order.created_at)
+        const now = new Date()
+        const diffMs = now - createdAt
+        const diffHours = diffMs / (1000 * 60 * 60)
+        return diffHours <= 24
+    }
+    return true // COD
+}
+
+const handleCancelOrder = async () => {
+    if (!selectedOrder.value) return
+    if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return
+    try {
+        await orderService.cancelOrder(selectedOrder.value.id)
+        closeModal()
+        fetchOrders()
+    } catch (err) {
+        alert(err?.response?.data?.message || err.message || 'Hủy đơn hàng thất bại')
+    }
+}
 
 onMounted(() => {
     fetchOrders()
