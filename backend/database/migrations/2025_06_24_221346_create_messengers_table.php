@@ -9,17 +9,14 @@ return new class extends Migration {
     {
         Schema::create('messengers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('sender_id');
-            $table->unsignedBigInteger('receiver_id');
-            $table->text('message');
-            $table->string('attachment')->nullable(); 
-            $table->boolean('is_read')->default(false);
-            $table->timestamp('sent_at')->useCurrent()->nullable();
-            $table->timestamp('read_at')->nullable();
+            $table->unsignedBigInteger('user1_id');
+            $table->unsignedBigInteger('user2_id');
+            $table->json('messages'); // Lưu mảng các tin nhắn
             $table->timestamps();
 
-            $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('receiver_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unique(['user1_id', 'user2_id']);
+            $table->foreign('user1_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('user2_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

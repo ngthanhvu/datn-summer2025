@@ -9,24 +9,25 @@ class Messenger extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'sender_id',
-        'receiver_id',
-        'message',
-        'attachment',
-        'is_read',
-        'sent_at',
-        'read_at',
+        'user1_id',
+        'user2_id',
+        'messages',
     ];
 
-    public function sender()
+    protected $casts = [
+        'messages' => 'array',
+    ];
+
+    public function user1()
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(User::class, 'user1_id');
     }
 
-    public function receiver()
+    public function user2()
     {
-        return $this->belongsTo(User::class, 'receiver_id');
+        return $this->belongsTo(User::class, 'user2_id');
     }
+
     public function scopeUnread($query, $userId)
     {
         return $query->where('receiver_id', $userId)

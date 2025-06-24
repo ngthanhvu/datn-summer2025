@@ -14,50 +14,51 @@ class MessengerController extends Controller
     public function getConversations()
     {
         $userId = Auth::id();
-        
-        $conversations = Messenger::where('sender_id', $userId)
-            ->orWhere('receiver_id', $userId)
-            ->with(['sender', 'receiver'])
-            ->orderBy('sent_at', 'desc')
+        $conversations = Messenger::where('user1_id', $userId)
+            ->orWhere('user2_id', $userId)
             ->get()
-            ->groupBy(function ($message) use ($userId) {
-                return $message->sender_id == $userId ? $message->receiver_id : $message->sender_id;
-            })
-            ->map(function ($messages) use ($userId) {
-                $latestMessage = $messages->first();
-                $otherUser = $latestMessage->sender_id == $userId ? $latestMessage->receiver : $latestMessage->sender;
-                $unreadCount = $messages->where('receiver_id', $userId)->where('is_read', false)->count();
-                
+            ->map(function ($messenger) use ($userId) {
+                $otherUserId = $messenger->user1_id == $userId ? $messenger->user2_id : $messenger->user1_id;
+                $otherUser = User::find($otherUserId);
+                $messages = is_array($messenger->messages) ? $messenger->messages : [];
+                $latestMessage = end($messages) ?: null;
+                $unreadCount = collect($messages)->where('sender_id', '!=', $userId)->where('is_read', false)->count();
                 return [
                     'user' => $otherUser,
                     'latest_message' => $latestMessage,
-                    'unread_count' => $unreadCount
+                    'unread_count' => $unreadCount,
+                    'messenger_id' => $messenger->id
                 ];
-            });
-
-        return response()->json($conversations->values());
+            })->sortByDesc(function ($c) {
+                return $c['latest_message']['sent_at'] ?? null;
+            })->values();
+        return response()->json($conversations);
     }
 
     // Lấy tin nhắn giữa 2 người
     public function getMessages($userId)
     {
         $currentUserId = Auth::id();
-        
-        $messages = Messenger::where(function ($query) use ($currentUserId, $userId) {
-            $query->where('sender_id', $currentUserId)->where('receiver_id', $userId);
-        })->orWhere(function ($query) use ($currentUserId, $userId) {
-            $query->where('sender_id', $userId)->where('receiver_id', $currentUserId);
-        })
-        ->with(['sender', 'receiver'])
-        ->orderBy('sent_at', 'asc')
-        ->get();
-
-        // Đánh dấu tin nhắn đã đọc
-        Messenger::where('sender_id', $userId)
-            ->where('receiver_id', $currentUserId)
-            ->where('is_read', false)
-            ->update(['is_read' => true, 'read_at' => now()]);
-
+        $user1 = min($currentUserId, $userId);
+        $user2 = max($currentUserId, $userId);
+        $messenger = Messenger::where('user1_id', $user1)->where('user2_id', $user2)->first();
+        if (!$messenger) {
+            return response()->json([]); // Trả về mảng rỗng nếu chưa có cuộc hội thoại
+        }
+        $messages = is_array($messenger->messages) ? $messenger->messages : [];
+        // Đánh dấu đã đọc các tin nhắn gửi đến current user
+        $updated = false;
+        foreach ($messages as &$msg) {
+            if ($msg['sender_id'] != $currentUserId && empty($msg['is_read'])) {
+                $msg['is_read'] = true;
+                $msg['read_at'] = now()->toDateTimeString();
+                $updated = true;
+            }
+        }
+        if ($updated) {
+            $messenger->messages = $messages;
+            $messenger->save();
+        }
         return response()->json($messages);
     }
 
@@ -69,83 +70,97 @@ class MessengerController extends Controller
             'message' => 'required|string',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,gif,pdf,doc,docx|max:10240'
         ]);
-
+        $user1 = min(Auth::id(), $request->receiver_id);
+        $user2 = max(Auth::id(), $request->receiver_id);
+        $messenger = Messenger::firstOrCreate(
+            ['user1_id' => $user1, 'user2_id' => $user2],
+            ['messages' => []] // Đảm bảo là mảng rỗng
+        );
+        $messages = is_array($messenger->messages) ? $messenger->messages : [];
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->store('chat_attachments', 'public');
         }
-
-        $message = Messenger::create([
+        $newMessage = [
+            'id' => uniqid(),
             'sender_id' => Auth::id(),
-            'receiver_id' => $request->receiver_id,
             'message' => $request->message,
             'attachment' => $attachmentPath,
-            'sent_at' => now()
-        ]);
-
-        $message->load(['sender', 'receiver']);
-
-        return response()->json($message, 201);
+            'is_read' => false,
+            'sent_at' => now()->toDateTimeString(),
+            'read_at' => null
+        ];
+        $messages[] = $newMessage;
+        $messenger->messages = $messages;
+        $messenger->save();
+        return response()->json($newMessage, 201);
     }
 
     // Đánh dấu tin nhắn đã đọc
     public function markAsRead($messageId)
     {
-        $message = Messenger::findOrFail($messageId);
-        
-        if ($message->receiver_id == Auth::id()) {
-            $message->update([
-                'is_read' => true,
-                'read_at' => now()
-            ]);
+        $userId = Auth::id();
+        $messenger = Messenger::whereJsonContains('messages->*.id', $messageId)->first();
+        if ($messenger) {
+            $messages = is_array($messenger->messages) ? $messenger->messages : [];
+            foreach ($messages as &$msg) {
+                if ($msg['id'] == $messageId && $msg['sender_id'] != $userId) {
+                    $msg['is_read'] = true;
+                    $msg['read_at'] = now()->toDateTimeString();
+                }
+            }
+            $messenger->messages = $messages;
+            $messenger->save();
+            return response()->json(['message' => 'Đã đánh dấu đã đọc']);
         }
-
-        return response()->json(['message' => 'Đã đánh dấu đã đọc']);
+        return response()->json(['error' => 'Không tìm thấy tin nhắn'], 404);
     }
 
     // Lấy số tin nhắn chưa đọc
     public function getUnreadCount()
     {
-        $count = Messenger::where('receiver_id', Auth::id())
-            ->where('is_read', false)
-            ->count();
-
+        $userId = Auth::id();
+        $count = 0;
+        $messengers = Messenger::where('user1_id', $userId)->orWhere('user2_id', $userId)->get();
+        foreach ($messengers as $messenger) {
+            $messages = is_array($messenger->messages) ? $messenger->messages : [];
+            $count += collect($messages)->where('sender_id', '!=', $userId)->where('is_read', false)->count();
+        }
         return response()->json(['unread_count' => $count]);
     }
 
-    // Tìm kiếm người dùng để chat
+    // Tìm kiếm người dùng để chat (chỉ cho admin)
     public function searchUsers(Request $request)
     {
         $query = $request->get('q');
         $currentUserId = Auth::id();
-
         $users = User::where('id', '!=', $currentUserId)
             ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('username', 'like', "%{$query}%")
+                $q->where('username', 'like', "%{$query}%")
                   ->orWhere('email', 'like', "%{$query}%");
             })
-            ->select('id', 'name', 'username', 'email', 'avatar')
+            ->select('id', 'username', 'email', 'avatar')
             ->limit(10)
             ->get();
-
         return response()->json($users);
     }
 
-    // Xóa tin nhắn
+    // Xóa tin nhắn (chỉ xóa khỏi mảng json)
     public function deleteMessage($messageId)
     {
-        $message = Messenger::findOrFail($messageId);
-        
-        if ($message->sender_id == Auth::id()) {
-            if ($message->attachment) {
-                Storage::disk('public')->delete($message->attachment);
-            }
-            $message->delete();
+        $userId = Auth::id();
+        $messenger = Messenger::whereJsonContains('messages->*.id', $messageId)->first();
+        if ($messenger) {
+            $messages = is_array($messenger->messages) ? $messenger->messages : [];
+            $messages = array_filter($messages, function ($msg) use ($messageId, $userId) {
+                // Chỉ cho phép xóa tin nhắn do mình gửi
+                return !($msg['id'] == $messageId && $msg['sender_id'] == $userId);
+            });
+            $messenger->messages = array_values($messages);
+            $messenger->save();
             return response()->json(['message' => 'Đã xóa tin nhắn']);
         }
-
-        return response()->json(['error' => 'Không có quyền xóa tin nhắn này'], 403);
+        return response()->json(['error' => 'Không tìm thấy tin nhắn'], 404);
     }
 
     // Lấy danh sách admin để chat
@@ -154,7 +169,6 @@ class MessengerController extends Controller
         $admins = User::where('role', 'admin')
             ->select('id', 'username', 'email', 'avatar', 'role')
             ->get();
-
         return response()->json($admins);
     }
 }

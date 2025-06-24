@@ -57,7 +57,7 @@
             <div class="tw-relative">
               <img
                 :src="conversation.user.avatar ? getUserAvatar(conversation.user.avatar) : '/images/default-avatar.png'"
-                :alt="conversation.user.name"
+                :alt="conversation.user.username"
                 class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200"
               >
               <div v-if="conversation.unread_count > 0" class="tw-absolute tw--top-1 tw--right-1 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs tw-font-bold">
@@ -67,7 +67,7 @@
             <div class="tw-flex-1 tw-min-w-0">
               <div class="tw-flex tw-justify-between tw-items-start">
                 <div class="tw-font-medium tw-text-gray-900 tw-truncate">
-                  {{ conversation.user.name || conversation.user.username }}
+                  {{ conversation.user.username || conversation.user.username }}
                 </div>
                 <div class="tw-text-xs tw-text-gray-500 tw-ml-2">
                   {{ formatTime(conversation.latest_message.sent_at) }}
@@ -103,11 +103,11 @@
           <div class="tw-flex tw-items-center tw-gap-3">
             <img
               :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : '/images/default-avatar.png'"
-              :alt="selectedUser.name"
+              :alt="selectedUser.username"
               class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200"
             >
             <div class="tw-flex-1">
-              <div class="tw-font-medium tw-text-gray-900">{{ selectedUser.name || selectedUser.username }}</div>
+              <div class="tw-font-medium tw-text-gray-900">{{ selectedUser.username || selectedUser.username }}</div>
               <div class="tw-text-sm tw-text-gray-500">{{ selectedUser.email }}</div>
             </div>
             <div class="tw-flex tw-gap-2">
@@ -143,7 +143,7 @@
               <div v-if="message.sender_id !== currentAdmin?.id" class="tw-flex-shrink-0">
                 <img
                   :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : '/images/default-avatar.png'"
-                  :alt="selectedUser.name"
+                  :alt="selectedUser.username"
                   class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover"
                 >
               </div>
@@ -196,7 +196,7 @@
               <div v-if="message.sender_id === currentAdmin?.id" class="tw-flex-shrink-0">
                 <img
                   :src="currentAdmin.avatar ? getUserAvatar(currentAdmin.avatar) : '/images/default-avatar.png'"
-                  :alt="currentAdmin.name"
+                  :alt="currentAdmin.username"
                   class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover"
                 >
               </div>
@@ -316,7 +316,6 @@ const filteredConversations = computed(() => {
   return conversations.value.filter(conversation => {
     const user = conversation.user
     return (
-      user.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       user.username?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
