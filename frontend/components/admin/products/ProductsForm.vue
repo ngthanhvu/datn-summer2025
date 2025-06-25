@@ -8,21 +8,24 @@
                         <label class="tw-block tw-font-medium">Tên sản phẩm</label>
                         <input v-model="formData.name" type="text"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập tên sản phẩm" />
-                        <div v-if="formErrors.name" class="tw-text-red-500">{{ formErrors.name }}</div>
+                        <div v-if="formErrors.name" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.name }}
+                        </div>
                     </div>
                     <!-- Giá -->
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Giá bán</label>
                         <input v-model="formData.price" type="number" min="0" step="1000"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá sản phẩm" />
-                        <div v-if="formErrors.price" class="tw-text-red-500">{{ formErrors.price }}</div>
+                        <div v-if="formErrors.price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.price }}
+                        </div>
                     </div>
                     <!-- Giá gốc -->
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Giá nhập</label>
                         <input v-model="formData.original_price" type="number" min="0" step="1000"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá gốc" />
-                        <div v-if="formErrors.original_price" class="tw-text-red-500">{{ formErrors.original_price }}
+                        <div v-if="formErrors.original_price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                            formErrors.original_price }}
                         </div>
                     </div>
                     <!-- Giá khuyến mãi -->
@@ -30,7 +33,8 @@
                         <label class="tw-block tw-font-medium">Giá khuyến mãi</label>
                         <input v-model="formData.discount_price" type="number" min="0" step="1000"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá khuyến mãi" />
-                        <div v-if="formErrors.discount_price" class="tw-text-red-500">{{ formErrors.discount_price }}
+                        <div v-if="formErrors.discount_price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                            formErrors.discount_price }}
                         </div>
                     </div>
                     <!-- Danh mục -->
@@ -41,7 +45,8 @@
                             <option v-for="opt in basicFields.find(f => f.name === 'category').options" :key="opt.value"
                                 :value="opt.value">{{ opt.label }}</option>
                         </select>
-                        <div v-if="formErrors.category" class="tw-text-red-500">{{ formErrors.category }}</div>
+                        <div v-if="formErrors.category" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                            formErrors.category }}</div>
                     </div>
                     <!-- Thương hiệu -->
                     <div class="tw-mb-4">
@@ -51,14 +56,16 @@
                             <option v-for="opt in basicFields.find(f => f.name === 'brand').options" :key="opt.value"
                                 :value="opt.value">{{ opt.label }}</option>
                         </select>
-                        <div v-if="formErrors.brand" class="tw-text-red-500">{{ formErrors.brand }}</div>
+                        <div v-if="formErrors.brand" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.brand }}
+                        </div>
                     </div>
                     <!-- Mô tả -->
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Mô tả</label>
                         <QuillEditor v-model:content="formData.description" contentType="html"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mô tả sản phẩm" />
-                        <div v-if="formErrors.description" class="tw-text-red-500">{{ formErrors.description }}</div>
+                        <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                            formErrors.description }}</div>
                     </div>
                     <!-- Trạng thái -->
                     <div class="toggle">
@@ -84,6 +91,8 @@
                             <input type="file" accept="image/*" class="tw-hidden" @change="onMainImageChange" />
                         </label>
                     </div>
+                    <div v-if="formErrors.mainImage" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                        formErrors.mainImage }}</div>
                     <div v-if="formData.mainImagePreview" class="tw-relative tw-w-48 tw-h-48 tw-mt-4">
                         <img :src="formData.mainImagePreview"
                             class="tw-w-full tw-h-full tw-object-cover tw-rounded-lg tw-shadow" />
@@ -109,6 +118,8 @@
                                 @change="onAdditionalImagesChange" />
                         </label>
                     </div>
+                    <div v-if="formErrors.additionalImages" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                        formErrors.additionalImages }}</div>
                     <div v-if="formData.additionalImagePreviews.length > 0"
                         class="tw-grid tw-grid-cols-4 tw-gap-4 tw-mt-4">
                         <div v-for="(img, idx) in formData.additionalImagePreviews" :key="idx"
@@ -157,7 +168,7 @@
                             <label class="tw-block tw-font-medium">Màu sắc</label>
                             <input v-model="formData.variants[index].color" type="text"
                                 class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập màu sắc" />
-                            <div v-if="formErrors.variants[index]?.color" class="tw-text-red-500">{{
+                            <div v-if="formErrors.variants[index]?.color" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                                 formErrors.variants[index].color }}</div>
                         </div>
                         <!-- Kích thước -->
@@ -165,7 +176,7 @@
                             <label class="tw-block tw-font-medium">Kích thước</label>
                             <input v-model="formData.variants[index].size" type="text"
                                 class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập kích thước" />
-                            <div v-if="formErrors.variants[index]?.size" class="tw-text-red-500">{{
+                            <div v-if="formErrors.variants[index]?.size" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                                 formErrors.variants[index].size
                                 }}</div>
                         </div>
@@ -175,7 +186,7 @@
                             <input v-model="formData.variants[index].price" type="number" min="0" step="1000"
                                 class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
                                 placeholder="Nhập giá biến thể" />
-                            <div v-if="formErrors.variants[index]?.price" class="tw-text-red-500">{{
+                            <div v-if="formErrors.variants[index]?.price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                                 formErrors.variants[index].price }}</div>
                         </div>
                         <!-- SKU -->
@@ -183,7 +194,7 @@
                             <label class="tw-block tw-font-medium">SKU</label>
                             <input v-model="formData.variants[index].sku" type="text"
                                 class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mã SKU" />
-                            <div v-if="formErrors.variants[index]?.sku" class="tw-text-red-500">{{
+                            <div v-if="formErrors.variants[index]?.sku" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                                 formErrors.variants[index].sku }}
                             </div>
                         </div>
@@ -208,8 +219,16 @@ import { useCategory } from '~/composables/useCategory'
 import { useBrand } from '~/composables/useBrand'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import Swal from 'sweetalert2'
 
-const notyf = useNuxtApp().$notyf
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+})
+
 const isDataLoaded = ref(false)
 const isSubmitting = ref(false)
 const basicFields = ref([
@@ -277,55 +296,6 @@ const basicFields = ref([
     }
 ])
 
-const variantFields = [
-    {
-        name: 'color',
-        label: 'Màu sắc',
-        type: 'text',
-        placeholder: 'Nhập màu sắc',
-        required: true
-    },
-    {
-        name: 'size',
-        label: 'Kích thước',
-        type: 'text',
-        placeholder: 'Nhập kích thước',
-        required: true
-    },
-    {
-        name: 'price',
-        label: 'Giá',
-        type: 'number',
-        placeholder: 'Nhập giá biến thể',
-        required: true,
-        min: 0,
-        step: 1000
-    },
-    {
-        name: 'sku',
-        label: 'SKU',
-        type: 'text',
-        placeholder: 'Nhập mã SKU',
-        required: true
-    }
-]
-
-const imageFields = [
-    {
-        name: 'mainImage',
-        label: 'Ảnh chính',
-        type: 'mainImage',
-        required: true,
-        description: 'Chọn ảnh chính cho sản phẩm'
-    },
-    {
-        name: 'additionalImages',
-        label: 'Ảnh phụ',
-        type: 'additionalImages',
-        description: 'Chọn thêm các ảnh khác cho sản phẩm'
-    }
-]
-
 const formData = ref({
     name: '',
     price: 0,
@@ -350,6 +320,8 @@ const formErrors = ref({
     category: '',
     brand: '',
     description: '',
+    mainImage: '',
+    additionalImages: '',
     variants: []
 })
 
@@ -388,17 +360,45 @@ onMounted(async () => {
     }
 })
 
+const validateImage = (file) => {
+    const validTypes = ['image/png', 'image/jpeg', 'image/gif']
+    const maxSize = 2 * 1024 * 1024 // 2MB
+    if (!validTypes.includes(file.type)) {
+        return 'Định dạng ảnh không hợp lệ. Chỉ chấp nhận PNG, JPG, GIF.'
+    }
+    if (file.size > maxSize) {
+        return 'Kích thước ảnh vượt quá 2MB.'
+    }
+    return ''
+}
+
 const validateForm = () => {
     let hasError = false
-    const errors = { ...formErrors.value }
+    const errors = {
+        name: '',
+        price: '',
+        original_price: '',
+        discount_price: '',
+        category: '',
+        brand: '',
+        description: '',
+        mainImage: '',
+        additionalImages: '',
+        variants: formData.value.variants.map(() => ({
+            color: '',
+            size: '',
+            price: '',
+            sku: ''
+        }))
+    }
 
     // Basic validation
     if (!formData.value.name) {
         errors.name = 'Vui lòng nhập tên sản phẩm'
         hasError = true
     }
-    if (!formData.value.price) {
-        errors.price = 'Vui lòng nhập giá sản phẩm'
+    if (!formData.value.price || formData.value.price <= 0) {
+        errors.price = 'Vui lòng nhập giá sản phẩm hợp lệ'
         hasError = true
     }
     if (!formData.value.category) {
@@ -409,6 +409,63 @@ const validateForm = () => {
         errors.brand = 'Vui lòng chọn thương hiệu'
         hasError = true
     }
+    if (!formData.value.original_price) {
+        errors.original_price = 'Vui lòng nhập giá nhập'
+        hasError = true
+    }
+
+    const descriptionText = formData.value.description
+        ?.replace(/<(.|\n)*?>/g, '') // loại bỏ tag HTML
+        .trim()
+
+    if (!descriptionText) {
+        errors.description = 'Vui lòng nhập mô tả sản phẩm'
+        hasError = true
+    }
+
+    // Image validation
+    if (!formData.value.mainImage) {
+        errors.mainImage = 'Vui lòng chọn ảnh chính'
+        hasError = true
+    } else {
+        const mainImageError = validateImage(formData.value.mainImage)
+        if (mainImageError) {
+            errors.mainImage = mainImageError
+            hasError = true
+        }
+    }
+
+    if (formData.value.additionalImages.length > 0) {
+        formData.value.additionalImages.forEach((file, idx) => {
+            const error = validateImage(file)
+            if (error) {
+                errors.additionalImages = error
+                hasError = true
+            }
+        })
+    }
+
+    // Variant validation
+    if (showVariants.value && formData.value.variants.length > 0) {
+        formData.value.variants.forEach((variant, idx) => {
+            if (!variant.color) {
+                errors.variants[idx].color = 'Vui lòng nhập màu sắc'
+                hasError = true
+            }
+            if (!variant.size) {
+                errors.variants[idx].size = 'Vui lòng nhập kích thước'
+                hasError = true
+            }
+            if (!variant.price || variant.price <= 0) {
+                errors.variants[idx].price = 'Vui lòng nhập giá biến thể hợp lệ'
+                hasError = true
+            }
+            if (!variant.sku) {
+                errors.variants[idx].sku = 'Vui lòng nhập mã SKU'
+                hasError = true
+            }
+        })
+    }
 
     formErrors.value = errors
     return !hasError
@@ -417,6 +474,10 @@ const validateForm = () => {
 const handleSubmit = async () => {
     try {
         if (!validateForm()) {
+            Toast.fire({
+                icon: 'error',
+                title: 'Vui lòng kiểm tra và điền đầy đủ thông tin'
+            })
             return
         }
 
@@ -497,39 +558,57 @@ const removeVariant = (index) => {
     }
 }
 
-// Xử lý preview và xóa ảnh chính
 const onMainImageChange = (e) => {
     const file = e.target.files[0]
     if (file) {
+        const error = validateImage(file)
+        if (error) {
+            formErrors.value.mainImage = error
+            return
+        }
         formData.value.mainImage = file
         const reader = new FileReader()
         reader.onload = (ev) => {
             formData.value.mainImagePreview = ev.target.result
         }
         reader.readAsDataURL(file)
+        formErrors.value.mainImage = ''
     } else {
         formData.value.mainImage = null
         formData.value.mainImagePreview = null
     }
 }
+
 const removeMainImage = () => {
     formData.value.mainImage = null
     formData.value.mainImagePreview = null
+    formErrors.value.mainImage = 'Vui lòng chọn ảnh chính'
 }
 
-// Xử lý preview và xóa ảnh phụ
 const onAdditionalImagesChange = (e) => {
     const files = Array.from(e.target.files)
-    formData.value.additionalImages = files
-    formData.value.additionalImagePreviews = []
+    let hasError = false
     files.forEach(file => {
-        const reader = new FileReader()
-        reader.onload = (ev) => {
-            formData.value.additionalImagePreviews.push(ev.target.result)
+        const error = validateImage(file)
+        if (error) {
+            formErrors.value.additionalImages = error
+            hasError = true
         }
-        reader.readAsDataURL(file)
     })
+    if (!hasError) {
+        formData.value.additionalImages = files
+        formData.value.additionalImagePreviews = []
+        files.forEach(file => {
+            const reader = new FileReader()
+            reader.onload = (ev) => {
+                formData.value.additionalImagePreviews.push(ev.target.result)
+            }
+            reader.readAsDataURL(file)
+        })
+        formErrors.value.additionalImages = ''
+    }
 }
+
 const removeAdditionalImage = (idx) => {
     formData.value.additionalImages.splice(idx, 1)
     formData.value.additionalImagePreviews.splice(idx, 1)

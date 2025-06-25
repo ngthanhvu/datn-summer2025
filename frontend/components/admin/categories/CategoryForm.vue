@@ -2,8 +2,8 @@
     <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
         <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
             <div>
-                <h1 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ title }}</h1>
-                <p class="tw-text-gray-600">{{ description }}</p>
+                <h1 class="tw-text-2xl tw-font-semibold tw-text-gray-900">Thêm danh mục mới</h1>
+                <p class="tw-text-gray-600">Điền thông tin để tạo danh mục mới</p>
             </div>
             <NuxtLink to="/admin/categories"
                 class="tw-bg-gray-100 tw-text-gray-600 tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-gray-200">
@@ -12,10 +12,65 @@
             </NuxtLink>
         </div>
 
-        <Form :fields="formFields" v-model="formData" @submit="handleSubmit" :errors="formErrors" />
+        <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium tw-mb-1">Tên danh mục <span class="tw-text-red-500">*</span></label>
+            <input v-model="formData.name" type="text" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
+                placeholder="Nhập tên danh mục" />
+            <div v-if="formErrors.name" class="tw-text-red-500 tw-text-sm">{{ formErrors.name }}</div>
+        </div>
 
-        <div class="tw-mt-6">
-            <ImageUpload v-model="imageData" label="Hình ảnh" required />
+        <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium tw-mb-1">Mô tả</label>
+            <textarea v-model="formData.description" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
+                placeholder="Nhập mô tả danh mục" rows="4"></textarea>
+            <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm">{{ formErrors.description }}</div>
+        </div>
+
+        <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium tw-mb-1">Danh mục cha</label>
+            <select v-model="formData.parent_id" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2">
+                <option value="">Chọn danh mục cha</option>
+                <option v-for="option in parentOptions" :key="option.value" :value="option.value">
+                    {{ option.label }}
+                </option>
+            </select>
+            <div v-if="formErrors.parent_id" class="tw-text-red-500 tw-text-sm">{{ formErrors.parent_id }}</div>
+        </div>
+
+        <div class="tw-mb-4 tw-flex tw-items-center">
+            <label class="tw-block tw-font-medium tw-mb-1 tw-mr-2">Trạng thái</label>
+            <input type="checkbox" v-model="formData.is_active" class="tw-toggle" />
+            <span class="tw-ml-2">{{ formData.is_active ? 'Kích hoạt' : 'Ẩn' }}</span>
+        </div>
+
+        <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium tw-mb-1">
+                Hình ảnh <span class="tw-text-red-500">*</span>
+            </label>
+
+            <div class="tw-relative tw-border-2 tw-border-dashed tw-border-gray-300 tw-rounded-lg tw-p-6 tw-text-center hover:tw-border-primary tw-cursor-pointer"
+                @click="$refs.imageInput.click()">
+                <input ref="imageInput" type="file" class="tw-hidden" accept="image/png, image/jpeg, image/gif"
+                    @change="onImageChange" />
+                <div class="tw-flex tw-flex-col tw-items-center">
+                    <i class="fas fa-cloud-upload-alt tw-text-3xl tw-text-gray-400"></i>
+                    <p class="tw-mt-2 tw-text-gray-600">Click để tải ảnh lên</p>
+                    <p class="tw-text-xs tw-text-gray-400">PNG, JPG, GIF (tối đa 2MB)</p>
+                </div>
+            </div>
+
+            <div v-if="formErrors.image" class="tw-text-red-500 tw-text-sm tw-mt-1">
+                {{ formErrors.image }}
+            </div>
+
+            <div v-if="imagePreview" class="tw-mt-4 tw-relative tw-inline-block">
+                <img :src="imagePreview" alt="Preview" class="tw-max-h-40 tw-rounded-lg tw-shadow tw-object-cover" />
+                <button @click="removeImage"
+                    class="tw-absolute tw-top-1 tw-right-1 tw-bg-white tw-rounded-full tw-p-1 tw-shadow hover:tw-bg-gray-100"
+                    title="Xóa ảnh">
+                    <i class="fas fa-times tw-text-red-500"></i>
+                </button>
+            </div>
         </div>
 
         <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
@@ -25,7 +80,7 @@
             </NuxtLink>
             <button @click="handleSubmit"
                 class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
-                {{ submitText }}
+                Tạo danh mục
             </button>
         </div>
     </div>
@@ -33,77 +88,23 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import Form from '~/components/admin/Form.vue'
-import ImageUpload from '~/components/admin/ImageUpload.vue'
+import { useCategory } from '~/composables/useCategory.js'
+import { useNuxtApp, navigateTo } from '#app'
 
-const props = defineProps({
-    title: {
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true
-    },
-    submitText: {
-        type: String,
-        required: true
-    },
-    initialData: {
-        type: Object,
-        default: () => ({
-            name: '',
-            description: '',
-            image: null,
-            parent_id: '',
-            is_active: true
-        })
-    }
+const notyf = useNuxtApp().$notyf
+const { getCategories, createCategory } = useCategory()
+
+const formData = ref({
+    name: '',
+    description: '',
+    image: null,
+    parent_id: '',
+    is_active: true
 })
-
-const emit = defineEmits(['submit'])
-
-const formData = ref({ ...props.initialData })
 const imageData = ref(null)
+const imagePreview = ref(null)
 
-const formFields = ref([
-    {
-        name: 'name',
-        label: 'Tên danh mục',
-        type: 'text',
-        placeholder: 'Nhập tên danh mục',
-        required: true,
-        validation: {
-            required: 'Vui lòng nhập tên danh mục',
-            minLength: { value: 3, message: 'Tên danh mục phải có ít nhất 3 ký tự' }
-        }
-    },
-    {
-        name: 'description',
-        label: 'Mô tả',
-        type: 'textarea',
-        placeholder: 'Nhập mô tả danh mục',
-        rows: 4,
-        validation: {
-            minLength: { value: 10, message: 'Mô tả phải có ít nhất 10 ký tự' }
-        }
-    },
-    {
-        name: 'parent_id',
-        label: 'Danh mục cha',
-        type: 'select',
-        placeholder: 'Chọn danh mục cha',
-        options: [],
-        clearable: true
-    },
-    {
-        name: 'is_active',
-        label: 'Trạng thái',
-        type: 'toggle',
-        value: true
-    }
-])
-
+const parentOptions = ref([])
 const formErrors = ref({
     name: '',
     description: '',
@@ -112,11 +113,35 @@ const formErrors = ref({
     image: ''
 })
 
+function onImageChange(e) {
+    const file = e.target.files[0]
+    if (file) {
+        if (file.size > 2 * 1024 * 1024) { // 2MB
+            formErrors.value.image = 'Dung lượng ảnh tối đa 2MB'
+            return
+        }
+        imageData.value = file
+        imagePreview.value = URL.createObjectURL(file)
+        formErrors.value.image = ''
+    }
+}
+
+onMounted(async () => {
+    try {
+        const categories = await getCategories()
+        parentOptions.value = categories.map(cat => ({
+            value: cat.id,
+            label: cat.name
+        }))
+    } catch (e) {
+        parentOptions.value = []
+    }
+})
+
 const validateForm = () => {
     const errors = { ...formErrors.value }
     let hasError = false
 
-    // Validate name
     if (!formData.value.name) {
         errors.name = 'Vui lòng nhập tên danh mục'
         hasError = true
@@ -125,13 +150,11 @@ const validateForm = () => {
         hasError = true
     }
 
-    // Validate description if provided
-    if (formData.value.description && formData.value.description.length < 10) {
-        errors.description = 'Mô tả phải có ít nhất 10 ký tự'
+    if (!formData.value.description) {
+        errors.description = 'Vui lòng nhập mô tả danh mục'
         hasError = true
     }
 
-    // Validate image
     if (!imageData.value) {
         errors.image = 'Vui lòng chọn hình ảnh'
         hasError = true
@@ -168,12 +191,18 @@ const handleSubmit = async () => {
         formDataToSend.append('image', imageData.value)
     }
 
-    emit('submit', formDataToSend)
+    try {
+        const result = await createCategory(formDataToSend)
+        if (result) {
+            notyf.success('Tạo danh mục thành công')
+            await navigateTo('/admin/categories')
+        }
+    } catch (error) {
+        console.error('Error creating category:', error)
+        const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo danh mục'
+        notyf.error(errorMessage)
+    }
 }
-
-defineExpose({
-    formFields
-})
 </script>
 
 <style scoped>
@@ -183,5 +212,9 @@ defineExpose({
 
 .tw-bg-primary-dark {
     background-color: #2ea16d;
+}
+
+.tw-border-primary {
+    border-color: #3bb77e;
 }
 </style>
