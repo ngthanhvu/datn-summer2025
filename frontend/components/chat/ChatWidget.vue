@@ -1,5 +1,5 @@
 <template>
-  <div class="tw-fixed tw-bottom-4 tw-right-4 tw-z-50">
+  <div v-if="isAuthenticated" class="tw-fixed tw-bottom-4 tw-right-4 tw-z-50">
     <!-- Chat Toggle Button -->
     <button
       v-if="!isOpen"
@@ -11,6 +11,11 @@
         {{ unreadCount > 99 ? '99+' : unreadCount }}
       </span>
     </button>
+
+    <!-- Box hỗ trợ -->
+    <div v-if="!isOpen" class="support-hint tw-mb-2 tw-mr-2">
+      <span>Bạn cần hỗ trợ gì?</span>
+    </div>
 
     <!-- Chat Window -->
     <div
@@ -58,7 +63,7 @@
               class="tw-flex tw-items-center tw-gap-3 tw-p-3 tw-rounded-lg tw-border tw-border-gray-200 hover:border-primary tw-cursor-pointer tw-transition-all hover:tw-shadow-sm"
             >
               <img
-                :src="admin.avatar ? (admin.avatar.startsWith('http') ? admin.avatar : runtimeConfig.public.apiBaseUrl + '/storage/' + admin.avatar) : '/images/default-avatar.png'"
+                :src="admin.avatar ? (admin.avatar.startsWith('http') ? admin.avatar : runtimeConfig.public.apiBaseUrl + '/storage/' + admin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
                 :alt="admin.name"
                 class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 border-primary"
               >
@@ -92,7 +97,7 @@
             <i class="fas fa-arrow-left"></i>
           </button>
           <img
-            :src="currentAdmin.avatar ? (currentAdmin.avatar.startsWith('http') ? currentAdmin.avatar : runtimeConfig.public.apiBaseUrl + '/storage/' + currentAdmin.avatar) : '/images/default-avatar.png'"
+            :src="currentAdmin.avatar ? (currentAdmin.avatar.startsWith('http') ? currentAdmin.avatar : runtimeConfig.public.apiBaseUrl + '/storage/' + currentAdmin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
             :alt="currentAdmin.name"
             class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover"
           >
@@ -465,5 +470,20 @@ watch(isAuthenticated, (newVal) => {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.support-hint {
+  position: absolute;
+  right: 100%;
+  bottom: 0;
+  margin-right: 16px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 10px 18px;
+  font-size: 15px;
+  color: #333;
+  z-index: 1001;
+  white-space: nowrap;
 }
 </style> 

@@ -56,7 +56,7 @@
           >
             <div class="tw-relative">
               <img
-                :src="conversation.user.avatar ? getUserAvatar(conversation.user.avatar) : '/images/default-avatar.png'"
+                :src="conversation.user.avatar ? getUserAvatar(conversation.user.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
                 :alt="conversation.user.username"
                 class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200"
               >
@@ -102,7 +102,7 @@
         <div class="tw-p-4 tw-border-b tw-border-gray-200 tw-bg-white tw-shadow-sm">
           <div class="tw-flex tw-items-center tw-gap-3">
             <img
-              :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : '/images/default-avatar.png'"
+              :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
               :alt="selectedUser.username"
               class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200"
             >
@@ -142,7 +142,7 @@
             >
               <div v-if="message.sender_id !== currentAdmin?.id" class="tw-flex-shrink-0">
                 <img
-                  :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : '/images/default-avatar.png'"
+                  :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
                   :alt="selectedUser.username"
                   class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover"
                 >
@@ -195,7 +195,7 @@
 
               <div v-if="message.sender_id === currentAdmin?.id" class="tw-flex-shrink-0">
                 <img
-                  :src="currentAdmin.avatar ? getUserAvatar(currentAdmin.avatar) : '/images/default-avatar.png'"
+                  :src="currentAdmin.avatar ? getUserAvatar(currentAdmin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
                   :alt="currentAdmin.username"
                   class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover"
                 >
@@ -424,7 +424,9 @@ const formatTime = (timestamp) => {
 const getUserAvatar = (avatar) => {
   if (!avatar) return '/images/default-avatar.png'
   if (avatar.startsWith('http')) return avatar
-  return runtimeConfig.public.apiBaseUrl + '/storage/' + avatar
+  let url = runtimeConfig.public.apiBaseUrl + '/' + avatar.replace(/^\/+/, '')
+  url = url.replace(/\/{2,}storage\//, '/storage/')
+  return url
 }
 
 const isImage = (filename) => {

@@ -9,7 +9,7 @@
     <FooterHome />
     
     <!-- Chat Widget -->
-    <ChatWidget />
+    <ChatWidget v-if="isAuthenticated" />
   </div>
 </template>
 
@@ -36,4 +36,6 @@ useHead({
 import HeaderHome from '~/components/home/HeaderHome.vue';
 import FooterHome from '~/components/home/FooterHome.vue';
 import ChatWidget from '~/components/chat/ChatWidget.vue';
+import { useAuth } from '~/composables/useAuth';
+const { isAuthenticated } = useAuth();
 </script>
