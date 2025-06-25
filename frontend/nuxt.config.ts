@@ -26,6 +26,9 @@ export default defineNuxtConfig({
           changeOrigin: true,
         }
       }
+    },
+    optimizeDeps: {
+      include: ['apexcharts']
     }
   },
   app: {
@@ -48,5 +51,11 @@ export default defineNuxtConfig({
       turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY,
       apiBaseUrl: process.env.NUXT_API_BASE_URL,
     },
+  },
+  ssr: true,
+  nitro: {
+    experimental: {
+      wasm: true
+    }
   }
 })
