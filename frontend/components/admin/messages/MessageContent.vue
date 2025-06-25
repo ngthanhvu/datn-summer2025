@@ -1,9 +1,6 @@
 <template>
     <div class="messages-content tw-flex-1 tw-bg-gray-50 tw-flex tw-flex-col tw-h-full">
         <div v-if="message" class="tw-h-full tw-flex tw-flex-col">
-            <!-- Message Header (sticky) -->
-    
-
             <!-- Messages (scrollable) -->
             <div class="tw-flex-1 tw-overflow-y-auto tw-p-6" ref="messagesContainer">
                 <div class="tw-max-w-3xl tw-mx-auto tw-space-y-4">

@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('user1_id');
             $table->unsignedBigInteger('user2_id');
-            $table->json('messages'); // Lưu mảng các tin nhắn
+            $table->json('messages'); 
             $table->timestamps();
 
             $table->unique(['user1_id', 'user2_id']);

@@ -15,7 +15,7 @@ export const useChat = () => {
                     'Authorization': `Bearer ${token}`
                 }
             })
-            return response.data // [{ user, latest_message, unread_count, messenger_id }]
+            return response.data 
         } catch (error) {
             console.error('Lỗi khi lấy cuộc trò chuyện:', error)
             throw error
@@ -30,7 +30,7 @@ export const useChat = () => {
                     'Authorization': `Bearer ${token}`
                 }
             })
-            return response.data // array of messages
+            return response.data 
         } catch (error) {
             console.error('Lỗi khi lấy tin nhắn:', error)
             throw error
@@ -52,7 +52,7 @@ export const useChat = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             })
-            return response.data // object message mới
+            return response.data 
         } catch (error) {
             console.error('Lỗi khi gửi tin nhắn:', error)
             throw error
@@ -113,7 +113,7 @@ export const useChat = () => {
                     'Authorization': `Bearer ${token}`
                 }
             })
-            return response.data // trả về {message: ...}
+            return response.data 
         } catch (error) {
             console.error('Lỗi khi xóa tin nhắn:', error)
             throw error

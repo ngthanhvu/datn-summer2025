@@ -17,7 +17,6 @@
       <span>Bạn cần hỗ trợ gì?</span>
     </div>
 
-    <!-- Chat Window -->
     <div
       v-if="isOpen"
       class="tw-bg-white tw-rounded-lg tw-shadow-2xl tw-w-96 tw-h-[500px] tw-flex tw-flex-col tw-overflow-hidden"
@@ -249,7 +248,6 @@ const {
   getAdmins
 } = useChat()
 
-// States
 const isOpen = ref(false)
 const admins = ref([])
 const currentAdmin = ref(null)
@@ -264,7 +262,6 @@ const messagesContainer = ref(null)
 const loadingAdmins = ref(false)
 const pollingInterval = ref(null)
 
-// Methods
 const toggleChat = () => {
   isOpen.value = !isOpen.value
   if (isOpen.value && isAuthenticated.value) {
@@ -432,6 +429,7 @@ onUnmounted(() => {
 <style scoped>
 .chat-button {
   background-color: #81AACC;
+  border: 2px solid #fff;
 }
 
 .chat-header {

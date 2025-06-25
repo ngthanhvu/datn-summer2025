@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Storage;
 
 class MessengerController extends Controller
 {
-    // Lấy danh sách cuộc trò chuyện
     public function getConversations()
     {
         $userId = Auth::id();
@@ -35,7 +34,6 @@ class MessengerController extends Controller
         return response()->json($conversations);
     }
 
-    // Lấy tin nhắn giữa 2 người
     public function getMessages($userId)
     {
         $currentUserId = Auth::id();
@@ -43,10 +41,9 @@ class MessengerController extends Controller
         $user2 = max($currentUserId, $userId);
         $messenger = Messenger::where('user1_id', $user1)->where('user2_id', $user2)->first();
         if (!$messenger) {
-            return response()->json([]); // Trả về mảng rỗng nếu chưa có cuộc hội thoại
+            return response()->json([]);
         }
         $messages = is_array($messenger->messages) ? $messenger->messages : [];
-        // Đánh dấu đã đọc các tin nhắn gửi đến current user
         $updated = false;
         foreach ($messages as &$msg) {
             if ($msg['sender_id'] != $currentUserId && empty($msg['is_read'])) {
@@ -62,7 +59,6 @@ class MessengerController extends Controller
         return response()->json($messages);
     }
 
-    // Gửi tin nhắn
     public function sendMessage(Request $request)
     {
         $request->validate([
@@ -74,7 +70,7 @@ class MessengerController extends Controller
         $user2 = max(Auth::id(), $request->receiver_id);
         $messenger = Messenger::firstOrCreate(
             ['user1_id' => $user1, 'user2_id' => $user2],
-            ['messages' => []] // Đảm bảo là mảng rỗng
+            ['messages' => []] 
         );
         $messages = is_array($messenger->messages) ? $messenger->messages : [];
         $attachmentPath = null;
@@ -96,7 +92,6 @@ class MessengerController extends Controller
         return response()->json($newMessage, 201);
     }
 
-    // Đánh dấu tin nhắn đã đọc
     public function markAsRead($messageId)
     {
         $userId = Auth::id();
@@ -116,7 +111,6 @@ class MessengerController extends Controller
         return response()->json(['error' => 'Không tìm thấy tin nhắn'], 404);
     }
 
-    // Lấy số tin nhắn chưa đọc
     public function getUnreadCount()
     {
         $userId = Auth::id();
@@ -129,7 +123,6 @@ class MessengerController extends Controller
         return response()->json(['unread_count' => $count]);
     }
 
-    // Tìm kiếm người dùng để chat (chỉ cho admin)
     public function searchUsers(Request $request)
     {
         $query = $request->get('q');
@@ -145,7 +138,6 @@ class MessengerController extends Controller
         return response()->json($users);
     }
 
-    // Xóa tin nhắn (chỉ xóa khỏi mảng json)
     public function deleteMessage($messageId)
     {
         $userId = Auth::id();
@@ -153,7 +145,6 @@ class MessengerController extends Controller
         if ($messenger) {
             $messages = is_array($messenger->messages) ? $messenger->messages : [];
             $messages = array_filter($messages, function ($msg) use ($messageId, $userId) {
-                // Chỉ cho phép xóa tin nhắn do mình gửi
                 return !($msg['id'] == $messageId && $msg['sender_id'] == $userId);
             });
             $messenger->messages = array_values($messages);
@@ -163,7 +154,6 @@ class MessengerController extends Controller
         return response()->json(['error' => 'Không tìm thấy tin nhắn'], 404);
     }
 
-    // Lấy danh sách admin để chat
     public function getAdmins()
     {
         $admins = User::where('role', 'admin')

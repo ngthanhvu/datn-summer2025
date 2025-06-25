@@ -302,7 +302,7 @@ const startPolling = () => {
   stopPolling()
   pollingInterval.value = setInterval(() => {
     if (selectedUser.value) loadMessages()
-  }, 2000) // 2 giây/lần
+  }, 2000) 
 }
 
 const stopPolling = () => {
@@ -310,7 +310,6 @@ const stopPolling = () => {
   pollingInterval.value = null
 }
 
-// Lifecycle
 onMounted(() => {
   loadConversations()
 })
