@@ -82,6 +82,7 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
+const notyf = useNuxtApp().$notyf
 
 const route = useRoute()
 const category = ref(null)
@@ -126,14 +127,14 @@ onMounted(async () => {
         parentCategories.value = (allCategories || []).filter(cat => cat.id != route.params.id)
     } catch (error) {
         console.error('Error fetching category:', error)
-        alert('Không thể tải thông tin danh mục')
+        notyf.error('Không thể tải thông tin danh mục')
     }
 })
 
 const handleSubmit = async () => {
     try {
         if (!formData.value.name?.trim()) {
-            alert('Vui lòng nhập tên danh mục')
+            notyf.error('Vui lòng nhập tên danh mục')
             return
         }
 
@@ -160,13 +161,13 @@ const handleSubmit = async () => {
         console.log('Update result:', result)
 
         if (result) {
-            alert('Cập nhật danh mục thành công!')
+            notyf.success('Cập nhật danh mục thành công!')
             await navigateTo('/admin/categories')
         }
     } catch (error) {
         console.error('Error updating category:', error.response?.data || error)
         const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi cập nhật danh mục'
-        alert(errorMessage)
+        console.log(errorMessage)
     }
 }
 </script>

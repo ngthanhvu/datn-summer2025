@@ -14,6 +14,7 @@ definePageMeta({
 
 import { ref, onMounted } from 'vue'
 import CategoryForm from '~/components/admin/categories/CategoryForm.vue'
+const notyf = useNuxtApp().$notyf
 
 const { getCategories, createCategory } = useCategory()
 const categoryForm = ref(null)
@@ -29,7 +30,7 @@ onMounted(async () => {
         }
     } catch (error) {
         console.error('Error fetching categories:', error)
-        alert('Không thể tải danh sách danh mục')
+        notyf.error('Không thể tải danh sách danh mục')
     }
 })
 
@@ -38,13 +39,13 @@ const handleSubmit = async (formData) => {
         const result = await createCategory(formData)
 
         if (result) {
-            alert('Tạo danh mục thành công')
+            notyf.success('Tạo danh mục thành công')
             await navigateTo('/admin/categories')
         }
     } catch (error) {
         console.error('Error creating category:', error)
         const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo danh mục'
-        alert(errorMessage)
+        console.log(errorMessage)
     }
 }
 </script>

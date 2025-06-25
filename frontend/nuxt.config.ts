@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   css: [
     'bootstrap/dist/css/bootstrap.min.css',
     '~/assets/css/tailwind.css',
+    '~/assets/css/notyf.css',
   ],
   postcss: {
     plugins: {

@@ -14,6 +14,7 @@ definePageMeta({
 
 import { ref, onMounted } from 'vue'
 import BrandForm from '~/components/admin/brands/BrandForm.vue'
+const notyf = useNuxtApp().$notyf
 
 const { getBrands, createBrand } = useBrand()
 const brandForm = ref(null)
@@ -29,7 +30,7 @@ onMounted(async () => {
         }
     } catch (error) {
         console.error('Error fetching brands:', error)
-        alert('Không thể tải danh sách thương hiệu')
+        notyf.error('Không thể tải danh sách thương hiệu')
     }
 })
 
@@ -38,13 +39,13 @@ const handleSubmit = async (formData) => {
         const result = await createBrand(formData)
 
         if (result) {
-            alert('Tạo thương hiệu thành công')
+            notyf.success('Tạo thương hiệu thành công')
             await navigateTo('/admin/brands')
         }
     } catch (error) {
         console.error('Error creating brand:', error)
         const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo thương hiệu'
-        alert(errorMessage)
+        console.log(errorMessage)
     }
 }
 </script>

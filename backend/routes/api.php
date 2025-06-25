@@ -100,7 +100,7 @@ Route::put('/products/{id}', [ProductsController::class, 'update']);
 Route::get('/products/slug/{slug}', [ProductsController::class, 'getProductBySlug']);
 Route::get('/products/{id}', [ProductsController::class, 'getProductById']);
 Route::delete('/products/{id}', [ProductsController::class, 'destroy']);
-Route::delete('/products/bulk-delete', [ProductsController::class, 'bulkDestroy']);
+Route::delete('/products/delete/bulk-delete', [ProductsController::class, 'bulkDestroy']);
 Route::get('/products/{id}/favorite', [ProductsController::class, 'favorite']);
 
 // Variant routes

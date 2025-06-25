@@ -725,25 +725,24 @@ const addToCart = async () => {
       v.color === selectedColor.value?.name
     )
     if (!selectedVariant) {
-      alert('Vui lòng chọn size và màu sắc')
+      notyf.error('Vui lòng chọn size và màu sắc')
       return
     }
     if (quantity.value > selectedVariant.stock) {
-      alert('Số lượng vượt quá số lượng trong kho')
+      notyf.error('Số lượng vượt quá số lượng trong kho')
       return
     }
     await addToCartComposable(selectedVariant.id, quantity.value)
     notyf.success('Đã thêm vào giỏ hàng')
   } catch (error) {
     console.error('Error adding to cart:', error)
-    alert('Có lỗi xảy ra khi thêm vào giỏ hàng')
+    notyf.error('Có lỗi xảy ra khi thêm vào giỏ hàng')
   }
 }
 
 const mergeCartAfterLogin = async () => {
   await transferCartFromSessionToUser()
   await fetchCart()
-  alert('Đã hợp nhất giỏ hàng từ session sang tài khoản!')
 }
 
 useHead(() => ({
@@ -804,12 +803,12 @@ const removeImage = (index) => {
 
 const submitReview = async () => {
   if (!isAuthenticated.value) {
-    alert('Vui lòng đăng nhập để đánh giá sản phẩm')
+    notyf.info('Vui lòng đăng nhập để đánh giá sản phẩm')
     return
   }
 
   if (!reviewForm.value.content.trim()) {
-    alert('Vui lòng nhập nội dung đánh giá')
+    notyf.error('Vui lòng nhập nội dung đánh giá')
     return
   }
 
@@ -830,10 +829,10 @@ const submitReview = async () => {
 
     if (editingReviewId.value) {
       await updateReview(editingReviewId.value, reviewData)
-      alert('Đã cập nhật đánh giá thành công')
+      notyf.success('Đã cập nhật đánh giá thành công')
     } else {
       await addReview(reviewData)
-      alert('Đã gửi đánh giá thành công')
+      notyf.success('Đã gửi đánh giá thành công')
     }
 
     reviewForm.value = {
@@ -851,10 +850,10 @@ const submitReview = async () => {
     console.error('Lỗi khi gửi đánh giá:', error)
 
     if (error.response && error.response.status === 422) {
-      alert('Bạn đã đánh giá sản phẩm này rồi. Vui lòng chỉnh sửa đánh giá hiện có thay vì tạo mới.')
+      notyf.error('Bạn đã đánh giá sản phẩm này rồi. Vui lòng chỉnh sửa đánh giá hiện có thay vì tạo mới.')
       await checkUserHasReviewed()
     } else {
-      alert('Có lỗi xảy ra khi gửi đánh giá')
+      notyf.error('Có lỗi xảy ra khi gửi đánh giá')
     }
   } finally {
     isSubmitting.value = false
@@ -899,7 +898,7 @@ const removeReview = async (reviewId) => {
 
   try {
     await deleteReview(reviewId)
-    alert('Đã xóa đánh giá thành công')
+    notyf.success('Đã xóa đánh giá thành công')
 
     const currentPageReviews = reviews.value.length
     if (currentPageReviews === 1 && currentReviewPage.value > 1) {
@@ -909,7 +908,7 @@ const removeReview = async (reviewId) => {
     }
   } catch (error) {
     console.error('Lỗi khi xóa Đánh giá:', error)
-    alert('Có lỗi xảy ra khi xóa đánh giá')
+    notyf.error('Có lỗi xảy ra khi xóa đánh giá')
   }
 }
 

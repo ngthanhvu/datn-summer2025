@@ -84,6 +84,7 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
+const notyf = useNuxtApp().$notyf
 
 const route = useRoute()
 const brand = ref(null)
@@ -128,7 +129,7 @@ onMounted(async () => {
         parentBrands.value = (allBrands || []).filter(b => b.id != route.params.id)
     } catch (error) {
         console.error('Error fetching brand:', error)
-        alert('Không thể tải thông tin thương hiệu')
+        notyf.error('Không thể tải thông tin thương hiệu')
     }
 })
 
@@ -136,7 +137,7 @@ const handleSubmit = async () => {
     try {
         // Validate form
         if (!formData.value.name?.trim()) {
-            alert('Vui lòng nhập tên thương hiệu')
+            notyf.error('Vui lòng nhập tên thương hiệu')
             return
         }
 
@@ -166,13 +167,13 @@ const handleSubmit = async () => {
         console.log('Update result:', result)
 
         if (result) {
-            alert('Cập nhật thương hiệu thành công!')
+            notyf.success('Cập nhật thương hiệu thành công!')
             await navigateTo('/admin/brands')
         }
     } catch (error) {
         console.error('Error updating brand:', error.response?.data || error)
         const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi cập nhật thương hiệu'
-        alert(errorMessage)
+        console.lgo(errorMessage)
     }
 }
 </script>
