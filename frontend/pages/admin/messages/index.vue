@@ -86,7 +86,7 @@
     </div>
 
     <!-- Main Chat Area -->
-    <div class="tw-flex-1 tw-flex tw-flex-col tw-h-[calc(100vh-64px)]">
+    <div class="tw-flex-1 tw-w-0 tw-flex tw-flex-col tw-h-full tw-overflow-x-hidden">
       <!-- Chat Header (sticky) -->
       <div v-if="selectedUser" class="tw-p-4 tw-border-b tw-border-gray-200 tw-bg-white tw-shadow-sm tw-sticky tw-top-0 tw-z-10">
         <div class="tw-flex tw-items-center tw-gap-3">
