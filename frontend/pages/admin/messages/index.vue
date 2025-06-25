@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-chat-container tw-h-full tw-flex tw-bg-gray-50">
+  <div class="admin-chat-container tw-h-screen tw-flex tw-bg-gray-50">
     <!-- Sidebar - User Conversations -->
     <div class="tw-w-1/3 tw-bg-white tw-border-r tw-border-gray-200 tw-flex tw-flex-col tw-h-[calc(100vh-64px)]">
       <!-- Header -->
@@ -121,7 +121,7 @@
       </div>
 
       <!-- Chat Interface -->
-      <div v-else class="tw-flex-1 tw-flex tw-flex-col">
+      <div v-else class="tw-flex-1 tw-flex tw-flex-col tw-h-full">
         <!-- Messages (scrollable) -->
         <div class="tw-flex-1 tw-overflow-y-auto tw-p-4 tw-space-y-4" ref="messagesContainer">
           <!-- Loading Messages -->
