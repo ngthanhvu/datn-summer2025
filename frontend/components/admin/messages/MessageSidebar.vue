@@ -1,6 +1,7 @@
 <template>
     <div class="messages-sidebar tw-w-[320px] tw-bg-white tw-border-r tw-flex tw-flex-col tw-h-[calc(100vh-64px)]">
-        <div class="tw-p-4 tw-border-b">
+        <!-- Header (sticky) -->
+        <div class="tw-p-4 tw-border-b tw-bg-white tw-sticky tw-top-0 tw-z-10">
             <div class="tw-relative">
                 <input type="text" v-model="searchQuery" placeholder="Tìm kiếm tin nhắn..."
                     class="tw-w-full tw-border tw-rounded tw-px-4 tw-py-2 tw-pl-10">
@@ -9,6 +10,7 @@
             </div>
         </div>
 
+        <!-- Danh sách cuộc trò chuyện (cuộn) -->
         <div class="message-list tw-flex-1 tw-overflow-y-auto">
             <div v-for="message in filteredMessages" :key="message.id" @click="$emit('select', message)"
                 class="message-item tw-p-4 tw-border-b tw-cursor-pointer"

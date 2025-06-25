@@ -1,9 +1,9 @@
 <template>
   <div class="admin-chat-container tw-h-full tw-flex tw-bg-gray-50">
     <!-- Sidebar - User Conversations -->
-    <div class="tw-w-1/3 tw-bg-white tw-border-r tw-border-gray-200 tw-flex tw-flex-col">
+    <div class="tw-w-1/3 tw-bg-white tw-border-r tw-border-gray-200 tw-flex tw-flex-col tw-h-[calc(100vh-64px)]">
       <!-- Header -->
-      <div class="chat-header tw-text-white tw-p-4 tw-border-b">
+      <div class="tw-p-4 tw-border-b" style="background-color: #3BB77E; color: #fff;">
         <div class="tw-flex tw-items-center tw-gap-3">
           <div class="tw-w-10 tw-h-10 tw-bg-white tw-bg-opacity-20 tw-rounded-full tw-flex tw-items-center tw-justify-center">
             <i class="fas fa-comments tw-text-lg"></i>
@@ -15,8 +15,8 @@
         </div>
       </div>
 
-      <!-- Search -->
-      <div class="tw-p-4 tw-border-b tw-border-gray-100">
+      <!-- Search (sticky) -->
+      <div class="tw-p-4 tw-border-b tw-border-gray-100 tw-sticky tw-top-[64px] tw-z-10 tw-bg-white">
         <div class="tw-relative">
           <input
             v-model="searchQuery"
@@ -28,7 +28,7 @@
         </div>
       </div>
 
-      <!-- Conversations List -->
+      <!-- Conversations List (scrollable) -->
       <div class="tw-flex-1 tw-overflow-y-auto">
         <!-- Loading State -->
         <div v-if="loading" class="tw-p-4 tw-text-center">
@@ -86,7 +86,31 @@
     </div>
 
     <!-- Main Chat Area -->
-    <div class="tw-flex-1 tw-flex tw-flex-col">
+    <div class="tw-flex-1 tw-flex tw-flex-col tw-h-[calc(100vh-64px)]">
+      <!-- Chat Header (sticky) -->
+      <div v-if="selectedUser" class="tw-p-4 tw-border-b tw-border-gray-200 tw-bg-white tw-shadow-sm tw-sticky tw-top-0 tw-z-10">
+        <div class="tw-flex tw-items-center tw-gap-3">
+          <img
+            :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
+            :alt="selectedUser.username"
+            class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200"
+          >
+          <div class="tw-flex-1">
+            <div class="tw-font-medium tw-text-gray-900">{{ selectedUser.username || selectedUser.username }}</div>
+            <div class="tw-text-sm tw-text-gray-500">{{ selectedUser.email }}</div>
+          </div>
+          <div class="tw-flex tw-gap-2">
+            <button
+              @click="refreshMessages"
+              class="tw-p-2 tw-text-gray-400 hover:tw-text-gray-600 tw-transition-colors"
+              title="Làm mới"
+            >
+              <i class="fas fa-refresh"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- No Selection State -->
       <div v-if="!selectedUser" class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-bg-white">
         <div class="tw-text-center tw-text-gray-500">
@@ -97,32 +121,8 @@
       </div>
 
       <!-- Chat Interface -->
-      <div v-else class="tw-flex-1 tw-flex tw-flex-col tw-bg-white">
-        <!-- Chat Header -->
-        <div class="tw-p-4 tw-border-b tw-border-gray-200 tw-bg-white tw-shadow-sm">
-          <div class="tw-flex tw-items-center tw-gap-3">
-            <img
-              :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
-              :alt="selectedUser.username"
-              class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200"
-            >
-            <div class="tw-flex-1">
-              <div class="tw-font-medium tw-text-gray-900">{{ selectedUser.username || selectedUser.username }}</div>
-              <div class="tw-text-sm tw-text-gray-500">{{ selectedUser.email }}</div>
-            </div>
-            <div class="tw-flex tw-gap-2">
-              <button
-                @click="refreshMessages"
-                class="tw-p-2 tw-text-gray-400 hover:tw-text-gray-600 tw-transition-colors"
-                title="Làm mới"
-              >
-                <i class="fas fa-refresh"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Messages -->
+      <div v-else class="tw-flex-1 tw-flex tw-flex-col">
+        <!-- Messages (scrollable) -->
         <div class="tw-flex-1 tw-overflow-y-auto tw-p-4 tw-space-y-4" ref="messagesContainer">
           <!-- Loading Messages -->
           <div v-if="loadingMessages" class="tw-text-center tw-py-8">
@@ -211,8 +211,8 @@
           </div>
         </div>
 
-        <!-- Message Input -->
-        <div class="tw-p-4 tw-border-t tw-border-gray-200 tw-bg-white">
+        <!-- Message Input (sticky) -->
+        <div class="tw-p-4 tw-border-t tw-border-gray-200 tw-bg-white tw-sticky tw-bottom-0 tw-z-10">
           <form @submit.prevent="sendMessage" class="tw-flex tw-gap-3">
             <div class="tw-flex-1">
               <div class="tw-relative">
@@ -447,20 +447,9 @@ const closeImageModal = () => {
   modalImage.value = ''
 }
 
-// Auto refresh
-const autoRefresh = () => {
-  loadConversations()
-  if (selectedUser.value) {
-    loadMessages()
-  }
-}
-
 // Lifecycle
 onMounted(() => {
   loadConversations()
-  
-  // Auto refresh every 30 seconds
-  setInterval(autoRefresh, 30000)
 })
 </script>
 
@@ -470,27 +459,29 @@ onMounted(() => {
 }
 
 .chat-header {
-  background-color: #81AACC;
+  background-color: #3BB77E;
 }
 
-.btn-primary {
-  background-color: #81AACC;
+.btn-primary, .tw-bg-primary {
+  background-color: #3BB77E !important;
+  color: #fff !important;
+  border: none;
 }
-
-.btn-primary:hover {
-  background-color: #6d92b3;
+.btn-primary:hover, .tw-bg-primary:hover {
+  background-color: #339966 !important;
 }
 
 .border-primary {
-  border-color: #81AACC;
+  border-color: #3BB77E;
 }
 
 .message-admin {
-  background-color: #81AACC;
+  background-color: #3BB77E !important;
+  color: #fff !important;
 }
 
 .focus\:ring-primary:focus {
-  --tw-ring-color: #81AACC;
+  --tw-ring-color: #3BB77E;
 }
 
 .tw-animate-spin {
@@ -517,5 +508,15 @@ onMounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #999;
+}
+
+.tw-bg-primary {
+  background-color: #3BB77E;
+}
+.tw-border-primary {
+  border-color: #3BB77E;
+}
+.tw-text-primary {
+  color: #3BB77E;
 }
 </style>

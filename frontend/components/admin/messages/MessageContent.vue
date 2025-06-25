@@ -1,8 +1,8 @@
 <template>
     <div class="messages-content tw-flex-1 tw-bg-gray-50 tw-flex tw-flex-col tw-h-[calc(100vh-64px)]">
         <div v-if="message" class="tw-h-full tw-flex tw-flex-col">
-            <!-- Message Header -->
-            <div class="tw-bg-white tw-px-6 tw-py-4 tw-border-b">
+            <!-- Message Header (sticky) -->
+            <div class="tw-bg-white tw-px-6 tw-py-4 tw-border-b tw-sticky tw-top-0 tw-z-10">
                 <div class="tw-flex tw-items-center tw-gap-4">
                     <img :src="message.avatar" :alt="message.name"
                         class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover">
@@ -13,7 +13,7 @@
                 </div>
             </div>
 
-            <!-- Messages -->
+            <!-- Messages (scrollable) -->
             <div class="tw-flex-1 tw-overflow-y-auto tw-p-6">
                 <div class="tw-max-w-3xl tw-mx-auto tw-space-y-4">
                     <div v-for="(msg, index) in message.messages" :key="index" class="tw-flex"
@@ -34,8 +34,8 @@
                 </div>
             </div>
 
-            <!-- Message Input -->
-            <div class="tw-bg-white tw-px-6 tw-py-4 tw-border-t">
+            <!-- Message Input (sticky) -->
+            <div class="tw-bg-white tw-px-6 tw-py-4 tw-border-t tw-sticky tw-bottom-0 tw-z-10">
                 <div class="tw-max-w-3xl tw-mx-auto">
                     <div class="tw-flex tw-gap-4">
                         <input type="text" v-model="newMessage" @keyup.enter="handleSend" placeholder="Nhập tin nhắn..."
