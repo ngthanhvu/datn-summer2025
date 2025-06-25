@@ -235,15 +235,15 @@ class OrdersController extends Controller
                 ], 400);
             }
 
-            $onlineMethods = ['momo', 'vnpay', 'paypal'];
-            if (in_array($order->payment_method, $onlineMethods)) {
-                $createdAt = $order->created_at;
-                $now = now();
-                if ($now->diffInHours($createdAt) > 24) {
-                    return response()->json([
-                        'message' => 'Chỉ có thể hủy đơn hàng thanh toán online trong vòng 24 giờ kể từ khi đặt hàng'
-                    ], 400);
-                }
+            $createdAt = $order->created_at;
+            $now = now();
+            if ($now->diffInHours($createdAt) > 24) {
+                return response()->json([
+                    'message' => 'Chỉ có thể hủy đơn hàng trong vòng 24 giờ kể từ khi đặt hàng'
+                ], 400);
+            }
+
+            if (in_array($order->payment_method, ['momo', 'vnpay', 'paypal'])) {
                 $order->payment_status = 'refunded';
             } else {
                 $order->payment_status = 'canceled';

@@ -141,6 +141,16 @@
                 </div>
 
                 <div v-if="selectedOrder" class="tw-space-y-8">
+                    <div
+                      v-if="showCancelWarning(selectedOrder)"
+                      class="tw-bg-yellow-100 tw-text-yellow-800 tw-p-4 tw-rounded tw-mb-4 tw-flex tw-items-center tw-gap-2"
+                    >
+                      <svg class="tw-w-6 tw-h-6 tw-text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
+                      </svg>
+                      <span>Đơn hàng đã quá thời hạn hủy (24 giờ), vì vậy bạn vui lòng chờ và nhận hàng.</span>
+                    </div>
+
                     <div class="tw-border-b tw-pb-6">
                         <h4 class="tw-font-semibold tw-mb-4">Trạng thái đơn hàng</h4>
                         <div class="tw-flex tw-items-center tw-justify-between">
@@ -527,15 +537,10 @@ watch([selectedStatus, selectedDate], () => {
 const canCancelOrder = (order) => {
     if (!order) return false
     if (order.status !== 'pending') return false
-    const onlineMethods = ['momo', 'vnpay', 'paypal']
-    if (onlineMethods.includes(order.payment_method)) {
-        const createdAt = new Date(order.created_at)
-        const now = new Date()
-        const diffMs = now - createdAt
-        const diffHours = diffMs / (1000 * 60 * 60)
-        return diffHours <= 24
-    }
-    return true // COD
+    const createdAt = new Date(order.created_at)
+    const now = new Date()
+    const diffHours = (now - createdAt) / (1000 * 60 * 60)
+    return diffHours <= 24
 }
 
 const handleCancelOrder = async () => {
@@ -558,7 +563,14 @@ const handleReorder = async (orderId) => {
     }
 }
 
-
+const showCancelWarning = (order) => {
+    if (!order) return false
+    if (order.status !== 'pending') return false
+    const createdAt = new Date(order.created_at)
+    const now = new Date()
+    const diffHours = (now - createdAt) / (1000 * 60 * 60)
+    return diffHours > 24
+}
 
 onMounted(() => {
     fetchOrders()
