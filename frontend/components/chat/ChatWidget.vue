@@ -235,7 +235,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
 import { useChat } from '~/composables/useChat'
 import { useAuth } from '~/composables/useAuth'
 
@@ -262,6 +262,7 @@ const showImageModal = ref(false)
 const modalImage = ref('')
 const messagesContainer = ref(null)
 const loadingAdmins = ref(false)
+const pollingInterval = ref(null)
 
 // Methods
 const toggleChat = () => {
@@ -314,27 +315,36 @@ const loadMessages = async () => {
   }
 }
 
+const startPolling = () => {
+  stopPolling()
+  pollingInterval.value = setInterval(() => {
+    if (currentAdmin.value && isOpen.value) loadMessages()
+  }, 3000)
+}
+
+const stopPolling = () => {
+  if (pollingInterval.value) clearInterval(pollingInterval.value)
+  pollingInterval.value = null
+}
+
 const sendMessage = async () => {
   if ((!newMessage.value.trim() && !selectedFile.value) || sending.value || !currentAdmin.value) return
-
   try {
     sending.value = true
     const messageData = {
       receiver_id: currentAdmin.value.id,
       message: newMessage.value
     }
-
     if (selectedFile.value) {
       messageData.attachment = selectedFile.value
     }
-
     const message = await sendChatMessage(messageData)
     messages.value.push(message)
     newMessage.value = ''
     selectedFile.value = null
-
     await nextTick()
     scrollToBottom()
+    await loadMessages()
   } catch (error) {
     console.error('Lỗi khi gửi tin nhắn:', error)
   } finally {
@@ -405,32 +415,17 @@ const closeImageModal = () => {
   modalImage.value = ''
 }
 
-// Auto refresh every 30 seconds
-const autoRefresh = () => {
-  if (isAuthenticated.value) {
-    loadUnreadCount()
-    if (currentAdmin.value) {
-      loadMessages()
-    }
+watch([isOpen, currentAdmin], ([open, admin]) => {
+  if (open && admin) {
+    loadMessages()
+    startPolling()
+  } else {
+    stopPolling()
   }
-}
-
-onMounted(() => {
-  // Auto refresh every 30 seconds
-  setInterval(autoRefresh, 30000)
 })
 
-// Watch for authentication changes
-watch(isAuthenticated, (newVal) => {
-  if (newVal) {
-    loadUnreadCount()
-  } else {
-    unreadCount.value = 0
-    admins.value = []
-    currentAdmin.value = null
-    messages.value = []
-    isOpen.value = false
-  }
+onUnmounted(() => {
+  stopPolling()
 })
 </script>
 

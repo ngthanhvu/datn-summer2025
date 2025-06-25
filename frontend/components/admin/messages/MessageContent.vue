@@ -2,16 +2,7 @@
     <div class="messages-content tw-flex-1 tw-bg-gray-50 tw-flex tw-flex-col tw-h-full">
         <div v-if="message" class="tw-h-full tw-flex tw-flex-col">
             <!-- Message Header (sticky) -->
-            <div class="tw-bg-white tw-px-6 tw-py-4 tw-border-b tw-sticky tw-top-0 tw-z-10">
-                <div class="tw-flex tw-items-center tw-gap-4">
-                    <img :src="message.avatar" :alt="message.name"
-                        class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover">
-                    <div>
-                        <h3 class="tw-font-semibold">{{ message.name }}</h3>
-                        <p class="tw-text-sm tw-text-gray-500">{{ message.email }}</p>
-                    </div>
-                </div>
-            </div>
+    
 
             <!-- Messages (scrollable) -->
             <div class="tw-flex-1 tw-overflow-y-auto tw-p-6">

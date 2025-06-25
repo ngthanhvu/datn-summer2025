@@ -121,140 +121,17 @@
       </div>
 
       <!-- Chat Interface -->
-      <div v-else class="tw-flex-1 tw-flex tw-flex-col tw-h-full">
-        <!-- Messages (scrollable) -->
-        <div class="tw-flex-1 tw-overflow-y-auto tw-p-4 tw-space-y-4" ref="messagesContainer">
-          <!-- Loading Messages -->
-          <div v-if="loadingMessages" class="tw-text-center tw-py-8">
-            <i class="fas fa-spinner tw-animate-spin tw-text-xl tw-text-gray-400 tw-mb-2"></i>
-            <div class="tw-text-gray-500">Đang tải tin nhắn...</div>
-          </div>
-
-          <!-- Messages List -->
-          <div v-else-if="messages.length > 0" class="tw-space-y-4">
-            <div
-              v-for="message in messages"
-              :key="message.id"
-              :class="[
-                'tw-flex tw-gap-3',
-                message.sender_id === currentAdmin?.id ? 'tw-justify-end' : 'tw-justify-start'
-              ]"
-            >
-              <div v-if="message.sender_id !== currentAdmin?.id" class="tw-flex-shrink-0">
-                <img
-                  :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
-                  :alt="selectedUser.username"
-                  class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover"
-                >
-              </div>
-
-              <div
-                :class="[
-                  'tw-max-w-md tw-rounded-lg tw-p-3 tw-shadow-sm',
-                  message.sender_id === currentAdmin?.id
-                    ? 'message-admin tw-text-white'
-                    : 'tw-bg-gray-100 tw-text-gray-900'
-                ]"
-              >
-                <!-- Attachment -->
-                <div v-if="message.attachment" class="tw-mb-2">
-                  <img
-                    v-if="isImage(message.attachment)"
-                    :src="runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment"
-                    class="tw-max-w-full tw-rounded tw-cursor-pointer"
-                    @click="openImage(runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment)"
-                  >
-                  <a
-                    v-else
-                    :href="runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment"
-                    target="_blank"
-                    class="tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-white tw-bg-opacity-20 tw-rounded"
-                  >
-                    <i class="fas fa-file"></i>
-                    <span class="tw-text-sm">{{ getFileName(message.attachment) }}</span>
-                  </a>
-                </div>
-
-                <!-- Message Content -->
-                <div class="tw-mb-1">{{ message.message }}</div>
-
-                <!-- Time and Status -->
-                <div
-                  :class="[
-                    'tw-text-xs tw-flex tw-justify-between tw-items-center tw-mt-2',
-                    message.sender_id === currentAdmin?.id ? 'tw-text-blue-100' : 'tw-text-gray-500'
-                  ]"
-                >
-                  <span>{{ formatTime(message.sent_at) }}</span>
-                  <div v-if="message.sender_id === currentAdmin?.id" class="tw-flex tw-items-center tw-gap-1">
-                    <i v-if="message.is_read" class="fas fa-check-double" title="Đã đọc"></i>
-                    <i v-else class="fas fa-check" title="Đã gửi"></i>
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="message.sender_id === currentAdmin?.id" class="tw-flex-shrink-0">
-                <img
-                  :src="currentAdmin.avatar ? getUserAvatar(currentAdmin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
-                  :alt="currentAdmin.username"
-                  class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover"
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Empty Messages -->
-          <div v-else class="tw-text-center tw-py-8 tw-text-gray-500">
-            <i class="fas fa-comment tw-text-4xl tw-mb-3"></i>
-            <div class="tw-font-medium tw-mb-1">Chưa có tin nhắn nào</div>
-            <div class="tw-text-sm">Bắt đầu cuộc trò chuyện với khách hàng</div>
-          </div>
-        </div>
-
-        <!-- Message Input (sticky) -->
-        <div class="tw-p-4 tw-border-t tw-border-gray-200 tw-bg-white tw-sticky tw-bottom-0 tw-z-10">
-          <form @submit.prevent="sendMessage" class="tw-flex tw-gap-3">
-            <div class="tw-flex-1">
-              <div class="tw-relative">
-                <input
-                  v-model="newMessage"
-                  type="text"
-                  placeholder="Nhập tin nhắn..."
-                  class="tw-w-full tw-pr-12 tw-pl-4 tw-py-3 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:ring-primary focus:tw-border-transparent"
-                  :disabled="sending"
-                >
-                <label class="tw-absolute tw-right-3 tw-top-1/2 tw-transform tw--translate-y-1/2 tw-cursor-pointer tw-text-gray-400 hover:tw-text-gray-600">
-                  <i class="fas fa-paperclip tw-text-lg"></i>
-                  <input
-                    type="file"
-                    ref="fileInput"
-                    @change="handleFileSelect"
-                    class="tw-hidden"
-                    accept="image/*,.pdf,.doc,.docx"
-                  >
-                </label>
-              </div>
-
-              <!-- Selected File Preview -->
-              <div v-if="selectedFile" class="tw-mt-2 tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-gray-100 tw-rounded">
-                <i class="fas fa-file tw-text-gray-600"></i>
-                <span class="tw-text-sm tw-flex-1">{{ selectedFile.name }}</span>
-                <button @click="removeFile" class="tw-text-red-500 hover:tw-text-red-700">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              :disabled="(!newMessage.trim() && !selectedFile) || sending"
-              class="btn-primary tw-text-white tw-px-6 tw-py-3 tw-rounded-lg tw-font-medium tw-transition-all disabled:tw-opacity-50 disabled:tw-cursor-not-allowed tw-flex tw-items-center tw-gap-2"
-            >
-              <i v-if="sending" class="fas fa-spinner tw-animate-spin"></i>
-              <i v-else class="fas fa-paper-plane"></i>
-              <span class="tw-hidden sm:tw-inline">Gửi</span>
-            </button>
-          </form>
+      <MessageContent
+        v-if="selectedUser"
+        :message="{ name: selectedUser.username, email: selectedUser.email, avatar: getUserAvatar(selectedUser.avatar), messages: messages.map(m => ({ content: m.message, isAdmin: m.sender_id === currentAdmin?.id, time: formatTime(m.sent_at), ...m })) }"
+        :adminAvatar="adminAvatar"
+        @send="handleSendMessage"
+      />
+      <div v-else class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-bg-white">
+        <div class="tw-text-center tw-text-gray-500">
+          <i class="fas fa-comment-dots tw-text-6xl tw-mb-4"></i>
+          <h3 class="tw-text-xl tw-font-medium tw-mb-2">Chọn một cuộc trò chuyện</h3>
+          <p class="tw-text-gray-400">Chọn khách hàng từ danh sách để bắt đầu chat</p>
         </div>
       </div>
     </div>
@@ -271,9 +148,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick, watch, onUnmounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useChat } from '~/composables/useChat'
+import MessageContent from '~/components/admin/messages/MessageContent.vue'
 
 const runtimeConfig = useRuntimeConfig()
 
@@ -308,6 +186,7 @@ const selectedFile = ref(null)
 const showImageModal = ref(false)
 const modalImage = ref('')
 const messagesContainer = ref(null)
+const pollingInterval = ref(null)
 
 // Computed
 const filteredConversations = computed(() => {
@@ -321,6 +200,8 @@ const filteredConversations = computed(() => {
     )
   })
 })
+
+const adminAvatar = computed(() => currentAdmin.value?.avatar || 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg')
 
 // Methods
 const loadConversations = async () => {
@@ -341,12 +222,24 @@ const selectConversation = async (conversation) => {
 
 const loadMessages = async () => {
   if (!selectedUser.value) return
+  const container = messagesContainer.value
+  const prevScrollHeight = container ? container.scrollHeight : 0
+  const prevScrollTop = container ? container.scrollTop : 0
+  const prevLastId = messages.value.length ? messages.value[messages.value.length - 1].id : null
 
   try {
     loadingMessages.value = true
-    messages.value = await getMessages(selectedUser.value.id)
+    const newMessages = await getMessages(selectedUser.value.id)
+    messages.value = newMessages
     await nextTick()
-    scrollToBottom()
+    const newLastId = messages.value.length ? messages.value[messages.value.length - 1].id : null
+    if (newLastId !== prevLastId) {
+      // Có tin nhắn mới, scroll xuống cuối
+      if (container) container.scrollTop = container.scrollHeight
+    } else {
+      // Không có tin nhắn mới, giữ nguyên vị trí cuộn
+      if (container) container.scrollTop = prevScrollTop + (container.scrollHeight - prevScrollHeight)
+    }
   } catch (error) {
     console.error('Lỗi khi tải tin nhắn:', error)
   } finally {
@@ -354,29 +247,18 @@ const loadMessages = async () => {
   }
 }
 
-const sendMessage = async () => {
-  if ((!newMessage.value.trim() && !selectedFile.value) || sending.value || !selectedUser.value) return
-
+const handleSendMessage = async (msgContent) => {
+  if (!msgContent.trim() || sending.value || !selectedUser.value) return
   try {
     sending.value = true
     const messageData = {
       receiver_id: selectedUser.value.id,
-      message: newMessage.value
+      message: msgContent
     }
-
-    if (selectedFile.value) {
-      messageData.attachment = selectedFile.value
-    }
-
     const message = await sendChatMessage(messageData)
     messages.value.push(message)
-    newMessage.value = ''
-    selectedFile.value = null
-
     await nextTick()
     scrollToBottom()
-
-    // Update conversation list
     await loadConversations()
   } catch (error) {
     console.error('Lỗi khi gửi tin nhắn:', error)
@@ -447,9 +329,34 @@ const closeImageModal = () => {
   modalImage.value = ''
 }
 
+const startPolling = () => {
+  stopPolling()
+  pollingInterval.value = setInterval(() => {
+    if (selectedUser.value) loadMessages()
+  }, 2000) // 2 giây/lần
+}
+
+const stopPolling = () => {
+  if (pollingInterval.value) clearInterval(pollingInterval.value)
+  pollingInterval.value = null
+}
+
 // Lifecycle
 onMounted(() => {
   loadConversations()
+})
+
+watch(selectedUser, (val) => {
+  if (val) {
+    loadMessages()
+    startPolling()
+  } else {
+    stopPolling()
+  }
+})
+
+onUnmounted(() => {
+  stopPolling()
 })
 </script>
 
