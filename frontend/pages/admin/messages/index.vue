@@ -87,42 +87,9 @@
 
     <!-- Main Chat Area -->
     <div class="tw-flex-1 tw-w-0 tw-flex tw-flex-col tw-h-full tw-overflow-x-hidden">
-      <!-- Chat Header (sticky) -->
-      <div v-if="selectedUser" class="tw-p-4 tw-border-b tw-border-gray-200 tw-bg-white tw-shadow-sm tw-sticky tw-top-0 tw-z-10">
-        <div class="tw-flex tw-items-center tw-gap-3">
-          <img
-            :src="selectedUser.avatar ? getUserAvatar(selectedUser.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
-            :alt="selectedUser.username"
-            class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200"
-          >
-          <div class="tw-flex-1">
-            <div class="tw-font-medium tw-text-gray-900">{{ selectedUser.username || selectedUser.username }}</div>
-            <div class="tw-text-sm tw-text-gray-500">{{ selectedUser.email }}</div>
-          </div>
-          <div class="tw-flex tw-gap-2">
-            <button
-              @click="refreshMessages"
-              class="tw-p-2 tw-text-gray-400 hover:tw-text-gray-600 tw-transition-colors"
-              title="Làm mới"
-            >
-              <i class="fas fa-refresh"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- No Selection State -->
-      <div v-if="!selectedUser" class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-bg-white">
-        <div class="tw-text-center tw-text-gray-500">
-          <i class="fas fa-comment-dots tw-text-6xl tw-mb-4"></i>
-          <h3 class="tw-text-xl tw-font-medium tw-mb-2">Chọn một cuộc trò chuyện</h3>
-          <p class="tw-text-gray-400">Chọn khách hàng từ danh sách để bắt đầu chat</p>
-        </div>
-      </div>
-
-      <!-- Chat Interface -->
       <MessageContent
         v-if="selectedUser"
+        ref="messageContentRef"
         :message="{ name: selectedUser.username, email: selectedUser.email, avatar: getUserAvatar(selectedUser.avatar), messages: messages.map(m => ({ content: m.message, isAdmin: m.sender_id === currentAdmin?.id, time: formatTime(m.sent_at), ...m })) }"
         :adminAvatar="adminAvatar"
         @send="handleSendMessage"
@@ -187,8 +154,8 @@ const showImageModal = ref(false)
 const modalImage = ref('')
 const messagesContainer = ref(null)
 const pollingInterval = ref(null)
+const messageContentRef = ref(null)
 
-// Computed
 const filteredConversations = computed(() => {
   if (!searchQuery.value) return conversations.value
 
@@ -203,7 +170,6 @@ const filteredConversations = computed(() => {
 
 const adminAvatar = computed(() => currentAdmin.value?.avatar || 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg')
 
-// Methods
 const loadConversations = async () => {
   try {
     loading.value = true
@@ -218,6 +184,8 @@ const loadConversations = async () => {
 const selectConversation = async (conversation) => {
   selectedUser.value = conversation.user
   await loadMessages()
+  await nextTick()
+  messageContentRef.value?.scrollToBottom()
 }
 
 const loadMessages = async () => {
@@ -234,10 +202,8 @@ const loadMessages = async () => {
     await nextTick()
     const newLastId = messages.value.length ? messages.value[messages.value.length - 1].id : null
     if (newLastId !== prevLastId) {
-      // Có tin nhắn mới, scroll xuống cuối
       if (container) container.scrollTop = container.scrollHeight
     } else {
-      // Không có tin nhắn mới, giữ nguyên vị trí cuộn
       if (container) container.scrollTop = prevScrollTop + (container.scrollHeight - prevScrollHeight)
     }
   } catch (error) {
@@ -247,13 +213,16 @@ const loadMessages = async () => {
   }
 }
 
-const handleSendMessage = async (msgContent) => {
-  if (!msgContent.trim() || sending.value || !selectedUser.value) return
+const handleSendMessage = async ({ text, file }) => {
+  if ((!text.trim() && !file) || sending.value || !selectedUser.value) return
   try {
     sending.value = true
     const messageData = {
       receiver_id: selectedUser.value.id,
-      message: msgContent
+      message: text
+    }
+    if (file) {
+      messageData.attachment = file
     }
     const message = await sendChatMessage(messageData)
     messages.value.push(message)
@@ -304,7 +273,7 @@ const formatTime = (timestamp) => {
 }
 
 const getUserAvatar = (avatar) => {
-  if (!avatar) return '/images/default-avatar.png'
+  if (!avatar) return 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'
   if (avatar.startsWith('http')) return avatar
   let url = runtimeConfig.public.apiBaseUrl + '/' + avatar.replace(/^\/+/, '')
   url = url.replace(/\/{2,}storage\//, '/storage/')

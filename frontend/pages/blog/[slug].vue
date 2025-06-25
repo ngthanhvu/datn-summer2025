@@ -57,7 +57,7 @@
       </div>
       <div v-if="blog.author" class="tw-bg-gray-50 tw-rounded-xl tw-p-6 tw-flex tw-flex-col md:tw-flex-row tw-gap-6">
         <div class="tw-flex-shrink-0">
-          <img :src="blog.author.avatar || '/images/default-avatar.png'" :alt="blog.author.username || blog.author.name"
+          <img :src="blog.author.avatar || '/https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'" :alt="blog.author.username || blog.author.name"
             class="tw-w-20 tw-h-20 tw-rounded-full tw-object-cover" />
         </div>
         <div>
