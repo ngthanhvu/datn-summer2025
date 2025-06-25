@@ -294,4 +294,49 @@ class OrdersController extends Controller
 
         return $trackingCode;
     }
+    public function reorder($id)
+    {
+        try {
+            $originalOrder = Orders::with('orderDetails')->findOrFail($id);
+
+            if ($originalOrder->user_id !== Auth::id()) {
+                return response()->json([
+                    'message' => 'Bạn không có quyền mua lại đơn hàng này'
+                ], 403);
+            }
+
+            foreach ($originalOrder->orderDetails as $detail) {
+                $existing = DB::table('carts')->where([
+                    'user_id' => Auth::id(),
+                    'variant_id' => $detail->variant_id
+                ])->first();
+
+                if ($existing) {
+                    DB::table('carts')->where('id', $existing->id)->update([
+                        'quantity' => $existing->quantity + $detail->quantity,
+                        'price' => $detail->price,
+                        'updated_at' => now()
+                    ]);
+                } else {
+                    DB::table('carts')->insert([
+                        'user_id' => Auth::id(),
+                        'variant_id' => $detail->variant_id,
+                        'quantity' => $detail->quantity,
+                        'price' => $detail->price,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'message' => 'Các sản phẩm trong đơn hàng đã được thêm vào giỏ hàng'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Có lỗi xảy ra khi mua lại đơn hàng',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

@@ -154,7 +154,7 @@
                                 </div>
                                 <span class="tw-text-sm tw-mt-2">Đặt hàng</span>
                                 <span class="tw-text-xs tw-text-gray-500">{{ formatDate(selectedOrder.created_at)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="tw-flex-1 tw-h-0.5 tw-bg-gray-200 tw-mx-4"></div>
                             <div class="tw-flex tw-flex-col tw-items-center tw-relative">
@@ -316,11 +316,19 @@
                                 <span>{{ formatPrice(selectedOrder.final_price) }}đ</span>
                             </div>
                         </div>
-                        <div v-if="canCancelOrder(selectedOrder)" class="tw-mt-4 tw-text-right">
-                            <button @click="handleCancelOrder" class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
+                        <div class="tw-mt-4 tw-text-right tw-space-x-2">
+                            <button v-if="canCancelOrder(selectedOrder)" @click="handleCancelOrder"
+                                class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
                                 Hủy đơn hàng
                             </button>
+
+                            <button v-if="selectedOrder && selectedOrder.status === 'completed'"
+                                @click="handleReorder(selectedOrder.id)"
+                                class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-blue-700">
+                                Mua lại đơn hàng
+                            </button>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -540,6 +548,16 @@ const handleCancelOrder = async () => {
         alert(err?.response?.data?.message || err.message || 'Hủy đơn hàng thất bại')
     }
 }
+const handleReorder = async (orderId) => {
+    try {
+        const res = await orderService.reorderOrder(orderId)
+        alert(res.message || 'Đã thêm vào giỏ hàng')
+    } catch (err) {
+        alert(err?.response?.data?.message || err.message || 'Mua lại đơn hàng thất bại')
+    }
+}
+
+
 
 onMounted(() => {
     fetchOrders()
