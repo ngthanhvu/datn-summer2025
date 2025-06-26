@@ -536,7 +536,7 @@ watch([selectedStatus, selectedDate], () => {
 
 const canCancelOrder = (order) => {
     if (!order) return false
-    if (order.status !== 'pending') return false
+    if (!['pending', 'processing'].includes(order.status)) return false
     const createdAt = new Date(order.created_at)
     const now = new Date()
     const diffHours = (now - createdAt) / (1000 * 60 * 60)
@@ -565,7 +565,7 @@ const handleReorder = async (orderId) => {
 
 const showCancelWarning = (order) => {
     if (!order) return false
-    if (order.status !== 'pending') return false
+    if (!['pending', 'processing'].includes(order.status)) return false
     const createdAt = new Date(order.created_at)
     const now = new Date()
     const diffHours = (now - createdAt) / (1000 * 60 * 60)

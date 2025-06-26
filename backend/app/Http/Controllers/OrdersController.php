@@ -229,9 +229,9 @@ class OrdersController extends Controller
                 ], 400);
             }
 
-            if ($order->status !== 'pending') {
+            if (!in_array($order->status, ['pending', 'processing'])) {
                 return response()->json([
-                    'message' => 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận'
+                    'message' => 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận hoặc đang xử lý'
                 ], 400);
             }
 
