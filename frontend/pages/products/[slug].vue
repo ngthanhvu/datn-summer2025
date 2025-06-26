@@ -329,7 +329,8 @@
                   <div class="tw-flex tw-justify-between tw-mb-4">
                     <div class="tw-flex tw-items-center tw-gap-3">
                       <img
-                        :src="review.user?.avatar ? (review.user.avatar.startsWith('http') ? review.user.avatar : runtimeConfig.public.apiBaseUrl + '/storage/avatars/' + review.user.avatar.split('/').pop()) : '/images/default-avatar.png'"
+                        :src="review.user?.avatar ? (review.user.avatar.startsWith('http') ? review.user.avatar : runtimeConfig.public.apiBaseUrl +
+                          '/storage/avatars/' + review.user.avatar.split('/').pop()) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
                         :alt="review.user?.name"
                         class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200" />
                       <div>
