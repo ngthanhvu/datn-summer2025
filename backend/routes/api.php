@@ -17,6 +17,7 @@ use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\MessengerController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -64,6 +65,18 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/favorites', [FavoriteProductController::class, 'store']);
     Route::get('/favorites/check/{slug}', [FavoriteProductController::class, 'check']);
     Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
+
+    // Chat/Messenger routes
+    Route::prefix('chat')->group(function () {
+        Route::get('/conversations', [MessengerController::class, 'getConversations']);
+        Route::get('/messages/{userId}', [MessengerController::class, 'getMessages']);
+        Route::post('/send', [MessengerController::class, 'sendMessage']);
+        Route::put('/read/{messageId}', [MessengerController::class, 'markAsRead']);
+        Route::get('/unread-count', [MessengerController::class, 'getUnreadCount']);
+        Route::get('/search-users', [MessengerController::class, 'searchUsers']);
+        Route::delete('/message/{messageId}', [MessengerController::class, 'deleteMessage']);
+        Route::get('/admins', [MessengerController::class, 'getAdmins']);
+    });
 });
 
 // Public blog routes
