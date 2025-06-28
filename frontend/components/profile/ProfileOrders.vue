@@ -268,8 +268,9 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
-                                    Mã tra cứu: 
-                                    <span class="tw-ml-2 tw-font-medium tw-text-blue-600">{{ selectedOrder?.tracking_code || 'Chưa có mã' }}</span>
+                                    Mã tra cứu:
+                                    <span class="tw-ml-2 tw-font-medium tw-text-blue-600">{{
+                                        selectedOrder?.tracking_code || 'Chưa có mã' }}</span>
                                 </p>
                             </div>
                         </div>
@@ -423,25 +424,25 @@ const getPaymentStatusLabel = (status) => {
 const badgeClass = (status) => {
     switch (status) {
         case 'pending':
-            return 'tw-bg-yellow-100 tw-text-yellow-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-yellow-100 tw-text-yellow-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         case 'processing':
-            return 'tw-bg-blue-100 tw-text-blue-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-blue-100 tw-text-blue-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         case 'shipping':
-            return 'tw-bg-purple-100 tw-text-purple-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-purple-100 tw-text-purple-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         case 'completed':
-            return 'tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-green-100 tw-text-green-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         case 'cancelled':
-            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-red-100 tw-text-red-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         case 'paid':
-            return 'tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-green-100 tw-text-green-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         case 'failed':
-            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-red-100 tw-text-red-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         case 'canceled':
-            return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-red-100 tw-text-red-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         case 'refunded':
-            return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-gray-100 tw-text-gray-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
         default:
-            return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+            return 'tw-bg-gray-100 tw-text-gray-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
     }
 }
 

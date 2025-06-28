@@ -41,10 +41,23 @@
             </div>
 
             <div class="tw-mb-6">
+                <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Thương hiệu cha</label>
+                <select v-model="formData.parent_id"
+                    class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md focus:tw-outline-none focus:tw-ring-1 focus:tw-ring-primary">
+                    <option value="">-- Không có thương hiệu cha --</option>
+                    <option v-for="b in parentBrands" :key="b.id" :value="b.id">
+                        {{ b.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="tw-mb-6">
                 <label class="tw-flex tw-items-center tw-gap-2">
-                    <input type="checkbox" v-model="formData.is_active"
-                        class="tw-rounded tw-text-primary focus:tw-ring-primary">
-                    <span class="tw-text-sm tw-font-medium tw-text-gray-700">Kích hoạt</span>
+                    <span class="switch">
+                        <input type="checkbox" v-model="formData.is_active">
+                        <span class="slider"></span>
+                    </span>
+                    <span class="tw-text-sm tw-font-medium tw-text-gray-700 ml-2">Kích hoạt</span>
                 </label>
             </div>
 
@@ -71,6 +84,7 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
+const notyf = useNuxtApp().$notyf
 
 const route = useRoute()
 const brand = ref(null)
@@ -79,10 +93,12 @@ const formData = ref({
     name: '',
     description: '',
     image: '',
-    is_active: true
+    is_active: true,
+    parent_id: ''
 })
+const parentBrands = ref([])
 
-const { getBrandById, updateBrand } = useBrand()
+const { getBrandById, updateBrand, getBrands } = useBrand()
 
 const handleImageChange = (event) => {
     const file = event.target.files[0]
@@ -95,20 +111,25 @@ const handleImageChange = (event) => {
 
 onMounted(async () => {
     try {
-        const brandData = await getBrandById(route.params.id)
+        const [brandData, allBrands] = await Promise.all([
+            getBrandById(route.params.id),
+            getBrands()
+        ])
         if (brandData) {
             brand.value = brandData
             formData.value = {
                 name: brandData.name || '',
                 description: brandData.description || '',
                 image: brandData.image || '',
-                is_active: !!brandData.is_active
+                is_active: !!brandData.is_active,
+                parent_id: brandData.parent_id || ''
             }
-            console.log('Loaded brand data:', formData.value)
         }
+        // Loại bỏ chính nó khỏi danh sách thương hiệu cha
+        parentBrands.value = (allBrands || []).filter(b => b.id != route.params.id)
     } catch (error) {
         console.error('Error fetching brand:', error)
-        alert('Không thể tải thông tin thương hiệu')
+        notyf.error('Không thể tải thông tin thương hiệu')
     }
 })
 
@@ -116,7 +137,7 @@ const handleSubmit = async () => {
     try {
         // Validate form
         if (!formData.value.name?.trim()) {
-            alert('Vui lòng nhập tên thương hiệu')
+            notyf.error('Vui lòng nhập tên thương hiệu')
             return
         }
 
@@ -126,6 +147,10 @@ const handleSubmit = async () => {
         formDataToSend.append('name', formData.value.name.trim())
         formDataToSend.append('description', formData.value.description?.trim() || '')
         formDataToSend.append('is_active', formData.value.is_active ? '1' : '0')
+
+        if (formData.value.parent_id) {
+            formDataToSend.append('parent_id', formData.value.parent_id)
+        }
 
         // Nếu có file ảnh mới thì gửi lên
         if (imageFile.value) {
@@ -142,13 +167,13 @@ const handleSubmit = async () => {
         console.log('Update result:', result)
 
         if (result) {
-            alert('Cập nhật thương hiệu thành công!')
+            notyf.success('Cập nhật thương hiệu thành công!')
             await navigateTo('/admin/brands')
         }
     } catch (error) {
         console.error('Error updating brand:', error.response?.data || error)
         const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi cập nhật thương hiệu'
-        alert(errorMessage)
+        console.lgo(errorMessage)
     }
 }
 </script>
@@ -160,5 +185,51 @@ const handleSubmit = async () => {
 
 .tw-bg-primary-dark {
     background-color: #2ea16d;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    vertical-align: middle;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.switch input:checked+.slider {
+    background-color: #3bb77e;
+}
+
+.switch input:checked+.slider:before {
+    transform: translateX(20px);
 }
 </style>

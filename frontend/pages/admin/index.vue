@@ -5,26 +5,41 @@
       <p class="text-gray-600">Thống kê hoạt động kinh doanh</p>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Stats Cards Section -->
     <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6 tw-mb-6">
-      <StatsCard title="Doanh thu tháng này" :value="formatPrice(statistics.monthlyRevenue)"
-        :growth="statistics.revenueGrowth" icon="fas fa-dollar-sign" iconColor="primary" />
-      <StatsCard title="Đơn hàng tháng này" :value="statistics.monthlyOrders" :growth="statistics.ordersGrowth"
-        icon="fas fa-shopping-cart" iconColor="blue" />
-      <StatsCard title="Khách hàng mới" :value="statistics.newCustomers" :growth="statistics.customersGrowth"
-        icon="fas fa-users" iconColor="yellow" />
-      <StatsCard title="Sản phẩm" :value="statistics.totalProducts"
-        :subText="`${statistics.outOfStock} sản phẩm hết hàng`" icon="fas fa-box" iconColor="purple" />
+      <template v-if="loading">
+        <StatsCardSkeleton v-for="i in 4" :key="i" />
+      </template>
+      <template v-else>
+        <StatsCard title="Doanh thu tháng này" :value="formatCurrency(statistics.monthly_revenue || 0)"
+          :growth="revenueGrowth" icon="fas fa-dollar-sign" iconColor="primary" />
+        <StatsCard title="Đơn hàng tháng này" :value="statistics.monthly_orders || 0" :growth="ordersGrowth"
+          icon="fas fa-shopping-cart" iconColor="blue" />
+        <StatsCard title="Tổng khách hàng" :value="statistics.total_customers || 0" :growth="customersGrowth"
+          icon="fas fa-users" iconColor="yellow" />
+        <StatsCard title="Tổng sản phẩm" :value="statistics.total_products || 0" icon="fas fa-box" iconColor="purple" />
+      </template>
     </div>
 
-    <!-- Charts -->
+    <!-- Charts Section -->
     <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-6 tw-mb-6">
-      <RevenueChart />
-      <OrdersChart />
+      <template v-if="loading">
+        <ChartSkeleton />
+        <ChartSkeleton />
+      </template>
+      <template v-else>
+        <RevenueChart :data="revenueData" />
+        <OrdersChart :data="ordersData" />
+      </template>
     </div>
 
-    <!-- Recent Orders -->
-    <RecentOrders :orders="recentOrders" />
+    <!-- Recent Orders Section -->
+    <template v-if="loading">
+      <RecentOrdersSkeleton />
+    </template>
+    <template v-else>
+      <RecentOrders :orders="recentOrders" />
+    </template>
   </div>
 </template>
 
@@ -43,75 +58,80 @@ definePageMeta({
   middleware: 'admin'
 })
 
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import StatsCard from '~/components/admin/dashboard/StatsCard.vue'
+import StatsCardSkeleton from '~/components/admin/dashboard/StatsCardSkeleton.vue'
 import RevenueChart from '~/components/admin/dashboard/RevenueChart.vue'
 import OrdersChart from '~/components/admin/dashboard/OrdersChart.vue'
+import ChartSkeleton from '~/components/admin/dashboard/ChartSkeleton.vue'
 import RecentOrders from '~/components/admin/dashboard/RecentOrders.vue'
+import RecentOrdersSkeleton from '~/components/admin/dashboard/RecentOrdersSkeleton.vue'
 
-// Mock statistics data
-const statistics = ref({
-  monthlyRevenue: 45990000,
-  revenueGrowth: 12.5,
-  monthlyOrders: 156,
-  ordersGrowth: 8.3,
-  newCustomers: 48,
-  customersGrowth: -2.1,
-  totalProducts: 234,
-  outOfStock: 12
+const {
+  getStats,
+  getYearlyRevenue,
+  getOrdersByStatus,
+  getRecentOrders,
+  formatCurrency,
+  formatNumber
+} = useDashboard()
+
+const loading = ref(true)
+const statistics = ref({})
+const revenueData = ref({})
+const ordersData = ref({})
+const recentOrders = ref([])
+
+const revenueGrowth = computed(() => {
+  return 12.5
 })
 
-// Mock recent orders
-const recentOrders = ref([
-  {
-    id: 'ORD001',
-    customer: 'Nguyễn Văn A',
-    items: 3,
-    total: 2990000,
-    status: 'Đang xử lý',
-    date: '2024-03-15T08:30:00'
-  },
-  {
-    id: 'ORD002',
-    customer: 'Trần Thị B',
-    items: 2,
-    total: 1590000,
-    status: 'Đã giao',
-    date: '2024-03-14T15:45:00'
-  },
-  {
-    id: 'ORD003',
-    customer: 'Lê Văn C',
-    items: 1,
-    total: 990000,
-    status: 'Đang giao',
-    date: '2024-03-14T11:20:00'
-  },
-  {
-    id: 'ORD004',
-    customer: 'Phạm Thị D',
-    items: 4,
-    total: 3990000,
-    status: 'Chờ thanh toán',
-    date: '2024-03-14T09:15:00'
-  },
-  {
-    id: 'ORD005',
-    customer: 'Hoàng Văn E',
-    items: 2,
-    total: 1890000,
-    status: 'Đã hủy',
-    date: '2024-03-13T16:50:00'
-  }
-])
+const ordersGrowth = computed(() => {
+  return 8.3
+})
 
-// Utility functions
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(price)
+const customersGrowth = computed(() => {
+  return 5.2
+})
+
+const fetchDashboardData = async () => {
+  try {
+    loading.value = true
+
+    const statsResponse = await getStats()
+    if (statsResponse.success) {
+      statistics.value = statsResponse.data
+    }
+
+    const revenueResponse = await getYearlyRevenue()
+    if (revenueResponse.success) {
+      revenueData.value = revenueResponse.data
+    }
+
+    const ordersResponse = await getOrdersByStatus()
+    if (ordersResponse.success) {
+      ordersData.value = ordersResponse.data
+    }
+
+    const recentOrdersResponse = await getRecentOrders({ limit: 5 })
+    if (recentOrdersResponse.success) {
+      recentOrders.value = recentOrdersResponse.data
+    } else {
+      recentOrders.value = []
+    }
+
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error)
+    recentOrders.value = []
+  } finally {
+    loading.value = false
+  }
 }
+
+// Load data on mount
+onMounted(() => {
+  fetchDashboardData()
+})
 </script>
 
 <style scoped>

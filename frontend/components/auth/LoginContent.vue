@@ -5,22 +5,21 @@
             <div class="mb-3">
                 <label for="loginEmail" class="form-label">Email</label>
                 <input v-model="form.email" type="email" class="form-control" name="email" id="loginEmail"
-                    placeholder="Nhập email của bạn" :class="{ 'is-invalid': error.email }">
-                <div class="invalid-feedback" v-if="error.email">{{ error.email }}</div>
+                    placeholder="Nhập email của bạn">
+                <p class="tw-text-red-500 tw-text-sm tw-mt-1" v-if="error.email">{{ error.email }}</p>
             </div>
             <div class="mb-3">
                 <label for="loginPassword" class="form-label">Mật khẩu</label>
                 <div class="position-relative">
                     <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="form-control"
-                        name="password" id="loginPassword" placeholder="Nhập mật khẩu"
-                        :class="{ 'is-invalid': error.password }">
+                        name="password" id="loginPassword" placeholder="Nhập mật khẩu">
                     <button type="button"
                         class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
                         @click="showPassword = !showPassword">
                         <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
-                <div class="invalid-feedback" v-if="error.password">{{ error.password }}</div>
+                <p class="tw-text-red-500 tw-text-sm tw-mt-1" v-if="error.password">{{ error.password }}</p>
             </div>
             <div class="mb-3 form-check">
                 <input v-model="rememberMe" type="checkbox" class="form-check-input" id="rememberMe">
@@ -42,12 +41,13 @@
         </form>
 
         <div class="text-center mt-3">
-            <p class="mb-2">Hoặc đăng nhập bằng:</p>
+            <p class="mb-2">Hoặc</p>
             <div class="d-flex justify-content-center gap-2">
                 <button @click="googleLogin"
-                    class="btn btn-outline-danger w-100 tw-flex tw-items-center tw-justify-center tw-gap-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png"
-                        class="tw-w-[18px] tw-h-[18px] tw-object-contain" alt="#"> Google
+                    class="tw-bg-white tw-text-gray-800 tw-border tw-border-gray-200 tw-rounded-full tw-p-2 tw-w-[100%] tw-flex tw-items-center tw-justify-center tw-gap-2 tw-shadow-sm hover:tw-bg-gray-100">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                        style="width:24px;height:24px;" class="me-2" />
+                    <span class="tw-flex-1 tw-text-center">Đăng nhập bằng Google</span>
                 </button>
             </div>
         </div>

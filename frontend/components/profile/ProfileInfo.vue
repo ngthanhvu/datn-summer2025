@@ -63,6 +63,7 @@ const { user, getUser, updateUserProfile } = useAuth()
 const loading = ref(false)
 const avatarFile = ref(null)
 const config = useRuntimeConfig()
+const notyf = useNuxtApp().$notyf
 
 const formData = ref({
     username: '',
@@ -96,7 +97,7 @@ const handleAvatarChange = (event) => {
     const file = event.target.files[0]
     if (file) {
         if (file.size > 2 * 1024 * 1024) {
-            alert('Kích thước file quá lớn. Vui lòng chọn file nhỏ hơn 2MB.')
+            notyf.error('Kích thước file quá lớn. Vui lòng chọn file nhỏ hơn 2MB.')
             return
         }
         avatarFile.value = file

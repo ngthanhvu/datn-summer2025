@@ -22,24 +22,18 @@
                     <option value="">Chưa đọc</option>
                     <option value="yes">Chưa đọc</option>
                 </select>
-                <input v-model="searchQuery" type="text" placeholder="Nhập từ khóa tìm kiếm ..." class="tw-border tw-rounded tw-px-3 tw-py-1 tw-text-sm tw-w-64" />
+                <input v-model="searchQuery" type="text" placeholder="Nhập từ khóa tìm kiếm ..."
+                    class="tw-border tw-rounded tw-px-3 tw-py-1 tw-text-sm tw-w-64" />
             </div>
         </div>
         <!-- Table -->
         <div class="tw-p-0">
-            <!-- Loading State -->
-            <div v-if="loading" class="tw-p-8 tw-text-center">
-                <div class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-primary"></div>
-                <p class="tw-mt-2 tw-text-gray-600">Đang tải dữ liệu...</p>
-            </div>
-            
             <!-- Empty State -->
-            <div v-else-if="!loading && filteredComments.length === 0" class="tw-p-8 tw-text-center">
+            <div v-if="!loading && filteredComments.length === 0" class="tw-p-8 tw-text-center">
                 <i class="fas fa-comments tw-text-4xl tw-text-gray-300 tw-mb-4"></i>
                 <p class="tw-text-gray-600">Không có đánh giá nào</p>
             </div>
-            
-            <!-- Table Content -->
+            <!-- Table Content + Skeleton -->
             <table v-else class="tw-w-full tw-text-sm tw-border-collapse">
                 <thead>
                     <tr class="tw-bg-gray-50">
@@ -52,76 +46,114 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="comment in filteredComments" :key="comment.id" :class="['tw-border-b', comment.status === 'rejected' ? 'tw-bg-red-50' : comment.status === 'approved' ? 'tw-bg-blue-50' : '']">
-                        <td class="tw-px-4 tw-py-2"><input type="checkbox" /></td>
-                        <td class="tw-px-4 tw-py-2">
-                            <span v-html="renderStars(comment.rating)"></span>
-                        </td>
-                        <td class="tw-px-4 tw-py-2">
-                            <div class="tw-mb-1">{{ comment.content }}</div>
-                            <div v-if="comment.images && comment.images.length" class="tw-mt-2">
-                                <div class="tw-text-xs tw-mb-1 tw-font-semibold">Hình ảnh đánh giá:</div>
-                                <div class="tw-flex tw-gap-2">
-                                    <img
-                                        v-for="img in comment.images"
-                                        :key="img.id"
-                                        :src="getImageUrl(img.image_path)"
-                                        class="tw-w-16 tw-h-16 tw-object-cover tw-rounded"
-                                        alt="review image"
-                                    />
+                    <template v-if="loading">
+                        <tr v-for="n in 5" :key="n">
+                            <td class="tw-px-4 tw-py-2">
+                                <div class="tw-bg-gray-200 tw-rounded tw-w-6 tw-h-6 tw-animate-pulse mx-auto"></div>
+                            </td>
+                            <td class="tw-px-4 tw-py-2">
+                                <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-16 tw-animate-pulse"></div>
+                            </td>
+                            <td class="tw-px-4 tw-py-2">
+                                <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-2/3 tw-mb-2 tw-animate-pulse"></div>
+                                <div class="tw-bg-gray-200 tw-h-3 tw-rounded tw-w-1/3 tw-animate-pulse"></div>
+                            </td>
+                            <td class="tw-px-4 tw-py-2 tw-text-center">
+                                <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-12 tw-animate-pulse mx-auto"></div>
+                            </td>
+                            <td class="tw-px-4 tw-py-2 tw-text-center">
+                                <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-16 tw-animate-pulse mx-auto"></div>
+                            </td>
+                            <td class="tw-px-4 tw-py-2 tw-text-center">
+                                <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-16 tw-animate-pulse mx-auto"></div>
+                            </td>
+                        </tr>
+                    </template>
+                    <template v-else>
+                        <tr v-for="comment in filteredComments" :key="comment.id"
+                            :class="['tw-border-b', comment.status === 'rejected' ? 'tw-bg-red-50' : comment.status === 'approved' ? 'tw-bg-blue-50' : '']">
+                            <td class="tw-px-4 tw-py-2"><input type="checkbox" /></td>
+                            <td class="tw-px-4 tw-py-2">
+                                <span v-html="renderStars(comment.rating)"></span>
+                            </td>
+                            <td class="tw-px-4 tw-py-2">
+                                <div class="tw-mb-1">{{ comment.content }}</div>
+                                <div v-if="comment.images && comment.images.length" class="tw-mt-2">
+                                    <div class="tw-text-xs tw-mb-1 tw-font-semibold">Hình ảnh đánh giá:</div>
+                                    <div class="tw-flex tw-gap-2">
+                                        <img v-for="img in comment.images" :key="img.id"
+                                            :src="getImageUrl(img.image_path)"
+                                            class="tw-w-16 tw-h-16 tw-object-cover tw-rounded" alt="review image" />
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="tw-text-xs tw-text-gray-500">
-                                - <span class="tw-font-semibold">{{ comment.userEmail || comment.userName }}</span>
-                                đánh giá sản phẩm <span class="tw-text-blue-600 hover:tw-underline">{{ comment.productInfo?.name }}</span>
-                            </div>
-                            <!-- Admin reply -->
-                            <div v-if="comment.reply" class="tw-mt-2 tw-ml-4 tw-p-2 tw-bg-gray-100 tw-rounded">
-                                <div class="tw-flex tw-items-center tw-gap-2">
-                                    <span class="tw-font-semibold tw-text-primary">Phản hồi admin:</span>
-                                    <span v-if="!comment.isEditingReply">{{ comment.reply.content }}</span>
-                                    <input v-else v-model="comment.editReplyText" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-text-xs tw-flex-1" />
-                                    <span class="tw-text-xs tw-text-gray-400">({{ comment.reply.date }})</span>
-                                    <button v-if="!comment.isEditingReply" @click="startEditReply(comment)" class="tw-bg-blue-500 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-text-xs ml-2">Sửa</button>
-                                    <template v-else>
-                                        <button @click="saveEditReply(comment)" class="tw-bg-primary tw-text-white tw-rounded tw-px-2 tw-py-1 tw-text-xs ml-2">Lưu</button>
-                                        <button @click="cancelEditReply(comment)" class="tw-bg-gray-400 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-text-xs ml-1">Hủy</button>
-                                    </template>
+                                <div class="tw-text-xs tw-text-gray-500">
+                                    - <span class="tw-font-semibold">{{ comment.userEmail || comment.userName }}</span>
+                                    đánh giá sản phẩm <span class="tw-text-blue-600 hover:tw-underline">{{
+                                        comment.productInfo?.name }}</span>
                                 </div>
-                            </div>
-                            <!-- Reply form -->
-                            <div v-else class="tw-mt-2 tw-ml-4">
-                                <div class="tw-flex tw-gap-2">
-                                    <input type="text" v-model="comment.replyText" placeholder="Nhập phản hồi ..." class="tw-flex-1 tw-border tw-rounded tw-px-3 tw-py-1 tw-text-xs">
-                                    <button @click="addReply(comment)" class="tw-bg-primary tw-text-white tw-rounded tw-px-3 tw-py-1 tw-text-xs">Gửi</button>
+                                <!-- Admin reply -->
+                                <div v-if="comment.reply" class="tw-mt-2 tw-ml-4 tw-p-2 tw-bg-gray-100 tw-rounded">
+                                    <div class="tw-flex tw-items-center tw-gap-2">
+                                        <span class="tw-font-semibold tw-text-primary">Phản hồi admin:</span>
+                                        <span v-if="!comment.isEditingReply">{{ comment.reply.content }}</span>
+                                        <input v-else v-model="comment.editReplyText"
+                                            class="tw-border tw-rounded tw-px-2 tw-py-1 tw-text-xs tw-flex-1" />
+                                        <span class="tw-text-xs tw-text-gray-400">({{ comment.reply.date }})</span>
+                                        <button v-if="!comment.isEditingReply" @click="startEditReply(comment)"
+                                            class="tw-bg-blue-500 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-text-xs ml-2">Sửa</button>
+                                        <template v-else>
+                                            <button @click="saveEditReply(comment)"
+                                                class="tw-bg-primary tw-text-white tw-rounded tw-px-2 tw-py-1 tw-text-xs ml-2">Lưu</button>
+                                            <button @click="cancelEditReply(comment)"
+                                                class="tw-bg-gray-400 tw-text-white tw-rounded tw-px-2 tw-py-1 tw-text-xs ml-1">Hủy</button>
+                                        </template>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="tw-px-4 tw-py-2 tw-text-center">
-                            <div class="tw-flex tw-flex-col tw-items-center">
-                                <span class="tw-font-medium">{{ comment.date }}</span>
-                                <span v-if="comment.time" class="tw-text-xs tw-text-gray-500">{{ comment.time }}</span>
-                                <span v-if="isRecentReview(comment.date)" class="tw-bg-green-100 tw-text-green-700 tw-text-xs tw-px-2 tw-py-1 tw-rounded-full tw-mt-1">Mới</span>
-                            </div>
-                        </td>
-                        <td class="tw-px-4 tw-py-2 tw-text-center">
-                            <span :class="[
-                                'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
-                                {
-                                    'tw-bg-yellow-100 tw-text-yellow-700': comment.status === 'pending',
-                                    'tw-bg-green-100 tw-text-green-700': comment.status === 'approved',
-                                    'tw-bg-red-100 tw-text-red-700': comment.status === 'rejected'
-                                }
-                            ]">
-                                {{ getStatusText(comment.status) }}
-                            </span>
-                        </td>
-                        <td class="tw-px-4 tw-py-2 tw-text-center">
-                            <button v-if="comment.status !== 'approved'" @click="updateStatus(comment.id, 'approved')" class="tw-bg-green-100 tw-text-green-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Hiển thị</button>
-                            <button v-if="comment.status !== 'rejected'" @click="updateStatus(comment.id, 'rejected')" class="tw-bg-red-100 tw-text-red-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Ẩn</button>
-                            <button @click="deleteComment(comment.id)" class="tw-bg-gray-100 tw-text-gray-700 tw-rounded tw-px-2 tw-py-1 tw-text-xs"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
+                                <!-- Reply form -->
+                                <div v-else class="tw-mt-2 tw-ml-4">
+                                    <div class="tw-flex tw-gap-2">
+                                        <input type="text" v-model="comment.replyText" placeholder="Nhập phản hồi ..."
+                                            class="tw-flex-1 tw-border tw-rounded tw-px-3 tw-py-1 tw-text-xs">
+                                        <button @click="addReply(comment)"
+                                            class="tw-bg-primary tw-text-white tw-rounded tw-px-3 tw-py-1 tw-text-xs">Gửi</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="tw-px-4 tw-py-2 tw-text-center">
+                                <div class="tw-flex tw-flex-col tw-items-center">
+                                    <span class="tw-font-medium">{{ comment.date }}</span>
+                                    <span v-if="comment.time" class="tw-text-xs tw-text-gray-500">{{ comment.time
+                                    }}</span>
+                                    <span v-if="isRecentReview(comment.date)"
+                                        class="tw-bg-green-100 tw-text-green-700 tw-text-xs tw-px-2 tw-py-1 tw-rounded-full tw-mt-1">Mới</span>
+                                </div>
+                            </td>
+                            <td class="tw-px-4 tw-py-2 tw-text-center">
+                                <span :class="[
+                                    'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
+                                    {
+                                        'tw-bg-yellow-100 tw-text-yellow-700': comment.status === 'pending',
+                                        'tw-bg-green-100 tw-text-green-700': comment.status === 'approved',
+                                        'tw-bg-red-100 tw-text-red-700': comment.status === 'rejected'
+                                    }
+                                ]">
+                                    {{ getStatusText(comment.status) }}
+                                </span>
+                            </td>
+                            <td class="tw-px-4 tw-py-2 tw-text-center">
+                                <button v-if="comment.status !== 'approved'"
+                                    @click="updateStatus(comment.id, 'approved')"
+                                    class="tw-bg-green-100 tw-text-green-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Hiển
+                                    thị</button>
+                                <button v-if="comment.status !== 'rejected'"
+                                    @click="updateStatus(comment.id, 'rejected')"
+                                    class="tw-bg-red-100 tw-text-red-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Ẩn</button>
+                                <button @click="deleteComment(comment.id)"
+                                    class="tw-bg-gray-100 tw-text-gray-700 tw-rounded tw-px-2 tw-py-1 tw-text-xs"><i
+                                        class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </template>
                 </tbody>
             </table>
         </div>
@@ -172,22 +204,22 @@ const getImageUrl = (url) => {
 
 const filteredComments = computed(() => {
     let filtered = props.comments
-    
+
     if (searchQuery.value) {
-        filtered = filtered.filter(comment => 
+        filtered = filtered.filter(comment =>
             comment.content.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             comment.userName.toLowerCase().includes(searchQuery.value.toLowerCase())
         )
     }
-    
+
     if (filterStatus.value) {
         filtered = filtered.filter(comment => comment.status === filterStatus.value)
     }
-    
+
     if (filterRating.value) {
         filtered = filtered.filter(comment => comment.rating === parseInt(filterRating.value))
     }
-    
+
     if (filterHasImage.value) {
         if (filterHasImage.value === 'yes') {
             filtered = filtered.filter(comment => comment.images && comment.images.length > 0)
@@ -195,11 +227,11 @@ const filteredComments = computed(() => {
             filtered = filtered.filter(comment => !comment.images || comment.images.length === 0)
         }
     }
-    
+
     if (filterUnread.value) {
         filtered = filtered.filter(comment => comment.status === 'pending' && !comment.isRead)
     }
-    
+
     return filtered
 })
 

@@ -2,7 +2,7 @@ import axios from 'axios'
 import { ref } from 'vue'
 import { useCookie } from '#app'
 
-const useCarts = () => {
+export const useCarts = () => {
     const config = useRuntimeConfig()
     const apiBaseUrl = config.public.apiBaseUrl
 

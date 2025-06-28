@@ -11,7 +11,9 @@ class CategoriesController extends Controller
 {
     public function index()
     {
-        $categories = Categories::select('id', 'name', 'slug', 'description', 'image', 'is_active', 'parent_id')->get();
+        $categories = Categories::select('id', 'name', 'slug', 'description', 'image', 'is_active', 'parent_id')
+            ->withCount('products')
+            ->get();
 
         $categories->transform(function ($category) {
             $category->image = $category->image ? url('storage/' . $category->image) : null;

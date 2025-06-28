@@ -1,20 +1,22 @@
 <template>
     <div>
-        <form @submit.prevent="handleSubmit" class="form">
+        <form @submit.prevent="handleSubmit" class="form form-grid">
             <div class="form-group">
                 <label for="name">Tên chương trình</label>
                 <input id="name" v-model="formData.name" type="text" required
                     placeholder="Nhập tên chương trình khuyến mãi" />
+                <span v-if="errors.name" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.name }}</span>
             </div>
             <div class="form-group">
                 <label for="code">Mã giảm giá</label>
                 <input id="code" v-model="formData.code" type="text" required placeholder="Nhập mã giảm giá" />
+                <span v-if="errors.code" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.code }}</span>
             </div>
             <div class="form-group">
                 <label for="type">Loại giảm giá</label>
                 <select id="type" v-model="formData.type" required>
-                    <option value="percent">Giảm theo phần trăm</option>
                     <option value="fixed">Giảm số tiền cố định</option>
+                    <option value="percent">Giảm theo phần trăm</option>
                 </select>
             </div>
             <div class="form-group">
@@ -25,6 +27,7 @@
                         :step="formData.type === 'percent' ? 1 : 1000" />
                     <span class="suffix">{{ formData.type === 'percent' ? '%' : 'đ' }}</span>
                 </div>
+                <span v-if="errors.value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.value }}</span>
             </div>
             <div class="form-group">
                 <label for="min_order_value">Đơn hàng tối thiểu</label>
@@ -33,27 +36,36 @@
                         :min="0" :step="1000" />
                     <span class="suffix">đ</span>
                 </div>
+                <span v-if="errors.min_order_value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.min_order_value
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="max_discount_value">Giảm tối đa</label>
                 <div class="input-with-suffix">
                     <input id="max_discount_value" v-model.number="formData.max_discount_value" type="number" required
-                        :min="0" :step="1000" />
+                        :min="0" :step="1000" :disabled="formData.type === 'percent'" />
                     <span class="suffix">đ</span>
                 </div>
+                <span v-if="errors.max_discount_value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                    errors.max_discount_value
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="usage_limit">Giới hạn sử dụng</label>
                 <input id="usage_limit" v-model.number="formData.usage_limit" type="number" :min="0" :step="1"
                     placeholder="0 = không giới hạn" />
+                <span v-if="errors.usage_limit" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.usage_limit
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="start_date">Ngày bắt đầu</label>
                 <input id="start_date" v-model="formData.start_date" type="datetime-local" required />
+                <span v-if="errors.start_date" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.start_date }}</span>
             </div>
             <div class="form-group">
                 <label for="end_date">Ngày kết thúc</label>
                 <input id="end_date" v-model="formData.end_date" type="datetime-local" required />
+                <span v-if="errors.end_date" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.end_date }}</span>
             </div>
             <div class="form-group">
                 <label for="is_active">Trạng thái</label>
@@ -73,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useCoupon } from '@/composables/useCoupon'
 import Swal from 'sweetalert2'
 
@@ -82,7 +94,7 @@ const { createCoupon } = useCoupon()
 const formData = ref({
     name: '',
     code: '',
-    type: 'percent',
+    type: 'fixed',
     value: 0,
     min_order_value: 0,
     max_discount_value: 0,
@@ -93,7 +105,25 @@ const formData = ref({
     is_active: true
 })
 
+const errors = ref({})
+
+function validateForm() {
+    const err = {}
+    if (!formData.value.name) err.name = 'Vui lòng nhập tên chương trình.'
+    if (!formData.value.code) err.code = 'Vui lòng nhập mã giảm giá.'
+    if (formData.value.value === '' || formData.value.value === null || formData.value.value < 0) err.value = 'Giá trị giảm phải lớn hơn hoặc bằng 0.'
+    if (formData.value.min_order_value === '' || formData.value.min_order_value === null || formData.value.min_order_value < 0) err.min_order_value = 'Đơn hàng tối thiểu phải lớn hơn hoặc bằng 0.'
+    if (formData.value.type !== 'percent' && (formData.value.max_discount_value === '' || formData.value.max_discount_value === null || formData.value.max_discount_value < 0)) err.max_discount_value = 'Giảm tối đa phải lớn hơn hoặc bằng 0.'
+    if (formData.value.usage_limit === '' || formData.value.usage_limit === null || formData.value.usage_limit < 0) err.usage_limit = 'Giới hạn sử dụng phải lớn hơn hoặc bằng 0.'
+    if (!formData.value.start_date) err.start_date = 'Vui lòng chọn ngày bắt đầu.'
+    if (!formData.value.end_date) err.end_date = 'Vui lòng chọn ngày kết thúc.'
+    if (formData.value.start_date && formData.value.end_date && new Date(formData.value.end_date) <= new Date(formData.value.start_date)) err.end_date = 'Ngày kết thúc phải sau ngày bắt đầu.'
+    errors.value = err
+    return Object.keys(err).length === 0
+}
+
 const handleSubmit = async () => {
+    if (!validateForm()) return
     try {
         await createCoupon(formData.value)
 
@@ -120,6 +150,7 @@ const handleSubmit = async () => {
             description: '',
             is_active: true
         }
+        errors.value = {}
     } catch (error) {
         // Hiển thị thông báo lỗi
         Swal.fire({
@@ -132,6 +163,12 @@ const handleSubmit = async () => {
         console.error('Lỗi khi tạo coupon:', error)
     }
 }
+
+watch(() => formData.value.type, (newType) => {
+    if (newType === 'percent') {
+        formData.value.max_discount_value = null
+    }
+})
 </script>
 
 <style scoped>
@@ -230,5 +267,17 @@ const handleSubmit = async () => {
 
 .tw-bg-primary-dark {
     background-color: #2ea16d;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 2rem;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>

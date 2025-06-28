@@ -118,7 +118,7 @@ const handleIncrease = async (cartId) => {
     try {
         await increaseQuantity(cartId)
     } catch (error) {
-        alert(error)
+        console.log(error)
     }
 }
 
@@ -126,7 +126,7 @@ const handleDecrease = async (cartId) => {
     try {
         await decreaseQuantity(cartId)
     } catch (error) {
-        alert(error)
+        console.log(error)
     }
 }
 </script>

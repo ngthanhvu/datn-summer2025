@@ -87,6 +87,7 @@ import Form from '~/components/admin/Form.vue'
 import { useProducts } from '~/composables/useProducts'
 import { useCategory } from '~/composables/useCategory'
 import { useBrand } from '~/composables/useBrand'
+const notyf = useNuxtApp().$notyf
 
 const route = useRoute()
 const isDataLoaded = ref(false)
@@ -319,7 +320,7 @@ onMounted(async () => {
         console.log('Đã tải xong dữ liệu')
     } catch (err) {
         console.error('Lỗi khi tải dữ liệu:', err)
-        alert('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.')
+        notyf.error('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.')
         isDataLoaded.value = true
     }
 })
@@ -338,7 +339,7 @@ const updateVariant = (val, index) => {
 const handleSubmit = async () => {
     try {
         if (!formData.value.mainImage && !formData.value.mainImagePreview) {
-            alert('Vui lòng chọn ảnh chính cho sản phẩm')
+            notyf.error('Vui lòng chọn ảnh chính cho sản phẩm')
             return
         }
 
@@ -377,7 +378,7 @@ const handleSubmit = async () => {
         await navigateTo('/admin/products')
     } catch (error) {
         console.error('Error updating product:', error)
-        alert('Có lỗi khi cập nhật sản phẩm')
+        notyf.error('Có lỗi khi cập nhật sản phẩm')
     }
 }
 

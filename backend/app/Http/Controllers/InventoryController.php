@@ -7,12 +7,13 @@ use App\Models\InventoryMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InventoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = \App\Models\Inventory::with([
+        $query = Inventory::with([
             'variant' => function ($q) {
                 $q->select('id', 'color', 'size', 'price', 'sku', 'product_id')
                     ->with([
@@ -122,5 +123,21 @@ class InventoryController extends Controller
         $movements = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json($movements);
+    }
+
+    // API: /api/inventory/movement/{id}/pdf
+    public function exportMovementPdf($id)
+    {
+        $movement = \App\Models\InventoryMovement::with([
+            'variant.product',
+            'user'
+        ])->findOrFail($id);
+
+        $data = [
+            'movement' => $movement
+        ];
+        $pdf = Pdf::loadView('pdf.movement-invoice', $data);
+        $filename = 'phieu-' . $movement->type . '-' . $movement->id . '.pdf';
+        return $pdf->download($filename);
     }
 }

@@ -28,6 +28,17 @@
             </div>
 
             <div class="tw-mb-6">
+                <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Danh mục cha</label>
+                <select v-model="formData.parent_id"
+                    class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md focus:tw-outline-none focus:tw-ring-1 focus:tw-ring-primary">
+                    <option value="">-- Không có danh mục cha --</option>
+                    <option v-for="cat in parentCategories" :key="cat.id" :value="cat.id">
+                        {{ cat.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="tw-mb-6">
                 <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Ảnh danh mục</label>
                 <div class="tw-flex tw-items-start tw-gap-4">
                     <img v-if="formData.image" :src="formData.image" alt="Current image"
@@ -71,6 +82,7 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
+const notyf = useNuxtApp().$notyf
 
 const route = useRoute()
 const category = ref(null)
@@ -79,10 +91,12 @@ const formData = ref({
     name: '',
     description: '',
     image: '',
-    is_active: true
+    is_active: true,
+    parent_id: ''
 })
+const parentCategories = ref([])
 
-const { getCategoryById, updateCategory } = useCategory()
+const { getCategoryById, updateCategory, getCategories } = useCategory()
 
 const handleImageChange = (event) => {
     const file = event.target.files[0]
@@ -95,27 +109,32 @@ const handleImageChange = (event) => {
 
 onMounted(async () => {
     try {
-        const categoryData = await getCategoryById(route.params.id)
+        const [categoryData, allCategories] = await Promise.all([
+            getCategoryById(route.params.id),
+            getCategories()
+        ])
         if (categoryData) {
             category.value = categoryData
             formData.value = {
                 name: categoryData.name || '',
                 description: categoryData.description || '',
                 image: categoryData.image || '',
-                is_active: !!categoryData.is_active
+                is_active: !!categoryData.is_active,
+                parent_id: categoryData.parent_id || ''
             }
-            console.log('Loaded category data:', formData.value)
         }
+        // Loại bỏ chính nó khỏi danh sách danh mục cha
+        parentCategories.value = (allCategories || []).filter(cat => cat.id != route.params.id)
     } catch (error) {
         console.error('Error fetching category:', error)
-        alert('Không thể tải thông tin danh mục')
+        notyf.error('Không thể tải thông tin danh mục')
     }
 })
 
 const handleSubmit = async () => {
     try {
         if (!formData.value.name?.trim()) {
-            alert('Vui lòng nhập tên danh mục')
+            notyf.error('Vui lòng nhập tên danh mục')
             return
         }
 
@@ -123,6 +142,10 @@ const handleSubmit = async () => {
         formDataToSend.append('name', formData.value.name.trim())
         formDataToSend.append('description', formData.value.description?.trim() || '')
         formDataToSend.append('is_active', formData.value.is_active ? '1' : '0')
+
+        if (formData.value.parent_id) {
+            formDataToSend.append('parent_id', formData.value.parent_id)
+        }
 
         if (imageFile.value) {
             formDataToSend.append('image', imageFile.value)
@@ -138,13 +161,13 @@ const handleSubmit = async () => {
         console.log('Update result:', result)
 
         if (result) {
-            alert('Cập nhật danh mục thành công!')
+            notyf.success('Cập nhật danh mục thành công!')
             await navigateTo('/admin/categories')
         }
     } catch (error) {
         console.error('Error updating category:', error.response?.data || error)
         const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi cập nhật danh mục'
-        alert(errorMessage)
+        console.log(errorMessage)
     }
 }
 </script>

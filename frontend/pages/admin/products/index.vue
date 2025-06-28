@@ -5,8 +5,8 @@
       <p class="text-gray-600">Quản lý danh sách sản phẩm của bạn</p>
     </div>
 
-    <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands" @delete="handleDelete"
-      @refresh="handleRefresh" />
+    <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands" :isLoading="isLoading"
+      @delete="handleDelete" @refresh="handleRefresh" />
   </div>
 </template>
 
@@ -28,7 +28,6 @@ import { useProducts } from '~/composables/useProducts'
 import Swal from 'sweetalert2'
 
 const columns = [
-  { key: 'id', label: 'ID' },
   { key: 'main_image', label: 'Ảnh chính', type: 'main_image' },
   { key: 'sub_images', label: 'Ảnh phụ', type: 'sub_images' },
   { key: 'name', label: 'Tên sản phẩm' },
@@ -43,9 +42,11 @@ const columns = [
 const products = ref([])
 const brands = ref([])
 const categories = ref([])
+const isLoading = ref(true)
 const { getProducts, deleteProduct, getBrands, getCategories } = useProducts()
 
 onMounted(async () => {
+  isLoading.value = true
   try {
     const [productsData, brandsData, categoriesData] = await Promise.all([
       getProducts(),
@@ -70,6 +71,8 @@ onMounted(async () => {
     }))
   } catch (error) {
     console.error('Error fetching data:', error)
+  } finally {
+    isLoading.value = false
   }
 })
 
@@ -105,6 +108,7 @@ const handleDelete = async (product) => {
 }
 
 const handleRefresh = async () => {
+  isLoading.value = true
   try {
     const productsData = await getProducts()
     products.value = productsData.map(product => ({
@@ -114,6 +118,8 @@ const handleRefresh = async () => {
     }))
   } catch (error) {
     console.error('Error refreshing products:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 </script>

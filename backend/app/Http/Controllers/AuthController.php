@@ -128,7 +128,20 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $users = User::all();
+        $users = User::all()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'avatar' => $user->avatar ? url($user->avatar) : null,
+                'role' => $user->role,
+                'oauth_provider' => $user->oauth_provider,
+                'oauth_id' => $user->oauth_id,
+                'otp_expires_at' => $user->otp_expires_at,
+                'status' => $user->status,
+            ];
+        });
 
         return response()->json([
             'users' => $users

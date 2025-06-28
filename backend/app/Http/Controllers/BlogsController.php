@@ -16,7 +16,11 @@ class BlogsController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Blogs::with('author')->orderBy('created_at', 'desc');
+            $query = Blogs::with('author')
+                ->where('status', 'published')
+                ->whereNotNull('published_at')
+                ->where('published_at', '<=', now())
+                ->orderBy('published_at', 'desc');
             $blogs = $query->paginate(10);
             return response()->json([
                 'success' => true,
@@ -32,32 +36,47 @@ class BlogsController extends Controller
     }
 
     public function show($id)
-{
-    try {
-        $blog = Blogs::with('author')->findOrFail($id);
-        return response()->json([
-            'success' => true,
-            'data' => $blog,
-            'message' => 'Blog retrieved successfully'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Blog not found'
-        ], 404);
+    {
+        try {
+            $blog = Blogs::with('author')->findOrFail($id);
+
+            if ($blog->author && $blog->author->avatar) {
+                $blog->author->avatar = url($blog->author->avatar);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $blog,
+                'message' => 'Blog retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Blog not found'
+            ], 404);
+        }
     }
-}
 
     public function showBySlug($slug)
     {
         try {
-            $blog = Blogs::with('author')->where('slug', $slug)->first();
+            $blog = Blogs::with('author')
+                ->where('slug', $slug)
+                ->where('status', 'published')
+                ->whereNotNull('published_at')
+                ->where('published_at', '<=', now())
+                ->first();
             if (!$blog) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Blog not found'
                 ], 404);
             }
+
+            if ($blog->author && $blog->author->avatar) {
+                $blog->author->avatar = url($blog->author->avatar);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $blog,
@@ -178,13 +197,17 @@ class BlogsController extends Controller
                 $blogData['image'] = Storage::url($path);
             }
 
-            $slug = Str::slug($request->title);
-            $originalSlug = $slug;
-            $counter = 1;
-            while (Blogs::where('slug', $slug)->exists()) {
-                $slug = $originalSlug . '-' . $counter++;
+            if (isset($blogData['title']) && $blogData['title'] !== $blog->title) {
+                $slug = Str::slug($request->title);
+                $originalSlug = $slug;
+                $counter = 1;
+                while (Blogs::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+                    $slug = $originalSlug . '-' . $counter++;
+                }
+                $blogData['slug'] = $slug;
+            } else {
+                $blogData['slug'] = $blog->slug;
             }
-            $blogData['slug'] = $slug;
 
             $blog->update($blogData);
             $blog->load('author');
@@ -225,5 +248,4 @@ class BlogsController extends Controller
             ], 500);
         }
     }
-
 }

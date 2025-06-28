@@ -5,7 +5,7 @@
             <p class="text-gray-600">Quản lý chương trình khuyến mãi của bạn</p>
         </div>
 
-        <PromotionTable />
+        <PromotionTable :isLoading="isLoading" />
     </div>
 </template>
 
@@ -13,8 +13,20 @@
 definePageMeta({
     layout: 'admin'
 })
+useHead({
+    title: "Quản lý mã giảm gíá"
+})
 
+import { ref, onMounted } from 'vue'
 import PromotionTable from '~/components/admin/promotion/PromotionTable.vue'
+
+const isLoading = ref(true)
+
+onMounted(() => {
+    setTimeout(() => {
+        isLoading.value = false
+    }, 1500)
+})
 </script>
 
 <style scoped>

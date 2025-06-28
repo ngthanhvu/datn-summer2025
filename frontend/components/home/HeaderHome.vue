@@ -97,7 +97,6 @@ onMounted(async () => {
 })
 
 watch(() => cart.value, (newCart) => {
-  console.log('Cart updated in header:', newCart?.length)
 }, { deep: true })
 
 const toggleCart = async () => {
@@ -126,10 +125,6 @@ const closeMobileMenu = () => {
 </script>
 
 <style scoped>
-.navbar {
-  padding: 1rem 0;
-}
-
 .nav-link {
   padding: 0.5rem 1rem;
   color: #374151;

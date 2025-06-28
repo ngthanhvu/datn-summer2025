@@ -20,7 +20,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="order in orders" :key="order.id" class="tw-border-b hover:tw-bg-gray-50">
-                        <td class="tw-px-4 tw-py-3">#{{ order.id }}</td>
+                        <td class="tw-px-4 tw-py-3">#{{ order.tracking_code || order.id }}</td>
                         <td class="tw-px-4 tw-py-3">{{ order.customer }}</td>
                         <td class="tw-px-4 tw-py-3">{{ order.items }} sản phẩm</td>
                         <td class="tw-px-4 tw-py-3">{{ formatPrice(order.total) }}</td>
@@ -65,18 +65,21 @@ const formatDate = (dateString) => {
 
 const orderStatusClass = (status) => {
     switch (status) {
-        case 'Đã giao':
+        case 'Hoàn thành':
+        case 'Đã giao hàng':
             return 'tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-        case 'Đang giao':
+        case 'Đang giao hàng':
             return 'tw-bg-blue-100 tw-text-blue-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
         case 'Đang xử lý':
             return 'tw-bg-yellow-100 tw-text-yellow-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-        case 'Chờ thanh toán':
+        case 'Chờ xử lý':
             return 'tw-bg-orange-100 tw-text-orange-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
         case 'Đã hủy':
             return 'tw-bg-red-100 tw-text-red-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
-        default:
+        case 'Đã trả hàng':
             return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
+        default:
+               return 'tw-bg-gray-100 tw-text-gray-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs'
     }
 }
 </script>

@@ -17,7 +17,7 @@
                                     @change="toggleSelectAll" class="tw-rounded">
                             </div>
                         </th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">ID</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-left">#</th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">Ảnh</th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">Tên danh mục</th>
                         <th class="tw-px-3 tw-py-2 tw-text-left">Mô tả</th>
@@ -27,12 +27,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="category in categories" :key="category.id" class="tw-border-b hover:tw-bg-gray-50">
+                    <!-- Skeleton loading -->
+                    <tr v-if="props.isLoading" v-for="n in 8" :key="'skeleton-' + n">
+                        <td v-for="i in 8" :key="i" class="tw-px-3 tw-py-2">
+                            <div class="skeleton-loader"></div>
+                        </td>
+                    </tr>
+                    <tr v-else v-for="(category, index) in categories" :key="category.id"
+                        class="tw-border-b hover:tw-bg-gray-50">
                         <td class="tw-px-3 tw-py-2">
                             <input type="checkbox" :checked="selectedCategories.has(category.id)"
                                 @change="toggleSelect(category.id)" class="tw-rounded">
                         </td>
-                        <td class="tw-px-3 tw-py-2">#{{ category.id }}</td>
+                        <td class="tw-px-3 tw-py-2">{{ index + 1 }}</td>
                         <td class="tw-px-3 tw-py-2">
                             <img :src="category.image" :alt="category.name"
                                 class="tw-w-8 tw-h-8 tw-object-cover tw-rounded">
@@ -50,19 +57,29 @@
                             </span>
                         </td>
                         <td class="tw-px-3 tw-py-2">
-                            <div class="tw-flex tw-gap-1">
+                            <div class="tw-flex tw-items-center tw-gap-2">
                                 <NuxtLink :to="`/admin/categories/${category.id}/edit`"
-                                    class="tw-bg-blue-500 tw-text-white tw-rounded tw-p-1.5 hover:tw-bg-blue-600">
-                                    <i class="fas fa-edit"></i>
+                                    class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-blue-600 hover:tw-text-blue-900 hover:tw-bg-blue-50 tw-rounded-lg tw-transition-colors tw-duration-150"
+                                    title="Chỉnh sửa danh mục">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                        </path>
+                                    </svg>
                                 </NuxtLink>
                                 <button @click="handleDelete(category)"
-                                    class="tw-bg-red-500 tw-text-white tw-rounded tw-p-1.5 hover:tw-bg-red-600">
-                                    <i class="fas fa-trash"></i>
+                                    class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-red-600 hover:tw-text-red-900 hover:tw-bg-red-50 tw-rounded-lg tw-transition-colors tw-duration-150"
+                                    title="Xóa danh mục">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
                                 </button>
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="categories.length === 0">
+                    <tr v-if="!props.isLoading && categories.length === 0">
                         <td colspan="8" class="tw-py-4">
                             <div class="tw-text-center tw-text-gray-500">
                                 <i class="fas fa-box-open tw-text-3xl tw-mb-2"></i>
@@ -83,6 +100,10 @@ const props = defineProps({
     categories: {
         type: Array,
         required: true
+    },
+    isLoading: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -122,3 +143,22 @@ const handleDelete = async (category) => {
     })
 }
 </script>
+
+<style scoped>
+.skeleton-loader {
+    height: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+    border-radius: 4px;
+    animation: skeleton-loading 3.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+</style>

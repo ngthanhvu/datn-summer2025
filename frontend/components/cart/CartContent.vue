@@ -42,8 +42,7 @@
                 </div>
             </section>
 
-            <CartSummary :item-count="cartItems.length" :subtotal="subtotal" :shipping="selectedShipping"
-                @update:shipping="updateShipping" @checkout="checkout" />
+            <CartSummary :item-count="cartItems.length" :subtotal="subtotal" :shipping="selectedShipping" />
         </main>
     </div>
 </template>
@@ -81,34 +80,35 @@ const handleUpdateQuantity = async (itemId, newQuantity) => {
     try {
         const item = cartItems.value.find(i => i.id === itemId)
         if (!item) {
-            alert('Không tìm thấy sản phẩm trong giỏ hàng')
+            notyf.error('Không tìm thấy sản phẩm trong giỏ hàng')
             return
         }
 
         if (newQuantity <= 0) {
-            alert('Số lượng phải lớn hơn 0')
+            notyf.error('Số lượng phải lớn hơn 0')
             return
         }
 
         if (!item.variant) {
-            alert('Không thể xác định thông tin sản phẩm')
+            notyf.error('Không thể xác định thông tin sản phẩm')
             return
         }
 
         if (!item.variant.inventory) {
-            alert('Không thể xác định số lượng tồn kho')
+            notyf.error('Không thể xác định số lượng tồn kho')
             return
         }
 
         if (newQuantity > item.variant.inventory.quantity) {
-            alert(`Chỉ còn ${item.variant.inventory.quantity} sản phẩm trong kho`)
+            notyf.error(`Chỉ còn ${item.variant.inventory.quantity} sản phẩm trong kho`)
             return
         }
 
         await updateQuantity(itemId, newQuantity)
+        notyf.success('Cập nhật số lượng thành công')
     } catch (error) {
         const errorMessage = error.response?.data?.error || error
-        alert(errorMessage || 'Có lỗi xảy ra khi cập nhật số lượng')
+        notyf.error(errorMessage || 'Có lỗi xảy ra khi cập nhật số lượng')
 
         await fetchCart()
     }

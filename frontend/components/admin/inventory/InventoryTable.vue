@@ -3,7 +3,6 @@
         <div class="tw-mb-6">
             <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Tổng quan kho</h1>
 
-            <!-- Filters -->
             <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-md tw-mb-6">
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-4">
                     <div>
@@ -73,27 +72,62 @@
                                 </tr>
                             </thead>
                             <tbody class="tw-divide-y tw-divide-gray-200">
-                                <tr v-for="item in filteredInventories" :key="item.variant.id">
-                                    <td class="tw-px-6 tw-py-4">{{ item.variant.product.name }}</td>
-                                    <td class="tw-px-6 tw-py-4">{{ item.variant.color }}</td>
-                                    <td class="tw-px-6 tw-py-4">{{ item.variant.size }}</td>
-                                    <td class="tw-px-6 tw-py-4">{{ item.variant.sku }}</td>
-                                    <td class="tw-px-6 tw-py-4">{{ item.quantity }}</td>
-                                    <td class="tw-px-6 tw-py-4">{{ formatPrice(item.variant.price) }}</td>
-                                    <td class="tw-px-6 tw-py-4">
-                                        <span :class="{
-                                            'tw-text-green-600': item.quantity > 10,
-                                            'tw-text-yellow-600': item.quantity > 0 && item.quantity <= 10,
-                                            'tw-text-red-600': item.quantity === 0
-                                        }">
-                                            {{ getStockStatus(item.quantity) }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr v-if="filteredInventories.length === 0">
-                                    <td colspan="7" class="tw-px-4 tw-py-3 tw-text-center tw-text-gray-500">Không có dữ
-                                        liệu</td>
-                                </tr>
+                                <template v-if="loading">
+                                    <tr v-for="n in 8" :key="n">
+                                        <td class="tw-px-6 tw-py-4">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-32 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-6 tw-py-4">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-16 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-6 tw-py-4">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-12 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-6 tw-py-4">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-20 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-6 tw-py-4">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-10 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-6 tw-py-4">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-16 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                        <td class="tw-px-6 tw-py-4">
+                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-20 tw-animate-pulse">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr v-for="item in filteredInventories" :key="item.variant.id">
+                                        <td class="tw-px-6 tw-py-4">{{ item.variant.product.name }}</td>
+                                        <td class="tw-px-6 tw-py-4">{{ item.variant.color }}</td>
+                                        <td class="tw-px-6 tw-py-4">{{ item.variant.size }}</td>
+                                        <td class="tw-px-6 tw-py-4">{{ item.variant.sku }}</td>
+                                        <td class="tw-px-6 tw-py-4">{{ item.quantity }}</td>
+                                        <td class="tw-px-6 tw-py-4">{{ formatPrice(item.variant.price) }}</td>
+                                        <td class="tw-px-6 tw-py-4">
+                                            <span :class="{
+                                                'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-semibold': true,
+                                                'tw-bg-green-100 tw-text-green-700 border border-green-300': item.quantity > 10,
+                                                'tw-bg-yellow-100 tw-text-yellow-700 border border-yellow-300': item.quantity > 0 && item.quantity <= 10,
+                                                'tw-bg-red-100 tw-text-red-700 border border-red-300': item.quantity === 0
+                                            }">
+                                                {{ getStockStatus(item.quantity) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="filteredInventories.length === 0">
+                                        <td colspan="7" class="tw-px-4 tw-py-3 tw-text-center tw-text-gray-500">Không có
+                                            dữ liệu</td>
+                                    </tr>
+                                </template>
                             </tbody>
                         </table>
                     </div>
@@ -104,11 +138,6 @@
 </template>
 
 <script setup>
-definePageMeta({
-    layout: 'admin',
-    middleware: 'admin'
-})
-
 const { getInventories } = useInventories()
 const inventories = ref([])
 const products = ref([])
@@ -118,17 +147,20 @@ const filters = ref({
     sort: 'name_asc'
 })
 
-// Fetch inventory data
+const loading = ref(false)
+
 const fetchInventories = async () => {
     try {
+        loading.value = true
         const data = await getInventories()
         inventories.value = data
     } catch (error) {
         console.error('Error fetching inventories:', error)
+    } finally {
+        loading.value = false
     }
 }
 
-// Fetch products from inventory data
 const fetchProducts = () => {
     const uniqueProducts = new Map()
     inventories.value.forEach(item => {
@@ -139,14 +171,12 @@ const fetchProducts = () => {
     products.value = Array.from(uniqueProducts.values())
 }
 
-// Get stock status
 const getStockStatus = (quantity) => {
     if (quantity === 0) return 'Hết hàng'
     if (quantity <= 10) return 'Sắp hết hàng'
     return 'Còn hàng'
 }
 
-// Format price
 const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
@@ -154,16 +184,13 @@ const formatPrice = (price) => {
     }).format(price)
 }
 
-// Filtered inventories
 const filteredInventories = computed(() => {
     let result = [...inventories.value]
 
-    // Filter by product
     if (filters.value.product_id) {
         result = result.filter(item => item.variant.product_id === parseInt(filters.value.product_id))
     }
 
-    // Filter by stock status
     if (filters.value.stock_status) {
         switch (filters.value.stock_status) {
             case 'in_stock':
@@ -178,7 +205,6 @@ const filteredInventories = computed(() => {
         }
     }
 
-    // Sort
     switch (filters.value.sort) {
         case 'name_asc':
             result.sort((a, b) => a.variant.product.name.localeCompare(b.variant.product.name))
@@ -197,12 +223,9 @@ const filteredInventories = computed(() => {
     return result
 })
 
-// Watch filters changes
 watch(filters, () => {
-    // You can add additional logic here if needed
 }, { deep: true })
 
-// Fetch data on component mount
 onMounted(async () => {
     await fetchInventories()
     fetchProducts()

@@ -12,7 +12,7 @@
             </NuxtLink>
         </div>
 
-        <BrandsTable :brands="brands" @delete="handleDelete" @bulk-delete="handleBulkDelete" />
+        <BrandsTable :brands="brands" :isLoading="isLoading" @delete="handleDelete" @bulk-delete="handleBulkDelete" />
     </div>
 </template>
 
@@ -33,11 +33,14 @@ import BrandsTable from '@/components/admin/brands/BrandTable.vue'
 
 const { getBrands, deleteBrand, bulkDeleteBrands } = useBrand()
 const brands = ref([])
+const isLoading = ref(true)
 
 const handleDelete = async (brand) => {
     try {
         await deleteBrand(brand.id)
+        isLoading.value = true
         brands.value = await getBrands()
+        isLoading.value = false
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -50,6 +53,7 @@ const handleDelete = async (brand) => {
             title: 'Thương hiệu đã được xóa thành công'
         })
     } catch (error) {
+        isLoading.value = false
         console.error('Failed to delete brand:', error)
         Swal.fire('Có lỗi xảy ra khi xóa thương hiệu', error.message, 'error')
     }
@@ -69,8 +73,10 @@ const handleBulkDelete = async (selectedBrands) => {
         })
 
         if (result.isConfirmed) {
+            isLoading.value = true
             await bulkDeleteBrands(selectedBrands)
             brands.value = await getBrands()
+            isLoading.value = false
 
             const Toast = Swal.mixin({
                 toast: true,
@@ -86,17 +92,20 @@ const handleBulkDelete = async (selectedBrands) => {
             })
         }
     } catch (error) {
+        isLoading.value = false
         console.error('Failed to bulk delete brands:', error)
         Swal.fire('Có lỗi xảy ra khi xóa thương hiệu', error.message, 'error')
     }
 }
 
 onMounted(async () => {
+    isLoading.value = true
     try {
         brands.value = await getBrands()
-        console.log(brands.value)
     } catch (error) {
         console.error('Failed to fetch brands:', error)
+    } finally {
+        isLoading.value = false
     }
 })
 </script>

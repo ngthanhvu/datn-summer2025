@@ -5,7 +5,7 @@
             <p class="text-gray-600">Quản lý danh sách khách hàng của bạn</p>
         </div>
 
-        <CustomersTable :customers="customers" @delete="handleDelete" />
+        <CustomersTable :customers="customers" :isLoading="isLoading" @delete="handleDelete" />
     </div>
 </template>
 
@@ -25,15 +25,18 @@ import { useAuth } from '~/composables/useAuth'
 
 const { getListUser } = useAuth()
 const customers = ref([])
+const isLoading = ref(true)
 
 onMounted(async () => {
+    isLoading.value = true
     try {
         const res = await getListUser()
         customers.value = res.users
-        console.log(customers.value)
     } catch (err) {
         console.error('Get list user error:', err.response?.data || err.message)
         throw err
+    } finally {
+        isLoading.value = false
     }
 })
 

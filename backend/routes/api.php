@@ -17,6 +17,8 @@ use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MessengerController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -35,6 +37,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
     Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
+    Route::get('inventory/movement/{id}/pdf', [InventoryController::class, 'exportMovementPdf']);
 
     Route::post('/blogs', [BlogsController::class, 'store']);
     Route::put('/blogs/{id}', [BlogsController::class, 'update']);
@@ -51,6 +54,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/orders/{id}', [OrdersController::class, 'show']);
     Route::post('/orders', [OrdersController::class, 'store']);
     Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
+    Route::put('/orders/{id}/status', [OrdersController::class, 'updateStatus']);
 
     Route::get('/me/address', [AddressController::class, 'getMyAddress']);
     Route::get('/addresses', [AddressController::class, 'index']);
@@ -62,11 +66,24 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/favorites', [FavoriteProductController::class, 'store']);
     Route::get('/favorites/check/{slug}', [FavoriteProductController::class, 'check']);
     Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
+
+    // Chat/Messenger routes
+    Route::prefix('chat')->group(function () {
+        Route::get('/conversations', [MessengerController::class, 'getConversations']);
+        Route::get('/messages/{userId}', [MessengerController::class, 'getMessages']);
+        Route::post('/send', [MessengerController::class, 'sendMessage']);
+        Route::put('/read/{messageId}', [MessengerController::class, 'markAsRead']);
+        Route::get('/unread-count', [MessengerController::class, 'getUnreadCount']);
+        Route::get('/search-users', [MessengerController::class, 'searchUsers']);
+        Route::delete('/message/{messageId}', [MessengerController::class, 'deleteMessage']);
+        Route::get('/admins', [MessengerController::class, 'getAdmins']);
+    });
 });
 
 // Public blog routes
 Route::get('/blogs', [BlogsController::class, 'index']);
-Route::get('/blogs/{slug}', [BlogsController::class, 'showBySlug']);
+Route::get('/blogs/slug/{slug}', [BlogsController::class, 'showBySlug']);
+Route::get('/inventory', [InventoryController::class, 'index']);
 
 // Brand routes
 Route::get('/brands', [BrandsController::class, 'index']);
@@ -97,7 +114,7 @@ Route::put('/products/{id}', [ProductsController::class, 'update']);
 Route::get('/products/slug/{slug}', [ProductsController::class, 'getProductBySlug']);
 Route::get('/products/{id}', [ProductsController::class, 'getProductById']);
 Route::delete('/products/{id}', [ProductsController::class, 'destroy']);
-Route::delete('/products/bulk-delete', [ProductsController::class, 'bulkDestroy']);
+Route::delete('/products/delete/bulk-delete', [ProductsController::class, 'bulkDestroy']);
 Route::get('/products/{id}/favorite', [ProductsController::class, 'favorite']);
 
 // Variant routes
@@ -128,6 +145,7 @@ Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewContro
 Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
 Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
 Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
+Route::get('/reviews/latest', [ProductReviewController::class, 'latestReviews']);
 Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedProducts']);
 
 // Payment routes
@@ -148,4 +166,16 @@ Route::prefix('products')->group(function () {
     Route::post('import', [ProductImportController::class, 'import']);
     Route::get('import/template', [ProductImportController::class, 'downloadTemplate']);
     Route::get('import/history', [ProductImportController::class, 'getImportHistory']);
+});
+
+// Dashboard routes
+Route::prefix('dashboard')->group(function () {
+    Route::get('/stats', [DashboardController::class, 'getStats']);
+    Route::get('/revenue', [DashboardController::class, 'getMonthlyRevenue']);
+    Route::get('/revenue/yearly', [DashboardController::class, 'getYearlyRevenue']);
+    Route::get('/orders', [DashboardController::class, 'getMonthlyOrders']);
+    Route::get('/orders/status', [DashboardController::class, 'getOrdersByStatus']);
+    Route::get('/customers', [DashboardController::class, 'getCustomersStats']);
+    Route::get('/products', [DashboardController::class, 'getProductsStats']);
+    Route::get('/recent-orders', [DashboardController::class, 'getRecentOrders']);
 });

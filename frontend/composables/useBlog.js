@@ -4,7 +4,7 @@ import { useCookie } from '#app';
 
 export const useBlog = () => {
     const config = useRuntimeConfig();
-    const apiBaseUrl = config.public.apiBaseUrl || 'http://127.0.0.1:8000/api';
+    const apiBaseUrl = config.public.apiBaseUrl;
     const token = useCookie('token');
 
     const API = axios.create({
@@ -65,8 +65,26 @@ export const useBlog = () => {
             }
         } catch (err) {
             error.value = err.response?.data?.message || err.message || 'Blog not found';
-            blog.value = null; // Đảm bảo không giữ lại blog cũ khi lỗi
-            // Không throw lại lỗi để tránh Vue warn khi 404, chỉ set error
+            blog.value = null;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const fetchBlogBySlug = async (slug) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const response = await API.get(`/api/blogs/slug/${slug}`);
+            if (response.data.success) {
+                blog.value = response.data.data;
+            } else {
+                blog.value = null;
+                throw new Error(response.data.message || 'Blog not found');
+            }
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message || 'Blog not found';
+            blog.value = null;
         } finally {
             loading.value = false;
         }
@@ -104,11 +122,67 @@ export const useBlog = () => {
     };
 
     const updateBlog = async (id, formData) => {
-        return await $fetch(`/api/admin/blogs/${id}`, {
-            method: 'POST', // hoặc 'PUT' nếu backend nhận PUT
-            body: formData
-        })
-    }
+        loading.value = true;
+        error.value = null;
+        try {
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value);
+            }
+
+            const response = await API.put(`/api/blogs/${id}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token.value}`
+                }
+            });
+            if (response.data.success) {
+                return response.data;
+            } else {
+                throw new Error(response.data.message || 'Failed to update blog');
+            }
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
+            const validationErrors = err.response?.data?.errors || null;
+            error.value = errorMessage;
+            const errorObj = new Error(errorMessage);
+            if (validationErrors) {
+                errorObj.errors = validationErrors;
+            }
+            throw errorObj;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const updateBlogJson = async (id, blogData) => {
+        loading.value = true;
+        error.value = null;
+        try {
+
+            const response = await API.put(`/api/blogs/${id}`, blogData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token.value}`
+                }
+            });
+            if (response.data.success) {
+                return response.data;
+            } else {
+                throw new Error(response.data.message || 'Failed to update blog');
+            }
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
+            const validationErrors = err.response?.data?.errors || null;
+            error.value = errorMessage;
+            const errorObj = new Error(errorMessage);
+            if (validationErrors) {
+                errorObj.errors = validationErrors;
+            }
+            throw errorObj;
+        } finally {
+            loading.value = false;
+        }
+    };
 
     const deleteBlog = async (id) => {
         loading.value = true;
@@ -148,8 +222,10 @@ export const useBlog = () => {
         pagination,
         fetchBlogs,
         fetchBlog,
+        fetchBlogBySlug,
         createBlog,
         updateBlog,
+        updateBlogJson,
         deleteBlog,
         clearError,
         resetState

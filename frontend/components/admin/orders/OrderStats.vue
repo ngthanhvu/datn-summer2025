@@ -1,51 +1,42 @@
 <template>
     <div class="stats-cards">
         <div class="stat-card">
-            <div class="stat-icon pending">
-                <i class="fas fa-clock"></i>
+            <div class="stat-icon total">
+                <i class="fas fa-list-ol"></i>
             </div>
             <div class="stat-content">
-                <h3>Chờ xác nhận</h3>
-                <p>{{ pendingOrders }}</p>
+                <h3>Tổng đơn hàng</h3>
+                <p>{{ totalOrders }}</p>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon processing">
-                <i class="fas fa-shipping-fast"></i>
+        <div class="stat-card" v-for="(count, status) in statusCountMap" :key="status">
+            <div class="stat-icon" :class="statusIconClass(status)">
+                <i :class="statusIcon(status)"></i>
             </div>
             <div class="stat-content">
-                <h3>Đang xử lý</h3>
-                <p>{{ processingOrders }}</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon shipping">
-                <i class="fas fa-truck"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Đang giao hàng</h3>
-                <p>{{ shippingOrders }}</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon completed">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Hoàn thành</h3>
-                <p>{{ completedOrders }}</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon cancelled">
-                <i class="fas fa-times-circle"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Đã hủy</h3>
-                <p>{{ cancelledOrders }}</p>
+                <h3>{{ statusLabel(status) }}</h3>
+                <p>{{ count }}</p>
             </div>
         </div>
     </div>
+    <!-- Bảng debug trạng thái thực tế -->
+    <!-- <div class="tw-mt-8">
+        <h4 class="tw-font-semibold tw-mb-2">Thống kê trạng thái thực tế (debug)</h4>
+        <table class="tw-w-full tw-bg-white tw-rounded tw-shadow tw-text-sm">
+            <thead>
+                <tr>
+                    <th class="tw-px-4 tw-py-2 tw-text-left">Trạng thái</th>
+                    <th class="tw-px-4 tw-py-2 tw-text-left">Số lượng</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(count, status) in statusCountMap" :key="status">
+                    <td class="tw-px-4 tw-py-2">{{ status }}</td>
+                    <td class="tw-px-4 tw-py-2">{{ count }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div> -->
 </template>
 
 <script setup>
@@ -53,36 +44,72 @@ import { computed } from 'vue'
 
 const props = defineProps({
     orders: {
-        type: Array,
+        type: [Array, Object],
         required: true
     }
 })
 
-const pendingOrders = computed(() =>
-    props.orders.filter(order => order?.status === 'pending').length
-)
+// Lấy danh sách đơn hàng từ props.orders (có thể là mảng hoặc object có .data)
+const getOrderList = computed(() => {
+    if (Array.isArray(props.orders)) {
+        return props.orders
+    } else if (props.orders && Array.isArray(props.orders.data)) {
+        return props.orders.data
+    }
+    return []
+})
 
-const processingOrders = computed(() =>
-    props.orders.filter(order => order?.status === 'processing').length
-)
+const totalOrders = computed(() => getOrderList.value.length)
 
-const shippingOrders = computed(() =>
-    props.orders.filter(order => order?.status === 'shipping').length
-)
+// Bảng đếm trạng thái thực tế (render thẻ)
+const statusCountMap = computed(() => {
+    const map = {}
+    getOrderList.value.forEach(order => {
+        const status = order?.status || 'unknown'
+        map[status] = (map[status] || 0) + 1
+    })
+    return map
+})
 
-const completedOrders = computed(() =>
-    props.orders.filter(order => order?.status === 'completed').length
-)
-
-const cancelledOrders = computed(() =>
-    props.orders.filter(order => order?.status === 'cancelled').length
-)
+// Map nhãn trạng thái
+const statusLabel = (status) => {
+    switch (status) {
+        case 'pending': return 'Chờ xác nhận'
+        case 'processing': return 'Đang xử lý'
+        case 'shipping': return 'Đang giao hàng'
+        case 'completed': return 'Hoàn thành'
+        case 'cancelled': return 'Đã hủy'
+        default: return status
+    }
+}
+// Map icon trạng thái
+const statusIcon = (status) => {
+    switch (status) {
+        case 'pending': return 'fas fa-clock'
+        case 'processing': return 'fas fa-shipping-fast'
+        case 'shipping': return 'fas fa-truck'
+        case 'completed': return 'fas fa-check-circle'
+        case 'cancelled': return 'fas fa-times-circle'
+        default: return 'fas fa-question-circle'
+    }
+}
+// Map màu icon trạng thái
+const statusIconClass = (status) => {
+    switch (status) {
+        case 'pending': return 'pending'
+        case 'processing': return 'processing'
+        case 'shipping': return 'shipping'
+        case 'completed': return 'completed'
+        case 'cancelled': return 'cancelled'
+        default: return 'unknown'
+    }
+}
 </script>
 
 <style scoped>
 .stats-cards {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -105,6 +132,11 @@ const cancelledOrders = computed(() =>
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
+}
+
+.stat-icon.total {
+    background: #fef9c3;
+    color: #b45309;
 }
 
 .stat-icon.pending {
@@ -130,6 +162,11 @@ const cancelledOrders = computed(() =>
 .stat-icon.cancelled {
     background: #fef2f2;
     color: #dc2626;
+}
+
+.stat-icon.unknown {
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
 .stat-content h3 {
