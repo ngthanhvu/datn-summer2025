@@ -5,30 +5,41 @@
       <p class="text-gray-600">Thống kê hoạt động kinh doanh</p>
     </div>
 
-    <!-- Loading state -->
-    <div v-if="loading" class="tw-flex tw-justify-center tw-items-center tw-h-64">
-      <div class="tw-animate-spin tw-rounded-full tw-h-12 tw-w-12 tw-border-b-2 tw-border-primary"></div>
+    <!-- Stats Cards Section -->
+    <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6 tw-mb-6">
+      <template v-if="loading">
+        <StatsCardSkeleton v-for="i in 4" :key="i" />
+      </template>
+      <template v-else>
+        <StatsCard title="Doanh thu tháng này" :value="formatCurrency(statistics.monthly_revenue || 0)"
+          :growth="revenueGrowth" icon="fas fa-dollar-sign" iconColor="primary" />
+        <StatsCard title="Đơn hàng tháng này" :value="statistics.monthly_orders || 0" :growth="ordersGrowth"
+          icon="fas fa-shopping-cart" iconColor="blue" />
+        <StatsCard title="Tổng khách hàng" :value="statistics.total_customers || 0" :growth="customersGrowth"
+          icon="fas fa-users" iconColor="yellow" />
+        <StatsCard title="Tổng sản phẩm" :value="statistics.total_products || 0" icon="fas fa-box" iconColor="purple" />
+      </template>
     </div>
 
-    <!-- Stats Cards -->
-    <div v-else class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6 tw-mb-6">
-      <StatsCard title="Doanh thu tháng này" :value="formatCurrency(statistics.monthly_revenue || 0)"
-        :growth="revenueGrowth" icon="fas fa-dollar-sign" iconColor="primary" />
-      <StatsCard title="Đơn hàng tháng này" :value="statistics.monthly_orders || 0" :growth="ordersGrowth"
-        icon="fas fa-shopping-cart" iconColor="blue" />
-      <StatsCard title="Tổng khách hàng" :value="statistics.total_customers || 0" :growth="customersGrowth"
-        icon="fas fa-users" iconColor="yellow" />
-      <StatsCard title="Tổng sản phẩm" :value="statistics.total_products || 0" icon="fas fa-box" iconColor="purple" />
+    <!-- Charts Section -->
+    <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-6 tw-mb-6">
+      <template v-if="loading">
+        <ChartSkeleton />
+        <ChartSkeleton />
+      </template>
+      <template v-else>
+        <RevenueChart :data="revenueData" />
+        <OrdersChart :data="ordersData" />
+      </template>
     </div>
 
-    <!-- Charts -->
-    <div v-if="!loading" class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-6 tw-mb-6">
-      <RevenueChart :data="revenueData" />
-      <OrdersChart :data="ordersData" />
-    </div>
-
-    <!-- Recent Orders -->
-    <RecentOrders v-if="!loading" :orders="recentOrders" />
+    <!-- Recent Orders Section -->
+    <template v-if="loading">
+      <RecentOrdersSkeleton />
+    </template>
+    <template v-else>
+      <RecentOrders :orders="recentOrders" />
+    </template>
   </div>
 </template>
 
@@ -49,9 +60,12 @@ definePageMeta({
 
 import { ref, onMounted, computed } from 'vue'
 import StatsCard from '~/components/admin/dashboard/StatsCard.vue'
+import StatsCardSkeleton from '~/components/admin/dashboard/StatsCardSkeleton.vue'
 import RevenueChart from '~/components/admin/dashboard/RevenueChart.vue'
 import OrdersChart from '~/components/admin/dashboard/OrdersChart.vue'
+import ChartSkeleton from '~/components/admin/dashboard/ChartSkeleton.vue'
 import RecentOrders from '~/components/admin/dashboard/RecentOrders.vue'
+import RecentOrdersSkeleton from '~/components/admin/dashboard/RecentOrdersSkeleton.vue'
 
 const {
   getStats,
@@ -62,64 +76,52 @@ const {
   formatNumber
 } = useDashboard()
 
-// Reactive data
 const loading = ref(true)
 const statistics = ref({})
 const revenueData = ref({})
 const ordersData = ref({})
 const recentOrders = ref([])
 
-// Computed properties for growth calculations
 const revenueGrowth = computed(() => {
-  // Mock growth calculation - in real app, you'd compare with previous month
   return 12.5
 })
 
 const ordersGrowth = computed(() => {
-  // Mock growth calculation
   return 8.3
 })
 
 const customersGrowth = computed(() => {
-  // Mock growth calculation
   return 5.2
 })
 
-// Fetch dashboard data
 const fetchDashboardData = async () => {
   try {
     loading.value = true
 
-    // Fetch main statistics
     const statsResponse = await getStats()
     if (statsResponse.success) {
       statistics.value = statsResponse.data
     }
 
-    // Fetch yearly revenue data for chart
     const revenueResponse = await getYearlyRevenue()
     if (revenueResponse.success) {
       revenueData.value = revenueResponse.data
     }
 
-    // Fetch orders by status data for chart
     const ordersResponse = await getOrdersByStatus()
     if (ordersResponse.success) {
       ordersData.value = ordersResponse.data
     }
 
-    // Fetch recent orders from API
     const recentOrdersResponse = await getRecentOrders({ limit: 5 })
     if (recentOrdersResponse.success) {
       recentOrders.value = recentOrdersResponse.data
     } else {
-      // Fallback to empty array if API fails
       recentOrders.value = []
     }
 
   } catch (error) {
     console.error('Error fetching dashboard data:', error)
-    // Set empty data on error
     recentOrders.value = []
   } finally {
     loading.value = false
