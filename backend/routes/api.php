@@ -17,6 +17,7 @@ use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessengerController;
 
 // Auth routes
@@ -165,4 +166,16 @@ Route::prefix('products')->group(function () {
     Route::post('import', [ProductImportController::class, 'import']);
     Route::get('import/template', [ProductImportController::class, 'downloadTemplate']);
     Route::get('import/history', [ProductImportController::class, 'getImportHistory']);
+});
+
+// Dashboard routes
+Route::prefix('dashboard')->group(function () {
+    Route::get('/stats', [DashboardController::class, 'getStats']);
+    Route::get('/revenue', [DashboardController::class, 'getMonthlyRevenue']);
+    Route::get('/revenue/yearly', [DashboardController::class, 'getYearlyRevenue']);
+    Route::get('/orders', [DashboardController::class, 'getMonthlyOrders']);
+    Route::get('/orders/status', [DashboardController::class, 'getOrdersByStatus']);
+    Route::get('/customers', [DashboardController::class, 'getCustomersStats']);
+    Route::get('/products', [DashboardController::class, 'getProductsStats']);
+    Route::get('/recent-orders', [DashboardController::class, 'getRecentOrders']);
 });
