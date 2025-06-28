@@ -96,9 +96,7 @@ import { useBlog } from '@/composables/useBlog'
 
 const QuillEditor = defineAsyncComponent(() => {
     return import('@vueup/vue-quill').then(module => {
-        if (process.client) {
-            import('@vueup/vue-quill/dist/vue-quill.snow.css')
-        }
+        if (process.client) import('@vueup/vue-quill/dist/vue-quill.snow.css')
         return module.QuillEditor
     })
 })
@@ -108,7 +106,6 @@ const router = useRouter()
 const { blog, loading, error, fetchBlog, createBlog, updateBlog, updateBlogJson } = useBlog()
 
 const isEditMode = computed(() => route.params.id)
-
 const formData = ref({
     title: '',
     description: '',
@@ -117,9 +114,7 @@ const formData = ref({
     image: null,
     imageFile: null
 })
-
 const errors = ref({})
-
 const quillOptions = {
     theme: 'snow',
     modules: {
@@ -142,39 +137,27 @@ const quillOptions = {
     },
     placeholder: 'Nhập nội dung bài viết...'
 }
-
 const dataLoaded = ref(false)
 
-watch(
-    () => route.params.id,
-    () => {
-        dataLoaded.value = false
-    }
-)
+watch(() => route.params.id, () => { dataLoaded.value = false })
 
 onMounted(async () => {
-    if (isEditMode.value) {
-        await fetchBlog(route.params.id)
-    }
+    if (isEditMode.value) await fetchBlog(route.params.id)
 })
 
-watch(
-    () => blog.value,
-    (val) => {
-        if (isEditMode.value && val && !dataLoaded.value) {
-            formData.value = {
-                title: val.title || '',
-                description: val.description || '',
-                content: val.content || '',
-                status: val.status || 'draft',
-                image: val.image || null,
-                imageFile: null
-            }
-            dataLoaded.value = true
+watch(() => blog.value, (val) => {
+    if (isEditMode.value && val && !dataLoaded.value) {
+        formData.value = {
+            title: val.title || '',
+            description: val.description || '',
+            content: val.content || '',
+            status: val.status || 'draft',
+            image: val.image || null,
+            imageFile: null
         }
-    },
-    { immediate: true }
-)
+        dataLoaded.value = true
+    }
+}, { immediate: true })
 
 const getTextLength = (htmlContent) => {
     if (!htmlContent) return 0
@@ -213,73 +196,62 @@ const removeImage = () => {
 const validateForm = () => {
     errors.value = {}
     let isValid = true
-
     if (!formData.value.title || formData.value.title.trim().length < 3) {
         errors.value.title = 'Tiêu đề phải có ít nhất 3 ký tự'
         isValid = false
     }
-
     if (!formData.value.description || formData.value.description.trim().length < 10) {
         errors.value.description = 'Mô tả phải có ít nhất 10 ký tự'
         isValid = false
     }
-
-    const textLength = getTextLength(formData.value.content)
-    if (!formData.value.content || textLength < 50) {
+    if (!formData.value.content || getTextLength(formData.value.content) < 50) {
         errors.value.content = 'Nội dung phải có ít nhất 50 ký tự'
         isValid = false
     }
-
     return isValid
+}
+
+// Gom logic tạo FormData cho cả create và update
+const buildFormData = () => {
+    const data = new FormData()
+    data.append('title', formData.value.title)
+    data.append('description', formData.value.description)
+    data.append('content', formData.value.content)
+    data.append('status', formData.value.status)
+    if (formData.value.imageFile instanceof File) {
+        data.append('image', formData.value.imageFile)
+    }
+    return data
 }
 
 const handleSubmit = async () => {
     if (!validateForm()) return
-
     try {
-
         if (isEditMode.value) {
-            const jsonData = {
-                title: formData.value.title,
-                description: formData.value.description,
-                content: formData.value.content,
-                status: formData.value.status
-            };
-
-            await updateBlogJson(route.params.id, jsonData)
-        } else {
-            const data = new FormData()
-            data.append('title', formData.value.title)
-            data.append('description', formData.value.description)
-            data.append('content', formData.value.content)
-            data.append('status', formData.value.status)
             if (formData.value.imageFile instanceof File) {
-                data.append('image', formData.value.imageFile)
+                await updateBlog(route.params.id, buildFormData())
+            } else {
+                await updateBlogJson(route.params.id, {
+                    title: formData.value.title,
+                    description: formData.value.description,
+                    content: formData.value.content,
+                    status: formData.value.status
+                })
             }
-            await createBlog(data)
+        } else {
+            await createBlog(buildFormData())
         }
         router.push('/admin/blogs')
     } catch (err) {
-        if (err.errors) {
-            errors.value = err.errors
-        } else {
-            console.error('Error:', err)
-        }
+        if (err.errors) errors.value = err.errors
+        else console.error('Error:', err)
     }
 }
 
-const handleCancel = () => {
-    router.push('/admin/blogs')
-}
-
+const handleCancel = () => router.push('/admin/blogs')
 </script>
 
 <style scoped>
-.tw-bg-primary {
-    background-color: #3bb77e;
-}
-
-.tw-bg-primary-dark {
-    background-color: #2ea16d;
-}
+.tw-bg-primary { background-color: #3bb77e; }
+.tw-bg-primary-dark { background-color: #2ea16d; }
 </style>

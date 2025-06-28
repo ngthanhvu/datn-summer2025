@@ -97,7 +97,7 @@ export const useBlog = () => {
             console.log('Creating blog - Token:', token.value);
             const response = await API.post('/api/blogs', blogData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    // 'Content-Type': 'multipart/form-data', // XÓA DÒNG NÀY
                     'Authorization': `Bearer ${token.value}`
                 }
             });
@@ -125,13 +125,10 @@ export const useBlog = () => {
         loading.value = true;
         error.value = null;
         try {
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
-            }
-
-            const response = await API.put(`/api/blogs/${id}`, formData, {
+            // Thêm _method: 'PUT' để Laravel hiểu đây là update
+            formData.append('_method', 'PUT');
+            const response = await API.post(`/api/blogs/${id}`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token.value}`
                 }
             });
