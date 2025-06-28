@@ -162,11 +162,6 @@ class BlogsController extends Controller
         try {
             $blog = Blogs::findOrFail($id);
 
-            // Debug: kiểm tra có nhận được file không
-            \Log::info('FILES:', $_FILES);
-            \Log::info('hasFile image:', [$request->hasFile('image')]);
-            \Log::info('file image:', [$request->file('image')]);
-
             $validator = Validator::make($request->all(), [
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'sometimes|required|string|max:500',
