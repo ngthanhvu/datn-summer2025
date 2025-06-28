@@ -183,11 +183,6 @@
 <script setup>
 import jsPDF from 'jspdf'
 
-definePageMeta({
-    layout: 'admin',
-    middleware: 'admin'
-})
-
 const { getInventories, updateStock, getMovements, getVariants, downloadMovementPdf } = useInventories()
 const variants = ref([])
 const recentImports = ref([])
@@ -196,6 +191,7 @@ const importForm = ref({
     quantity: 1,
     note: ''
 })
+const notyf = useNuxtApp().$notyf
 
 const activeTab = ref('import')
 
@@ -259,7 +255,7 @@ const handleImport = async () => {
 
         await fetchRecentMovements()
 
-        alert('Nhập kho thành công')
+        notyf.success('Nhập kho thành công')
     } catch (error) {
         console.error('Error importing stock:', error)
         let errorMessage = 'Có lỗi xảy ra khi nhập kho'
@@ -272,7 +268,7 @@ const handleImport = async () => {
             errorMessage = Object.values(errors).flat().join('\n')
         }
 
-        alert(errorMessage)
+        console.log(errorMessage)
     }
 }
 

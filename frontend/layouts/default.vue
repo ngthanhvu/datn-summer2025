@@ -7,6 +7,9 @@
     </div>
 
     <FooterHome />
+    
+    <!-- Chat Widget -->
+    <ChatWidget v-if="isAuthenticated" />
   </div>
 </template>
 
@@ -16,6 +19,10 @@ useHead({
     {
       rel: 'stylesheet',
       href: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'
+    },
+    {
+      rel: 'stylesheet',
+      href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
     }
   ],
   script: [
@@ -28,4 +35,7 @@ useHead({
 });
 import HeaderHome from '~/components/home/HeaderHome.vue';
 import FooterHome from '~/components/home/FooterHome.vue';
+import ChatWidget from '~/components/chat/ChatWidget.vue';
+import { useAuth } from '~/composables/useAuth';
+const { isAuthenticated } = useAuth();
 </script>

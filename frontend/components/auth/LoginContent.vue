@@ -5,22 +5,21 @@
             <div class="mb-3">
                 <label for="loginEmail" class="form-label">Email</label>
                 <input v-model="form.email" type="email" class="form-control" name="email" id="loginEmail"
-                    placeholder="Nhập email của bạn" :class="{ 'is-invalid': error.email }">
-                <div class="invalid-feedback" v-if="error.email">{{ error.email }}</div>
+                    placeholder="Nhập email của bạn">
+                <p class="tw-text-red-500 tw-text-sm tw-mt-1" v-if="error.email">{{ error.email }}</p>
             </div>
             <div class="mb-3">
                 <label for="loginPassword" class="form-label">Mật khẩu</label>
                 <div class="position-relative">
                     <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="form-control"
-                        name="password" id="loginPassword" placeholder="Nhập mật khẩu"
-                        :class="{ 'is-invalid': error.password }">
+                        name="password" id="loginPassword" placeholder="Nhập mật khẩu">
                     <button type="button"
                         class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
                         @click="showPassword = !showPassword">
                         <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
-                <div class="invalid-feedback" v-if="error.password">{{ error.password }}</div>
+                <p class="tw-text-red-500 tw-text-sm tw-mt-1" v-if="error.password">{{ error.password }}</p>
             </div>
             <div class="mb-3 form-check">
                 <input v-model="rememberMe" type="checkbox" class="form-check-input" id="rememberMe">

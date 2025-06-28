@@ -97,7 +97,6 @@ onMounted(async () => {
 })
 
 watch(() => cart.value, (newCart) => {
-  console.log('Cart updated in header:', newCart?.length)
 }, { deep: true })
 
 const toggleCart = async () => {

@@ -138,11 +138,6 @@
 </template>
 
 <script setup>
-definePageMeta({
-    layout: 'admin',
-    middleware: 'admin'
-})
-
 const { getInventories } = useInventories()
 const inventories = ref([])
 const products = ref([])
