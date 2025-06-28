@@ -63,7 +63,8 @@
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Mô tả</label>
                         <QuillEditor v-model:content="formData.description" contentType="html"
-                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mô tả sản phẩm" />
+                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mô tả sản phẩm"
+                            style="height: 140px;" />
                         <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                             formErrors.description }}</div>
                     </div>
@@ -178,7 +179,7 @@
                                 class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập kích thước" />
                             <div v-if="formErrors.variants[index]?.size" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                                 formErrors.variants[index].size
-                                }}</div>
+                            }}</div>
                         </div>
                         <!-- Giá -->
                         <div class="tw-mb-2">
@@ -220,6 +221,7 @@ import { useBrand } from '~/composables/useBrand'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import Swal from 'sweetalert2'
+const notyf = useNuxtApp().$notyf
 
 const Toast = Swal.mixin({
     toast: true,
@@ -415,7 +417,7 @@ const validateForm = () => {
     }
 
     const descriptionText = formData.value.description
-        ?.replace(/<(.|\n)*?>/g, '') // loại bỏ tag HTML
+        ?.replace(/<(.|\n)*?>/g, '')
         .trim()
 
     if (!descriptionText) {
@@ -423,7 +425,6 @@ const validateForm = () => {
         hasError = true
     }
 
-    // Image validation
     if (!formData.value.mainImage) {
         errors.mainImage = 'Vui lòng chọn ảnh chính'
         hasError = true
@@ -445,7 +446,6 @@ const validateForm = () => {
         })
     }
 
-    // Variant validation
     if (showVariants.value && formData.value.variants.length > 0) {
         formData.value.variants.forEach((variant, idx) => {
             if (!variant.color) {
