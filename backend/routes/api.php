@@ -56,6 +56,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/orders', [OrdersController::class, 'store']);
     Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
     Route::put('/orders/{id}/status', [OrdersController::class, 'updateStatus']);
+    Route::post('/orders/{id}/cancel', [OrdersController::class, 'cancel']);
+    Route::post('/orders/{id}/reorder', [OrdersController::class, 'reorder']);
 
     Route::get('/me/address', [AddressController::class, 'getMyAddress']);
     Route::get('/addresses', [AddressController::class, 'index']);

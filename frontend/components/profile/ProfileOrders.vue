@@ -141,6 +141,16 @@
                 </div>
 
                 <div v-if="selectedOrder" class="tw-space-y-8">
+                    <div
+                      v-if="showCancelWarning(selectedOrder)"
+                      class="tw-bg-yellow-100 tw-text-yellow-800 tw-p-4 tw-rounded tw-mb-4 tw-flex tw-items-center tw-gap-2"
+                    >
+                      <svg class="tw-w-6 tw-h-6 tw-text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
+                      </svg>
+                      <span>Đơn hàng đã quá thời hạn hủy (24 giờ), vì vậy bạn vui lòng chờ và nhận hàng.</span>
+                    </div>
+
                     <div class="tw-border-b tw-pb-6">
                         <h4 class="tw-font-semibold tw-mb-4">Trạng thái đơn hàng</h4>
                         <div class="tw-flex tw-items-center tw-justify-between">
@@ -316,6 +326,20 @@
                                 <span>{{ formatPrice(selectedOrder.final_price) }}đ</span>
                             </div>
                         </div>
+                        <div class="tw-mt-4 tw-text-right tw-space-x-2">
+                            <button v-if="canCancelOrder(selectedOrder)" @click="handleCancelOrder"
+                                class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
+                                Hủy đơn hàng
+                            </button>
+
+                            <button
+                                v-if="selectedOrder && (selectedOrder.status === 'completed' || selectedOrder.status === 'cancelled')"
+                                @click="handleReorder(selectedOrder.id)"
+                                class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-blue-700">
+                                Mua lại đơn hàng
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -509,6 +533,44 @@ watch([selectedStatus, selectedDate], () => {
         date: selectedDate.value
     })
 })
+
+const canCancelOrder = (order) => {
+    if (!order) return false
+    if (!['pending', 'processing'].includes(order.status)) return false
+    const createdAt = new Date(order.created_at)
+    const now = new Date()
+    const diffHours = (now - createdAt) / (1000 * 60 * 60)
+    return diffHours <= 24
+}
+
+const handleCancelOrder = async () => {
+    if (!selectedOrder.value) return
+    if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return
+    try {
+        await orderService.cancelOrder(selectedOrder.value.id)
+        closeModal()
+        fetchOrders()
+    } catch (err) {
+        alert(err?.response?.data?.message || err.message || 'Hủy đơn hàng thất bại')
+    }
+}
+const handleReorder = async (orderId) => {
+    try {
+        const res = await orderService.reorderOrder(orderId)
+        alert(res.message || 'Đã thêm vào giỏ hàng')
+    } catch (err) {
+        alert(err?.response?.data?.message || err.message || 'Mua lại đơn hàng thất bại')
+    }
+}
+
+const showCancelWarning = (order) => {
+    if (!order) return false
+    if (!['pending', 'processing'].includes(order.status)) return false
+    const createdAt = new Date(order.created_at)
+    const now = new Date()
+    const diffHours = (now - createdAt) / (1000 * 60 * 60)
+    return diffHours > 24
+}
 
 onMounted(() => {
     fetchOrders()

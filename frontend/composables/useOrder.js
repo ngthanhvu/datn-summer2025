@@ -179,6 +179,20 @@ export const useOrder = () => {
         } finally {
             loading.value = false;
         }
+    }
+    const reorderOrder = async (id) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await API.post(`/api/orders/${id}/reorder`)
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message
+            console.error('Reorder error:', err.response?.data || err.message)
+            throw err
+        } finally {
+            loading.value = false
+        }
     };
 
     return {
@@ -196,6 +210,7 @@ export const useOrder = () => {
         getPaymentStatus,
         getPaymentMethod,
         formatPrice,
-        getOrderByTrackingCode
+        getOrderByTrackingCode,
+        reorderOrder
     }
 } 

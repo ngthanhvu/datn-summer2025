@@ -279,8 +279,27 @@ class OrdersController extends Controller
                 ], 400);
             }
 
+            if (!in_array($order->status, ['pending', 'processing'])) {
+                return response()->json([
+                    'message' => 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận hoặc đang xử lý'
+                ], 400);
+            }
+
+            $createdAt = $order->created_at;
+            $now = now();
+            if ($now->diffInHours($createdAt) > 24) {
+                return response()->json([
+                    'message' => 'Chỉ có thể hủy đơn hàng trong vòng 24 giờ kể từ khi đặt hàng'
+                ], 400);
+            }
+
+            if (in_array($order->payment_method, ['momo', 'vnpay', 'paypal'])) {
+                $order->payment_status = 'refunded';
+            } else {
+                $order->payment_status = 'canceled';
+            }
+
             $order->status = 'cancelled';
-            $order->payment_status = 'canceled';
             $order->save();
 
             return response()->json([
@@ -324,5 +343,50 @@ class OrdersController extends Controller
         } while (Orders::where('tracking_code', $trackingCode)->exists());
 
         return $trackingCode;
+    }
+    public function reorder($id)
+    {
+        try {
+            $originalOrder = Orders::with('orderDetails')->findOrFail($id);
+
+            if ($originalOrder->user_id !== Auth::id()) {
+                return response()->json([
+                    'message' => 'Bạn không có quyền mua lại đơn hàng này'
+                ], 403);
+            }
+
+            foreach ($originalOrder->orderDetails as $detail) {
+                $existing = DB::table('carts')->where([
+                    'user_id' => Auth::id(),
+                    'variant_id' => $detail->variant_id
+                ])->first();
+
+                if ($existing) {
+                    DB::table('carts')->where('id', $existing->id)->update([
+                        'quantity' => $existing->quantity + $detail->quantity,
+                        'price' => $detail->price,
+                        'updated_at' => now()
+                    ]);
+                } else {
+                    DB::table('carts')->insert([
+                        'user_id' => Auth::id(),
+                        'variant_id' => $detail->variant_id,
+                        'quantity' => $detail->quantity,
+                        'price' => $detail->price,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'message' => 'Các sản phẩm trong đơn hàng đã được thêm vào giỏ hàng'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Có lỗi xảy ra khi mua lại đơn hàng',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
