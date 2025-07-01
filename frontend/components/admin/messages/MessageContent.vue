@@ -4,11 +4,8 @@
             <!-- Message Header (sticky) -->
             <div class="tw-bg-white tw-px-6 tw-py-4 tw-border-b tw-sticky tw-top-0 tw-z-10">
                 <div class="tw-flex tw-items-center tw-gap-4">
-                    <img
-                        :src="message.avatar ? message.avatar : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
-                        :alt="message.name"
-                        class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover"
-                    >
+                    <img :src="getAvatarUrl(message.avatar)" :alt="message.name"
+                        class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover">
                     <div>
                         <h3 class="tw-font-semibold">{{ message.name }}</h3>
                         <p class="tw-text-sm tw-text-gray-500">{{ message.email }}</p>
@@ -22,7 +19,7 @@
                     <div v-for="(msg, index) in message.messages" :key="index" class="tw-flex"
                         :class="[msg.isAdmin ? 'tw-justify-end' : 'tw-justify-start']">
                         <div class="tw-flex tw-items-end tw-gap-2" :class="[msg.isAdmin ? 'tw-flex-row-reverse' : '']">
-                            <img :src="msg.isAdmin ? adminAvatar : (message.avatar ? message.avatar : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg')"
+                            <img :src="msg.isAdmin ? getAvatarUrl(adminAvatar) : getAvatarUrl(message.avatar)"
                                 :alt="msg.isAdmin ? 'Admin' : message.name"
                                 class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover">
                             <div :class="[
@@ -30,18 +27,12 @@
                                 msg.isAdmin ? 'tw-bg-primary tw-text-white tw-rounded-br-none' : 'tw-bg-white tw-rounded-bl-none'
                             ]">
                                 <div v-if="msg.attachment" class="tw-mb-2">
-                                    <img
-                                        v-if="/\.(jpg|jpeg|png|gif)$/i.test(msg.attachment)"
-                                        :src="getAttachmentUrl(msg.attachment)"
+                                    <img v-if="/\.(jpg|jpeg|png|gif)$/i.test(msg.attachment)"
+                                        :src="getAvatarUrl(msg.attachment)"
                                         class="tw-max-w-xs tw-rounded tw-cursor-pointer"
-                                        @click="openImage(getAttachmentUrl(msg.attachment))"
-                                    >
-                                    <a
-                                        v-else
-                                        :href="getAttachmentUrl(msg.attachment)"
-                                        target="_blank"
-                                        class="tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-white tw-bg-opacity-20 tw-rounded"
-                                    >
+                                        @click="openImage(getAvatarUrl(msg.attachment))">
+                                    <a v-else :href="getAvatarUrl(msg.attachment)" target="_blank"
+                                        class="tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-white tw-bg-opacity-20 tw-rounded">
                                         <i class="fas fa-file"></i>
                                         <span class="tw-text-sm">{{ getFileName(msg.attachment) }}</span>
                                     </a>
@@ -60,12 +51,13 @@
                     <div class="tw-flex tw-gap-4">
                         <input type="text" v-model="newMessage" @keyup.enter="handleSend" placeholder="Nhập tin nhắn..."
                             class="tw-flex-1 tw-border tw-rounded-full tw-px-6 tw-py-3 focus:tw-ring-2 focus:tw-ring-primary/20 focus:tw-border-primary">
-                        <label class="tw-bg-gray-100 tw-rounded-full tw-w-12 tw-h-12 tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-gray-200">
+                        <label
+                            class="tw-bg-gray-100 tw-rounded-full tw-w-12 tw-h-12 tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-gray-200">
                             <i class="fas fa-paperclip tw-text-lg"></i>
-                            <input type="file" ref="fileInput" @change="handleFileSelect" class="tw-hidden" accept="image/*,.pdf,.doc,.docx">
+                            <input type="file" ref="fileInput" @change="handleFileSelect" class="tw-hidden"
+                                accept="image/*,.pdf,.doc,.docx">
                         </label>
-                        <button @click="handleSend"
-                            :disabled="(!newMessage.trim() && !selectedFile)"
+                        <button @click="handleSend" :disabled="(!newMessage.trim() && !selectedFile)"
                             class="tw-bg-primary tw-text-white tw-rounded-full tw-w-12 tw-h-12 tw-flex tw-items-center tw-justify-center hover:tw-bg-primary-dark disabled:tw-opacity-50 disabled:tw-cursor-not-allowed">
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -76,7 +68,8 @@
             <div v-if="selectedFile" class="tw-mt-2 tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-gray-100 tw-rounded">
                 <i class="fas fa-file tw-text-gray-600"></i>
                 <span class="tw-text-sm tw-flex-1">{{ selectedFile.name }}</span>
-                <button @click="removeFile" class="tw-text-red-500 hover:tw-text-red-700"><i class="fas fa-times"></i></button>
+                <button @click="removeFile" class="tw-text-red-500 hover:tw-text-red-700"><i
+                        class="fas fa-times"></i></button>
             </div>
         </div>
         <div v-else class="tw-h-full tw-flex tw-items-center tw-justify-center tw-text-gray-500">
@@ -90,7 +83,10 @@
 
 <script setup>
 import { ref, watch, onMounted, nextTick, defineExpose } from 'vue'
-const runtimeConfig = typeof useRuntimeConfig === 'function' ? useRuntimeConfig() : null
+
+const runtimeConfig = useRuntimeConfig()
+
+const defaultAvatar = 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'
 
 const props = defineProps({
     message: {
@@ -132,32 +128,38 @@ const removeFile = () => {
 const messagesContainer = ref(null)
 
 const scrollToBottom = () => {
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-  }
+    if (messagesContainer.value) {
+        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    }
 }
 
 watch(() => props.message?.messages, async () => {
-  await nextTick()
-  scrollToBottom()
+    await nextTick()
+    scrollToBottom()
 }, { deep: true })
 
 onMounted(() => {
-  scrollToBottom()
+    scrollToBottom()
 })
 
-const getAttachmentUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  if (runtimeConfig && runtimeConfig.public && runtimeConfig.public.apiBaseUrl) {
-    return runtimeConfig.public.apiBaseUrl + '/storage/' + path
-  }
-  return '/storage/' + path
+const getAvatarUrl = (avatar) => {
+    if (!avatar) return defaultAvatar
+    if (avatar.startsWith('http')) return avatar
+    let url = runtimeConfig.public.apiBaseUrl + '/' + avatar.replace(/^\/+/, '')
+    url = url.replace(/\/{2,}storage\//, '/storage/')
+    return url
 }
 
-const getFileName = (path) => path.split('/').pop()
+const getFileName = (path) => {
+    if (!path) return ''
+    return path.split('/').pop() || path
+}
 
-const openImage = (src) => window.open(src, '_blank')
+const openImage = (src) => {
+    if (src) {
+        window.open(src, '_blank')
+    }
+}
 
 defineExpose({ scrollToBottom })
 </script>

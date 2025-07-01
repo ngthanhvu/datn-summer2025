@@ -1,13 +1,11 @@
 <template>
   <div v-if="isAuthenticated" class="tw-fixed tw-bottom-4 tw-right-4 tw-z-50">
     <!-- Chat Toggle Button -->
-    <button
-      v-if="!isOpen"
-      @click="toggleChat"
-      class="chat-button tw-text-white tw-rounded-full tw-w-16 tw-h-16 tw-flex tw-items-center tw-justify-center tw-shadow-lg hover:tw-opacity-90 tw-transition-all tw-relative"
-    >
+    <button v-if="!isOpen" @click="toggleChat"
+      class="chat-button tw-text-white tw-rounded-full tw-w-16 tw-h-16 tw-flex tw-items-center tw-justify-center tw-shadow-lg hover:tw-opacity-90 tw-transition-all tw-relative">
       <i class="fas fa-headset tw-text-xl"></i>
-      <span v-if="unreadCount > 0" class="tw-absolute tw--top-2 tw--right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-6 tw-h-6 tw-flex tw-items-center tw-justify-center tw-text-xs tw-font-bold">
+      <span v-if="unreadCount > 0"
+        class="tw-absolute tw--top-2 tw--right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-6 tw-h-6 tw-flex tw-items-center tw-justify-center tw-text-xs tw-font-bold">
         {{ unreadCount > 99 ? '99+' : unreadCount }}
       </span>
     </button>
@@ -17,14 +15,13 @@
       <span>Bạn cần hỗ trợ gì?</span>
     </div>
 
-    <div
-      v-if="isOpen"
-      class="tw-bg-white tw-rounded-lg tw-shadow-2xl tw-w-96 tw-h-[500px] tw-flex tw-flex-col tw-overflow-hidden"
-    >
+    <div v-if="isOpen"
+      class="tw-bg-white tw-rounded-lg tw-shadow-2xl tw-w-96 tw-h-[500px] tw-flex tw-flex-col tw-overflow-hidden">
       <!-- Header -->
       <div class="chat-header tw-text-white tw-p-4 tw-flex tw-justify-between tw-items-center">
         <div class="tw-flex tw-items-center tw-gap-3">
-          <div class="tw-w-8 tw-h-8 tw-bg-white tw-bg-opacity-20 tw-rounded-full tw-flex tw-items-center tw-justify-center">
+          <div
+            class="tw-w-8 tw-h-8 tw-bg-white tw-bg-opacity-20 tw-rounded-full tw-flex tw-items-center tw-justify-center">
             <i class="fas fa-headset tw-text-sm"></i>
           </div>
           <div>
@@ -55,17 +52,11 @@
 
           <!-- Admin List -->
           <div v-else-if="admins.length > 0" class="tw-space-y-3">
-            <div
-              v-for="admin in admins"
-              :key="admin.id"
-              @click="selectAdmin(admin)"
-              class="tw-flex tw-items-center tw-gap-3 tw-p-3 tw-rounded-lg tw-border tw-border-gray-200 hover:border-primary tw-cursor-pointer tw-transition-all hover:tw-shadow-sm"
-            >
+            <div v-for="admin in admins" :key="admin.id" @click="selectAdmin(admin)"
+              class="tw-flex tw-items-center tw-gap-3 tw-p-3 tw-rounded-lg tw-border tw-border-gray-200 hover:border-primary tw-cursor-pointer tw-transition-all hover:tw-shadow-sm">
               <img
-                :src="admin.avatar ? (admin.avatar.startsWith('http') ? admin.avatar : runtimeConfig.public.apiBaseUrl + '/storage/' + admin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
-                :alt="admin.name"
-                class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 border-primary"
-              >
+                :src="admin.avatar ? (admin.avatar.startsWith('http') ? admin.avatar : runtimeConfig.public.apiBaseUrl + admin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
+                :alt="admin.name" class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 border-primary">
               <div class="tw-flex-1">
                 <div class="tw-font-medium tw-text-gray-800">{{ admin.name || admin.username }}</div>
                 <div class="tw-text-sm tw-text-gray-500 tw-flex tw-items-center tw-gap-1">
@@ -81,7 +72,8 @@
           <div v-else class="tw-text-center tw-py-8 tw-text-gray-500">
             <i class="fas fa-exclamation-circle tw-text-3xl tw-mb-2"></i>
             <div>Hiện tại không có admin trực tuyến</div>
-            <button @click="loadAdmins" class="tw-mt-2 btn-primary tw-text-white tw-px-4 tw-py-2 tw-rounded-lg tw-text-sm">
+            <button @click="loadAdmins"
+              class="tw-mt-2 btn-primary tw-text-white tw-px-4 tw-py-2 tw-rounded-lg tw-text-sm">
               <i class="fas fa-refresh tw-mr-1"></i>Thử lại
             </button>
           </div>
@@ -96,10 +88,8 @@
             <i class="fas fa-arrow-left"></i>
           </button>
           <img
-            :src="currentAdmin.avatar ? (currentAdmin.avatar.startsWith('http') ? currentAdmin.avatar : runtimeConfig.public.apiBaseUrl + '/storage/' + currentAdmin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
-            :alt="currentAdmin.name"
-            class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover"
-          >
+            :src="currentAdmin.avatar ? (currentAdmin.avatar.startsWith('http') ? currentAdmin.avatar : runtimeConfig.public.apiBaseUrl + currentAdmin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
+            :alt="currentAdmin.name" class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover">
           <div class="tw-flex-1">
             <div class="tw-font-medium tw-text-sm">{{ currentAdmin.name || currentAdmin.username }}</div>
             <div class="tw-text-xs tw-text-gray-500 tw-flex tw-items-center tw-gap-1">
@@ -116,36 +106,24 @@
             <div class="tw-font-medium tw-mb-1">Chào mừng bạn đến với hỗ trợ khách hàng!</div>
             <div class="tw-text-sm">Hãy gửi tin nhắn để chúng tôi có thể hỗ trợ bạn</div>
           </div>
-          <div
-            v-for="message in messages"
-            :key="message.id"
-            :class="[
-              'tw-flex',
-              message.sender_id === user?.id ? 'tw-justify-end' : 'tw-justify-start'
-            ]"
-          >
-            <div
-              :class="[
-                'tw-max-w-xs tw-p-3 tw-rounded-lg tw-relative tw-group',
-                message.sender_id === user?.id
-                  ? 'message-sent tw-text-white'
-                  : 'tw-bg-gray-100 tw-text-gray-900'
-              ]"
-            >
+          <div v-for="message in messages" :key="message.id" :class="[
+            'tw-flex',
+            message.sender_id === user?.id ? 'tw-justify-end' : 'tw-justify-start'
+          ]">
+            <div :class="[
+              'tw-max-w-xs tw-p-3 tw-rounded-lg tw-relative tw-group',
+              message.sender_id === user?.id
+                ? 'message-sent tw-text-white'
+                : 'tw-bg-gray-100 tw-text-gray-900'
+            ]">
               <!-- Attachment -->
               <div v-if="message.attachment" class="tw-mb-2">
-                <img
-                  v-if="isImage(message.attachment)"
+                <img v-if="isImage(message.attachment)"
                   :src="runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment"
                   class="tw-max-w-full tw-rounded tw-cursor-pointer"
-                  @click="openImage(runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment)"
-                >
-                <a
-                  v-else
-                  :href="runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment"
-                  target="_blank"
-                  class="tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-white tw-bg-opacity-20 tw-rounded"
-                >
+                  @click="openImage(runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment)">
+                <a v-else :href="runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment" target="_blank"
+                  class="tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-white tw-bg-opacity-20 tw-rounded">
                   <i class="fas fa-file"></i>
                   <span class="tw-text-sm">{{ getFileName(message.attachment) }}</span>
                 </a>
@@ -155,23 +133,18 @@
               <div>{{ message.message }}</div>
 
               <!-- Time -->
-              <div
-                :class="[
-                  'tw-text-xs tw-mt-1',
-                  message.sender_id === user?.id ? 'tw-text-blue-100' : 'tw-text-gray-500'
-                ]"
-              >
+              <div :class="[
+                'tw-text-xs tw-mt-1',
+                message.sender_id === user?.id ? 'tw-text-blue-100' : 'tw-text-gray-500'
+              ]">
                 {{ formatTime(message.sent_at) }}
                 <i v-if="message.sender_id === user?.id && message.is_read" class="fas fa-check-double tw-ml-1"></i>
                 <i v-else-if="message.sender_id === user?.id" class="fas fa-check tw-ml-1"></i>
               </div>
 
               <!-- Delete Button -->
-              <button
-                v-if="message.sender_id === user?.id"
-                @click="deleteMessage(message.id)"
-                class="tw-absolute tw--top-2 tw--right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity"
-              >
+              <button v-if="message.sender_id === user?.id" @click="deleteMessage(message.id)"
+                class="tw-absolute tw--top-2 tw--right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity">
                 <i class="fas fa-times"></i>
               </button>
             </div>
@@ -182,34 +155,23 @@
         <div class="tw-p-3 tw-border-t">
           <form @submit.prevent="sendMessage" class="tw-flex tw-gap-2">
             <div class="tw-flex-1 tw-relative">
-              <input
-                v-model="newMessage"
-                type="text"
-                placeholder="Nhập tin nhắn..."
+              <input v-model="newMessage" type="text" placeholder="Nhập tin nhắn..."
                 class="tw-w-full tw-pr-10 tw-pl-4 tw-py-2 tw-border tw-rounded-lg tw-text-sm focus:tw-outline-none focus:tw-ring-2 focus:ring-primary"
-                :disabled="sending"
-              >
-              <label class="tw-absolute tw-right-3 tw-top-1/2 tw-transform tw--translate-y-1/2 tw-cursor-pointer tw-text-gray-400 hover:tw-text-gray-600">
+                :disabled="sending">
+              <label
+                class="tw-absolute tw-right-3 tw-top-1/2 tw-transform tw--translate-y-1/2 tw-cursor-pointer tw-text-gray-400 hover:tw-text-gray-600">
                 <i class="fas fa-paperclip"></i>
-                <input
-                  type="file"
-                  ref="fileInput"
-                  @change="handleFileSelect"
-                  class="tw-hidden"
-                  accept="image/*,.pdf,.doc,.docx"
-                >
+                <input type="file" ref="fileInput" @change="handleFileSelect" class="tw-hidden"
+                  accept="image/*,.pdf,.doc,.docx">
               </label>
             </div>
-            <button
-              type="submit"
-              :disabled="(!newMessage.trim() && !selectedFile) || sending"
-              class="btn-primary tw-text-white tw-px-4 tw-py-2 tw-rounded-lg tw-transition-all disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
-            >
+            <button type="submit" :disabled="(!newMessage.trim() && !selectedFile) || sending"
+              class="btn-primary tw-text-white tw-px-4 tw-py-2 tw-rounded-lg tw-transition-all disabled:tw-opacity-50 disabled:tw-cursor-not-allowed">
               <i v-if="sending" class="fas fa-spinner tw-animate-spin"></i>
               <i v-else class="fas fa-paper-plane"></i>
             </button>
           </form>
-          
+
           <!-- Selected File Preview -->
           <div v-if="selectedFile" class="tw-mt-2 tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-gray-100 tw-rounded">
             <i class="fas fa-file tw-text-gray-600"></i>
@@ -223,11 +185,9 @@
     </div>
 
     <!-- Image Modal -->
-    <div
-      v-if="showImageModal"
+    <div v-if="showImageModal"
       class="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-75 tw-flex tw-items-center tw-justify-center tw-z-50"
-      @click="closeImageModal"
-    >
+      @click="closeImageModal">
       <img :src="modalImage" class="tw-max-w-[90%] tw-max-h-[90%] tw-object-contain">
     </div>
   </div>
@@ -302,7 +262,7 @@ const loadUnreadCount = async () => {
 
 const loadMessages = async () => {
   if (!currentAdmin.value) return
-  
+
   try {
     messages.value = await getMessages(currentAdmin.value.id)
     await nextTick()
@@ -461,8 +421,13 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .support-hint {
@@ -472,11 +437,11 @@ onUnmounted(() => {
   margin-right: 16px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 10px 18px;
   font-size: 15px;
   color: #333;
   z-index: 1001;
   white-space: nowrap;
 }
-</style> 
+</style>

@@ -23,8 +23,8 @@
                         name="password" placeholder="Nhập mật khẩu"
                         class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded tw-text-base focus:tw-outline-none focus:tw-border-[#81aacc] focus:tw-ring-1 focus:tw-ring-[#81aacc]" />
                     <button type="button"
-                        class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
-                        @click="showPassword = !showPassword">
+                        class="btn position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+                        style="color:#81aacc;" @click="showPassword = !showPassword">
                         <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
@@ -37,8 +37,8 @@
                         id="confirmPassword" name="confirm_password" placeholder="Xác nhận mật khẩu"
                         class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded tw-text-base focus:tw-outline-none focus:tw-border-[#81aacc] focus:tw-ring-1 focus:tw-ring-[#81aacc]" />
                     <button type="button"
-                        class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
-                        @click="showConfirmPassword = !showConfirmPassword">
+                        class="btn position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+                        style="color:#81aacc" @click="showConfirmPassword = !showConfirmPassword">
                         <i :class="showConfirmPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
@@ -212,7 +212,7 @@ const handleRegister = async () => {
 
 .toggle-form {
     cursor: pointer;
-    color: #0d6efd;
+    color: #81aacc;
 }
 
 .toggle-form:hover {

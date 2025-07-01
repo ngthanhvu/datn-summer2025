@@ -14,8 +14,8 @@
                     <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="form-control"
                         name="password" id="loginPassword" placeholder="Nhập mật khẩu">
                     <button type="button"
-                        class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
-                        @click="showPassword = !showPassword">
+                        class="btn position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+                        style="color:#81aacc" @click="showPassword = !showPassword">
                         <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
@@ -192,7 +192,7 @@ const handleLogin = async () => {
 
 .toggle-form {
     cursor: pointer;
-    color: #0d6efd;
+    color: #81aacc;
 }
 
 .toggle-form:hover {

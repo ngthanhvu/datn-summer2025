@@ -5,7 +5,8 @@
       <!-- Header -->
       <div class="tw-p-4 tw-border-b" style="background-color: #3BB77E; color: #fff;">
         <div class="tw-flex tw-items-center tw-gap-3">
-          <div class="tw-w-10 tw-h-10 tw-bg-white tw-bg-opacity-20 tw-rounded-full tw-flex tw-items-center tw-justify-center">
+          <div
+            class="tw-w-10 tw-h-10 tw-bg-white tw-bg-opacity-20 tw-rounded-full tw-flex tw-items-center tw-justify-center">
             <i class="fas fa-comments tw-text-lg"></i>
           </div>
           <div>
@@ -18,13 +19,10 @@
       <!-- Search (sticky) -->
       <div class="tw-p-4 tw-border-b tw-border-gray-100 tw-sticky tw-top-[64px] tw-z-10 tw-bg-white">
         <div class="tw-relative">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Tìm kiếm khách hàng..."
-            class="tw-w-full tw-pl-10 tw-pr-4 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg tw-text-sm focus:tw-outline-none focus:tw-ring-2 focus:ring-primary"
-          >
-          <i class="fas fa-search tw-absolute tw-left-3 tw-top-1/2 tw-transform tw--translate-y-1/2 tw-text-gray-400"></i>
+          <input v-model="searchQuery" type="text" placeholder="Tìm kiếm khách hàng..."
+            class="tw-w-full tw-pl-10 tw-pr-4 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg tw-text-sm focus:tw-outline-none focus:tw-ring-2 focus:ring-primary">
+          <i
+            class="fas fa-search tw-absolute tw-left-3 tw-top-1/2 tw-transform tw--translate-y-1/2 tw-text-gray-400"></i>
         </div>
       </div>
 
@@ -45,22 +43,18 @@
 
         <!-- Conversations -->
         <div v-else class="tw-divide-y tw-divide-gray-100">
-          <div
-            v-for="conversation in filteredConversations"
-            :key="conversation.user.id"
-            @click="selectConversation(conversation)"
-            :class="[
+          <div v-for="conversation in filteredConversations" :key="conversation.user.id"
+            @click="selectConversation(conversation)" :class="[
               'tw-flex tw-items-center tw-gap-3 tw-p-4 tw-cursor-pointer tw-transition-colors hover:tw-bg-gray-50',
-              selectedUser?.id === conversation.user.id ? 'tw-bg-blue-50 tw-border-r-4 border-primary' : ''
-            ]"
-          >
+              selectedUser?.id === conversation.user.id ? 'tw-bg-green-50 tw-border-r-4 tw-border-[#3BB77E]' : ''
+            ]">
             <div class="tw-relative">
               <img
                 :src="conversation.user.avatar ? getUserAvatar(conversation.user.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
                 :alt="conversation.user.username"
-                class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200"
-              >
-              <div v-if="conversation.unread_count > 0" class="tw-absolute tw--top-1 tw--right-1 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs tw-font-bold">
+                class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200">
+              <div v-if="conversation.unread_count > 0"
+                class="tw-absolute tw--top-1 tw--right-1 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs tw-font-bold">
                 {{ conversation.unread_count > 9 ? '9+' : conversation.unread_count }}
               </div>
             </div>
@@ -87,13 +81,9 @@
 
     <!-- Main Chat Area -->
     <div class="tw-flex-1 tw-w-0 tw-flex tw-flex-col tw-h-full tw-overflow-x-hidden">
-      <MessageContent
-        v-if="selectedUser"
-        ref="messageContentRef"
+      <MessageContent v-if="selectedUser" ref="messageContentRef"
         :message="{ name: selectedUser.username, email: selectedUser.email, avatar: getUserAvatar(selectedUser.avatar), messages: messages.map(m => ({ content: m.message, isAdmin: m.sender_id === currentAdmin?.id, time: formatTime(m.sent_at), ...m })) }"
-        :adminAvatar="adminAvatar"
-        @send="handleSendMessage"
-      />
+        :adminAvatar="adminAvatar" @send="handleSendMessage" />
       <div v-else class="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-bg-white">
         <div class="tw-text-center tw-text-gray-500">
           <i class="fas fa-comment-dots tw-text-6xl tw-mb-4"></i>
@@ -104,11 +94,9 @@
     </div>
 
     <!-- Image Modal -->
-    <div
-      v-if="showImageModal"
+    <div v-if="showImageModal"
       class="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-75 tw-flex tw-items-center tw-justify-center tw-z-50"
-      @click="closeImageModal"
-    >
+      @click="closeImageModal">
       <img :src="modalImage" class="tw-max-w-[90%] tw-max-h-[90%] tw-object-contain">
     </div>
   </div>
@@ -302,7 +290,7 @@ const startPolling = () => {
   stopPolling()
   pollingInterval.value = setInterval(() => {
     if (selectedUser.value) loadMessages()
-  }, 2000) 
+  }, 2000)
 }
 
 const stopPolling = () => {
@@ -337,12 +325,15 @@ onUnmounted(() => {
   background-color: #3BB77E;
 }
 
-.btn-primary, .tw-bg-primary {
+.btn-primary,
+.tw-bg-primary {
   background-color: #3BB77E !important;
   color: #fff !important;
   border: none;
 }
-.btn-primary:hover, .tw-bg-primary:hover {
+
+.btn-primary:hover,
+.tw-bg-primary:hover {
   background-color: #339966 !important;
 }
 
@@ -364,8 +355,13 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 ::-webkit-scrollbar {
@@ -388,9 +384,11 @@ onUnmounted(() => {
 .tw-bg-primary {
   background-color: #3BB77E;
 }
+
 .tw-border-primary {
   border-color: #3BB77E;
 }
+
 .tw-text-primary {
   color: #3BB77E;
 }
