@@ -16,29 +16,47 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useProducts } from '~/composables/useProducts'
 
 const showFilter = ref(false)
 const products = ref([])
 const { getProducts } = useProducts()
+const route = useRoute()
 
-// Xử lý sự kiện khi người dùng thay đổi bộ lọc
+const getAllChildIds = (categories, parentId) => {
+  const children = categories.filter(cat => cat.parent_id === parentId)
+  let ids = [parentId]
+  for (const child of children) {
+    ids = ids.concat(getAllChildIds(categories, child.id))
+  }
+  return ids
+}
+
 const handleFilter = async (filters) => {
   try {
-    // Gọi API với các tham số lọc
     products.value = await getProducts(filters)
   } catch (error) {
     console.error('Error fetching products:', error)
   }
 }
 
-// Lấy tất cả sản phẩm khi component được tạo
-onMounted(async () => {
+const fetchProducts = async () => {
   try {
-    products.value = await getProducts()
+    const filters = {}
+    if (route.query.category) {
+      filters.category = route.query.category
+    }
+    if (route.query.brand) {
+      filters.brand = route.query.brand
+    }
+    products.value = await getProducts(filters)
   } catch (error) {
-    console.error('Error fetching initial products:', error)
+    console.error('Error fetching products:', error)
   }
-})
+}
+
+onMounted(fetchProducts)
+watch([() => route.query.category, () => route.query.brand], fetchProducts)
 </script>

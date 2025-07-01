@@ -2,99 +2,39 @@
     <div class="megamenu" role="menu">
         <div class="container">
             <div class="tw-grid tw-grid-cols-4 tw-gap-8 tw-py-6 tw-px-4">
-                <!-- Bộ sưu tập -->
+                <!-- Danh mục -->
                 <div>
-                    <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Bộ sưu tập</h6>
+                    <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Danh mục</h6>
                     <ul class="tw-space-y-2">
-                        <li>
-                            <a href="/collections/ao-khoac" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo
-                                khoác</a>
-                        </li>
-                        <li>
-                            <a href="/collections/ao-so-mi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo sơ
-                                mi</a>
-                        </li>
-                        <li>
-                            <a href="/collections/ao-thun" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thun
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/collections/quan-dai" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
-                                dài</a>
-                        </li>
-                        <li>
-                            <a href="/collections/quan-jeans" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
-                                jeans</a>
-                        </li>
-                        <li>
-                            <a href="/collections/quan-short" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Quần
-                                short</a>
+                        <li v-for="cat in categories.filter(c => !c.parent_id)" :key="cat.id">
+                            <a href="#" @click.prevent="goToCategory(cat)" class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
                         </li>
                     </ul>
                 </div>
-                <!-- Mục theo dịp -->
+                <!-- Thương hiệu -->
                 <div>
-                    <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Mục theo dịp</h6>
+                    <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Thương hiệu</h6>
                     <ul class="tw-space-y-2">
-                        <li>
-                            <a href="/occasions/dao-pho" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Dạo phố
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/occasions/di-bien" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đi biển
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/occasions/du-lich" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Du lịch
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/occasions/di-choi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đi chơi
-                            </a>
+                        <li v-for="brand in brands" :key="brand.id">
+                            <a href="#" @click.prevent="goToBrand(brand)" class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ brand.name }}</a>
                         </li>
                     </ul>
                 </div>
-                <!-- Áo nam thời trang -->
-                <div>
-                    <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Áo nam thời trang</h6>
+                <!-- Mục theo dịp (danh mục cha ngẫu nhiên 1) -->
+                <div v-if="randomParentCategories[0]">
+                    <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">{{ randomParentCategories[0].name }}</h6>
                     <ul class="tw-space-y-2">
-                        <li>
-                            <a href="/fashion/ao-the-thao" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thể
-                                thao</a>
-                        </li>
-                        <li>
-                            <a href="/fashion/ao-so-mi" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo sơ mi
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/fashion/ao-khoac" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo khoác
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/fashion/ao-thun" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Áo thun
-                            </a>
+                        <li v-for="cat in childCategories[0]" :key="cat.id">
+                            <a href="#" @click.prevent="goToCategory(cat)" class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
                         </li>
                     </ul>
                 </div>
-                <!-- Đồ mặc nhà -->
-                <div>
-                    <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Đồ mặc nhà</h6>
+                <!-- Đồ mặc nhà (danh mục cha ngẫu nhiên 2) -->
+                <div v-if="randomParentCategories[1]">
+                    <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">{{ randomParentCategories[1].name }}</h6>
                     <ul class="tw-space-y-2">
-                        <li>
-                            <a href="/homewear/do-dai" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ dài
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/homewear/do-ngan" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ ngắn
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/homewear/do-xuan-he" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ xuân
-                                - hè</a>
-                        </li>
-                        <li>
-                            <a href="/homewear/do-thu-dong" class="tw-text-gray-600 hover:tw-text-[#81AACC]">Đồ thu
-                                - đông</a>
+                        <li v-for="cat in childCategories[1]" :key="cat.id">
+                            <a href="#" @click.prevent="goToCategory(cat)" class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
                         </li>
                     </ul>
                 </div>
@@ -102,6 +42,56 @@
         </div>
     </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const categories = ref([])
+const brands = ref([])
+const router = useRouter()
+
+const randomParentCategories = ref([])
+const childCategories = ref([[], []])
+
+const fetchCategories = async () => {
+  try {
+    const res = await fetch('/api/categories')
+    const data = await res.json()
+    categories.value = data
+    const parents = data.filter(cat => !cat.parent_id)
+    const shuffled = parents.sort(() => 0.5 - Math.random())
+    randomParentCategories.value = shuffled.slice(0, 2)
+    childCategories.value = randomParentCategories.value.map(parent =>
+      data.filter(cat => cat.parent_id === parent.id)
+    )
+  } catch (e) {
+    categories.value = []
+    randomParentCategories.value = []
+    childCategories.value = [[], []]
+  }
+}
+const fetchBrands = async () => {
+  try {
+    const res = await fetch('/api/brands')
+    brands.value = await res.json()
+  } catch (e) {
+    brands.value = []
+  }
+}
+
+const goToCategory = (cat) => {
+  router.push({ path: '/product', query: { category: cat.slug } })
+}
+const goToBrand = (brand) => {
+  router.push({ path: '/product', query: { brand: brand.slug } })
+}
+
+onMounted(() => {
+  fetchCategories()
+  fetchBrands()
+})
+</script>
 
 <style scoped>
 .megamenu {

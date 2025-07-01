@@ -87,10 +87,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import ProductFilter from '~/components/product/ProductFilter.vue'
 import ProductSort from '~/components/product/ProductSort.vue'
 import Card from '~/components/home/Card.vue'
+import { useRoute } from 'vue-router'
 
 const showFilter = ref(false)
 const products = ref([])
@@ -100,17 +101,32 @@ const { getProducts, searchProducts } = useProducts()
 const currentPage = ref(1)
 const itemsPerPage = 12
 const filters = ref({})
+const route = useRoute()
 
-onMounted(async () => {
+const fetchProducts = async () => {
     loading.value = true
     try {
-        products.value = await getProducts()
+        const filtersObj = {}
+        if (route.query.category) {
+            filtersObj.category = route.query.category
+        }
+        if (route.query.brand) {
+            filtersObj.brand = route.query.brand
+        }
+        filters.value = filtersObj
+        products.value = await getProducts(filtersObj)
     } catch (error) {
         console.error('Error fetching products:', error)
     } finally {
         loading.value = false
     }
-})
+}
+
+onMounted(fetchProducts)
+watch(
+    [() => route.query.category, () => route.query.brand],
+    fetchProducts
+)
 
 const handleSort = async (sortOption) => {
     loading.value = true
