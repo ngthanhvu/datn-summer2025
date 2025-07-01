@@ -97,6 +97,9 @@ const fetchBrands = async () => {
 }
 
 const getBrandLogo = (brand) => {
+    if (brand.image) {
+        return brand.image
+    }
     if (brand.logo) {
         return brand.logo.startsWith('http') ? brand.logo : `https://placehold.co/100x100?text=${brand.name.charAt(0)}`
     }

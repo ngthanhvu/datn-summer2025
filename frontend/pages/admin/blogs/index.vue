@@ -21,6 +21,9 @@ definePageMeta({
     layout: 'admin',
     middleware: 'admin'
 })
+useHead({
+    title: "Quản lý bài viết"
+})
 import BlogTable from '@/components/admin/blogs/BlogTable.vue';
 </script>
 
