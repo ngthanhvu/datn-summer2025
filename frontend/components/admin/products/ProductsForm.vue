@@ -156,48 +156,56 @@
 
             <div v-if="showVariants" class="tw-w-full">
                 <div class="tw-flex tw-gap-4 tw-overflow-x-auto tw-pb-4 tw-w-full">
-                    <div v-for="(variant, index) in formData.variants" :key="index"
+                    <div v-for="(variant, vIdx) in formData.variants" :key="vIdx"
                         class="tw-bg-gray-50 tw-p-4 tw-rounded-lg tw-flex-1 tw-min-w-[300px]">
                         <div class="tw-flex tw-justify-between tw-mb-2">
-                            <h3 class="tw-font-medium">Biến thể {{ index + 1 }}</h3>
-                            <button @click="removeVariant(index)" class="tw-text-red-500 hover:tw-text-red-700">
+                            <h3 class="tw-font-medium">Biến thể {{ vIdx + 1 }}</h3>
+                            <button @click="removeVariantColor(vIdx)" class="tw-text-red-500 hover:tw-text-red-700">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                         <!-- Màu sắc -->
                         <div class="tw-mb-2">
-                            <label class="tw-block tw-font-medium">Màu sắc</label>
-                            <input v-model="formData.variants[index].color" type="text"
-                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập màu sắc" />
-                            <div v-if="formErrors.variants[index]?.color" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
-                                formErrors.variants[index].color }}</div>
+                            <label class="tw-block tw-font-medium">Tên màu</label>
+                            <input v-model="variant.colorName" type="text"
+                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
+                                placeholder="Nhập tên màu (tùy chọn)" />
+                            <label class="tw-block tw-font-medium">Chọn màu</label>
+                            <input v-model="variant.colorHex" type="color"
+                                class="tw-w-12 tw-h-8 tw-p-0 tw-border-none" />
+                            <div v-if="formErrors.variants[vIdx]?.color" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                                formErrors.variants[vIdx].color }}</div>
                         </div>
-                        <!-- Kích thước -->
+                        <!-- Nhập nhiều size -->
                         <div class="tw-mb-2">
-                            <label class="tw-block tw-font-medium">Kích thước</label>
-                            <input v-model="formData.variants[index].size" type="text"
-                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập kích thước" />
-                            <div v-if="formErrors.variants[index]?.size" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
-                                formErrors.variants[index].size
-                            }}</div>
+                            <label class="tw-block tw-font-medium">Nhập nhiều size (phẩy ,)</label>
+                            <input v-model="sizeInput[vIdx]" @keyup.enter="handleSizeInput(vIdx)"
+                                @blur="handleSizeInput(vIdx)" type="text"
+                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="VD: S,M,L,XL" />
+                            <div class="tw-text-xs tw-text-gray-500 tw-mt-1">Nhập nhiều size, cách nhau bằng dấu phẩy.
+                                Sau khi nhập nhấn Enter hoặc click ra ngoài.</div>
                         </div>
-                        <!-- Giá -->
-                        <div class="tw-mb-2">
+                        <!-- Danh sách size đã nhập -->
+                        <div v-for="(sizeObj, sIdx) in variant.sizes" :key="sIdx" class="tw-mb-2 tw-border-b tw-pb-2">
+                            <div class="tw-flex tw-gap-2 tw-items-center">
+                                <span class="tw-font-semibold">{{ sizeObj.size }}</span>
+                                <button v-if="variant.sizes.length > 1" @click="removeSizeFromVariant(vIdx, sIdx)"
+                                    class="tw-text-red-500 hover:tw-text-red-700 tw-ml-2"><i
+                                        class="fas fa-trash"></i></button>
+                            </div>
                             <label class="tw-block tw-font-medium">Giá</label>
-                            <input v-model="formData.variants[index].price" type="number" min="0" step="1000"
+                            <input v-model="sizeObj.price" type="number" min="0" step="1000"
                                 class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
                                 placeholder="Nhập giá biến thể" />
-                            <div v-if="formErrors.variants[index]?.price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
-                                formErrors.variants[index].price }}</div>
-                        </div>
-                        <!-- SKU -->
-                        <div class="tw-mb-2">
+                            <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.price"
+                                class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                                    formErrors.variants[vIdx].sizes[sIdx].price }}</div>
                             <label class="tw-block tw-font-medium">SKU</label>
-                            <input v-model="formData.variants[index].sku" type="text"
+                            <input v-model="sizeObj.sku" type="text"
                                 class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mã SKU" />
-                            <div v-if="formErrors.variants[index]?.sku" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
-                                formErrors.variants[index].sku }}
-                            </div>
+                            <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.sku"
+                                class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.variants[vIdx].sizes[sIdx].sku
+                                }}</div>
                         </div>
                     </div>
                 </div>
@@ -221,6 +229,7 @@ import { useBrand } from '~/composables/useBrand'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import Swal from 'sweetalert2'
+import { COLORS as DEFAULT_COLORS } from '~/constants/colors.js'
 const notyf = useNuxtApp().$notyf
 
 const Toast = Swal.mixin({
@@ -298,6 +307,17 @@ const basicFields = ref([
     }
 ])
 
+const COLORS = ref([...DEFAULT_COLORS])
+const customColors = ref([])
+
+const addCustomColor = (name, hex) => {
+    const value = name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + hex.replace('#', '')
+    const color = { name, value, hex }
+    COLORS.value.push(color)
+    customColors.value.push(color)
+    return value
+}
+
 const formData = ref({
     name: '',
     price: 0,
@@ -332,6 +352,8 @@ const showVariants = ref(false)
 const { createProduct } = useProducts()
 const { getCategories } = useCategory()
 const { getBrands } = useBrand()
+
+const sizeInput = ref({}) // key: vIdx, value: string
 
 onMounted(async () => {
     try {
@@ -388,13 +410,10 @@ const validateForm = () => {
         additionalImages: '',
         variants: formData.value.variants.map(() => ({
             color: '',
-            size: '',
-            price: '',
-            sku: ''
+            sizes: []
         }))
     }
 
-    // Basic validation
     if (!formData.value.name) {
         errors.name = 'Vui lòng nhập tên sản phẩm'
         hasError = true
@@ -447,27 +466,39 @@ const validateForm = () => {
     }
 
     if (showVariants.value && formData.value.variants.length > 0) {
-        formData.value.variants.forEach((variant, idx) => {
-            if (!variant.color) {
-                errors.variants[idx].color = 'Vui lòng nhập màu sắc'
+        formData.value.variants.forEach((variant, vIdx) => {
+            if (!variant.colorName && (!variant.colorHex || variant.colorHex === '#000000')) {
+                errors.variants[vIdx].color = 'Vui lòng chọn hoặc nhập màu sắc'
                 hasError = true
             }
-            if (!variant.size) {
-                errors.variants[idx].size = 'Vui lòng nhập kích thước'
+            if (!variant.sizes || variant.sizes.length === 0) {
+                errors.variants[vIdx].sizes = [{ size: 'Thêm ít nhất 1 size' }]
                 hasError = true
-            }
-            if (!variant.price || variant.price <= 0) {
-                errors.variants[idx].price = 'Vui lòng nhập giá biến thể hợp lệ'
-                hasError = true
-            }
-            if (!variant.sku) {
-                errors.variants[idx].sku = 'Vui lòng nhập mã SKU'
-                hasError = true
+            } else {
+                errors.variants[vIdx].sizes = []
+                variant.sizes.forEach((sizeObj, sIdx) => {
+                    const sizeErr = { size: '', price: '', sku: '' }
+                    if (!sizeObj.size) {
+                        sizeErr.size = 'Nhập kích thước'
+                        hasError = true
+                    }
+                    if (!sizeObj.price || sizeObj.price <= 0) {
+                        sizeErr.price = 'Nhập giá hợp lệ'
+                        hasError = true
+                    }
+                    if (!sizeObj.sku) {
+                        sizeErr.sku = 'Nhập mã SKU'
+                        hasError = true
+                    }
+                    errors.variants[vIdx].sizes.push(sizeErr)
+                })
             }
         })
     }
 
     formErrors.value = errors
+    console.log('ValidateForm errors:', errors)
+    console.log('ValidateForm data:', formData.value)
     return !hasError
 }
 
@@ -501,14 +532,25 @@ const handleSubmit = async () => {
             productData.append('image_path[]', img)
         })
 
-        if (formData.value.variants.length > 0) {
-            formData.value.variants.forEach((variant, idx) => {
-                productData.append(`variants[${idx}][color]`, variant.color)
-                productData.append(`variants[${idx}][size]`, variant.size)
-                productData.append(`variants[${idx}][price]`, String(variant.price))
-                productData.append(`variants[${idx}][sku]`, variant.sku)
+        let flatVariants = []
+        formData.value.variants.forEach(variant => {
+            variant.sizes.forEach(sizeObj => {
+                flatVariants.push({
+                    color: variant.colorName ? variant.colorName : variant.colorHex,
+                    colorHex: variant.colorHex,
+                    size: sizeObj.size,
+                    price: sizeObj.price,
+                    sku: sizeObj.sku
+                })
             })
-        }
+        })
+        flatVariants.forEach((v, idx) => {
+            productData.append(`variants[${idx}][color]`, v.color)
+            productData.append(`variants[${idx}][colorHex]`, v.colorHex)
+            productData.append(`variants[${idx}][size]`, v.size)
+            productData.append(`variants[${idx}][price]`, v.price)
+            productData.append(`variants[${idx}][sku]`, v.sku)
+        })
 
         const response = await createProduct(productData)
         notyf.success('Tạo sản phẩm thành công!')
@@ -535,27 +577,48 @@ const generateSKU = (name) => {
 }
 
 const addVariant = () => {
-    const sku = generateSKU(formData.value.name)
     formData.value.variants.push({
-        color: '',
-        size: '',
-        price: 0,
-        sku: sku
+        colorName: '',
+        colorHex: '#000000',
+        sizes: [{
+            size: '',
+            price: formData.value.price || 0,
+            sku: generateSKU(formData.value.name)
+        }]
     })
     formErrors.value.variants.push({
         color: '',
+        sizes: [{
+            size: '',
+            price: '',
+            sku: ''
+        }]
+    })
+}
+
+const removeVariantColor = (vIdx) => {
+    formData.value.variants.splice(vIdx, 1)
+    formErrors.value.variants.splice(vIdx, 1)
+}
+
+const addSizeToVariant = (vIdx) => {
+    const productPrice = formData.value.price || 0
+    formData.value.variants[vIdx].sizes.push({
+        size: '',
+        price: productPrice,
+        sku: generateSKU(formData.value.name)
+    })
+    formErrors.value.variants[vIdx].sizes.push({
         size: '',
         price: '',
         sku: ''
     })
 }
 
-const removeVariant = (index) => {
-    formData.value.variants.splice(index, 1)
-    formErrors.value.variants.splice(index, 1)
-    if (formData.value.variants.length === 0) {
-        showVariants.value = false
-    }
+const removeSizeFromVariant = (vIdx, sIdx) => {
+    if (formData.value.variants[vIdx].sizes.length <= 1) return
+    formData.value.variants[vIdx].sizes.splice(sIdx, 1)
+    formErrors.value.variants[vIdx].sizes.splice(sIdx, 1)
 }
 
 const onMainImageChange = (e) => {
@@ -612,6 +675,28 @@ const onAdditionalImagesChange = (e) => {
 const removeAdditionalImage = (idx) => {
     formData.value.additionalImages.splice(idx, 1)
     formData.value.additionalImagePreviews.splice(idx, 1)
+}
+
+const handleSizeInput = (vIdx) => {
+    const input = sizeInput.value[vIdx] || ''
+    if (!input) return
+    const sizes = input.split(',').map(s => s.trim()).filter(Boolean)
+    const productPrice = formData.value.price || 0
+    sizes.forEach(sizeStr => {
+        if (!formData.value.variants[vIdx].sizes.some(sz => sz.size === sizeStr)) {
+            formData.value.variants[vIdx].sizes.push({
+                size: sizeStr,
+                price: productPrice,
+                sku: generateSKU(formData.value.name)
+            })
+            formErrors.value.variants[vIdx].sizes.push({
+                size: '', price: '', sku: ''
+            })
+        }
+    })
+    sizeInput.value[vIdx] = ''
+    formData.value.variants[vIdx].sizes = formData.value.variants[vIdx].sizes.filter(sz => sz.size && sz.size.trim() !== '')
+    formErrors.value.variants[vIdx].sizes = formErrors.value.variants[vIdx].sizes.filter((err, idx) => formData.value.variants[vIdx].sizes[idx])
 }
 </script>
 
