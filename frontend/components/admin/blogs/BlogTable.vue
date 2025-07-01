@@ -8,7 +8,7 @@
         </div>
 
         <!-- Filters section -->
-        <div class="tw-flex tw-gap-4 tw-mb-4">
+        <!-- <div class="tw-flex tw-gap-4 tw-mb-4">
             <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-w-40">
                 <option value="">Tất cả trạng thái</option>
                 <option value="draft">Bản nháp</option>
@@ -18,7 +18,7 @@
 
             <input v-model="searchQuery" type="text" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-w-40"
                 placeholder="Tìm kiếm bài viết..." />
-        </div>
+        </div> -->
 
         <!-- Table section -->
         <div class="tw-overflow-x-auto">

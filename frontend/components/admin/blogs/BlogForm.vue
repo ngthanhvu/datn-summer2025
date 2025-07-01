@@ -22,7 +22,7 @@
                     :class="{ 'tw-border-red-500': errors.description }" placeholder="Nhập mô tả bài viết..."
                     rows="3"></textarea>
                 <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description
-                    }}</span>
+                }}</span>
             </div>
 
             <!-- Image Upload -->
@@ -53,9 +53,9 @@
                 <label class="tw-font-medium tw-text-gray-700 tw-mb-2">Trạng thái *</label>
                 <select v-model="formData.status"
                     class="tw-w-full tw-px-3 tw-py-3 tw-border tw-border-gray-300 tw-rounded-md tw-text-sm focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
-                    <option value="draft">Bản nháp</option>
+                    <!-- <option value="draft">Bản nháp</option> -->
                     <option value="published">Đã xuất bản</option>
-                    <option value="archived">Lưu trữ</option>
+                    <!-- <option value="archived">Lưu trữ</option> -->
                 </select>
                 <span v-if="errors.status" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.status }}</span>
             </div>
@@ -252,6 +252,11 @@ const handleCancel = () => router.push('/admin/blogs')
 </script>
 
 <style scoped>
-.tw-bg-primary { background-color: #3bb77e; }
-.tw-bg-primary-dark { background-color: #2ea16d; }
+.tw-bg-primary {
+    background-color: #3bb77e;
+}
+
+.tw-bg-primary-dark {
+    background-color: #2ea16d;
+}
 </style>
