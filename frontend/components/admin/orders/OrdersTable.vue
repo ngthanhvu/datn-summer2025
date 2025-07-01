@@ -61,7 +61,6 @@
                     </tr>
                 </thead>
                 <tbody class="tw-divide-y tw-divide-gray-200">
-                    <!-- Skeleton loading -->
                     <tr v-if="isLoading" v-for="n in 8" :key="'skeleton-' + n">
                         <td v-for="i in 8" :key="i" class="tw-px-4 tw-py-3">
                             <div class="skeleton-loader"></div>
@@ -117,6 +116,11 @@
                             <button @click="handleView(order)" class="tw-text-primary tw-hover:tw-text-primary-dark">
                                 <i class="fas fa-eye"></i>
                             </button>
+                        </td>
+                    </tr>
+                    <tr v-if="!isLoading && filteredOrders.length === 0">
+                        <td colspan="8" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
+                            Không có dữ liệu
                         </td>
                     </tr>
                 </tbody>
