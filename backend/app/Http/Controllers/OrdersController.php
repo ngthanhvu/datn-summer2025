@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Models\InventoryMovement;
 
 class OrdersController extends Controller
 {
@@ -119,25 +120,33 @@ class OrdersController extends Controller
                     throw new \Exception("Số lượng sản phẩm trong kho không đủ: variant_id = {$item['variant_id']}");
                 }
 
-                DB::table('inventories')
-                    ->where('variant_id', $item['variant_id'])
-                    ->update([
-                        'quantity' => DB::raw('quantity - ' . $item['quantity'])
-                    ]);
+                if ($validated['payment_method'] === 'cod') {
+                    DB::table('inventories')
+                        ->where('variant_id', $item['variant_id'])
+                        ->update([
+                            'quantity' => DB::raw('quantity - ' . $item['quantity'])
+                        ]);
 
-                // Ghi nhận lịch sử xuất kho
-                \App\Models\InventoryMovement::create([
-                    'variant_id' => $item['variant_id'],
-                    'type' => 'export',
-                    'quantity' => $item['quantity'],
-                    'note' => 'Xuất kho khi đặt hàng',
-                    'user_id' => Auth::id(),
-                ]);
+                    InventoryMovement::create([
+                        'variant_id' => $item['variant_id'],
+                        'type' => 'export',
+                        'quantity' => $item['quantity'],
+                        'note' => 'Xuất kho khi đặt hàng',
+                        'user_id' => Auth::id(),
+                    ]);
+                }
             }
 
-            DB::table('carts')
-                ->where('user_id', Auth::user()->id)
-                ->delete();
+            if ($validated['payment_method'] === 'cod') {
+                DB::table('carts')
+                    ->where('user_id', Auth::user()->id)
+                    ->delete();
+
+                $user = Auth::user();
+                if ($user && !empty($user->email)) {
+                    Mail::to($user->email)->send(new PaymentConfirmation($order));
+                }
+            }
 
             DB::commit();
 
