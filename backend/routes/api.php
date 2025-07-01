@@ -51,6 +51,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/cart/transfer-session-to-user', [CartController::class, 'transferCartFromSessionToUser']);
 
     Route::get('/orders', [OrdersController::class, 'index']);
+    Route::get('/user/orders', [OrdersController::class, 'userOrders']);
     Route::get('/orders/{id}', [OrdersController::class, 'show']);
     Route::post('/orders', [OrdersController::class, 'store']);
     Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);

@@ -146,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useOrder } from '~/composables/useOrder'
 import OrderDetails from './OrderDetails.vue'
 
@@ -179,18 +179,15 @@ const props = defineProps({
     }
 })
 
-onMounted(async () => {
-    await getOrders()
-})
-
 const filteredOrders = computed(() => {
-    return orders.value.data?.filter(order => {
+    const orderList = Array.isArray(props.orders) ? props.orders : (props.orders?.data || [])
+    return orderList.filter(order => {
         const matchesSearch = order.id.toString().includes(searchQuery.value) ||
             order.user?.username?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             order.user?.email?.toLowerCase().includes(searchQuery.value.toLowerCase())
         const matchesStatus = !filterStatus.value || order.status === filterStatus.value
         return matchesSearch && matchesStatus
-    }) || []
+    })
 })
 
 const handleView = (order) => {
