@@ -22,10 +22,18 @@ export const useProducts = () => {
                 params.append('max_price', filters.max_price)
             }
             if (filters.category) {
-                params.append('category', filters.category)
+                if (Array.isArray(filters.category)) {
+                    filters.category.forEach(id => params.append('category[]', id))
+                } else {
+                    params.append('category', filters.category)
+                }
             }
             if (filters.brand) {
-                params.append('brand', filters.brand)
+                if (Array.isArray(filters.brand)) {
+                    filters.brand.forEach(id => params.append('brand[]', id))
+                } else {
+                    params.append('brand', filters.brand)
+                }
             }
             if (filters.sort_by) {
                 params.append('sort_by', filters.sort_by)
