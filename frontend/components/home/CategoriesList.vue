@@ -11,7 +11,13 @@
                     <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-w-16"></div>
                 </div>
             </div>
-            <!-- Swiper only show when not loading -->
+
+            <!-- Empty State -->
+            <div v-else-if="!categories.length" class="tw-text-center tw-text-gray-500 tw-my-6">
+                Không có dữ liệu
+            </div>
+
+            <!-- Swiper Content -->
             <swiper v-else :modules="[SwiperPagination]" :slides-per-view="5" :space-between="30"
                 :pagination="{ clickable: true }" :breakpoints="{
                     '320': {

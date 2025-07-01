@@ -5,7 +5,7 @@ export default defineNuxtPlugin(() => {
     const notyf = new Notyf({
         duration: 3000,
         position: {
-            x: 'center',
+            x: 'right',
             y: 'top',
         },
     })

@@ -80,11 +80,8 @@
                         </td>
                     </tr>
                     <tr v-if="!props.isLoading && categories.length === 0">
-                        <td colspan="8" class="tw-py-4">
-                            <div class="tw-text-center tw-text-gray-500">
-                                <i class="fas fa-box-open tw-text-3xl tw-mb-2"></i>
-                                <p class="tw-text-sm">Không có danh mục nào</p>
-                            </div>
+                        <td colspan="8" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
+                            Không có dữ liệu
                         </td>
                     </tr>
                 </tbody>

@@ -328,6 +328,7 @@ class ProductsController extends Controller
 
     public function bulkDestroy(Request $request)
     {
+        \Log::info('🔥 bulkDestroy hit', ['ids' => $request->input('ids')]);
         try {
             $ids = $request->input('ids', []);
             if (empty($ids) || !is_array($ids)) {

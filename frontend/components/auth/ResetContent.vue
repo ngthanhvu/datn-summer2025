@@ -40,6 +40,7 @@
 import { useAuth } from '~/composables/useAuth'
 const { resetPassword } = useAuth();
 const route = useRoute();
+const notyf = useNuxtApp().$notyf
 
 const emailInput = route.query.email
 const otpInputs = ref([])
@@ -57,7 +58,7 @@ const handleResetPassword = async () => {
     try {
         const otp = otpInputs.value.map(input => input.value || '0').join('').split('').map(Number);
         await resetPassword(emailInput, otp, newPassword.value, confirmPassword.value);
-        alert('Đổi mật khẩu thành công')
+        notyf.success('Đổi mật khẩu thành công')
         navigateTo('/login')
     } catch (error) {
         console.error(error)

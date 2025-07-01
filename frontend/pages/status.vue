@@ -12,7 +12,15 @@
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Mã đơn hàng:</span> {{ orderId }}</p>
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Số tiền:</span> {{ formatPrice(amount) }}</p>
                 <p class="tw-text-gray-700"><span class="tw-font-medium">Ngày:</span> {{ formatDate(date) }}</p>
-                <p v-if="trackingCode" class="tw-text-gray-700"><span class="tw-font-medium">Mã theo dõi:</span> {{ trackingCode }}</p>
+                <!-- <p v-if="trackingCode" class="tw-text-gray-700"><span class="tw-font-medium">Mã theo dõi:</span> {{ trackingCode }}</p> -->
+                <p v-if="trackingCode" class="tw-text-gray-700 tw-flex tw-items-center tw-gap-2">
+                    <span class="tw-font-medium">Mã theo dõi:</span>
+                    <span>{{ trackingCode }}</span>
+                    <button @click="copyTrackingCode" title="Copy mã"
+                        class="tw-text-sm tw-text-blue-500 hover:tw-underline focus:tw-outline-none">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </p>
             </div>
             <button @click="goToHome"
                 class="tw-w-full tw-bg-[#81AACC] hover:tw-bg-[#377db6] tw-text-white tw-font-medium tw-py-2 tw-px-4 tw-rounded-lg tw-transition tw-duration-200">
@@ -45,6 +53,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+const notyf = useNuxtApp().$notyf
 
 const router = useRouter()
 const isSuccess = ref(false)
@@ -95,6 +104,17 @@ const formatDate = (date) => {
 const goToHome = () => {
     router.push('/')
 }
+
+const copyTrackingCode = async () => {
+    if (!trackingCode.value) return
+    try {
+        await navigator.clipboard.writeText(trackingCode.value)
+        notyf.success('Đã sao chép mã theo dõi!')
+    } catch (err) {
+        console.log('Không thể sao chép. Trình duyệt không hỗ trợ.')
+    }
+}
+
 </script>
 
 <style>

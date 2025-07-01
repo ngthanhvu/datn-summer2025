@@ -9,12 +9,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Models\InventoryMovement;
 
 class OrdersController extends Controller
 {
 
     public function index()
     {
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
         $query = Orders::with([
             'user:id,username,email,phone,avatar',
             'address:id,full_name,phone,province,district,ward,street',
@@ -39,13 +43,7 @@ class OrdersController extends Controller
                 'updated_at',
                 'tracking_code'
             ]);
-
-        if (!Auth::user()->is_admin) {
-            $query->where('user_id', Auth::id());
-        }
-
         $orders = $query->orderBy('created_at', 'desc')->paginate(10);
-
         $orders->getCollection()->transform(function ($order) {
             if ($order->orderDetails) {
                 foreach ($order->orderDetails as $orderDetail) {
@@ -59,8 +57,52 @@ class OrdersController extends Controller
             }
             return $order;
         });
-
         return response()->json($orders);
+    }
+
+    public function userOrders()
+    {
+        $query = Orders::with([
+            'user:id,username,email,phone,avatar',
+            'address:id,full_name,phone,province,district,ward,street',
+            'orderDetails:id,order_id,variant_id,quantity,price,total_price',
+            'orderDetails.variant:id,color,size,price,sku,product_id',
+            'orderDetails.variant.product:id,name,price,description,slug',
+            'orderDetails.variant.product.mainImage:id,image_path,is_main,product_id'
+        ])
+            ->select([
+                'id',
+                'user_id',
+                'address_id',
+                'status',
+                'payment_method',
+                'payment_status',
+                'total_price',
+                'discount_price',
+                'final_price',
+                'coupon_id',
+                'note',
+                'created_at',
+                'updated_at',
+                'tracking_code'
+            ])
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        $query->getCollection()->transform(function ($order) {
+            if ($order->orderDetails) {
+                foreach ($order->orderDetails as $orderDetail) {
+                    if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
+                        $imagePath = $orderDetail->variant->product->mainImage->image_path;
+                        $imagePath = preg_replace('/^https?:\/\/[^\/]+\/storage\/?/', '', $imagePath);
+                        $imagePath = ltrim($imagePath, '/');
+                        $orderDetail->variant->product->mainImage->image_path = url('storage/' . $imagePath);
+                    }
+                }
+            }
+            return $order;
+        });
+        return response()->json($query);
     }
 
     public function store(Request $request)
@@ -119,25 +161,33 @@ class OrdersController extends Controller
                     throw new \Exception("Số lượng sản phẩm trong kho không đủ: variant_id = {$item['variant_id']}");
                 }
 
-                DB::table('inventories')
-                    ->where('variant_id', $item['variant_id'])
-                    ->update([
-                        'quantity' => DB::raw('quantity - ' . $item['quantity'])
-                    ]);
+                if ($validated['payment_method'] === 'cod') {
+                    DB::table('inventories')
+                        ->where('variant_id', $item['variant_id'])
+                        ->update([
+                            'quantity' => DB::raw('quantity - ' . $item['quantity'])
+                        ]);
 
-                // Ghi nhận lịch sử xuất kho
-                \App\Models\InventoryMovement::create([
-                    'variant_id' => $item['variant_id'],
-                    'type' => 'export',
-                    'quantity' => $item['quantity'],
-                    'note' => 'Xuất kho khi đặt hàng',
-                    'user_id' => Auth::id(),
-                ]);
+                    InventoryMovement::create([
+                        'variant_id' => $item['variant_id'],
+                        'type' => 'export',
+                        'quantity' => $item['quantity'],
+                        'note' => 'Xuất kho khi đặt hàng',
+                        'user_id' => Auth::id(),
+                    ]);
+                }
             }
 
-            DB::table('carts')
-                ->where('user_id', Auth::user()->id)
-                ->delete();
+            if ($validated['payment_method'] === 'cod') {
+                DB::table('carts')
+                    ->where('user_id', Auth::user()->id)
+                    ->delete();
+
+                $user = Auth::user();
+                if ($user && !empty($user->email)) {
+                    Mail::to($user->email)->send(new PaymentConfirmation($order));
+                }
+            }
 
             DB::commit();
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
+    <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6 tw-text-sm">
         <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
             <div class="tw-flex tw-gap-4">
                 <div class="tw-relative">

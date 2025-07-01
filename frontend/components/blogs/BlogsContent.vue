@@ -9,17 +9,15 @@
       <div class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-blue-500"></div>
     </div>
 
-    <div v-else-if="error" class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-6">
+    <!-- <div v-else-if="error" class="tw-bg-red-100 tw-border tw-border-red-400 tw-text-red-700 tw-px-4 tw-py-3 tw-rounded tw-mb-6">
       {{ error }}
-    </div>
+    </div> -->
 
     <div v-else>
-      <div v-if="filteredBlogs.length > 0" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-8 tw-mb-8">
-        <div
-          v-for="blog in filteredBlogs"
-          :key="blog.id"
-          class="tw-bg-white tw-rounded-lg tw-shadow-md tw-overflow-hidden hover:tw-shadow-lg tw-transition-shadow"
-        >
+      <div v-if="filteredBlogs.length > 0"
+        class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-8 tw-mb-8">
+        <div v-for="blog in filteredBlogs" :key="blog.id"
+          class="tw-bg-white tw-rounded-lg tw-shadow-md tw-overflow-hidden hover:tw-shadow-lg tw-transition-shadow">
           <NuxtLink :to="`/blog/${blog.slug}`" class="tw-no-underline tw-text-gray-900">
             <div class="tw-relative tw-h-48 tw-overflow-hidden">
               <img v-if="blog.image" :src="blog.image" :alt="blog.title" class="tw-w-full tw-h-full tw-object-cover" />
@@ -44,16 +42,10 @@
         Không có bài viết nào.
       </div>
       <div v-if="pagination && filteredBlogs.length > 0" class="tw-flex tw-justify-center tw-mt-8">
-        <button
-          v-for="page in pagination.last_page"
-          :key="page"
-          @click="fetchBlogs(page)"
-          :class="{
-            'tw-bg-primary tw-text-white': page === pagination.current_page,
-            'tw-bg-white tw-text-gray-700': page !== pagination.current_page
-          }"
-          class="tw-px-4 tw-py-2 tw-mx-1 tw-rounded tw-border tw-border-gray-300 hover:tw-bg-gray-100"
-        >
+        <button v-for="page in pagination.last_page" :key="page" @click="fetchBlogs(page)" :class="{
+          'tw-bg-primary tw-text-white': page === pagination.current_page,
+          'tw-bg-white tw-text-gray-700': page !== pagination.current_page
+        }" class="tw-px-4 tw-py-2 tw-mx-1 tw-rounded tw-border tw-border-gray-300 hover:tw-bg-gray-100">
           {{ page }}
         </button>
       </div>
@@ -86,16 +78,20 @@ const formatDate = dateString => {
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
 .line-clamp-3 {
   display: -webkit-box;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
 .tw-text-primary {
   color: #3bb77e;
 }

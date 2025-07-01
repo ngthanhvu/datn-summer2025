@@ -14,6 +14,13 @@
                 </div>
             </div>
         </div>
+
+        <!-- Không có dữ liệu -->
+        <div v-else-if="!latestBlogs.length" class="tw-text-center tw-text-gray-500 tw-my-6">
+            Không có bài viết
+        </div>
+
+        <!-- Swiper hiển thị blog -->
         <swiper v-else :modules="[SwiperPagination]" :slides-per-view="1" :space-between="0"
             :pagination="{ clickable: true }" :breakpoints="{
                 '640': { slidesPerView: 2, spaceBetween: 16 },
@@ -101,7 +108,6 @@ const formatDate = dateString => {
     transition: border 0.2s, box-shadow 0.2s;
 }
 
-/* Ảnh cố định chiều cao */
 .image-container {
     height: 180px;
     min-height: 180px;
@@ -110,7 +116,6 @@ const formatDate = dateString => {
     position: relative;
 }
 
-/* Phần nội dung không làm vỡ layout */
 .blog-card-content {
     flex: 1 1 auto;
     display: flex;
@@ -121,9 +126,9 @@ const formatDate = dateString => {
     min-height: 0;
 }
 
-/* Giới hạn title 2 dòng */
 h3.line-clamp-2 {
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -131,9 +136,9 @@ h3.line-clamp-2 {
     line-height: 1.5em;
 }
 
-/* Giới hạn mô tả 3 dòng */
 .line-clamp-3 {
     display: -webkit-box;
+    line-clamp: 3;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -141,7 +146,6 @@ h3.line-clamp-2 {
     line-height: 1.5em;
 }
 
-/* Hover đổi màu title */
 .blog-card:hover h3.line-clamp-2 {
     color: #81AACC;
 }
@@ -150,7 +154,6 @@ h3.line-clamp-2 {
     color: #3bb77e;
 }
 
-/* Tùy chỉnh dấu chấm swiper */
 :deep(.swiper-pagination-bullet-active) {
     background: #000;
 }

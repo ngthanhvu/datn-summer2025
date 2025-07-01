@@ -112,6 +112,11 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr>
+                            <td colspan="8" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
                     </template>
                 </tbody>
             </table>

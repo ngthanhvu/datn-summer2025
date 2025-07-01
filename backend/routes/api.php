@@ -17,6 +17,8 @@ use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MessengerController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -49,6 +51,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/cart/transfer-session-to-user', [CartController::class, 'transferCartFromSessionToUser']);
 
     Route::get('/orders', [OrdersController::class, 'index']);
+    Route::get('/user/orders', [OrdersController::class, 'userOrders']);
     Route::get('/orders/{id}', [OrdersController::class, 'show']);
     Route::post('/orders', [OrdersController::class, 'store']);
     Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
@@ -64,6 +67,18 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/favorites', [FavoriteProductController::class, 'store']);
     Route::get('/favorites/check/{slug}', [FavoriteProductController::class, 'check']);
     Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
+
+    // Chat/Messenger routes
+    Route::prefix('chat')->group(function () {
+        Route::get('/conversations', [MessengerController::class, 'getConversations']);
+        Route::get('/messages/{userId}', [MessengerController::class, 'getMessages']);
+        Route::post('/send', [MessengerController::class, 'sendMessage']);
+        Route::put('/read/{messageId}', [MessengerController::class, 'markAsRead']);
+        Route::get('/unread-count', [MessengerController::class, 'getUnreadCount']);
+        Route::get('/search-users', [MessengerController::class, 'searchUsers']);
+        Route::delete('/message/{messageId}', [MessengerController::class, 'deleteMessage']);
+        Route::get('/admins', [MessengerController::class, 'getAdmins']);
+    });
 });
 
 // Public blog routes
@@ -100,7 +115,7 @@ Route::put('/products/{id}', [ProductsController::class, 'update']);
 Route::get('/products/slug/{slug}', [ProductsController::class, 'getProductBySlug']);
 Route::get('/products/{id}', [ProductsController::class, 'getProductById']);
 Route::delete('/products/{id}', [ProductsController::class, 'destroy']);
-Route::delete('/products/bulk-delete', [ProductsController::class, 'bulkDestroy']);
+Route::delete('/products/delete/bulk-delete', [ProductsController::class, 'bulkDestroy']);
 Route::get('/products/{id}/favorite', [ProductsController::class, 'favorite']);
 
 // Variant routes
@@ -152,4 +167,16 @@ Route::prefix('products')->group(function () {
     Route::post('import', [ProductImportController::class, 'import']);
     Route::get('import/template', [ProductImportController::class, 'downloadTemplate']);
     Route::get('import/history', [ProductImportController::class, 'getImportHistory']);
+});
+
+// Dashboard routes
+Route::prefix('dashboard')->group(function () {
+    Route::get('/stats', [DashboardController::class, 'getStats']);
+    Route::get('/revenue', [DashboardController::class, 'getMonthlyRevenue']);
+    Route::get('/revenue/yearly', [DashboardController::class, 'getYearlyRevenue']);
+    Route::get('/orders', [DashboardController::class, 'getMonthlyOrders']);
+    Route::get('/orders/status', [DashboardController::class, 'getOrdersByStatus']);
+    Route::get('/customers', [DashboardController::class, 'getCustomersStats']);
+    Route::get('/products', [DashboardController::class, 'getProductsStats']);
+    Route::get('/recent-orders', [DashboardController::class, 'getRecentOrders']);
 });

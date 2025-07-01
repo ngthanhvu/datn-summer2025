@@ -114,7 +114,7 @@ export const useProducts = () => {
 
     const bulkDeleteProducts = async (ids) => {
         try {
-            const response = await API.delete('/api/products/bulk-delete', {
+            const response = await API.delete('/api/products/delete/bulk-delete', {
                 data: { ids }
             })
             return response.data
