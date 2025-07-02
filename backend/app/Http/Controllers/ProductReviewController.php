@@ -10,13 +10,39 @@ use App\Models\Products;
 
 class ProductReviewController extends Controller
 {
+    private $badWords = [
+        'cặc', 'lồn', 'chó đẻ', 'rác rưởi', 'lừa đảo', 'hàng giả', 'sủa', 'thối', 'đểu', 'vớ vẩn',
+        'tào lao', 'phịa', 'bẩn thỉu', 'khốn nạn', 'mạt sát', 'vô dụng', 'lởm', 'đểu cáng', 'lừa gạt',
+        'hạ phẩm', 'mất dạy', 'kệch cỡm', 'bội bạc', 'chửi rủa', 'ngớ ngẩn', 'xấu xí', 'không ra gì',
+        'dối trá', 'độc hại', 'lôi thôi', 'kém chất lượng', 'vô giá trị', 'giả mạo', 'đểu cáng', 'lởm', 'lừa gạt',
+    ];
+    
+
+    private function containsBadWords($content) {
+        foreach ($this->badWords as $word) {
+            if (stripos($content, $word) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 5);
-        $reviews = ProductReview::with(['user', 'product', 'replies', 'images'])
-            ->whereNull('parent_id')
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+        $query = ProductReview::with(['user', 'product', 'replies', 'images'])
+            ->whereNull('parent_id');
+        if ($request->get('badwords') == 1) {
+            $badWords = $this->badWords;
+            $query->where(function($q) use ($badWords) {
+                foreach ($badWords as $word) {
+                    $q->orWhere('content', 'LIKE', "%$word%");
+                }
+            });
+        } else if ($request->get('negative') == 1) {
+            $query->where('rating', '<=', 2);
+        }
+        $reviews = $query->orderByDesc('created_at')->paginate($perPage);
         return response()->json($reviews);
     }
 
@@ -43,6 +69,10 @@ class ProductReviewController extends Controller
             return response()->json([
                 'message' => 'Bạn đã đánh giá sản phẩm này rồi. Vui lòng chỉnh sửa đánh giá hiện có thay vì tạo mới.'
             ], 422);
+        }
+
+        if ($this->containsBadWords($validated['content'])) {
+            $validated['is_hidden'] = true;
         }
 
         $review = ProductReview::create($validated);
@@ -80,6 +110,13 @@ class ProductReviewController extends Controller
             'delete_image_ids' => 'nullable|array',
             'delete_image_ids.*' => 'integer|exists:review_images,id'
         ]);
+
+        if (isset($validated['content']) && $this->containsBadWords($validated['content'])) {
+            $validated['is_hidden'] = true;
+        } else if (isset($validated['content']) && !$this->containsBadWords($validated['content']) && $review->is_hidden) {
+            $validated['is_hidden'] = false;
+            $validated['is_approved'] = false;
+        }
 
         $review->update($validated);
 

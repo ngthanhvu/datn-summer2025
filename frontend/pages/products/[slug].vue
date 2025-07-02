@@ -324,7 +324,7 @@
 
               <!-- Reviews Content -->
               <div v-else class="tw-space-y-6">
-                <div v-for="review in reviews" :key="review.id"
+                <div v-for="review in filteredReviews" :key="review.id"
                   class="tw-bg-white tw-rounded-lg tw-p-6 tw-border tw-border-gray-100 tw-shadow-sm tw-transition-all hover:tw-shadow-md">
                   <div class="tw-flex tw-justify-between tw-mb-4">
                     <div class="tw-flex tw-items-center tw-gap-3">
@@ -343,13 +343,11 @@
                     </div>
                     <div class="tw-flex tw-items-center tw-gap-3">
                       <div class="tw-px-3 tw-py-1 tw-rounded-full tw-flex tw-items-center tw-gap-1">
-                        <!-- <span class="tw-font-medium">{{ review.rating }}</span> -->
                         <div class="tw-text-yellow-400">
                           <i v-for="n in 5" :key="n" :class="n <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'"
                             class="tw-text-sm"></i>
                         </div>
                       </div>
-                      <!-- Nút sửa và xóa đánh giá -->
                       <div v-if="canModifyReview(review)" class="tw-flex tw-gap-2">
                         <button @click="editReview(review)"
                           class="tw-text-[#81AACC] hover:tw-text-[#6B8BA3] tw-bg-[#81AACC]/10 hover:tw-bg-[#81AACC]/20 tw-rounded-full tw-w-8 tw-h-8 tw-flex tw-items-center tw-justify-center tw-transition-colors"
@@ -364,7 +362,13 @@
                       </div>
                     </div>
                   </div>
-                  <p class="tw-text-gray-700 tw-my-4 tw-leading-relaxed">{{ review.content }}</p>
+                  <div v-if="review.is_hidden && review.user_id === user?.id" class="tw-text-red-600 tw-font-semibold tw-mb-2">Đánh giá tiêu cực (đã bị ẩn)</div>
+                  <div v-else-if="!review.is_approved && !review.is_hidden && review.user_id === user?.id" class="tw-inline-block tw-bg-yellow-100 tw-text-yellow-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs tw-font-semibold tw-ml-2">
+                    Đang phê duyệt
+                  </div>
+                  <div v-else>
+                    <p class="tw-text-gray-700 tw-my-4 tw-leading-relaxed">{{ review.content }}</p>
+                  </div>
 
                   <!-- Hiển thị hình ảnh đánh giá -->
                   <div v-if="review.images && review.images.length > 0" class="tw-mt-4 tw-flex tw-flex-wrap tw-gap-3">
@@ -951,6 +955,18 @@ const getVisibleReviewPages = () => {
 
   return pages
 }
+
+const filteredReviews = computed(() => {
+  if (!isAuthenticated.value || !user.value) {
+    // Khách hoặc chưa đăng nhập: chỉ xem đánh giá đã duyệt và không bị ẩn
+    return reviews.value.filter(r => r.is_approved && !r.is_hidden);
+  }
+  // Đã đăng nhập: hiển thị tất cả đánh giá đã duyệt và không bị ẩn, cộng với đánh giá của chính mình (dù đang chờ duyệt hoặc bị ẩn)
+  return reviews.value.filter(r =>
+    (r.is_approved && !r.is_hidden) ||
+    (r.user_id === user.value.id)
+  );
+});
 </script>
 
 <style scoped>

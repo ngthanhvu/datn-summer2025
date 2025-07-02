@@ -207,6 +207,7 @@ const perPage = ref(5);
 const totalPages = ref(1);
 const totalItems = ref(0);
 const paginationData = ref(null);
+const currentFilter = ref({});
 
 const fetchCategories = async () => {
   try {
@@ -232,12 +233,17 @@ const fetchBrands = async () => {
   }
 };
 
-const fetchReviews = async (page = 1) => {
+const fetchReviews = async (page = 1, filter = {}) => {
   loading.value = true;
   error.value = null;
   try {
     let data;
-    if (filterCategory.value && filterBrand.value) {
+    // Ưu tiên filter badwords/negative nếu có
+    if (filter.badwords === 1) {
+      data = await getAllReviews(page, perPage.value, { badwords: 1 });
+    } else if (filter.negative === 1) {
+      data = await getAllReviews(page, perPage.value, { negative: 1 });
+    } else if (filterCategory.value && filterBrand.value) {
       data = await getReviewsByCategory(
         filterCategory.value,
         page,
@@ -367,9 +373,15 @@ const filteredReviews = computed(() => {
   return reviews.value;
 });
 
-const handlePageChange = (page) => {
-  currentPage.value = page;
-  fetchReviews(page);
+const handlePageChange = (pageOrFilter) => {
+  if (typeof pageOrFilter === 'object') {
+    currentFilter.value = pageOrFilter;
+    currentPage.value = 1;
+    fetchReviews(1, pageOrFilter);
+  } else {
+    fetchReviews(pageOrFilter, currentFilter.value);
+    currentPage.value = pageOrFilter;
+  }
 };
 
 const handleFilterChange = () => {

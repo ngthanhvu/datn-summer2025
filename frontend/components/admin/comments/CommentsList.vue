@@ -12,6 +12,8 @@
                 <select v-model="filterRating" class="tw-border tw-rounded tw-px-3 tw-py-1 tw-text-sm">
                     <option value="">Điểm đánh giá</option>
                     <option v-for="n in 5" :key="n" :value="n">{{ n }} sao</option>
+                    <option value="negative">Tiêu cực (1-2 sao)</option>
+                    <option value="badwords">Từ ngữ tiêu cực</option>
                 </select>
                 <select v-model="filterHasImage" class="tw-border tw-rounded tw-px-3 tw-py-1 tw-text-sm">
                     <option value="">Có hình ảnh</option>
@@ -161,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRuntimeConfig } from 'nuxt/app'
 
 const runtimeConfig = useRuntimeConfig()
@@ -203,36 +205,37 @@ const getImageUrl = (url) => {
 }
 
 const filteredComments = computed(() => {
-    let filtered = props.comments
-
+    if (filterRating.value === 'badwords') {
+        return props.comments;
+    }
+    let filtered = props.comments;
     if (searchQuery.value) {
         filtered = filtered.filter(comment =>
             comment.content.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             comment.userName.toLowerCase().includes(searchQuery.value.toLowerCase())
-        )
+        );
     }
-
     if (filterStatus.value) {
-        filtered = filtered.filter(comment => comment.status === filterStatus.value)
+        filtered = filtered.filter(comment => comment.status === filterStatus.value);
     }
-
     if (filterRating.value) {
-        filtered = filtered.filter(comment => comment.rating === parseInt(filterRating.value))
-    }
-
-    if (filterHasImage.value) {
-        if (filterHasImage.value === 'yes') {
-            filtered = filtered.filter(comment => comment.images && comment.images.length > 0)
-        } else if (filterHasImage.value === 'no') {
-            filtered = filtered.filter(comment => !comment.images || comment.images.length === 0)
+        if (filterRating.value === 'negative') {
+            filtered = filtered.filter(comment => comment.rating <= 2);
+        } else {
+            filtered = filtered.filter(comment => comment.rating === parseInt(filterRating.value));
         }
     }
-
-    if (filterUnread.value) {
-        filtered = filtered.filter(comment => comment.status === 'pending' && !comment.isRead)
+    if (filterHasImage.value) {
+        if (filterHasImage.value === 'yes') {
+            filtered = filtered.filter(comment => comment.images && comment.images.length > 0);
+        } else if (filterHasImage.value === 'no') {
+            filtered = filtered.filter(comment => !comment.images || comment.images.length === 0);
+        }
     }
-
-    return filtered
+    if (filterUnread.value) {
+        filtered = filtered.filter(comment => comment.status === 'pending' && !comment.isRead);
+    }
+    return filtered;
 })
 
 const getStatusText = (status) => {
@@ -288,6 +291,21 @@ const isRecentReview = (date) => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays <= 7
 }
+
+watch(filterRating, (val) => {
+    if (val === 'badwords') {
+        filterHasImage.value = '';
+        filterUnread.value = '';
+        filterStatus.value = '';
+        emit('page-change', { badwords: 1 })
+    } else if (val === 'negative') {
+        emit('page-change', { negative: 1 })
+    } else if (val) {
+        emit('page-change', { rating: val })
+    } else {
+        emit('page-change', {})
+    }
+})
 </script>
 
 <style scoped>

@@ -7,7 +7,7 @@ export const useAdminReviews = () => {
     const API = axios.create({ baseURL: apiBaseUrl })
     const { getToken } = useAuth()
 
-    const getAllReviews = async (page = 1, perPage = 5) => {
+    const getAllReviews = async (page = 1, perPage = 5, extraParams = {}) => {
         try {
             const token = await getToken()
             const response = await API.get('/api/product-reviews', {
@@ -16,7 +16,8 @@ export const useAdminReviews = () => {
                 },
                 params: {
                     page,
-                    per_page: perPage
+                    per_page: perPage,
+                    ...extraParams
                 }
             })
             return response.data
