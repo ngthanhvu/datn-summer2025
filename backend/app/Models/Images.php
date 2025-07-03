@@ -18,4 +18,9 @@ class Images extends Model
     {
         return $this->belongsTo(Products::class, 'product_id');
     }
+
+    public function variant()
+    {
+        return $this->belongsTo(Variants::class, 'variant_id');
+    }
 }

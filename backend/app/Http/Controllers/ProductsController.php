@@ -27,7 +27,6 @@ class ProductsController extends Controller
                 'name',
                 'description',
                 'price',
-                'original_price',
                 'discount_price',
                 'slug',
                 'categories_id',
@@ -104,7 +103,6 @@ class ProductsController extends Controller
                 'name',
                 'description',
                 'price',
-                'original_price',
                 'discount_price',
                 'slug',
                 'categories_id',
@@ -148,7 +146,6 @@ class ProductsController extends Controller
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
                 'price' => 'required|numeric',
-                'original_price' => 'required|numeric',
                 'discount_price' => 'required|numeric',
                 'is_active' => 'required|boolean',
             ]);
@@ -165,7 +162,6 @@ class ProductsController extends Controller
                 "name" => $request->name,
                 "price" => $request->price,
                 "description" => $request->description,
-                "original_price" => $request->original_price,
                 "discount_price" => $request->discount_price,
                 "slug" => $slug,
                 "categories_id" => $request->categories_id,
@@ -192,15 +188,28 @@ class ProductsController extends Controller
             }
 
             if ($request->has('variants')) {
-                foreach ($request->variants as $variant) {
+                foreach ($request->variants as $variantIndex => $variant) {
                     if (!empty($variant['price']) && (!empty($variant['color']) || !empty($variant['size']))) {
-                        Variants::create([
+                        $createdVariant = Variants::create([
                             'color' => $variant['color'],
                             'size' => $variant['size'],
                             'price' => $variant['price'],
                             'sku' => $variant['sku'] ?? '',
                             'product_id' => $product->id,
                         ]);
+                        // Lưu ảnh phụ cho variant nếu có
+                        if ($request->hasFile("variants.$variantIndex.images")) {
+                            $variantImages = $request->file("variants.$variantIndex.images");
+                            foreach ($variantImages as $variantImage) {
+                                $imagePath = $variantImage->store('products', 'public');
+                                Images::create([
+                                    'image_path' => $imagePath,
+                                    'is_main' => false,
+                                    'product_id' => $product->id,
+                                    'variant_id' => $createdVariant->id,
+                                ]);
+                            }
+                        }
                     }
                 }
             }
@@ -226,7 +235,6 @@ class ProductsController extends Controller
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
                 'price' => 'required|numeric',
-                'original_price' => 'required|numeric',
                 'discount_price' => 'required|numeric',
                 'is_active' => 'required|boolean',
             ]);
@@ -242,7 +250,6 @@ class ProductsController extends Controller
                 "name" => $request->name,
                 "price" => $request->price,
                 "description" => $request->description,
-                "original_price" => $request->original_price,
                 "discount_price" => $request->discount_price,
                 "slug" => $slug,
                 "categories_id" => $request->categories_id,
@@ -285,15 +292,28 @@ class ProductsController extends Controller
             if ($request->has('variants')) {
                 Variants::where('product_id', $product->id)->delete();
 
-                foreach ($request->variants as $variant) {
+                foreach ($request->variants as $variantIndex => $variant) {
                     if (!empty($variant['price']) && (!empty($variant['color']) || !empty($variant['size']))) {
-                        Variants::create([
+                        $createdVariant = Variants::create([
                             'color' => $variant['color'],
                             'size' => $variant['size'],
                             'price' => $variant['price'],
                             'sku' => $variant['sku'] ?? '',
                             'product_id' => $product->id,
                         ]);
+                        // Lưu ảnh phụ cho variant nếu có
+                        if ($request->hasFile("variants.$variantIndex.images")) {
+                            $variantImages = $request->file("variants.$variantIndex.images");
+                            foreach ($variantImages as $variantImage) {
+                                $imagePath = $variantImage->store('products', 'public');
+                                Images::create([
+                                    'image_path' => $imagePath,
+                                    'is_main' => false,
+                                    'product_id' => $product->id,
+                                    'variant_id' => $createdVariant->id,
+                                ]);
+                            }
+                        }
                     }
                 }
             }
@@ -355,7 +375,7 @@ class ProductsController extends Controller
         $products = Products::with(['images' => function ($query) {
             $query->select('id', 'image_path', 'is_main', 'product_id');
         }])
-            ->select('id', 'name', 'price', 'original_price', 'discount_price', 'slug', 'categories_id')
+            ->select('id', 'name', 'price', 'discount_price', 'slug', 'categories_id')
             ->where('name', 'like', "%{$q}%")
             ->get();
 

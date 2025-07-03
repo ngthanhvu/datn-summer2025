@@ -37,7 +37,7 @@
           </div>
         </div>
       </header>
-      <main class="content">
+      <main class="content tw-bg-[#F5F7FB] tw-h-screen">
         <slot />
       </main>
     </div>

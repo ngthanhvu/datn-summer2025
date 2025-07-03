@@ -30,4 +30,9 @@ class Variants extends Model
     {
         return $this->hasMany(InventoryMovement::class);
     }
+
+    public function images()
+    {
+        return $this->hasMany(Images::class, 'variant_id');
+    }
 }

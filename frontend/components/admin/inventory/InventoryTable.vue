@@ -1,9 +1,34 @@
 <template>
     <div class="tw-p-6">
         <div class="tw-mb-6">
-            <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Tổng quan kho</h1>
+            <div
+                class="tw-flex tw-flex-col sm:tw-flex-row tw-justify-between tw-items-start sm:tw-items-center tw-gap-4 tw-mb-8">
+                <div>
+                    <h1 class="tw-text-3xl tw-font-bold tw-text-gray-900 tw-mb-2">Quản lý kho</h1>
+                    <p class="tw-text-gray-600">Quản lý hàng tồn kho và mức tồn kho sản phẩm của bạn</p>
+                </div>
+                <div class="tw-flex tw-flex-col sm:tw-flex-row tw-gap-3">
+                    <button @click="refreshData"
+                        class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-gray-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-gray-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-gray-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
+                        <svg class="tw-w-4 tw-h-4 tw-mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                            </path>
+                        </svg>
+                        Tải lại
+                    </button>
+                    <router-link to="/inventory/import"
+                        class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-green-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-green-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-green-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
+                        <svg class="tw-w-4 tw-h-4 tw-mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        Nhập/Xuất kho
+                    </router-link>
+                </div>
+            </div>
 
-            <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-md tw-mb-6">
+            <!-- <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-md tw-mb-6">
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-4">
                     <div>
                         <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Sản phẩm</label>
@@ -33,7 +58,7 @@
                         </select>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Inventory Table -->
             <div class="tw-bg-white tw-rounded-lg tw-shadow-md">

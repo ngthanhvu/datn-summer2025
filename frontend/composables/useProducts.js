@@ -52,6 +52,15 @@ export const useProducts = () => {
         return categories
     }
 
+    const getVariant = async () => {
+        try {
+            const res = await API.get('/api/variants')
+            return res.data
+        } catch (err) {
+            console.error('Bug:', err)
+        }
+    }
+
     const getProductById = async (id) => {
         try {
             const response = await API.get(`/api/products/${id}`)
@@ -345,6 +354,7 @@ export const useProducts = () => {
         getTemplateSheet,
         importFile,
         bulkDeleteProducts,
-        logCategoryStats
+        logCategoryStats,
+        getVariant
     }
 }

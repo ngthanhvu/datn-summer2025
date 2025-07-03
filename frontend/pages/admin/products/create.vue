@@ -1,5 +1,5 @@
 <template>
-  <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
+  <div class="tw-bg-[#F5F7FB] tw-rounded-lg tw-shadow tw-p-6">
     <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
       <div>
         <h1 class="tw-text-2xl tw-font-semibold tw-text-gray-900">Thêm sản phẩm mới</h1>
