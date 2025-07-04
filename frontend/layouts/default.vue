@@ -2,12 +2,12 @@
   <div class="tw-flex tw-flex-col tw-min-h-screen">
     <HeaderHome />
 
-    <div class="tw-flex-grow">
+    <div class="tw-flex-grow tw-bg-[#F5F5FA]">
       <slot />
     </div>
 
     <FooterHome />
-    
+
     <!-- Chat Widget -->
     <ChatWidget v-if="isAuthenticated" />
   </div>

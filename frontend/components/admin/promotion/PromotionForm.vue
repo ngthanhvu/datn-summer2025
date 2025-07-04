@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="tw-bg-white tw-rounded-lg tw-p-6 tw-w-[50%] mx-auto tw-border tw-border-gray-200">
         <form @submit.prevent="handleSubmit" class="form form-grid">
             <div class="form-group">
                 <label for="name">Tên chương trình</label>

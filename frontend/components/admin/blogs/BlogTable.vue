@@ -148,34 +148,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useBlog } from '@/composables/useBlog'
+import { defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
 
-const { blogs, loading, error, pagination, fetchBlogs, deleteBlog } = useBlog()
+const props = defineProps({
+    blogs: { type: Array, default: () => [] },
+    loading: { type: Boolean, default: false },
+    error: { type: [String, null], default: null },
+    pagination: { type: Object, default: null }
+})
+const emit = defineEmits(['delete', 'refresh'])
 const router = useRouter()
-
-const selectedStatus = ref('')
-const searchQuery = ref('')
-
-onMounted(async () => {
-    await fetchBlogs()
-})
-
-watch([selectedStatus, searchQuery], async () => {
-    await fetchBlogs(1, {
-        status: selectedStatus.value,
-        search: searchQuery.value
-    })
-})
-
-const changePage = async (page) => {
-    if (page < 1 || page > pagination.value.last_page) return
-    await fetchBlogs(page, {
-        status: selectedStatus.value,
-        search: searchQuery.value
-    })
-}
 
 const handleEdit = (blog) => {
     router.push(`/admin/blogs/${blog.id}/edit`)
@@ -183,9 +166,13 @@ const handleEdit = (blog) => {
 
 const handleDelete = async (blog) => {
     if (confirm(`Bạn có chắc chắn muốn xóa bài viết "${blog.title}"?`)) {
-        await deleteBlog(blog.id)
-        await fetchBlogs(pagination.value.current_page)
+        emit('delete', blog.id)
+        emit('refresh')
     }
+}
+
+const changePage = (page) => {
+    emit('refresh', page)
 }
 
 function getStatusLabel(status) {

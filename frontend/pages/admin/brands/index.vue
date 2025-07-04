@@ -5,11 +5,22 @@
                 <h1>Quản lý thương hiệu</h1>
                 <p class="text-gray-600">Quản lý thương hiệu sản phẩm của bạn</p>
             </div>
-            <NuxtLink to="/admin/brands/create"
-                class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-primary-dark">
-                <i class="fas fa-plus"></i>
-                Thêm thương hiệu
-            </NuxtLink>
+            <div class="tw-flex tw-gap-3">
+                <button @click="handleRefresh"
+                    class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-gray-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-gray-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-gray-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
+                    <svg class="tw-w-4 tw-h-4 tw-mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                        </path>
+                    </svg>
+                    Tải lại
+                </button>
+                <NuxtLink to="/admin/brands/create"
+                    class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-primary-dark">
+                    <i class="fas fa-plus"></i>
+                    Thêm thương hiệu
+                </NuxtLink>
+            </div>
         </div>
 
         <BrandsTable :brands="brands" :isLoading="isLoading" @delete="handleDelete" @bulk-delete="handleBulkDelete" />
@@ -95,6 +106,17 @@ const handleBulkDelete = async (selectedBrands) => {
         isLoading.value = false
         console.error('Failed to bulk delete brands:', error)
         Swal.fire('Có lỗi xảy ra khi xóa thương hiệu', error.message, 'error')
+    }
+}
+
+const handleRefresh = async () => {
+    isLoading.value = true
+    try {
+        brands.value = await getBrands()
+    } catch (error) {
+        console.error('Failed to fetch brands:', error)
+    } finally {
+        isLoading.value = false
     }
 }
 

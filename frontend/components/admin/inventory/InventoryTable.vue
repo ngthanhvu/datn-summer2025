@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            <!-- <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-md tw-mb-6">
+            <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-md tw-mb-6">
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-4">
                     <div>
                         <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Sản phẩm</label>
@@ -58,7 +58,7 @@
                         </select>
                     </div>
                 </div>
-            </div> -->
+            </div>
 
             <!-- Inventory Table -->
             <div class="tw-bg-white tw-rounded-lg tw-shadow-md">

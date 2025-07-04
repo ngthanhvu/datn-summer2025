@@ -1,5 +1,5 @@
 <template>
-  <footer class="tw-bg-[#81AACC] tw-text-white tw-pt-10 tw-pb-4 tw-mt-10">
+  <footer class="tw-bg-[#81AACC] tw-text-white tw-pt-10 tw-pb-4">
     <div class="tw-container tw-mx-auto tw-px-4 tw-py-10">
       <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-4 tw-gap-8">
         <!-- Cột 1: Thông tin liên hệ -->

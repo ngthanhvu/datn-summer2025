@@ -6,7 +6,9 @@
 
     <NewProducts />
 
-    <Banner />
+    <div class="tw-mt-3">
+      <Banner />
+    </div>
 
     <CategoryProducts />
 

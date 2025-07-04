@@ -23,72 +23,106 @@
         </div>
 
         <!-- Product Section -->
-        <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-8 tw-mb-12">
-          <!-- Product Images -->
-          <div class="tw-space-y-4">
-            <!-- Main Image + Thumbnails (hàng ngang) -->
-            <div class="tw-flex tw-flex-col tw-items-center">
-              <img :src="mainImage" :alt="data.name" class="tw-w-[400px] tw-h-[400px] md:tw-w-[480px] md:tw-h-[480px] tw-object-contain tw-rounded-lg tw-shadow tw-bg-white tw-mx-auto" />
-              <!-- Thumbnails (sub images) - luôn là ảnh sản phẩm -->
-              <div class="tw-flex tw-gap-2 tw-mt-4">
-                <img
-                  v-for="(img, idx) in productImages"
-                  :key="idx"
-                  :src="img"
-                  :alt="data.name"
-                  class="tw-w-16 tw-h-16 tw-object-contain tw-rounded tw-cursor-pointer tw-border tw-bg-white"
-                  :class="{ 'tw-ring-2 tw-ring-[#81AACC]': img === mainImage }"
-                  @click="mainImage = img"
-                />
-              </div>
+        <div
+          class="tw-flex tw-flex-col lg:tw-flex-row tw-items-stretch tw-justify-center tw-mb-5 tw-p-5 tw-bg-white tw-rounded-[10px] tw-border tw-border-bg-gray-200">
+          <!-- Product Images Section -->
+          <div class="tw-flex tw-w-full lg:tw-w-auto tw-gap-4 tw-justify-center tw-p-5 tw-h-full">
+            <!-- Thumbnails dọc -->
+            <div class="tw-flex lg:tw-flex-col tw-flex-row tw-gap-2 tw-items-center tw-justify-center">
+              <img v-for="(img, idx) in productImages" :key="idx" :src="img" :alt="data.name"
+                class="tw-w-14 tw-h-14 tw-object-contain tw-rounded tw-cursor-pointer tw-border-2 tw-bg-white"
+                :class="{ 'tw-ring-2 tw-ring-[#81AACC] tw-border-[#81AACC]': img === mainImage, 'tw-border-gray-200': img !== mainImage }"
+                @click="mainImage = img" />
+            </div>
+            <!-- Ảnh chính lớn -->
+            <div
+              class="tw-bg-white tw-rounded-xl tw-border tw-border-gray-100 tw-p-10 tw-flex tw-items-center tw-justify-center tw-max-w-[650px] tw-max-h-[750px] tw-h-full">
+              <img :src="mainImage" :alt="data.name"
+                class="tw-w-full tw-h-full tw-max-w-[600px] tw-max-h-[700px] tw-object-contain tw-rounded-lg" />
             </div>
           </div>
-
           <!-- Product Info -->
-          <div class="tw-space-y-6">
+          <div
+            class="tw-w-full lg:tw-flex-1 tw-flex tw-flex-col tw-justify-start tw-max-w-[480px] tw-space-y-6 tw-pt-5 tw-h-full">
             <div>
-              <h1 class="tw-text-2xl tw-font-bold tw-mb-2">{{ data.name }}</h1>
-              <p class="tw-text-gray-500">Danh mục: <NuxtLink :to="'/category/' + data.category?.slug"
-                  v-if="data.category" class="tw-text-[#81AACC] hover:tw-underline">{{ data.category.name }}</NuxtLink>
-              </p>
-            </div>
-
-            <!-- Price -->
-            <div class="tw-space-y-2">
-              <div class="tw-flex tw-items-center tw-gap-4">
-                <span class="tw-text-2xl tw-font-bold tw-text-[#81AACC]">{{ formatPrice(displayPrice) }}</span>
-                <span v-if="showOriginalPrice" class="tw-text-lg tw-text-gray-400 tw-line-through">
+              <h1 class="tw-text-[22px] tw-font-semibold tw-leading-[28px] tw-mb-2">
+                {{ data.name }}
+              </h1>
+              <div class="tw-text-[15px] tw-text-gray-600 tw-mb-4">
+                Thương hiệu:
+                <a class="tw-text-[#2f6ad8] hover:tw-underline" href="#">
+                  {{ data.brand.name || 'EGA' }}
+                </a>
+                <span class="tw-mx-2">|</span>
+                Mã sản phẩm:
+                <a class="tw-text-[#2f6ad8] hover:tw-underline" href="#">
+                  {{ data.sku || 'Đang cập nhật' }}
+                </a>
+              </div>
+              <div class="tw-flex tw-items-center tw-justify-between tw-text-[13px] tw-font-semibold tw-mb-2">
+              </div>
+              <div class="tw-flex tw-items-center tw-gap-3 tw-mb-3">
+                <span class="tw-text-[22px] tw-font-bold">
+                  {{ formatPrice(displayPrice) }}
+                </span>
+                <span v-if="showOriginalPrice" class="tw-line-through tw-text-gray-400 tw-text-[15px]">
                   {{ formatPrice(data.price) }}
                 </span>
-                <span v-if="showOriginalPrice"
-                  class="tw-bg-red-500 tw-text-white tw-px-2 tw-py-1 tw-rounded-full tw-text-sm">
+                <span v-if="showOriginalPrice" class="tw-text-[#d43f3f] tw-text-[15px] tw-font-semibold">
                   -{{ Math.round(100 - (displayPrice / data.price) * 100) }}%
                 </span>
               </div>
+              <div v-if="showOriginalPrice" class="tw-text-[13px] tw-text-gray-500 tw-mb-4">
+                (Tiết kiệm {{ formatPrice(data.price - displayPrice) }})
+              </div>
               <p class="tw-text-sm tw-text-gray-500">Giá đã bao gồm VAT</p>
+              <!-- Khuyến mãi - Ưu đãi -->
+              <div
+                class="tw-border tw-border-dashed tw-border-blue-400 tw-rounded-md tw-px-4 tw-py-4 tw-mb-4 tw-text-[15px] tw-text-gray-700 tw-leading-5">
+                <div class="tw-flex tw-items-center tw-gap-1 tw-mb-1 tw-font-semibold tw-text-blue-600">
+                  <i class="fas fa-gift"></i>
+                  <span>KHUYẾN MÃI - ƯU ĐÃI</span>
+                </div>
+                <ul class="tw-list-disc tw-list-inside tw-space-y-0.5">
+                  <li>
+                    Nhập mã <span class="tw-font-semibold">DEVGANG</span> thêm 5% đơn hàng
+                    <a class="tw-text-red-600 hover:tw-underline" href="#">Sao chép</a>
+                  </li>
+                  <li>Hỗ trợ 10.000 phí Ship cho đơn hàng từ 200.000₫</li>
+                  <li>Miễn phí Ship cho đơn hàng từ 300.000₫</li>
+                  <li>Đổi trả trong 30 ngày nếu sản phẩm lỗi bất kì</li>
+                </ul>
+              </div>
+              <div class="tw-mb-3 tw-text-[11px]">
+                <div class="tw-mb-1 tw-font-semibold tw-text-[16px]">Mã giảm giá</div>
+                <div class="tw-flex tw-flex-wrap tw-gap-2">
+                  <button
+                    class="tw-border tw-border-blue-400 tw-rounded tw-px-3 tw-py-1 tw-text-blue-600 tw-text-[13px]">DEVGAMGREESHIP</button>
+                  <button
+                    class="tw-border tw-border-blue-400 tw-rounded tw-px-3 tw-py-1 tw-text-blue-600 tw-text-[13px]">GIAM50K</button>
+                  <button
+                    class="tw-border tw-border-blue-400 tw-rounded tw-px-3 tw-py-1 tw-text-blue-600 tw-text-[13px]">GIAM30</button>
+                  <button
+                    class="tw-border tw-border-blue-400 tw-rounded tw-px-3 tw-py-1 tw-text-blue-600 tw-text-[13px]">GIAM40</button>
+                </div>
+              </div>
             </div>
 
             <!-- Variants -->
             <div class="tw-space-y-4" v-if="data.variants && data.variants.length > 0">
               <!-- Size -->
               <div v-if="sizes.length > 0">
-                <h3 class="tw-font-medium tw-mb-2">Kích thước</h3>
+                <h3 class="tw-font-medium tw-mb-2 tw-text-[17px]">Kích thước</h3>
                 <div class="tw-flex tw-gap-2">
-                  <button
-                    v-for="size in sizes"
-                    :key="size"
-                    @click="selectedSize = size"
-                    @mouseenter="hoveredSize = size"
-                    @mouseleave="hoveredSize = ''"
-                    :class="[
+                  <button v-for="size in sizes" :key="size" @click="selectedSize = size"
+                    @mouseenter="hoveredSize = size" @mouseleave="hoveredSize = ''" :class="[
                       'tw-px-4 tw-py-2 tw-border tw-rounded-md tw-transition-colors',
                       hoveredSize === size
                         ? 'tw-bg-[#e0f2fe] tw-border-[#81AACC] tw-text-[#0369a1]'
                         : selectedSize === size
                           ? 'tw-bg-[#81AACC] tw-text-white tw-border-[#81AACC]'
                           : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
-                    ]"
-                  >
+                    ]">
                     {{ size }}
                   </button>
                 </div>
@@ -96,37 +130,29 @@
 
               <!-- Color -->
               <div v-if="colors.length > 0">
-                <h3 class="tw-font-medium tw-mb-2">Màu sắc</h3>
+                <h3 class="tw-font-medium tw-mb-2 tw-text-[17px]">Màu sắc</h3>
                 <div class="tw-flex tw-gap-2">
-                  <button
-                    v-for="color in colors"
-                    :key="color.name"
-                    @click="selectedColor = color"
-                    @mouseenter="hoveredColor = color"
-                    @mouseleave="hoveredColor = null"
-                    :class="[
+                  <button v-for="color in colors" :key="color.name" @click="selectedColor = color"
+                    @mouseenter="hoveredColor = color" @mouseleave="hoveredColor = null" :class="[
                       'tw-w-10 tw-h-10 tw-rounded-full tw-border-2 tw-transition-colors',
                       hoveredColor && hoveredColor.name === color.name
                         ? 'tw-border-[#38bdf8] tw-ring-2 tw-ring-[#38bdf8]'
                         : selectedColor && selectedColor.name === color.name
                           ? 'tw-border-[#81AACC] tw-ring-2 tw-ring-[#81AACC]'
                           : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
-                    ]"
-                    :style="{ backgroundColor: color.code }"
-                    :title="color.name"
-                  ></button>
+                    ]" :style="{ backgroundColor: color.code }" :title="color.name"></button>
                 </div>
               </div>
             </div>
 
             <!-- Quantity -->
             <div>
-              <h3 class="tw-font-medium tw-mb-2">Số lượng</h3>
+              <h3 class="tw-font-medium tw-mb-2 tw-text-[17px]">Số lượng</h3>
               <div class="tw-flex tw-items-center tw-gap-4">
                 <div class="tw-flex tw-items-center tw-border tw-rounded-md">
                   <button @click="quantity > 1 && quantity--" class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">-</button>
                   <input type="number" v-model="quantity" min="1" :max="selectedVariantStock"
-                    class="tw-w-16 tw-text-center tw-border-x tw-py-2" />
+                    class="tw-w-20 tw-text-center tw-border-x tw-py-3 tw-text-[16px]" />
                   <button @click="quantity < selectedVariantStock && quantity++"
                     class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">+</button>
                 </div>
@@ -137,14 +163,14 @@
             <!-- Actions -->
             <div class="tw-flex tw-gap-4">
               <button
-                class="tw-flex-1 tw-bg-[#81AACC] tw-text-white tw-py-3 tw-rounded-md hover:tw-bg-[#6B8BA3] tw-transition-colors"
+                class="tw-flex-1 tw-bg-[#81AACC] tw-text-white tw-py-2 tw-text-[18px] tw-rounded-md hover:tw-bg-[#6B8BA3] tw-transition-colors"
                 @click="addToCart">
                 Thêm vào giỏ hàng
               </button>
             </div>
 
             <!-- Status -->
-            <div class="tw-flex tw-items-center tw-gap-2 tw-text-sm">
+            <div class="tw-flex tw-items-center tw-gap-2 tw-text-[16px]">
               <span :class="[
                 'tw-font-medium',
                 selectedVariantStock > 0 ? 'tw-text-green-600' : 'tw-text-red-600'
@@ -158,7 +184,7 @@
         </div>
 
         <!-- Description & Reviews -->
-        <div class="tw-border-t tw-pt-8">
+        <div class="tw-pt-3 tw-bg-white tw-p-8 tw-rounded-[10px] tw-border tw-border-bg-gray-200">
           <div class="tw-flex tw-gap-8 tw-mb-8">
             <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id" :class="[
               'tw-px-4 tw-py-2 tw-font-medium tw-border-b-2 tw-transition-colors',
@@ -486,7 +512,7 @@
         </div>
 
         <!-- Related Products -->
-        <div class="tw-mt-12">
+        <div class="tw-mt-5 tw-bg-white tw-p-8 tw-rounded-[10px] tw-border tw-border-bg-gray-200">
           <h2 class="tw-text-2xl tw-font-bold tw-mb-6">Sản phẩm liên quan</h2>
           <!-- Mobile Slider -->
           <div class="lg:tw-hidden">

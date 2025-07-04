@@ -4,7 +4,7 @@
             <ProductFilter v-model="showFilter" @filter="handleFilter" />
             <main class="tw-flex-1">
                 <div
-                    class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 tw-mb-6">
+                    class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 tw-mb-3 tw-bg-white tw-p-3 tw-rounded-[5px]">
                     <div class="tw-flex tw-items-center tw-gap-4 tw-w-full md:tw-w-auto">
                         <button @click="showFilter = !showFilter"
                             class="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-gray-600 md:tw-hidden">
@@ -45,7 +45,8 @@
                 </div>
 
                 <!-- Products Grid -->
-                <div v-else class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
+                <div v-else
+                    class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4 tw-bg-white tw-p-8 tw-rounded-[5px]">
                     <Card v-for="product in paginatedProducts" :key="product.id" :product="product" />
                 </div>
 

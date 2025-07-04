@@ -1,6 +1,6 @@
 <template>
     <div
-        class="tw-grid tw-grid-cols-2 tw-gap-4 tw-py-6 tw-w-full md:tw-flex md:tw-justify-between md:tw-items-center md:tw-gap-2">
+        class="tw-grid tw-grid-cols-2 tw-gap-4 tw-py-6 tw-w-full md:tw-flex md:tw-justify-between md:tw-items-center md:tw-gap-2 tw-bg-white tw-mb-3 tw-mt-3 tw-rounded-[5px]">
         <div class="tw-flex tw-items-center tw-gap-3 tw-flex-1 tw-justify-center">
             <div
                 class="tw-w-10 tw-h-10 tw-rounded-full tw-border tw-border-blue-200 tw-flex tw-items-center tw-justify-center">

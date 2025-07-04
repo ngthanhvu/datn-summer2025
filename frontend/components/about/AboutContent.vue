@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-text-[#1a1a1a]">
+    <div class="tw-text-[#1a1a1a] tw-bg-white tw-pb-5">
         <div class="tw-max-w-7xl tw-mx-auto tw-px-6 md:tw-px-10 tw-pt-10 md:tw-pt-20">
             <div class="tw-flex tw-flex-col md:tw-flex-row md:tw-items-center md:tw-gap-20">
                 <div class="md:tw-w-1/2">

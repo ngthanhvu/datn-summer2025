@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-mt-8">
+    <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[10px]">
         <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
             <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800">Sản phẩm theo danh mục</h2>
         </div>
@@ -9,16 +9,16 @@
             <button @click="selectCategory(null)" :class="[
                 'tw-px-4 tw-py-2 tw-rounded-full tw-text-sm tw-font-medium tw-transition-colors',
                 selectedCategory === null
-                    ? 'tw-bg-blue-600 tw-text-white'
-                    : 'tw-bg-gray-100 tw-text-gray-700 tw-hover:bg-gray-200'
+                    ? 'tw-bg-[#81aacc] tw-text-white'
+                    : 'tw-bg-white tw-border tw-border-gray-300 tw-text-gray-700 tw-hover:bg-gray-200'
             ]">
                 Tất cả sản phẩm
             </button>
             <button v-for="category in categories" :key="category.id" @click="selectCategory(category.id)" :class="[
                 'tw-px-4 tw-py-2 tw-rounded-full tw-text-sm tw-font-medium tw-transition-colors',
                 selectedCategory === category.id
-                    ? 'tw-bg-blue-600 tw-text-white'
-                    : 'tw-bg-gray-100 tw-text-gray-700 tw-hover:bg-gray-200'
+                    ? 'tw-bg-[#81aacc] tw-text-white'
+                    : 'tw-bg-white tw-border tw-border-gray-300 tw-text-gray-700 tw-hover:bg-gray-200'
             ]">
                 {{ category.name }}
             </button>

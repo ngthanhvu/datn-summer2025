@@ -1,6 +1,7 @@
 <template>
   <NuxtLink :to="`/products/${product.slug}`" class="tw-block">
-    <div class="tw-w-full tw-overflow-hidden tw-group tw-pb-4 tw-relative">
+    <div
+      class="tw-w-full tw-overflow-hidden tw-group tw-pb-3 tw-relative tw-border tw-border-gray-150 tw-rounded-[5px] tw-bg-white">
       <!-- Image wrapper -->
       <div class="tw-relative tw-overflow-hidden">
         <img :src="getMainImage" :alt="product.name"

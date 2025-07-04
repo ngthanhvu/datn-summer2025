@@ -1,6 +1,6 @@
 <template>
-    <div class="tw-mt-8">
-        <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
+    <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px]">
+        <div class="tw-flex tw-justify-between tw-items-center tw-mb-3">
             <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800">Sản phẩm mới</h2>
             <NuxtLink to="/products/new"
                 class="tw-text-blue-600 tw-hover:text-blue-800 tw-font-medium tw-transition-colors">
