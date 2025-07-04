@@ -31,7 +31,15 @@ class CartController extends Controller
             foreach ($carts as $cart) {
                 if ($cart->variant && $cart->variant->product && $cart->variant->product->mainImage) {
                     $path = $cart->variant->product->mainImage->image_path;
-                    $cart->variant->product->mainImage->image_path = url('storage/' . $path);
+                    if (preg_match('/^https?:\/\//', $path)) {
+                        $cart->variant->product->mainImage->image_path = $path;
+                    } elseif (strpos($path, '/storage/') === 0) {
+                        $cart->variant->product->mainImage->image_path = $path;
+                    } elseif (strpos($path, 'storage/') === 0) {
+                        $cart->variant->product->mainImage->image_path = '/' . $path;
+                    } else {
+                        $cart->variant->product->mainImage->image_path = '/storage/' . ltrim($path, '/');
+                    }
                 }
             }
 

@@ -78,8 +78,10 @@ import ShippingInfo from '~/components/order-tracking/ShippingInfo.vue'
 import PaymentInfo from '~/components/order-tracking/PaymentInfo.vue'
 import OrderItems from '~/components/order-tracking/OrderItems.vue'
 import { useOrder } from '~/composables/useOrder'
+import { useNuxtApp } from '#app'
 
 const { getOrderByTrackingCode, currentOrder, loading, error, getOrderStatus, getPaymentStatus, getPaymentMethod, formatPrice } = useOrder()
+const { $config: runtimeConfig } = useNuxtApp()
 
 const orderData = ref(null)
 const orderError = ref(null)
@@ -108,6 +110,19 @@ const mapOrderData = (order) => {
     if (!order) {
         return null;
     }
+    const getImageUrl = (path) => {
+        if (!path) return 'https://placehold.co/100x100'
+        if (path.includes('http://') || path.includes('https://')) {
+            const storageIndex = path.lastIndexOf('/storage/')
+            if (storageIndex !== -1) {
+                return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + path.substring(storageIndex)
+            }
+            return path
+        }
+        if (path.startsWith('/storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + path
+        if (path.startsWith('storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
+        return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
+    }
     return {
         trackingCode: order.tracking_code,
         orderDate: new Date(order.created_at).toLocaleDateString('vi-VN'),
@@ -120,8 +135,7 @@ const mapOrderData = (order) => {
                 icon: 'fas fa-check',
                 completed: true
             },
-            // Add more timeline steps based on order status if needed
-            // For now, simple mapping, you can expand this logic
+
             ...(order.status === 'processing' || order.status === 'shipping' || order.status === 'completed' || order.status === 'cancelled' ? [
                 {
                     title: 'Đơn hàng đang được xử lý',
@@ -172,7 +186,7 @@ const mapOrderData = (order) => {
             size: item.variant?.size || 'N/A',
             quantity: item.quantity || 0,
             price: item.price || 0,
-            image: item.variant?.product?.main_image?.image_path || 'https://placehold.co/100x100'
+            image: getImageUrl(item.variant?.product?.main_image?.image_path)
         })),
         summary: {
             subtotal: order.total_price,
@@ -199,5 +213,5 @@ const searchOrder = async (formData) => {
 </script>
 
 <style scoped>
-/* Add any component-specific styles here */
+
 </style>

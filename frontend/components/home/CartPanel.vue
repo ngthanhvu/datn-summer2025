@@ -20,7 +20,7 @@
                     </NuxtLink>
                 </div>
                 <div v-else v-for="item in cart" :key="item.id" class="tw-flex tw-gap-4 tw-pb-4 tw-border-b">
-                    <img :src="item?.variant?.product?.main_image?.image_path" :alt="item?.variant?.product?.name"
+                    <img :src="getImageUrl(item?.variant?.product?.main_image?.image_path)" :alt="item?.variant?.product?.name"
                         class="tw-w-20 tw-h-20 tw-object-cover tw-rounded">
                     <div class="tw-flex-1">
                         <h6 class="tw-font-medium tw-mb-1">{{ item?.variant?.product?.name }}</h6>
@@ -128,6 +128,14 @@ const handleDecrease = async (cartId) => {
     } catch (error) {
         console.log(error)
     }
+}
+
+const getImageUrl = (path) => {
+    if (!path) return '/default-image.jpg'
+    if (path.startsWith('http://') || path.startsWith('https://')) return path
+    if (path.startsWith('/storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + path
+    if (path.startsWith('storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
+    return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
 }
 </script>
 

@@ -3,7 +3,7 @@
         <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Đơn hàng của bạn</h2>
         <div class="tw-space-y-4 tw-mb-6 tw-max-h-[300px] tw-overflow-y-auto tw-pr-2">
             <div v-for="(item, index) in items" :key="index" class="tw-flex tw-items-center tw-gap-4">
-                <img :src="item.image" :alt="item.name" class="tw-w-20 tw-h-20 tw-object-cover">
+                <img :src="getImageUrl(item.image)" :alt="item.name" class="tw-w-20 tw-h-20 tw-object-cover">
                 <div class="tw-flex-1">
                     <h3 class="tw-font-medium">{{ item.name }}</h3>
                     <p class="tw-text-sm tw-text-gray-500">{{ item.variant }}</p>
@@ -81,6 +81,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useCoupon } from '~/composables/useCoupon'
+import { useNuxtApp } from '#app'
 
 const props = defineProps({
     items: {
@@ -106,6 +107,7 @@ const emit = defineEmits(['apply-coupon', 'place-order'])
 const couponCode = ref('')
 const availableCoupons = ref([])
 const couponService = useCoupon()
+const { $config: runtimeConfig } = useNuxtApp()
 
 const total = computed(() => {
     return props.subtotal + props.shipping - props.discount
@@ -146,6 +148,14 @@ const fetchAvailableCoupons = async () => {
     } catch (error) {
         console.error('Error fetching coupons:', error)
     }
+}
+
+const getImageUrl = (path) => {
+    if (!path) return '/default-image.jpg'
+    if (path.startsWith('http://') || path.startsWith('https://')) return path
+    if (path.startsWith('/storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + path
+    if (path.startsWith('storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
+    return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
 }
 
 onMounted(() => {

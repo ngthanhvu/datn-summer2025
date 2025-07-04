@@ -57,13 +57,12 @@
             <div class="tw-space-y-2">
               <div class="tw-flex tw-items-center tw-gap-4">
                 <span class="tw-text-2xl tw-font-bold tw-text-[#81AACC]">{{ formatPrice(displayPrice) }}</span>
-                <span v-if="data.discount_price && data.discount_price < data.price"
-                  class="tw-text-lg tw-text-gray-400 tw-line-through">
+                <span v-if="showOriginalPrice" class="tw-text-lg tw-text-gray-400 tw-line-through">
                   {{ formatPrice(data.price) }}
                 </span>
-                <span v-if="data.discount_percentage"
+                <span v-if="showOriginalPrice"
                   class="tw-bg-red-500 tw-text-white tw-px-2 tw-py-1 tw-rounded-full tw-text-sm">
-                  -{{ data.discount_percentage }}%
+                  -{{ Math.round(100 - (displayPrice / data.price) * 100) }}%
                 </span>
               </div>
               <p class="tw-text-sm tw-text-gray-500">Giá đã bao gồm VAT</p>
@@ -1000,7 +999,13 @@ const displayPrice = computed(() => {
   if (activeVariant.value && activeVariant.value.price) {
     return activeVariant.value.price
   }
-  return data.value?.discount_price || data.value?.price
+  return data.value?.discount_price && data.value.discount_price < data.value.price
+    ? data.value.discount_price
+    : data.value?.price
+})
+
+const showOriginalPrice = computed(() => {
+  return data.value && displayPrice.value < data.value.price
 })
 </script>
 
