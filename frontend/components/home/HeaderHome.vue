@@ -13,22 +13,22 @@
             <NuxtLink to="/" class="nav-link tw-font-medium">Trang chủ</NuxtLink>
           </li>
           <li class="nav-item has-megamenu">
-            <NuxtLink to="/product" class="nav-link tw-font-medium" id="productDropdown">
+            <NuxtLink to="/san-pham" class="nav-link tw-font-medium" id="productDropdown">
               Sản phẩm
             </NuxtLink>
             <MegaMenu />
           </li>
           <li class="nav-item">
-            <NuxtLink to="/about" class="nav-link tw-font-medium">Giới thiệu</NuxtLink>
+            <NuxtLink to="/gioi-thieu" class="nav-link tw-font-medium">Giới thiệu</NuxtLink>
           </li>
           <li class="nav-item">
-            <NuxtLink to="/blogs" class="nav-link tw-font-medium">Tin tức</NuxtLink>
+            <NuxtLink to="/tin-tuc" class="nav-link tw-font-medium">Tin tức</NuxtLink>
           </li>
           <li class="nav-item">
-            <NuxtLink to="/contact" class="nav-link tw-font-medium">Liên hệ</NuxtLink>
+            <NuxtLink to="/lien-he" class="nav-link tw-font-medium">Liên hệ</NuxtLink>
           </li>
           <li class="nav-item">
-            <NuxtLink to="/order-tracking" class="nav-link tw-font-medium">Kiểm tra đơn hàng</NuxtLink>
+            <NuxtLink to="/tra-cuu-don-hang" class="nav-link tw-font-medium">Kiểm tra đơn hàng</NuxtLink>
           </li>
         </ul>
       </div>
@@ -43,7 +43,7 @@
         <button class="tw-bg-transparent tw-border-0">
           <i class="bi bi-search tw-text-lg"></i>
         </button>
-        <NuxtLink to="/wishlist" class="tw-text-gray-700 tw-relative">
+        <NuxtLink to="/san-pham-yeu-thich" class="tw-text-gray-700 tw-relative">
           <i class="bi bi-heart tw-text-xl"></i>
           <span
             class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">0</span>

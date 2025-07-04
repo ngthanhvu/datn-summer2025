@@ -17,7 +17,7 @@
         <div class="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-gray-500 tw-mb-6">
           <NuxtLink to="/" class="hover:tw-text-[#81AACC]">Trang chủ</NuxtLink>
           <span>/</span>
-          <NuxtLink to="/products" class="hover:tw-text-[#81AACC]">Sản phẩm</NuxtLink>
+          <NuxtLink to="/san-pham" class="hover:tw-text-[#81AACC]">Sản phẩm</NuxtLink>
           <span>/</span>
           <span class="tw-text-gray-900">{{ data.name }}</span>
         </div>

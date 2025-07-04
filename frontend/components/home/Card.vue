@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="`/products/${product.slug}`" class="tw-block">
+  <NuxtLink :to="`/chi-tiet/${product.slug}`" class="tw-block">
     <div
       class="tw-w-full tw-overflow-hidden tw-group tw-pb-3 tw-relative tw-border tw-border-gray-150 tw-rounded-[5px] tw-bg-white">
       <!-- Image wrapper -->
@@ -27,7 +27,7 @@
           </button>
 
           <!-- Quick view -->
-          <NuxtLink :to="`/products/${product.slug}`"
+          <NuxtLink :to="`/chi-tiet/${product.slug}`"
             class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
             title="Xem chi tiết">
             <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
