@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Inventory;
 use Illuminate\Http\Request;
+use App\Models\Variants;
 
 class InventoryController extends Controller
 {
@@ -17,7 +18,16 @@ class InventoryController extends Controller
         ]);
 
         if ($request->has('product_id')) {
-            $query->where('product_id', $request->product_id);
+            $variantIds = Variants::where('product_id', $request->product_id)->pluck('id');
+            $query->whereIn('variant_id', $variantIds);
+        }
+
+        if ($request->has('variant_id')) {
+            $query->where('variant_id', $request->variant_id);
+        }
+
+        if ($request->has('variant_ids')) {
+            $query->whereIn('variant_id', $request->variant_ids);
         }
 
         if ($request->has('max_quantity')) {
