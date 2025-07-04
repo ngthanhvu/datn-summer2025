@@ -33,7 +33,7 @@ const columns = [
   { key: 'name', label: 'Tên sản phẩm' },
   { key: 'category', label: 'Danh mục', type: 'category' },
   { key: 'brand', label: 'Thương hiệu', type: 'brand' },
-  { key: 'price', label: 'Giá gốc', type: 'price' },
+  { key: 'price', label: 'Giá bán', type: 'price' },
   { key: 'discount_price', label: 'Giá khuyến mãi', type: 'price' },
   { key: 'variants', label: 'Biến thể', type: 'variants' },
   { key: 'is_active', label: 'Trạng thái', type: 'status' }

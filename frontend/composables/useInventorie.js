@@ -26,59 +26,32 @@ export const useInventories = () => {
         }
     }
 
-    const updateStock = async (data) => {
+    const createStockMovement = async (data) => {
         try {
-            const response = await API.post('/api/inventory/update', data)
-            return response.data
-        } catch (error) {
-            console.error('Error updating stock:', error)
-            throw error
-        }
-    }
-
-    const getMovements = async (params) => {
-        try {
-            const response = await API.get('/api/inventory/movements', { params })
-            return response.data
-        } catch (error) {
-            console.error('Error fetching movements:', error)
-            throw error
-        }
-    }
-
-    const getVariants = async () => {
-        try {
-            const response = await API.get('/api/variants')
-            return response.data
-        } catch (error) {
-            console.error('Error fetching variants:', error)
-            throw error
-        }
-    }
-
-    const downloadMovementPdf = async (id) => {
-        try {
-            const response = await API.get(`/api/inventory/movement/${id}/pdf`, {
-                responseType: 'blob'
+            const res = await API.post('/api/stock-movement', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
+                }
             })
-            const url = window.URL.createObjectURL(new Blob([response.data]))
-            const link = document.createElement('a')
-            link.href = url
-            link.setAttribute('download', `phieu-movement-${id}.pdf`)
-            document.body.appendChild(link)
-            link.click()
-            link.remove()
-        } catch (error) {
-            console.error('Error downloading movement PDF:', error)
-            throw error
+            return res.data
+        } catch (err) {
+            console.log("Error create stockMovement:".err)
+        }
+    }
+
+    const getStockMovement = async () => {
+        try {
+            const res = await API.get('/api/stock-movement')
+            return res.data
+        } catch (err) {
+            console.log("Error get data: ".err)
         }
     }
 
     return {
         getInventories,
-        updateStock,
-        getMovements,
-        getVariants,
-        downloadMovementPdf
+        createStockMovement,
+        getStockMovement
     }
 }

@@ -44,7 +44,8 @@
         </div>
         <div v-show="showInventoryMenu" class="submenu">
           <NuxtLink to="/admin/inventory" class="nav-sub-item">Tổng quan kho</NuxtLink>
-          <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập kho</NuxtLink>
+          <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập hàng</NuxtLink>
+          <NuxtLink to="/admin/inventory/history" class="nav-sub-item">Hoá đơn</NuxtLink>
         </div>
       </div>
 
