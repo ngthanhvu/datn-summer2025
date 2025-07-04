@@ -40,17 +40,47 @@ class ProductsController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-        if ($request->has('category') && !empty($request->category)) {
+        // Ưu tiên filter theo category_id nếu có
+        if ($request->has('category_id') && !empty($request->category_id)) {
+            $categoryIds = is_array($request->category_id) ? array_filter($request->category_id) : [$request->category_id];
+            $query->whereIn('categories_id', $categoryIds);
+        } else if ($request->has('category') && !empty($request->category)) {
             $categories = is_array($request->category) ? array_filter($request->category) : [$request->category];
-            if (!empty($categories)) {
-                $query->whereIn('categories_id', $categories);
+            $categoryIds = [];
+            foreach ($categories as $cat) {
+                if (is_numeric($cat)) {
+                    $categoryIds[] = $cat;
+                } else {
+                    $catModel = \App\Models\Categories::where('slug', $cat)->first();
+                    if ($catModel) {
+                        $categoryIds[] = $catModel->id;
+                    }
+                }
+            }
+            if (!empty($categoryIds)) {
+                $query->whereIn('categories_id', $categoryIds);
             }
         }
 
-        if ($request->has('brand') && !empty($request->brand)) {
+        // Ưu tiên filter theo brand_id nếu có
+        if ($request->has('brand_id') && !empty($request->brand_id)) {
+            $brandIds = is_array($request->brand_id) ? array_filter($request->brand_id) : [$request->brand_id];
+            $query->whereIn('brand_id', $brandIds);
+        } else if ($request->has('brand') && !empty($request->brand)) {
             $brands = is_array($request->brand) ? array_filter($request->brand) : [$request->brand];
-            if (!empty($brands)) {
-                $query->whereIn('brand_id', $brands);
+            $brandIds = [];
+            foreach ($brands as $b) {
+                if (is_numeric($b)) {
+                    $brandIds[] = $b;
+                } else {
+                    $brandModel = \App\Models\Brands::where('slug', $b)->first();
+                    if ($brandModel) {
+                        $brandIds[] = $brandModel->id;
+                    }
+                }
+            }
+            if (!empty($brandIds)) {
+                $query->whereIn('brand_id', $brandIds);
             }
         }
 
