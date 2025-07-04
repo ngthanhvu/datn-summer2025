@@ -145,9 +145,11 @@ onMounted(() => {
 const getAvatarUrl = (avatar) => {
     if (!avatar) return defaultAvatar
     if (avatar.startsWith('http')) return avatar
-    let url = runtimeConfig.public.apiBaseUrl + '/' + avatar.replace(/^\/+/, '')
-    url = url.replace(/\/{2,}storage\//, '/storage/')
-    return url
+    let url = avatar
+    if (!url.startsWith('storage/')) {
+        url = 'storage/' + url.replace(/^\/+/,'')
+    }
+    return runtimeConfig.public.apiBaseUrl + '/' + url
 }
 
 const getFileName = (path) => {
