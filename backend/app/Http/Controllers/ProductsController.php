@@ -188,18 +188,19 @@ class ProductsController extends Controller
             }
 
             if ($request->has('variants')) {
-                foreach ($request->variants as $variantIndex => $variant) {
-                    if (!empty($variant['price']) && (!empty($variant['color']) || !empty($variant['size']))) {
+                foreach ($request->input('variants', []) as $variantIndex => $variant) {
+                    if (!empty($variant['color']) && !empty($variant['sizes']) && is_array($variant['sizes']) && count($variant['sizes']) > 0) {
+                        $sizeObj = $variant['sizes'][0];
                         $createdVariant = Variants::create([
                             'color' => $variant['color'],
-                            'size' => $variant['size'],
-                            'price' => $variant['price'],
-                            'sku' => $variant['sku'] ?? '',
+                            'size' => $sizeObj['size'],
+                            'price' => $sizeObj['price'],
+                            'sku' => $sizeObj['sku'] ?? '',
                             'product_id' => $product->id,
                         ]);
-                        // Lưu ảnh phụ cho variant nếu có
-                        if ($request->hasFile("variants.$variantIndex.images")) {
-                            $variantImages = $request->file("variants.$variantIndex.images");
+                        // Lưu ảnh phụ cho variant (mỗi màu 1 ảnh)
+                        $variantImages = $request->file("variants.$variantIndex.images", []);
+                        if ($variantImages) {
                             foreach ($variantImages as $variantImage) {
                                 $imagePath = $variantImage->store('products', 'public');
                                 Images::create([
@@ -292,18 +293,19 @@ class ProductsController extends Controller
             if ($request->has('variants')) {
                 Variants::where('product_id', $product->id)->delete();
 
-                foreach ($request->variants as $variantIndex => $variant) {
-                    if (!empty($variant['price']) && (!empty($variant['color']) || !empty($variant['size']))) {
+                foreach ($request->input('variants', []) as $variantIndex => $variant) {
+                    if (!empty($variant['color']) && !empty($variant['sizes']) && is_array($variant['sizes']) && count($variant['sizes']) > 0) {
+                        $sizeObj = $variant['sizes'][0];
                         $createdVariant = Variants::create([
                             'color' => $variant['color'],
-                            'size' => $variant['size'],
-                            'price' => $variant['price'],
-                            'sku' => $variant['sku'] ?? '',
+                            'size' => $sizeObj['size'],
+                            'price' => $sizeObj['price'],
+                            'sku' => $sizeObj['sku'] ?? '',
                             'product_id' => $product->id,
                         ]);
-                        // Lưu ảnh phụ cho variant nếu có
-                        if ($request->hasFile("variants.$variantIndex.images")) {
-                            $variantImages = $request->file("variants.$variantIndex.images");
+                        // Lưu ảnh phụ cho variant (mỗi màu 1 ảnh)
+                        $variantImages = $request->file("variants.$variantIndex.images", []);
+                        if ($variantImages) {
                             foreach ($variantImages as $variantImage) {
                                 $imagePath = $variantImage->store('products', 'public');
                                 Images::create([

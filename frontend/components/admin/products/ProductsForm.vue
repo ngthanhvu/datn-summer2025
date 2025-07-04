@@ -535,24 +535,25 @@ const handleSubmit = async () => {
         })
 
         formData.value.variants.forEach((variant, vIdx) => {
-            variant.sizes.forEach(sizeObj => {
-                productData.append(`variants[${vIdx}][color]`, variant.colorName)
-                productData.append(`variants[${vIdx}][size]`, sizeObj.size)
-                productData.append(`variants[${vIdx}][price]`, sizeObj.price)
-                productData.append(`variants[${vIdx}][sku]`, sizeObj.sku)
-            })
-            // Thêm ảnh phụ cho variant nếu có
+            // Gửi color cho variant
+            productData.append(`variants[${vIdx}][color]`, variant.colorName)
+            // Gửi ảnh cho variant
             if (variant.images && variant.images.length > 0) {
                 variant.images.forEach(imgFile => {
                     productData.append(`variants[${vIdx}][images][]`, imgFile)
                 })
             }
+            // Gửi từng size cho variant
+            variant.sizes.forEach((sizeObj, sIdx) => {
+                productData.append(`variants[${vIdx}][sizes][${sIdx}][size]`, sizeObj.size)
+                productData.append(`variants[${vIdx}][sizes][${sIdx}][price]`, sizeObj.price)
+                productData.append(`variants[${vIdx}][sizes][${sIdx}][sku]`, sizeObj.sku)
+            })
         })
 
         const response = await createProduct(productData)
         notyf.success('Tạo sản phẩm thành công!')
-        console.log(formData.value)
-        // await navigateTo('/admin/products')
+        await navigateTo('/admin/products')
     } catch (error) {
         notyf.error(error.response?.data?.message || 'Có lỗi khi tạo sản phẩm')
     } finally {

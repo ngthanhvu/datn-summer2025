@@ -12,7 +12,8 @@ class StockMovementItem extends Model
     protected $fillable = [
         'stock_movement_id',
         'variant_id',
-        'quantity'
+        'quantity',
+        'unit_price'
     ];
 
     public function stockMovement()

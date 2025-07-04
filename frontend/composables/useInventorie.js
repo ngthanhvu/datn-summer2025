@@ -26,7 +26,32 @@ export const useInventories = () => {
         }
     }
 
+    const createStockMovement = async (data) => {
+        try {
+            const res = await API.post('/api/stock-movement', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
+                }
+            })
+            return res.data
+        } catch (err) {
+            console.log("Error create stockMovement:".err)
+        }
+    }
+
+    const getStockMovement = async () => {
+        try {
+            const res = await API.get('/api/stock-movement')
+            return res.data
+        } catch (err) {
+            console.log("Error get data: ".err)
+        }
+    }
+
     return {
         getInventories,
+        createStockMovement,
+        getStockMovement
     }
 }

@@ -8,7 +8,7 @@
                     <p class="tw-text-gray-600">Quản lý hàng tồn kho và mức tồn kho sản phẩm của bạn</p>
                 </div>
                 <div class="tw-flex tw-flex-col sm:tw-flex-row tw-gap-3">
-                    <button @click="refreshData"
+                    <button @click="fetchInventories"
                         class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-gray-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-gray-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-gray-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
                         <svg class="tw-w-4 tw-h-4 tw-mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -17,14 +17,14 @@
                         </svg>
                         Tải lại
                     </button>
-                    <router-link to="/inventory/import"
+                    <NuxtLink to="/admin/inventory/import"
                         class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-green-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-green-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-green-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
                         <svg class="tw-w-4 tw-h-4 tw-mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
                             </path>
                         </svg>
                         Nhập/Xuất kho
-                    </router-link>
+                    </NuxtLink>
                 </div>
             </div>
 

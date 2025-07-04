@@ -7,14 +7,14 @@
                     <h1 class="tw-text-3xl tw-font-bold tw-text-gray-900 tw-mb-2">Nhập kho sản phẩm</h1>
                     <p class="tw-text-gray-600">Tạo phiếu nhập kho mới cho các sản phẩm</p>
                 </div>
-                <router-link to="/inventory/stock"
+                <NuxtLink to="/admin/inventory"
                     class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-gray-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-gray-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-gray-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
                     <svg class="tw-w-4 tw-h-4 tw-mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
                     Quay lại
-                </router-link>
+                </NuxtLink>
             </div>
         </div>
 
@@ -79,6 +79,24 @@
                                                 (SKU: {{ variant.sku }})
                                             </option>
                                         </select>
+                                        <div v-if="item.variant_id" class="tw-flex tw-items-center tw-gap-4 tw-mt-2">
+                                            <img v-if="getVariantImage(item.variant_id)"
+                                                :src="getVariantImage(item.variant_id)" alt="Ảnh biến thể"
+                                                class="tw-w-16 tw-h-16 tw-object-cover tw-rounded" />
+                                            <div v-if="getVariantInfo(item.variant_id)">
+                                                <div class="tw-text-sm tw-font-medium">Tên: {{
+                                                    getVariantInfo(item.variant_id).product?.name }}</div>
+                                                <div class="tw-text-xs">Màu: <span class="tw-font-semibold">{{
+                                                    getVariantInfo(item.variant_id).color }}</span></div>
+                                                <div class="tw-text-xs">Size: <span class="tw-font-semibold">{{
+                                                    getVariantInfo(item.variant_id).size }}</span></div>
+                                                <div class="tw-text-xs">SKU: <span class="tw-font-semibold">{{
+                                                    getVariantInfo(item.variant_id).sku }}</span></div>
+                                                <div class="tw-text-xs">Giá: <span class="tw-font-semibold">{{
+                                                    formatCurrency(getVariantInfo(item.variant_id).price) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Số
@@ -91,7 +109,7 @@
                                         <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">
                                             {{ formData.type === 'import' ? 'Giá nhập' : 'Giá xuất' }} (VNĐ)
                                         </label>
-                                        <input type="number" v-model.number="item.unit_price" min="0" step="0.01"
+                                        <input type="number" v-model.number="item.unit_price" min="0" step="1000"
                                             class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
                                             placeholder="Giá" required>
                                     </div>
@@ -171,8 +189,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useProducts } from '~/composables/useProducts';
+import { useInventories } from '~/composables/useInventorie';
 
+const { createStockMovement } = useInventories();
 const { getVariant } = useProducts();
+
 
 const variants = ref([])
 const loading = ref(false)
@@ -202,7 +223,35 @@ const removeProductItem = (index) => {
     formData.value.items.splice(index, 1)
 }
 const submitForm = async () => {
-    // TODO: Gọi API tạo phiếu nhập/xuất kho
+    loading.value = true
+    try {
+        const payload = {
+            type: formData.value.type,
+            note: formData.value.note,
+            items: formData.value.items.map(item => ({
+                variant_id: item.variant_id,
+                quantity: item.quantity,
+                unit_price: item.unit_price
+            }))
+        }
+        await createStockMovement(payload)
+        alert('Tạo phiếu thành công!')
+        // Nếu muốn chuyển trang, dùng router.push('/inventory/stock')
+    } catch (err) {
+        alert('Có lỗi xảy ra khi tạo phiếu!')
+    } finally {
+        loading.value = false
+    }
+}
+const getVariantImage = (variantId) => {
+    const variant = variants.value.find(v => v.id === variantId)
+    if (variant && variant.images && variant.images.length > 0) {
+        return variant.images[0].image_path
+    }
+    return null
+}
+const getVariantInfo = (variantId) => {
+    return variants.value.find(v => v.id === variantId)
 }
 onMounted(async () => {
     // Lấy danh sách variants từ API

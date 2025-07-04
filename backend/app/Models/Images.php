@@ -12,6 +12,7 @@ class Images extends Model
         'image_path',
         'is_main',
         'product_id',
+        'variant_id'
     ];
 
     public function product()

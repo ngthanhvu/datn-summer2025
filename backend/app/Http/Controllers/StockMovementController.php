@@ -14,9 +14,12 @@ class StockMovementController extends Controller
     public function index()
     {
         $movements = StockMovement::with([
-            'creator:id,name,email',
+            'user:id,username,email',
             'items' => function ($q) {
-                $q->with(['product:id,name,sku']);
+                $q->with([
+                    'variant:id,sku,product_id',
+                    'variant.product:id,name'
+                ]);
             }
         ])->orderBy('created_at', 'desc')->get();
         return response()->json($movements);
@@ -25,9 +28,12 @@ class StockMovementController extends Controller
     public function show($id)
     {
         $movement = StockMovement::with([
-            'creator:id,name,email',
+            'user:id,username,email',
             'items' => function ($q) {
-                $q->with(['product:id,name,sku']);
+                $q->with([
+                    'variant:id,sku,product_id',
+                    'variant.product:id,name'
+                ]);
             }
         ])->findOrFail($id);
         return response()->json($movement);
@@ -41,6 +47,7 @@ class StockMovementController extends Controller
             'items' => 'required|array|min:1',
             'items.*.variant_id' => 'required|exists:variants,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|integer|min:0',
         ]);
         DB::beginTransaction();
         try {
@@ -55,6 +62,7 @@ class StockMovementController extends Controller
                     'stock_movement_id' => $movement->id,
                     'variant_id' => $item['variant_id'],
                     'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'] ?? 0,
                 ]);
                 $inventory = Inventory::firstOrCreate(
                     ['variant_id' => $item['variant_id']],

@@ -21,8 +21,8 @@ class User extends Authenticatable implements JWTSubject
         'oauth_id',
         'otp',
         'otp_expires_at',
-        'phone',     
-        'avatar',   
+        'phone',
+        'avatar',
     ];
     protected $hidden = [
         'password',
@@ -109,5 +109,10 @@ class User extends Authenticatable implements JWTSubject
     public function inventoryMovements()
     {
         return $this->hasMany(InventoryMovement::class);
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
     }
 }

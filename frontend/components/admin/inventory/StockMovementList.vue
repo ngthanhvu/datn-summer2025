@@ -59,7 +59,7 @@
                         </span>
                     </td>
                     <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap">
-                        <span class="tw-text-sm tw-text-gray-900">{{ movement.creator?.name || 'N/A' }}</span>
+                        <span class="tw-text-sm tw-text-gray-900">{{ movement.user?.username || 'N/A' }}</span>
                     </td>
                     <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap">
                         <span class="tw-text-sm tw-text-gray-900">{{ formatDate(movement.created_at) }}</span>
@@ -128,7 +128,8 @@
                         </div>
                         <div>
                             <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700">Người tạo</label>
-                            <p class="tw-mt-1 tw-text-sm tw-text-gray-900">{{ selectedMovement.creator?.name || 'N/A' }}
+                            <p class="tw-mt-1 tw-text-sm tw-text-gray-900">{{ selectedMovement.user?.username || 'N/A'
+                            }}
                             </p>
                         </div>
                         <div>
@@ -166,9 +167,10 @@
                                 </thead>
                                 <tbody class="tw-bg-white tw-divide-y tw-divide-gray-200">
                                     <tr v-for="item in selectedMovement.items" :key="item.id">
-                                        <td class="tw-px-4 tw-py-2 tw-text-sm tw-text-gray-900">{{ item.product?.name }}
+                                        <td class="tw-px-4 tw-py-2 tw-text-sm tw-text-gray-900">{{
+                                            item.variant.product.name }}
                                         </td>
-                                        <td class="tw-px-4 tw-py-2 tw-text-sm tw-text-gray-500">{{ item.product?.sku }}
+                                        <td class="tw-px-4 tw-py-2 tw-text-sm tw-text-gray-500">{{ item.variant.sku }}
                                         </td>
                                         <td class="tw-px-4 tw-py-2 tw-text-sm tw-text-gray-900">{{ item.quantity }}</td>
                                         <td class="tw-px-4 tw-py-2 tw-text-sm tw-text-gray-900">{{
@@ -234,7 +236,7 @@
                             <h3 class="tw-font-semibold tw-mb-2">Thông tin phiếu:</h3>
                             <p><strong>Loại:</strong>
                                 {{ selectedMovement?.type === 'import' ? 'Nhập kho' : 'Xuấtkho' }}</p>
-                            <p><strong>Người tạo:</strong> {{ selectedMovement?.creator?.name || 'N/A' }}</p>
+                            <p><strong>Người tạo:</strong> {{ selectedMovement?.user?.username || 'N/A' }}</p>
                             <p><strong>Ngày tạo:</strong> {{ formatDate(selectedMovement?.created_at) }}</p>
                         </div>
                         <div>
@@ -263,9 +265,10 @@
                                 <tr v-for="(item, index) in selectedMovement?.items" :key="item.id">
                                     <td class="tw-border tw-border-gray-300 tw-px-4 tw-py-2 tw-text-center">{{ index + 1
                                         }}</td>
-                                    <td class="tw-border tw-border-gray-300 tw-px-4 tw-py-2">{{ item.product?.name }}
+                                    <td class="tw-border tw-border-gray-300 tw-px-4 tw-py-2">{{
+                                        item.variant.product.name }}
                                     </td>
-                                    <td class="tw-border tw-border-gray-300 tw-px-4 tw-py-2">{{ item.product?.sku }}
+                                    <td class="tw-border tw-border-gray-300 tw-px-4 tw-py-2">{{ item.variant.sku }}
                                     </td>
                                     <td class="tw-border tw-border-gray-300 tw-px-4 tw-py-2 tw-text-center">{{
                                         item.quantity }}
@@ -295,7 +298,7 @@
                     <div class="tw-grid tw-grid-cols-3 tw-gap-8 tw-mt-16">
                         <div class="tw-text-center">
                             <p class="tw-font-semibold tw-mb-16">Người lập phiếu</p>
-                            <p class="tw-border-t tw-border-gray-400 tw-pt-2">{{ selectedMovement?.creator?.name ||
+                            <p class="tw-border-t tw-border-gray-400 tw-pt-2">{{ selectedMovement?.user?.username ||
                                 'N/A' }}
                             </p>
                         </div>
@@ -316,62 +319,24 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-// import { useInventories } from '~/composables/useInventorie'
+import { useInventories } from '~/composables/useInventorie'
+
+const { getStockMovement } = useInventories()
 
 const loading = ref(false)
-const stockMovements = ref([
-    {
-        id: 1,
-        type: 'import',
-        creator: { name: 'admin' },
-        created_at: '2025-07-02T22:14:36',
-        note: 'nhap kho',
-        items: [
-            {
-                id: 1,
-                product: { name: 'Áo thun nam', sku: 'TS001' },
-                quantity: 2,
-                unit_price: 120000
-            },
-            {
-                id: 2,
-                product: { name: 'Quần jeans', sku: 'J001' },
-                quantity: 1,
-                unit_price: 350000
-            }
-        ]
-    },
-    {
-        id: 2,
-        type: 'export',
-        creator: { name: 'admin' },
-        created_at: '2025-06-19T09:06:36',
-        note: 'Xuất kho cho đơn hàng HD1750298796590',
-        items: [
-            {
-                id: 3,
-                product: { name: 'Áo thun nữ', sku: 'TS002' },
-                quantity: 1,
-                unit_price: 150000
-            }
-        ]
-    },
-    {
-        id: 3,
-        type: 'export',
-        creator: { name: 'admin' },
-        created_at: '2025-06-19T09:05:58',
-        note: 'Xuất kho cho đơn hàng HD1750298758228',
-        items: [
-            {
-                id: 4,
-                product: { name: 'Áo sơ mi', sku: 'SM001' },
-                quantity: 1,
-                unit_price: 200000
-            }
-        ]
+const stockMovements = ref([])
+
+const fetchStockMovements = async () => {
+    loading.value = true
+    try {
+        const res = await getStockMovement()
+        stockMovements.value = res
+    } catch (e) {
+        alert('Không thể tải danh sách phiếu kho!')
+    } finally {
+        loading.value = false
     }
-])
+}
 
 const showDetailsModal = ref(false)
 const showPrintModal = ref(false)
@@ -420,9 +385,9 @@ const printDocument = () => {
     window.print()
 }
 
-// onMounted(() => {
-//     getStockMovements()
-// })
+onMounted(() => {
+    fetchStockMovements()
+})
 </script>
 
 <style>
