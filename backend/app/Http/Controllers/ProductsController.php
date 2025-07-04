@@ -118,10 +118,10 @@ class ProductsController extends Controller
     {
         try {
             $product = Products::with(['images' => function ($query) {
-                $query->select('id', 'image_path', 'is_main', 'product_id');
+                $query->select('id', 'image_path', 'is_main', 'product_id', 'variant_id');
             }, 'variants' => function ($query) {
                 $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
-            }, 'categories', 'brand'])
+            }, 'variants.images', 'categories', 'brand'])
                 ->where('slug', $slug)
                 ->firstOrFail();
 
@@ -129,6 +129,17 @@ class ProductsController extends Controller
                 $image->image_path = url('storage/' . $image->image_path);
                 return $image;
             });
+
+            // Đảm bảo images của từng variant cũng có url đầy đủ
+            if ($product->variants) {
+                foreach ($product->variants as $variant) {
+                    if ($variant->images) {
+                        foreach ($variant->images as $img) {
+                            $img->image_path = url('storage/' . $img->image_path);
+                        }
+                    }
+                }
+            }
 
             return response()->json($product);
         } catch (\Exception $e) {

@@ -26,17 +26,21 @@
         <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-8 tw-mb-12">
           <!-- Product Images -->
           <div class="tw-space-y-4">
-            <!-- Main Image -->
-            <div class="tw-aspect-square tw-rounded-lg tw-overflow-hidden tw-bg-gray-100 tw-cursor-zoom-in"
-              @click="showZoomModal = true">
-              <img :src="mainImage" :alt="data.name" class="tw-w-full tw-h-full tw-object-cover" />
-            </div>
-            <!-- Thumbnails -->
-            <div class="tw-grid tw-grid-cols-4 tw-gap-4">
-              <button v-for="(image, index) in productImages" :key="index" @click="mainImage = image"
-                class="tw-aspect-square tw-rounded-lg tw-overflow-hidden tw-bg-gray-100 hover:tw-ring-2 hover:tw-ring-[#81AACC]">
-                <img :src="image" :alt="data.name" class="tw-w-full tw-h-full tw-object-cover" />
-              </button>
+            <!-- Main Image + Thumbnails (hàng ngang) -->
+            <div class="tw-flex tw-flex-col tw-items-center">
+              <img :src="mainImage" :alt="data.name" class="tw-w-[400px] tw-h-[400px] md:tw-w-[480px] md:tw-h-[480px] tw-object-contain tw-rounded-lg tw-shadow tw-bg-white tw-mx-auto" />
+              <!-- Thumbnails (sub images) - luôn là ảnh sản phẩm -->
+              <div class="tw-flex tw-gap-2 tw-mt-4">
+                <img
+                  v-for="(img, idx) in productImages"
+                  :key="idx"
+                  :src="img"
+                  :alt="data.name"
+                  class="tw-w-16 tw-h-16 tw-object-contain tw-rounded tw-cursor-pointer tw-border tw-bg-white"
+                  :class="{ 'tw-ring-2 tw-ring-[#81AACC]': img === mainImage }"
+                  @click="mainImage = img"
+                />
+              </div>
             </div>
           </div>
 
@@ -72,12 +76,19 @@
               <div v-if="sizes.length > 0">
                 <h3 class="tw-font-medium tw-mb-2">Kích thước</h3>
                 <div class="tw-flex tw-gap-2">
-                  <button v-for="size in sizes" :key="size" @click="selectedSize = size" :class="[
-                    'tw-px-4 tw-py-2 tw-border tw-rounded-md tw-transition-colors',
-                    selectedSize === size
-                      ? 'tw-bg-[#81AACC] tw-text-white tw-border-[#81AACC]'
-                      : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
-                  ]">
+                  <button
+                    v-for="size in sizes"
+                    :key="size"
+                    @click="selectedSize = size"
+                    @mouseenter="hoveredSize = size"
+                    @mouseleave="hoveredSize = ''"
+                    :class="[
+                      'tw-px-4 tw-py-2 tw-border tw-rounded-md tw-transition-colors',
+                      activeSize === size
+                        ? 'tw-bg-[#81AACC] tw-text-white tw-border-[#81AACC]'
+                        : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
+                    ]"
+                  >
                     {{ size }}
                   </button>
                 </div>
@@ -87,13 +98,21 @@
               <div v-if="colors.length > 0">
                 <h3 class="tw-font-medium tw-mb-2">Màu sắc</h3>
                 <div class="tw-flex tw-gap-2">
-                  <button v-for="color in colors" :key="color.name" @click="selectedColor = color" :class="[
-                    'tw-w-10 tw-h-10 tw-rounded-full tw-border-2 tw-transition-colors',
-                    selectedColor === color
-                      ? 'tw-border-[#81AACC]'
-                      : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
-                  ]" :style="{ backgroundColor: color.code }" :title="color.name">
-                  </button>
+                  <button
+                    v-for="color in colors"
+                    :key="color.name"
+                    @click="selectedColor = color"
+                    @mouseenter="hoveredColor = color"
+                    @mouseleave="hoveredColor = null"
+                    :class="[
+                      'tw-w-10 tw-h-10 tw-rounded-full tw-border-2 tw-transition-colors',
+                      activeColor && activeColor.name === color.name
+                        ? 'tw-border-[#81AACC]'
+                        : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
+                    ]"
+                    :style="{ backgroundColor: color.code }"
+                    :title="color.name"
+                  ></button>
                 </div>
               </div>
             </div>
@@ -552,15 +571,38 @@ const { data, pending, error, refresh } = await useAsyncData(
 
 const showZoomModal = ref(false)
 
-const mainImage = ref('')
+const selectedSize = ref('')
+const selectedColor = ref(null)
+const hoveredSize = ref('')
+const hoveredColor = ref('')
+
+const activeSize = computed(() => hoveredSize.value || selectedSize.value)
+const activeColor = computed(() => hoveredColor.value || selectedColor.value)
+
+const activeVariant = computed(() => {
+  if (!data.value?.variants?.length) return null
+  return data.value.variants.find(
+    v => v.size === activeSize.value && v.color === activeColor.value?.name
+  )
+})
+
 const productImages = computed(() => {
   if (!data.value?.images?.length) return ['/images/placeholder.jpg']
   return data.value.images.map(img => img.image_path)
 })
 
-watch(data, () => {
-  if (data.value?.images?.length) {
-    const mainImg = data.value.images.find(img => img.is_main === 1) || data.value.images[0]
+const mainImage = ref('')
+const activeVariantImages = computed(() => {
+  return activeVariant.value?.images?.length
+    ? activeVariant.value.images.map(img => img.image_path)
+    : []
+})
+
+watch([activeVariantImages, data], () => {
+  if (activeVariantImages.value.length) {
+    mainImage.value = activeVariantImages.value[0]
+  } else if (data.value?.images?.length) {
+    const mainImg = data.value.images.find(img => img.is_main) || data.value.images[0]
     mainImage.value = mainImg.image_path
   } else {
     mainImage.value = '/images/placeholder.jpg'
@@ -587,9 +629,6 @@ const colors = computed(() => {
     code: color
   }))
 })
-
-const selectedSize = ref('')
-const selectedColor = ref(null)
 
 const selectedVariantStock = computed(() => {
   if (!data.value?.variants?.length) return 0
