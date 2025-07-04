@@ -190,10 +190,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useProducts } from '~/composables/useProducts';
 import { useInventories } from '~/composables/useInventorie';
+const notyf = useNuxtApp().$notyf
 
 const { createStockMovement } = useInventories();
 const { getVariant } = useProducts();
-
 
 const variants = ref([])
 const loading = ref(false)
@@ -235,10 +235,10 @@ const submitForm = async () => {
             }))
         }
         await createStockMovement(payload)
-        alert('Tạo phiếu thành công!')
-        // Nếu muốn chuyển trang, dùng router.push('/inventory/stock')
+        notyf.success('Tạo phiếu thành công!')
+        navigateTo('/admin/inventory')
     } catch (err) {
-        alert('Có lỗi xảy ra khi tạo phiếu!')
+        notyf.error('Có lỗi xảy ra khi tạo phiếu!')
     } finally {
         loading.value = false
     }
