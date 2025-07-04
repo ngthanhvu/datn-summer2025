@@ -56,8 +56,7 @@
             <!-- Price -->
             <div class="tw-space-y-2">
               <div class="tw-flex tw-items-center tw-gap-4">
-                <span class="tw-text-2xl tw-font-bold tw-text-[#81AACC]">{{ formatPrice(data.discount_price ||
-                  data.price) }}</span>
+                <span class="tw-text-2xl tw-font-bold tw-text-[#81AACC]">{{ formatPrice(displayPrice) }}</span>
                 <span v-if="data.discount_price && data.discount_price < data.price"
                   class="tw-text-lg tw-text-gray-400 tw-line-through">
                   {{ formatPrice(data.price) }}
@@ -84,9 +83,11 @@
                     @mouseleave="hoveredSize = ''"
                     :class="[
                       'tw-px-4 tw-py-2 tw-border tw-rounded-md tw-transition-colors',
-                      activeSize === size
-                        ? 'tw-bg-[#81AACC] tw-text-white tw-border-[#81AACC]'
-                        : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
+                      hoveredSize === size
+                        ? 'tw-bg-[#e0f2fe] tw-border-[#81AACC] tw-text-[#0369a1]'
+                        : selectedSize === size
+                          ? 'tw-bg-[#81AACC] tw-text-white tw-border-[#81AACC]'
+                          : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
                     ]"
                   >
                     {{ size }}
@@ -106,9 +107,11 @@
                     @mouseleave="hoveredColor = null"
                     :class="[
                       'tw-w-10 tw-h-10 tw-rounded-full tw-border-2 tw-transition-colors',
-                      activeColor && activeColor.name === color.name
-                        ? 'tw-border-[#81AACC]'
-                        : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
+                      hoveredColor && hoveredColor.name === color.name
+                        ? 'tw-border-[#38bdf8] tw-ring-2 tw-ring-[#38bdf8]'
+                        : selectedColor && selectedColor.name === color.name
+                          ? 'tw-border-[#81AACC] tw-ring-2 tw-ring-[#81AACC]'
+                          : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
                     ]"
                     :style="{ backgroundColor: color.code }"
                     :title="color.name"
@@ -574,33 +577,23 @@ const showZoomModal = ref(false)
 const selectedSize = ref('')
 const selectedColor = ref(null)
 const hoveredSize = ref('')
-const hoveredColor = ref('')
+const hoveredColor = ref(null)
 
-const activeSize = computed(() => hoveredSize.value || selectedSize.value)
-const activeColor = computed(() => hoveredColor.value || selectedColor.value)
-
-const activeVariant = computed(() => {
-  if (!data.value?.variants?.length) return null
-  return data.value.variants.find(
-    v => v.size === activeSize.value && v.color === activeColor.value?.name
-  )
-})
-
-const productImages = computed(() => {
-  if (!data.value?.images?.length) return ['/images/placeholder.jpg']
-  return data.value.images.map(img => img.image_path)
+const firstVariantOfColor = computed(() => {
+  if (!data.value?.variants?.length || !selectedColor.value) return null
+  return data.value.variants.find(v => v.color === selectedColor.value.name)
 })
 
 const mainImage = ref('')
-const activeVariantImages = computed(() => {
-  return activeVariant.value?.images?.length
-    ? activeVariant.value.images.map(img => img.image_path)
+const colorVariantImages = computed(() => {
+  return firstVariantOfColor.value?.images?.length
+    ? firstVariantOfColor.value.images.map(img => img.image_path)
     : []
 })
 
-watch([activeVariantImages, data], () => {
-  if (activeVariantImages.value.length) {
-    mainImage.value = activeVariantImages.value[0]
+watch([colorVariantImages, data], () => {
+  if (colorVariantImages.value.length) {
+    mainImage.value = colorVariantImages.value[0]
   } else if (data.value?.images?.length) {
     const mainImg = data.value.images.find(img => img.is_main) || data.value.images[0]
     mainImage.value = mainImg.image_path
@@ -608,6 +601,18 @@ watch([activeVariantImages, data], () => {
     mainImage.value = '/images/placeholder.jpg'
   }
 }, { immediate: true })
+
+const activeVariant = computed(() => {
+  if (!data.value?.variants?.length) return null
+  return data.value.variants.find(
+    v => v.size === selectedSize.value && v.color === selectedColor.value?.name
+  )
+})
+
+const productImages = computed(() => {
+  if (!data.value?.images?.length) return ['/images/placeholder.jpg']
+  return data.value.images.map(img => img.image_path)
+})
 
 const sizes = computed(() => {
   if (!data.value?.variants?.length) return []
@@ -990,6 +995,13 @@ const getVisibleReviewPages = () => {
 
   return pages
 }
+
+const displayPrice = computed(() => {
+  if (activeVariant.value && activeVariant.value.price) {
+    return activeVariant.value.price
+  }
+  return data.value?.discount_price || data.value?.price
+})
 </script>
 
 <style scoped>
