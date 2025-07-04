@@ -43,9 +43,9 @@
       </div>
       <div v-if="pagination && filteredBlogs.length > 0" class="tw-flex tw-justify-center tw-mt-8">
         <button v-for="page in pagination.last_page" :key="page" @click="fetchBlogs(page)" :class="{
-          'tw-bg-primary tw-text-white': page === pagination.current_page,
+          'tw-bg-[#81aacc] tw-text-white': page === pagination.current_page,
           'tw-bg-white tw-text-gray-700': page !== pagination.current_page
-        }" class="tw-px-4 tw-py-2 tw-mx-1 tw-rounded tw-border tw-border-gray-300 hover:tw-bg-gray-100">
+        }" class="tw-px-4 tw-py-2 tw-mx-1 tw-rounded tw-border tw-border-gray-300 hover:tw-bg-[#4a8abe]">
           {{ page }}
         </button>
       </div>
@@ -93,6 +93,6 @@ const formatDate = dateString => {
 }
 
 .tw-text-primary {
-  color: #3bb77e;
+  color: #81aacc;
 }
 </style>
