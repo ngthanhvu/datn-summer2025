@@ -25,24 +25,41 @@
 
         <!-- Products Grid -->
         <div v-else class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
-            <Card v-for="product in newProducts.slice(0, 5)" :key="product.id" :product="product" />
+            <Card v-for="product in newProducts.slice(0, 5)" :key="product.id" :product="product"
+                @quick-view="openQuickView" />
         </div>
 
         <!-- Empty State -->
         <div v-if="!loading && newProducts.length === 0" class="tw-text-center tw-py-8">
             <p class="tw-text-gray-500">Chưa có sản phẩm mới</p>
         </div>
+        <!-- Quick View Modal -->
+        <QuickView :show="showQuickView" :product="quickViewProduct" @close="closeQuickView" />
     </div>
 </template>
 
 <script setup>
 import { useHome } from '../../composables/useHome'
 import Card from './Card.vue'
+import QuickView from '~/components/product-detail/Quick-view.vue'
 
 const { getNewProducts } = useHome()
 
 const newProducts = ref([])
 const loading = ref(true)
+
+// Quick View State
+const showQuickView = ref(false)
+const quickViewProduct = ref(null)
+
+function openQuickView(product) {
+    quickViewProduct.value = product
+    showQuickView.value = true
+}
+function closeQuickView() {
+    showQuickView.value = false
+    quickViewProduct.value = null
+}
 
 const fetchNewProducts = async () => {
     try {

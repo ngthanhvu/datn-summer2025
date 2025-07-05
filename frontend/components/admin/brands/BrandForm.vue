@@ -5,8 +5,7 @@
             <p class="tw-text-gray-600">Điền thông tin để tạo thương hiệu mới</p>
         </div>
     </div>
-    <div
-        class="tw-bg-white tw-rounded-lg tw-shadow tw-p-10 tw-w-[50%] mx-auto tw-rounded-[10px] tw-border tw-border-gray-250">
+    <div class="tw-bg-white tw-shadow tw-p-10 tw-w-[50%] mx-auto tw-rounded-[10px] tw-border tw-border-gray-250">
         <div class="tw-mb-4">
             <label class="tw-block tw-font-medium tw-mb-1">Tên thương hiệu <span
                     class="tw-text-red-500">*</span></label>

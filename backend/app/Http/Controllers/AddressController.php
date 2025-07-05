@@ -11,7 +11,7 @@ class AddressController extends Controller
 {
     public function getProvinces()
     {
-        $response = Http::get('https://provinces.open-api.vn/api/p/');
+        $response = Http::get('http://provinces.open-api.vn/api/p/');
         if ($response->successful()) {
             return response()->json($response->json());
         }
@@ -20,7 +20,7 @@ class AddressController extends Controller
 
     public function getDistricts($provinceCode)
     {
-        $response = Http::get("https://provinces.open-api.vn/api/p/{$provinceCode}?depth=2");
+        $response = Http::get("http://provinces.open-api.vn/api/p/{$provinceCode}?depth=2");
         if ($response->successful()) {
             $data = $response->json();
             return response()->json($data['districts'] ?? []);
@@ -30,7 +30,7 @@ class AddressController extends Controller
 
     public function getWards($districtCode)
     {
-        $response = Http::get("https://provinces.open-api.vn/api/d/{$districtCode}?depth=2");
+        $response = Http::get("http://provinces.open-api.vn/api/d/{$districtCode}?depth=2");
         if ($response->successful()) {
             $data = $response->json();
             return response()->json($data['wards'] ?? []);

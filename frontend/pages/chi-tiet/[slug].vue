@@ -14,7 +14,7 @@
       <!-- Product content -->
       <div v-else-if="data">
         <!-- Breadcrumb -->
-        <div class="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-gray-500 tw-mb-6">
+        <div class="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-gray-500 tw-mb-6 tw-max-w-7xl tw-mx-auto">
           <NuxtLink to="/" class="hover:tw-text-[#81AACC]">Trang chủ</NuxtLink>
           <span>/</span>
           <NuxtLink to="/san-pham" class="hover:tw-text-[#81AACC]">Sản phẩm</NuxtLink>
@@ -119,14 +119,11 @@ const colorVariantImages = computed(() => {
     : []
 })
 
-// Thêm biến để track xem ảnh có được chọn thủ công không
 const isManualImageSelection = ref(false)
 
 watch([colorVariantImages, data], () => {
-  // Chỉ tự động thay đổi ảnh nếu không phải là lựa chọn thủ công
   if (!isManualImageSelection.value) {
     if (data.value?.images?.length) {
-      // Ưu tiên ảnh chính của sản phẩm
       const mainImg = data.value.images.find(img => img.is_main) || data.value.images[0]
       mainImage.value = mainImg.image_path
     } else if (colorVariantImages.value.length) {
@@ -145,14 +142,11 @@ const activeVariant = computed(() => {
 })
 
 const productImages = computed(() => {
-  // Lấy ảnh chính của sản phẩm
   const mainImages = data.value?.images?.length
     ? data.value.images.map(img => img.image_path)
     : ['/images/placeholder.jpg']
 
-  // Nếu có màu được chọn và có ảnh variant, thêm vào cuối
   if (selectedColor.value && colorVariantImages.value.length > 0) {
-    // Loại bỏ ảnh trùng lặp
     const variantImages = colorVariantImages.value.filter(img => !mainImages.includes(img))
     return [...mainImages, ...variantImages]
   }

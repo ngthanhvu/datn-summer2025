@@ -1,54 +1,62 @@
 <template>
     <div>
         <!-- Product Section -->
-        <div
-            class="tw-flex tw-flex-col lg:tw-flex-row tw-items-stretch tw-justify-center tw-mb-5 tw-p-5 tw-bg-white tw-rounded-[10px] tw-border tw-border-bg-gray-200">
-            <!-- Product Images Section -->
-            <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product.name"
-                @update:main-image="$emit('update:mainImage', $event)" />
+        <div class="tw-max-w-7xl tw-mx-auto tw-mb-5">
+            <div
+                class="tw-flex tw-flex-col lg:tw-flex-row tw-items-stretch tw-justify-start tw-p-5 tw-bg-white tw-rounded-[10px] tw-border tw-border-bg-gray-200">
+                <!-- Product Images Section -->
+                <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product.name"
+                    @update:main-image="$emit('update:mainImage', $event)" />
 
-            <!-- Product Info -->
-            <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"
-                :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
-                :show-original-price="showOriginalPrice" @update:selected-size="$emit('update:selectedSize', $event)"
-                @update:selected-color="$emit('update:selectedColor', $event)"
-                @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
+                <!-- Product Info -->
+                <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"
+                    :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
+                    :show-original-price="showOriginalPrice"
+                    @update:selected-size="$emit('update:selectedSize', $event)"
+                    @update:selected-color="$emit('update:selectedColor', $event)"
+                    @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
+            </div>
         </div>
 
         <!-- Description & Reviews -->
-        <div class="tw-pt-3 tw-bg-white tw-p-8 tw-rounded-[10px] tw-border tw-border-bg-gray-200">
-            <div class="tw-flex tw-gap-8 tw-mb-8">
-                <button v-for="tab in tabs" :key="tab.id" @click="$emit('update:activeTab', tab.id)" :class="[
-                    'tw-px-4 tw-py-2 tw-font-medium tw-border-b-2 tw-transition-colors',
-                    activeTab === tab.id
-                        ? 'tw-border-[#81AACC] tw-text-[#81AACC]'
-                        : 'tw-border-transparent hover:tw-border-gray-300'
-                ]">
-                    {{ tab.name }}
-                </button>
+        <div class="tw-max-w-7xl tw-mx-auto tw-mb-5">
+            <div class="tw-pt-3 tw-bg-white tw-p-8 tw-rounded-[10px] tw-border tw-border-bg-gray-200">
+                <div class="tw-flex tw-gap-8 tw-mb-8">
+                    <button v-for="tab in tabs" :key="tab.id" @click="$emit('update:activeTab', tab.id)" :class="[
+                        'tw-px-4 tw-py-2 tw-font-medium tw-border-b-2 tw-transition-colors',
+                        activeTab === tab.id
+                            ? 'tw-border-[#81AACC] tw-text-[#81AACC]'
+                            : 'tw-border-transparent hover:tw-border-gray-300'
+                    ]">
+                        {{ tab.name }}
+                    </button>
+                </div>
+
+                <!-- Description -->
+                <ProductDescription v-if="activeTab === 'description'" :description="product.description" />
+
+                <!-- Reviews -->
+                <ProductReviews v-if="activeTab === 'reviews'" :review-stats="reviewStats"
+                    :show-review-form="showReviewForm" :is-authenticated="isAuthenticated"
+                    :user-has-reviewed="userHasReviewed" :user-review="userReview" :review-form="reviewForm"
+                    :editing-review-id="editingReviewId" :is-submitting="isSubmitting" :preview-images="previewImages"
+                    :reviews-loading="reviewsLoading" :reviews="reviews" :review-pagination-data="reviewPaginationData"
+                    :total-review-pages="totalReviewPages" :total-reviews="totalReviews"
+                    :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage" :user="user"
+                    @update:review-form="$emit('update:reviewForm', $event)"
+                    @update:show-review-form="$emit('update:showReviewForm', $event)"
+                    @submit-review="$emit('submitReview')" @handle-image-upload="$emit('handleImageUpload', $event)"
+                    @remove-image="$emit('removeImage', $event)" @cancel-edit="$emit('cancelEdit')"
+                    @edit-review="$emit('editReview', $event)" @remove-review="$emit('removeReview', $event)"
+                    @open-image-modal="$emit('openImageModal', $event)"
+                    @handle-review-page-change="$emit('handleReviewPageChange', $event)" />
             </div>
-
-            <!-- Description -->
-            <ProductDescription v-if="activeTab === 'description'" :description="product.description" />
-
-            <!-- Reviews -->
-            <ProductReviews v-if="activeTab === 'reviews'" :review-stats="reviewStats"
-                :show-review-form="showReviewForm" :is-authenticated="isAuthenticated"
-                :user-has-reviewed="userHasReviewed" :user-review="userReview" :review-form="reviewForm"
-                :editing-review-id="editingReviewId" :is-submitting="isSubmitting" :preview-images="previewImages"
-                :reviews-loading="reviewsLoading" :reviews="reviews" :review-pagination-data="reviewPaginationData"
-                :total-review-pages="totalReviewPages" :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage"
-                :current-review-page="currentReviewPage" :user="user"
-                @update:review-form="$emit('update:reviewForm', $event)"
-                @update:show-review-form="$emit('update:showReviewForm', $event)" @submit-review="$emit('submitReview')"
-                @handle-image-upload="$emit('handleImageUpload', $event)" @remove-image="$emit('removeImage', $event)"
-                @cancel-edit="$emit('cancelEdit')" @edit-review="$emit('editReview', $event)"
-                @remove-review="$emit('removeReview', $event)" @open-image-modal="$emit('openImageModal', $event)"
-                @handle-review-page-change="$emit('handleReviewPageChange', $event)" />
         </div>
 
         <!-- Related Products -->
-        <RelatedProducts :related-products="relatedProducts" />
+        <div class="tw-max-w-7xl tw-mx-auto">
+            <RelatedProducts :related-products="relatedProducts" />
+        </div>
     </div>
 </template>
 
