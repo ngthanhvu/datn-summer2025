@@ -22,518 +22,23 @@
           <span class="tw-text-gray-900">{{ data.name }}</span>
         </div>
 
-        <!-- Product Section -->
-        <div
-          class="tw-flex tw-flex-col lg:tw-flex-row tw-items-stretch tw-justify-center tw-mb-5 tw-p-5 tw-bg-white tw-rounded-[10px] tw-border tw-border-bg-gray-200">
-          <!-- Product Images Section -->
-          <div class="tw-flex tw-w-full lg:tw-w-auto tw-gap-4 tw-justify-center tw-p-5 tw-h-full">
-            <!-- Thumbnails dọc -->
-            <div class="tw-flex lg:tw-flex-col tw-flex-row tw-gap-2 tw-items-center tw-justify-center">
-              <img v-for="(img, idx) in productImages" :key="idx" :src="img" :alt="data.name"
-                class="tw-w-14 tw-h-14 tw-object-contain tw-rounded tw-cursor-pointer tw-border-2 tw-bg-white"
-                :class="{ 'tw-ring-2 tw-ring-[#81AACC] tw-border-[#81AACC]': img === mainImage, 'tw-border-gray-200': img !== mainImage }"
-                @click="mainImage = img" />
-            </div>
-            <!-- Ảnh chính lớn -->
-            <div
-              class="tw-bg-white tw-rounded-xl tw-border tw-border-gray-100 tw-p-10 tw-flex tw-items-center tw-justify-center tw-max-w-[650px] tw-max-h-[750px] tw-h-full">
-              <img :src="mainImage" :alt="data.name"
-                class="tw-w-full tw-h-full tw-max-w-[600px] tw-max-h-[700px] tw-object-contain tw-rounded-lg" />
-            </div>
-          </div>
-          <!-- Product Info -->
-          <div
-            class="tw-w-full lg:tw-flex-1 tw-flex tw-flex-col tw-justify-start tw-max-w-[480px] tw-space-y-6 tw-pt-5 tw-h-full">
-            <div>
-              <h1 class="tw-text-[22px] tw-font-semibold tw-leading-[28px] tw-mb-2">
-                {{ data.name }}
-              </h1>
-              <div class="tw-text-[15px] tw-text-gray-600 tw-mb-4">
-                Thương hiệu:
-                <a class="tw-text-[#2f6ad8] hover:tw-underline" href="#">
-                  {{ data.brand.name || 'EGA' }}
-                </a>
-                <span class="tw-mx-2">|</span>
-                Mã sản phẩm:
-                <a class="tw-text-[#2f6ad8] hover:tw-underline" href="#">
-                  {{ data.sku || 'Đang cập nhật' }}
-                </a>
-              </div>
-              <div class="tw-flex tw-items-center tw-justify-between tw-text-[13px] tw-font-semibold tw-mb-2">
-              </div>
-              <div class="tw-flex tw-items-center tw-gap-3 tw-mb-3">
-                <span class="tw-text-[22px] tw-font-bold">
-                  {{ formatPrice(displayPrice) }}
-                </span>
-                <span v-if="showOriginalPrice" class="tw-line-through tw-text-gray-400 tw-text-[15px]">
-                  {{ formatPrice(data.price) }}
-                </span>
-                <span v-if="showOriginalPrice" class="tw-text-[#d43f3f] tw-text-[15px] tw-font-semibold">
-                  -{{ Math.round(100 - (displayPrice / data.price) * 100) }}%
-                </span>
-              </div>
-              <div v-if="showOriginalPrice" class="tw-text-[13px] tw-text-gray-500 tw-mb-4">
-                (Tiết kiệm {{ formatPrice(data.price - displayPrice) }})
-              </div>
-              <p class="tw-text-sm tw-text-gray-500">Giá đã bao gồm VAT</p>
-              <!-- Khuyến mãi - Ưu đãi -->
-              <div
-                class="tw-border tw-border-dashed tw-border-blue-400 tw-rounded-md tw-px-4 tw-py-4 tw-mb-4 tw-text-[15px] tw-text-gray-700 tw-leading-5">
-                <div class="tw-flex tw-items-center tw-gap-1 tw-mb-1 tw-font-semibold tw-text-blue-600">
-                  <i class="fas fa-gift"></i>
-                  <span>KHUYẾN MÃI - ƯU ĐÃI</span>
-                </div>
-                <ul class="tw-list-disc tw-list-inside tw-space-y-0.5">
-                  <li>
-                    Nhập mã <span class="tw-font-semibold">DEVGANG</span> thêm 5% đơn hàng
-                    <a class="tw-text-red-600 hover:tw-underline" href="#">Sao chép</a>
-                  </li>
-                  <li>Hỗ trợ 10.000 phí Ship cho đơn hàng từ 200.000₫</li>
-                  <li>Miễn phí Ship cho đơn hàng từ 300.000₫</li>
-                  <li>Đổi trả trong 30 ngày nếu sản phẩm lỗi bất kì</li>
-                </ul>
-              </div>
-              <div class="tw-mb-3 tw-text-[11px]">
-                <div class="tw-mb-1 tw-font-semibold tw-text-[16px]">Mã giảm giá</div>
-                <div class="tw-flex tw-flex-wrap tw-gap-2">
-                  <button
-                    class="tw-border tw-border-blue-400 tw-rounded tw-px-3 tw-py-1 tw-text-blue-600 tw-text-[13px]">DEVGAMGREESHIP</button>
-                  <button
-                    class="tw-border tw-border-blue-400 tw-rounded tw-px-3 tw-py-1 tw-text-blue-600 tw-text-[13px]">GIAM50K</button>
-                  <button
-                    class="tw-border tw-border-blue-400 tw-rounded tw-px-3 tw-py-1 tw-text-blue-600 tw-text-[13px]">GIAM30</button>
-                  <button
-                    class="tw-border tw-border-blue-400 tw-rounded tw-px-3 tw-py-1 tw-text-blue-600 tw-text-[13px]">GIAM40</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Variants -->
-            <div class="tw-space-y-4" v-if="data.variants && data.variants.length > 0">
-              <!-- Size -->
-              <div v-if="sizes.length > 0">
-                <h3 class="tw-font-medium tw-mb-2 tw-text-[17px]">Kích thước</h3>
-                <div class="tw-flex tw-gap-2">
-                  <button v-for="size in sizes" :key="size" @click="selectedSize = size"
-                    @mouseenter="hoveredSize = size" @mouseleave="hoveredSize = ''" :class="[
-                      'tw-px-4 tw-py-2 tw-border tw-rounded-md tw-transition-colors',
-                      hoveredSize === size
-                        ? 'tw-bg-[#e0f2fe] tw-border-[#81AACC] tw-text-[#0369a1]'
-                        : selectedSize === size
-                          ? 'tw-bg-[#81AACC] tw-text-white tw-border-[#81AACC]'
-                          : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
-                    ]">
-                    {{ size }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Color -->
-              <div v-if="colors.length > 0">
-                <h3 class="tw-font-medium tw-mb-2 tw-text-[17px]">Màu sắc</h3>
-                <div class="tw-flex tw-gap-2">
-                  <button v-for="color in colors" :key="color.name" @click="selectedColor = color"
-                    @mouseenter="hoveredColor = color" @mouseleave="hoveredColor = null" :class="[
-                      'tw-w-10 tw-h-10 tw-rounded-full tw-border-2 tw-transition-colors',
-                      hoveredColor && hoveredColor.name === color.name
-                        ? 'tw-border-[#38bdf8] tw-ring-2 tw-ring-[#38bdf8]'
-                        : selectedColor && selectedColor.name === color.name
-                          ? 'tw-border-[#81AACC] tw-ring-2 tw-ring-[#81AACC]'
-                          : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
-                    ]" :style="{ backgroundColor: color.code }" :title="color.name"></button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Quantity -->
-            <div>
-              <h3 class="tw-font-medium tw-mb-2 tw-text-[17px]">Số lượng</h3>
-              <div class="tw-flex tw-items-center tw-gap-4">
-                <div class="tw-flex tw-items-center tw-border tw-rounded-md">
-                  <button @click="quantity > 1 && quantity--" class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">-</button>
-                  <input type="number" v-model="quantity" min="1" :max="selectedVariantStock"
-                    class="tw-w-20 tw-text-center tw-border-x tw-py-3 tw-text-[16px]" />
-                  <button @click="quantity < selectedVariantStock && quantity++"
-                    class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">+</button>
-                </div>
-                <span class="tw-text-sm tw-text-gray-500">Còn lại: {{ selectedVariantStock }} sản phẩm</span>
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="tw-flex tw-gap-4">
-              <button
-                class="tw-flex-1 tw-bg-[#81AACC] tw-text-white tw-py-2 tw-text-[18px] tw-rounded-md hover:tw-bg-[#6B8BA3] tw-transition-colors"
-                @click="addToCart">
-                Thêm vào giỏ hàng
-              </button>
-            </div>
-
-            <!-- Status -->
-            <div class="tw-flex tw-items-center tw-gap-2 tw-text-[16px]">
-              <span :class="[
-                'tw-font-medium',
-                selectedVariantStock > 0 ? 'tw-text-green-600' : 'tw-text-red-600'
-              ]">
-                {{ selectedVariantStock > 0 ? 'Còn hàng' : 'Hết hàng' }}
-              </span>
-              <span class="tw-text-gray-500">|</span>
-              <span class="tw-text-gray-500">Giao hàng trong 1-3 ngày</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Description & Reviews -->
-        <div class="tw-pt-3 tw-bg-white tw-p-8 tw-rounded-[10px] tw-border tw-border-bg-gray-200">
-          <div class="tw-flex tw-gap-8 tw-mb-8">
-            <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id" :class="[
-              'tw-px-4 tw-py-2 tw-font-medium tw-border-b-2 tw-transition-colors',
-              activeTab === tab.id
-                ? 'tw-border-[#81AACC] tw-text-[#81AACC]'
-                : 'tw-border-transparent hover:tw-border-gray-300'
-            ]">
-              {{ tab.name }}
-            </button>
-          </div>
-
-          <!-- Description -->
-          <div v-if="activeTab === 'description'" class="tw-prose tw-max-w-none">
-            <h3 class="tw-text-xl tw-font-bold tw-mb-4">Mô tả sản phẩm</h3>
-            <div v-html="data.description"></div>
-          </div>
-
-          <!-- Reviews -->
-          <div v-if="activeTab === 'reviews'" class="tw-space-y-8">
-            <!-- Review stats section (improved) -->
-            <div class="tw-bg-gray-50 tw-rounded-lg tw-p-6 tw-shadow-sm tw-transition-all hover:tw-shadow-md">
-              <div class="tw-flex tw-flex-col md:tw-flex-row tw-items-center tw-gap-8">
-                <div class="tw-text-center tw-rounded-lg tw-p-4 tw-min-w-[150px]">
-                  <div class="tw-text-5xl tw-font-bold tw-text-[#81AACC] tw-mb-2">{{ reviewStats.average }}</div>
-                  <div class="tw-text-yellow-400 tw-flex tw-gap-1 tw-justify-center tw-mb-2">
-                    <i v-for="n in 5" :key="n"
-                      :class="n <= Math.round(reviewStats.average) ? 'bi bi-star-fill' : (n <= reviewStats.average + 0.5 ? 'bi bi-star-half' : 'bi bi-star')"
-                      class="tw-text-xl"></i>
-                  </div>
-                  <div class="tw-text-sm tw-text-gray-500 tw-font-medium">{{ reviewStats.total }} đánh giá</div>
-                </div>
-                <div class="tw-flex-1">
-                  <h3 class="tw-text-lg tw-font-medium tw-mb-4 tw-text-center md:tw-text-left">Phân bối đánh giá</h3>
-                  <div v-for="rating in reviewStats.distribution" :key="rating.stars"
-                    class="tw-flex tw-items-center tw-gap-3 tw-mb-3 tw-group">
-                    <span class="tw-w-16 tw-font-medium tw-flex tw-items-center tw-gap-1">
-                      {{ rating.stars }} <i class="bi bi-star-fill tw-text-yellow-400"></i>
-                    </span>
-                    <div class="tw-flex-1 tw-h-3 tw-bg-gray-200 tw-rounded-full tw-overflow-hidden">
-                      <div
-                        class="tw-h-full tw-bg-yellow-400 tw-rounded-full tw-transition-all tw-duration-500 group-hover:tw-bg-yellow-500"
-                        :style="{ width: rating.percentage + '%' }">
-                      </div>
-                    </div>
-                    <span class="tw-w-16 tw-text-right tw-font-medium">{{ rating.percentage }}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Review Form -->
-            <div id="review-form" v-if="showReviewForm"
-              class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-border tw-border-gray-100 tw-mb-8 tw-transition-all hover:tw-shadow-md">
-              <h3 class="tw-text-xl tw-font-semibold tw-mb-6 tw-flex tw-items-center tw-gap-2">
-                <i class="bi bi-pencil-square tw-text-[#81AACC]"></i>
-                {{ editingReviewId ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá' }}
-              </h3>
-
-              <div v-if="!isAuthenticated" class="tw-text-center tw-py-6 tw-bg-gray-50 tw-rounded-lg">
-                <i class="bi bi-person-lock tw-text-3xl tw-text-gray-400 tw-mb-2 tw-block"></i>
-                <p class="tw-mb-4 tw-text-gray-600">Vui lòng đăng nhập để đánh giá sản phẩm</p>
-                <NuxtLink to="/login"
-                  class="tw-bg-[#81AACC] tw-text-white tw-px-6 tw-py-2 tw-rounded-md tw-inline-block tw-font-medium tw-transition-colors hover:tw-bg-[#6B8BA3]">
-                  <i class="bi bi-box-arrow-in-right tw-mr-1"></i> Đăng nhập
-                </NuxtLink>
-              </div>
-
-              <form v-else @submit.prevent="submitReview" class="tw-space-y-6">
-                <!-- Rating -->
-                <div>
-                  <label class="tw-block tw-mb-3 tw-font-medium tw-text-gray-700">Đánh giá của bạn</label>
-                  <div class="tw-flex tw-text-3xl tw-text-gray-300 tw-mb-2">
-                    <button v-for="star in 5" :key="star" type="button" @click="reviewForm.rating = star"
-                      class="tw-focus:outline-none tw-transition-colors tw-duration-200 hover:tw-text-yellow-400"
-                      :class="star <= reviewForm.rating ? 'tw-text-yellow-400' : ''">
-                      <i class="bi bi-star-fill"></i>
-                    </button>
-                  </div>
-                  <div class="tw-text-sm tw-text-gray-500">
-                    {{ ['Chọn đánh giá', 'Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Rất tốt'][reviewForm.rating] }}
-                  </div>
-                </div>
-
-                <!-- Content -->
-                <div>
-                  <label for="review-content" class="tw-block tw-mb-3 tw-font-medium tw-text-gray-700">Nội dung đánh
-                    giá</label>
-                  <textarea id="review-content" v-model="reviewForm.content" rows="4"
-                    class="tw-w-full tw-border tw-border-gray-300 tw-rounded-lg tw-p-3 tw-transition-colors focus:tw-border-[#81AACC] focus:tw-ring-2 focus:tw-ring-[#81AACC]/20 focus:tw-outline-none"
-                    placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này" required></textarea>
-                </div>
-
-                <!-- Image Upload -->
-                <div>
-                  <label class="tw-block tw-mb-3 tw-font-medium tw-text-gray-700">Hình ảnh (tùy chọn)</label>
-                  <div
-                    class="tw-border-2 tw-border-dashed tw-border-gray-300 tw-rounded-lg tw-p-4 tw-text-center tw-transition-colors hover:tw-border-[#81AACC] tw-cursor-pointer tw-relative">
-                    <input type="file" @change="handleImageUpload" accept="image/*" multiple
-                      class="tw-absolute tw-inset-0 tw-opacity-0 tw-cursor-pointer">
-                    <i class="bi bi-cloud-arrow-up tw-text-3xl tw-text-gray-400 tw-mb-2"></i>
-                    <p class="tw-text-gray-500">Kéo thả hoặc nhấp để tải lên hình ảnh</p>
-                    <p class="tw-text-xs tw-text-gray-400 tw-mt-1">Hỗ trợ JPG, PNG, GIF</p>
-                  </div>
-
-                  <!-- Image Previews -->
-                  <div v-if="previewImages.length > 0" class="tw-flex tw-flex-wrap tw-gap-3 tw-mt-4">
-                    <div v-for="(image, index) in previewImages" :key="index"
-                      class="tw-relative tw-w-24 tw-h-24 tw-group tw-overflow-hidden tw-rounded-lg tw-shadow-sm">
-                      <img :src="image.url"
-                        class="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-300 group-hover:tw-scale-110">
-                      <div
-                        class="tw-absolute tw-inset-0 tw-bg-black tw-bg-opacity-0 group-hover:tw-bg-opacity-30 tw-transition-all tw-duration-300">
-                      </div>
-                      <button type="button" @click="removeImage(index)"
-                        class="tw-absolute tw-top-1 tw-right-1 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-6 tw-h-6 tw-flex tw-items-center tw-justify-center tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-duration-300">
-                        <i class="bi bi-x"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Submit Buttons -->
-                <div class="tw-flex tw-gap-3 tw-pt-2">
-                  <button type="submit"
-                    class="tw-bg-[#81AACC] tw-text-white tw-px-6 tw-py-3 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-[#6B8BA3] tw-flex tw-items-center tw-justify-center tw-min-w-[150px]"
-                    :disabled="isSubmitting">
-                    <span v-if="isSubmitting">
-                      <i class="bi bi-arrow-repeat tw-animate-spin tw-inline-block tw-mr-2"></i> Đang xử lý...
-                    </span>
-                    <span v-else>
-                      <i class="bi bi-send tw-mr-2"></i> {{ editingReviewId ? 'Cập nhật đánh giá' : 'Gửi đánh giá' }}
-                    </span>
-                  </button>
-
-                  <button type="button" @click="cancelEdit"
-                    class="tw-bg-gray-200 tw-text-gray-700 tw-px-6 tw-py-3 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-gray-300">
-                    <i class="bi bi-x-lg tw-mr-2"></i> {{ editingReviewId ? 'Hủy' : 'Đóng' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Review Form Toggle Button -->
-            <div v-if="!showReviewForm && isAuthenticated && !userHasReviewed"
-              class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-border tw-border-gray-100 tw-mb-8 tw-text-center">
-              <i class="bi bi-chat-square-text tw-text-3xl tw-text-gray-400 tw-mb-3 tw-block"></i>
-              <p class="tw-mb-4 tw-text-gray-600">Bạn chưa đánh giá sản phẩm này</p>
-              <button @click="showReviewForm = true"
-                class="tw-bg-[#81AACC] tw-text-white tw-px-4 tw-py-1.5 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-[#6B8BA3] tw-inline-flex tw-items-center tw-gap-2 tw-text-sm">
-                <i class="bi bi-pencil-square"></i> Viết đánh giá
-              </button>
-            </div>
-
-            <!-- Edit Review Button for users who have already reviewed -->
-            <div v-if="!showReviewForm && isAuthenticated && userHasReviewed"
-              class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-border tw-border-gray-100 tw-mb-8 tw-text-center">
-              <i class="bi bi-check-circle tw-text-3xl tw-text-green-500 tw-mb-3 tw-block"></i>
-              <p class="tw-mb-4 tw-text-gray-600">Bạn đã đánh giá sản phẩm này rồi</p>
-              <button @click="editReview(userReview)"
-                class="tw-bg-[#81AACC] tw-text-white tw-px-4 tw-py-1.5 tw-rounded-md tw-font-medium tw-transition-colors hover:tw-bg-[#6B8BA3] tw-inline-flex tw-items-center tw-gap-2 tw-text-sm">
-                <i class="bi bi-pencil"></i> Chỉnh sửa đánh giá của bạn
-              </button>
-            </div>
-
-            <!-- Review List -->
-            <div class="tw-space-y-6">
-              <h3 class="tw-text-xl tw-font-semibold tw-mb-6 tw-flex tw-items-center tw-gap-2">
-                <i class="bi bi-chat-square-text tw-text-[#81AACC]"></i> Đánh giá từ khách hàng
-              </h3>
-
-              <!-- Loading State -->
-              <div v-if="reviewsLoading" class="tw-text-center tw-py-10 tw-bg-gray-50 tw-rounded-lg">
-                <div
-                  class="tw-inline-block tw-animate-spin tw-rounded-full tw-h-8 tw-w-8 tw-border-b-2 tw-border-[#81AACC] tw-mb-4">
-                </div>
-                <p class="tw-text-gray-500">Đang tải đánh giá...</p>
-              </div>
-
-              <!-- Empty State -->
-              <div v-else-if="reviews.length === 0" class="tw-text-center tw-py-10 tw-bg-gray-50 tw-rounded-lg">
-                <i class="bi bi-chat-square tw-text-4xl tw-text-gray-300 tw-mb-3 tw-block"></i>
-                <p class="tw-text-gray-500">Chưa có đánh giá nào cho sản phẩm này</p>
-              </div>
-
-              <!-- Reviews Content -->
-              <div v-else class="tw-space-y-6">
-                <div v-for="review in reviews" :key="review.id"
-                  class="tw-bg-white tw-rounded-lg tw-p-6 tw-border tw-border-gray-100 tw-shadow-sm tw-transition-all hover:tw-shadow-md">
-                  <div class="tw-flex tw-justify-between tw-mb-4">
-                    <div class="tw-flex tw-items-center tw-gap-3">
-                      <img
-                        :src="review.user?.avatar ? (review.user.avatar.startsWith('http') ? review.user.avatar : runtimeConfig.public.apiBaseUrl +
-                          '/storage/avatars/' + review.user.avatar.split('/').pop()) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
-                        :alt="review.user?.name"
-                        class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200" />
-                      <div>
-                        <div class="tw-font-semibold tw-text-gray-800">{{ review.user?.username || review.user?.name }}
-                        </div>
-                        <div class="tw-text-sm tw-text-gray-500 tw-flex tw-items-center tw-gap-1">
-                          <i class="bi bi-calendar3"></i> {{ new Date(review.created_at).toLocaleDateString() }}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="tw-flex tw-items-center tw-gap-3">
-                      <div class="tw-px-3 tw-py-1 tw-rounded-full tw-flex tw-items-center tw-gap-1">
-                        <!-- <span class="tw-font-medium">{{ review.rating }}</span> -->
-                        <div class="tw-text-yellow-400">
-                          <i v-for="n in 5" :key="n" :class="n <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'"
-                            class="tw-text-sm"></i>
-                        </div>
-                      </div>
-                      <!-- Nút sửa và xóa đánh giá -->
-                      <div v-if="canModifyReview(review)" class="tw-flex tw-gap-2">
-                        <button @click="editReview(review)"
-                          class="tw-text-[#81AACC] hover:tw-text-[#6B8BA3] tw-bg-[#81AACC]/10 hover:tw-bg-[#81AACC]/20 tw-rounded-full tw-w-8 tw-h-8 tw-flex tw-items-center tw-justify-center tw-transition-colors"
-                          title="Chỉnh sửa đánh giá">
-                          <i class="bi bi-pencil"></i>
-                        </button>
-                        <button @click="removeReview(review.id)"
-                          class="tw-text-red-600 hover:tw-text-red-800 tw-bg-red-50 hover:tw-bg-red-100 tw-rounded-full tw-w-8 tw-h-8 tw-flex tw-items-center tw-justify-center tw-transition-colors"
-                          title="Xóa đánh giá">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <p class="tw-text-gray-700 tw-my-4 tw-leading-relaxed">{{ review.content }}</p>
-
-                  <!-- Hiển thị hình ảnh đánh giá -->
-                  <div v-if="review.images && review.images.length > 0" class="tw-mt-4 tw-flex tw-flex-wrap tw-gap-3">
-                    <div v-for="image in review.images" :key="image.id"
-                      class="tw-relative tw-group tw-overflow-hidden tw-rounded-lg tw-shadow-sm">
-                      <img :src="runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path"
-                        :alt="'Hình ảnh đánh giá'"
-                        class="tw-w-24 tw-h-24 tw-object-cover tw-cursor-pointer tw-transition-transform tw-duration-300 group-hover:tw-scale-110"
-                        @click="openImageModal(runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path)" />
-                      <div
-                        class="tw-absolute tw-inset-0 tw-bg-black tw-bg-opacity-0 group-hover:tw-bg-opacity-20 tw-transition-all tw-duration-300 tw-flex tw-items-center tw-justify-center">
-                        <i
-                          class="bi bi-zoom-in tw-text-white tw-opacity-0 group-hover:tw-opacity-100 tw-text-xl tw-transition-opacity tw-duration-300"></i>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Hiển thị phản hồi của đánh giá -->
-                  <div v-if="review.replies && review.replies.length > 0"
-                    class="tw-mt-6 tw-border-t tw-border-gray-100 tw-pt-4">
-                    <h4 class="tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-3">Phản hồi:</h4>
-                    <div v-for="reply in review.replies" :key="reply.id"
-                      class="tw-bg-gray-50 tw-rounded-lg tw-p-4 tw-mb-3">
-                      <div class="tw-flex tw-items-start tw-gap-3">
-                        <img
-                          :src="reply.user?.avatar ? (reply.user.avatar.startsWith('http') ? reply.user.avatar : runtimeConfig.public.apiBaseUrl + '/storage/avatars/' + reply.user.avatar.split('/').pop()) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
-                          :alt="reply.user?.name"
-                          class="tw-w-8 tw-h-8 tw-rounded-full tw-object-cover tw-border tw-border-gray-200" />
-                        <div class="tw-flex-1">
-                          <div class="tw-flex tw-justify-between tw-items-center tw-mb-1">
-                            <div class="tw-font-medium tw-text-gray-800">
-                              {{ reply.user?.username || reply.user?.name }}
-                              <span v-if="reply.is_admin_reply"
-                                class="tw-bg-[#81AACC]/10 tw-text-[#81AACC] tw-text-xs tw-px-2 tw-py-0.5 tw-rounded-full tw-ml-2">Admin</span>
-                            </div>
-                            <div class="tw-text-xs tw-text-gray-500">
-                              {{ new Date(reply.created_at).toLocaleDateString() }}
-                            </div>
-                          </div>
-                          <p class="tw-text-gray-700 tw-text-sm">{{ reply.content }}</p>
-
-                          <div v-if="reply.images && reply.images.length > 0"
-                            class="tw-mt-2 tw-flex tw-flex-wrap tw-gap-2">
-                            <div v-for="image in reply.images" :key="image.id"
-                              class="tw-relative tw-group tw-overflow-hidden tw-rounded-lg tw-shadow-sm">
-                              <img :src="runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path"
-                                :alt="'Hình ảnh phản hồi'"
-                                class="tw-w-16 tw-h-16 tw-object-cover tw-cursor-pointer tw-transition-transform tw-duration-300 group-hover:tw-scale-110"
-                                @click="openImageModal(runtimeConfig.public.apiBaseUrl + '/storage/' + image.image_path)" />
-                              <div
-                                class="tw-absolute tw-inset-0 tw-bg-black tw-bg-opacity-0 group-hover:tw-bg-opacity-20 tw-transition-all tw-duration-300 tw-flex tw-items-center tw-justify-center">
-                                <i
-                                  class="bi bi-zoom-in tw-text-white tw-opacity-0 group-hover:tw-opacity-100 tw-text-xl tw-transition-opacity tw-duration-300"></i>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Review Pagination -->
-              <div v-if="reviewPaginationData && totalReviewPages > 1"
-                class="tw-flex tw-justify-between tw-items-center tw-bg-white tw-rounded-lg tw-shadow tw-p-4 tw-mt-6">
-                <div class="tw-text-sm tw-text-gray-600">
-                  <span v-if="reviewsLoading">Đang tải...</span>
-                  <span v-else>Hiển thị {{ reviewPaginationData.from }} - {{ reviewPaginationData.to }} trong tổng số {{
-                    totalReviews }} đánh giá ({{ reviewsPerPage }} đánh giá/trang)</span>
-                </div>
-                <div class="tw-flex tw-gap-2">
-                  <button @click="handleReviewPageChange(currentReviewPage - 1)"
-                    :disabled="currentReviewPage === 1 || reviewsLoading"
-                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed hover:tw-bg-gray-50">
-                    <i class="bi bi-chevron-left tw-mr-1"></i>Trước
-                  </button>
-                  <div class="tw-flex tw-gap-1">
-                    <button v-for="page in getVisibleReviewPages()" :key="page" @click="handleReviewPageChange(page)"
-                      :disabled="reviewsLoading" :class="[
-                        'tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed',
-                        page === currentReviewPage
-                          ? 'tw-bg-[#81AACC] tw-text-white tw-border-[#81AACC]'
-                          : 'tw-bg-white tw-text-gray-700 hover:tw-bg-gray-50'
-                      ]">
-                      {{ page }}
-                    </button>
-                  </div>
-                  <button @click="handleReviewPageChange(currentReviewPage + 1)"
-                    :disabled="currentReviewPage === totalReviewPages || reviewsLoading"
-                    class="tw-px-3 tw-py-1 tw-border tw-rounded tw-text-sm disabled:tw-opacity-50 disabled:tw-cursor-not-allowed hover:tw-bg-gray-50">
-                    Sau<i class="bi bi-chevron-right tw-ml-1"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Related Products -->
-        <div class="tw-mt-5 tw-bg-white tw-p-8 tw-rounded-[10px] tw-border tw-border-bg-gray-200">
-          <h2 class="tw-text-2xl tw-font-bold tw-mb-6">Sản phẩm liên quan</h2>
-          <!-- Mobile Slider -->
-          <div class="lg:tw-hidden">
-            <swiper :slides-per-view="1.2" :space-between="16" :breakpoints="{
-              '640': {
-                slidesPerView: 2.2,
-              },
-              '768': {
-                slidesPerView: 3.2,
-              }
-            }" class="tw-w-full">
-              <swiper-slide v-for="product in relatedProducts" :key="product.id">
-                <Card :product="product" />
-              </swiper-slide>
-            </swiper>
-          </div>
-          <!-- Desktop Grid -->
-          <div class="tw-hidden lg:tw-grid lg:tw-grid-cols-5 tw-gap-6">
-            <Card v-for="product in relatedProducts" :key="product.id" :product="product" />
-          </div>
-        </div>
+        <!-- Product Detail Component -->
+        <Detail :product="data" :product-images="productImages" v-model:main-image="mainImage"
+          :selected-size="selectedSize" :selected-color="selectedColor" :quantity="quantity"
+          :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
+          :show-original-price="showOriginalPrice" :active-tab="activeTab" :review-stats="reviewStats"
+          :show-review-form="showReviewForm" :is-authenticated="isAuthenticated" :user-has-reviewed="userHasReviewed"
+          :user-review="userReview" :review-form="reviewForm" :editing-review-id="editingReviewId"
+          :is-submitting="isSubmitting" :preview-images="previewImages" :reviews-loading="reviewsLoading"
+          :reviews="reviews" :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
+          :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
+          :user="user" :related-products="relatedProducts" @update:selected-size="selectedSize = $event"
+          @update:selected-color="selectedColor = $event" @update:quantity="quantity = $event"
+          @update:active-tab="activeTab = $event" @add-to-cart="addToCart" @update:review-form="reviewForm = $event"
+          @update:show-review-form="showReviewForm = $event" @submit-review="submitReview"
+          @handle-image-upload="handleImageUpload" @remove-image="removeImage" @cancel-edit="cancelEdit"
+          @edit-review="editReview" @remove-review="removeReview" @open-image-modal="openImageModal"
+          @handle-review-page-change="handleReviewPageChange" />
       </div>
     </div>
 
@@ -553,9 +58,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import Card from '~/components/home/Card.vue'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import 'swiper/css'
+import Detail from '~/components/product-detail/Detail.vue'
 import useCarts from '~/composables/useCarts'
 import { useCookie } from '#app'
 import { useReviews } from '~/composables/useReviews'
@@ -616,14 +119,21 @@ const colorVariantImages = computed(() => {
     : []
 })
 
+// Thêm biến để track xem ảnh có được chọn thủ công không
+const isManualImageSelection = ref(false)
+
 watch([colorVariantImages, data], () => {
-  if (colorVariantImages.value.length) {
-    mainImage.value = colorVariantImages.value[0]
-  } else if (data.value?.images?.length) {
-    const mainImg = data.value.images.find(img => img.is_main) || data.value.images[0]
-    mainImage.value = mainImg.image_path
-  } else {
-    mainImage.value = '/images/placeholder.jpg'
+  // Chỉ tự động thay đổi ảnh nếu không phải là lựa chọn thủ công
+  if (!isManualImageSelection.value) {
+    if (data.value?.images?.length) {
+      // Ưu tiên ảnh chính của sản phẩm
+      const mainImg = data.value.images.find(img => img.is_main) || data.value.images[0]
+      mainImage.value = mainImg.image_path
+    } else if (colorVariantImages.value.length) {
+      mainImage.value = colorVariantImages.value[0]
+    } else {
+      mainImage.value = '/images/placeholder.jpg'
+    }
   }
 }, { immediate: true })
 
@@ -635,8 +145,19 @@ const activeVariant = computed(() => {
 })
 
 const productImages = computed(() => {
-  if (!data.value?.images?.length) return ['/images/placeholder.jpg']
-  return data.value.images.map(img => img.image_path)
+  // Lấy ảnh chính của sản phẩm
+  const mainImages = data.value?.images?.length
+    ? data.value.images.map(img => img.image_path)
+    : ['/images/placeholder.jpg']
+
+  // Nếu có màu được chọn và có ảnh variant, thêm vào cuối
+  if (selectedColor.value && colorVariantImages.value.length > 0) {
+    // Loại bỏ ảnh trùng lặp
+    const variantImages = colorVariantImages.value.filter(img => !mainImages.includes(img))
+    return [...mainImages, ...variantImages]
+  }
+
+  return mainImages
 })
 
 const sizes = computed(() => {
@@ -1032,6 +553,41 @@ const displayPrice = computed(() => {
 
 const showOriginalPrice = computed(() => {
   return data.value && displayPrice.value < data.value.price
+})
+
+const openImageModal = (imageUrl) => {
+  mainImage.value = imageUrl
+  showZoomModal.value = true
+}
+
+// Thêm function để xử lý thay đổi ảnh thủ công
+const updateMainImage = (newImage) => {
+  console.log('updateMainImage called with:', newImage) // Debug log
+  isManualImageSelection.value = true
+  mainImage.value = newImage
+}
+
+// Reset manual selection khi màu sắc thay đổi
+watch(selectedColor, () => {
+  isManualImageSelection.value = false
+  // Đảm bảo ảnh được cập nhật ngay lập tức khi màu thay đổi
+  if (colorVariantImages.value.length) {
+    mainImage.value = colorVariantImages.value[0]
+  }
+})
+
+// Track manual image changes
+watch(mainImage, (newImage, oldImage) => {
+  // Nếu ảnh thay đổi không phải do watch tự động, đánh dấu là lựa chọn thủ công
+  if (oldImage && newImage !== oldImage && !isManualImageSelection.value) {
+    // Kiểm tra xem ảnh mới có phải là ảnh đầu tiên của variant không
+    const isFirstVariantImage = colorVariantImages.value.length > 0 && newImage === colorVariantImages.value[0]
+    const isFirstMainImage = data.value?.images?.length > 0 && newImage === data.value.images[0]?.image_path
+
+    if (!isFirstVariantImage && !isFirstMainImage) {
+      isManualImageSelection.value = true
+    }
+  }
 })
 </script>
 

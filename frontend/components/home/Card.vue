@@ -1,7 +1,6 @@
 <template>
   <NuxtLink :to="`/chi-tiet/${product.slug}`" class="tw-block">
-    <div
-      class="tw-w-full tw-overflow-hidden tw-group tw-pb-3 tw-relative tw-border tw-border-gray-150 tw-rounded-[5px] tw-bg-white">
+    <div class="tw-w-full tw-overflow-hidden tw-group tw-pb-3 tw-relative tw-rounded-[5px] tw-bg-white">
       <!-- Image wrapper -->
       <div class="tw-relative tw-overflow-hidden">
         <img :src="getMainImage" :alt="product.name"
@@ -27,9 +26,9 @@
           </button>
 
           <!-- Quick view -->
-          <NuxtLink :to="`/chi-tiet/${product.slug}`"
+          <button
             class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
-            title="Xem chi tiết">
+            title="Xem nhanh" @click.prevent="onQuickView">
             <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -37,7 +36,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-          </NuxtLink>
+          </button>
         </div>
       </div>
 
@@ -89,6 +88,8 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['quick-view'])
+
 const { getCategoryById } = useCategory()
 const categoryName = ref('Khác')
 const maxDisplayVariants = 3
@@ -129,13 +130,12 @@ const addToCart = () => {
   console.log('Add to cart:', props.product)
 }
 
-const showQuickView = () => {
-  // TODO: Implement quick view functionality
-  console.log('Quick view:', props.product)
+function onQuickView() {
+  emit('quick-view', props.product)
 }
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .favorite-tooltip {
   @apply tw-invisible tw-opacity-0 tw-transition-all tw-duration-200;
 }
@@ -143,4 +143,4 @@ const showQuickView = () => {
 .group:hover .favorite-tooltip {
   @apply tw-visible tw-opacity-100;
 }
-</style>
+</style> -->

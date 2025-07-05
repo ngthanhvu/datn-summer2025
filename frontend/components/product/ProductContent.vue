@@ -47,7 +47,8 @@
                 <!-- Products Grid -->
                 <div v-else
                     class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4 tw-bg-white tw-p-8 tw-rounded-[5px]">
-                    <Card v-for="product in paginatedProducts" :key="product.id" :product="product" />
+                    <Card v-for="product in paginatedProducts" :key="product.id" :product="product"
+                        @quick-view="openQuickView" />
                 </div>
 
                 <div v-if="totalPages > 1 && !loading"
@@ -84,6 +85,8 @@
                 </div>
             </main>
         </div>
+        <!-- Quick View Modal -->
+        <QuickView :show="showQuickView" :product="quickViewProduct" @close="closeQuickView" />
     </div>
 </template>
 
@@ -92,6 +95,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import ProductFilter from '~/components/product/ProductFilter.vue'
 import ProductSort from '~/components/product/ProductSort.vue'
 import Card from '~/components/home/Card.vue'
+import QuickView from '~/components/product-detail/Quick-view.vue'
 import { useRoute } from 'vue-router'
 
 const showFilter = ref(false)
@@ -103,6 +107,19 @@ const currentPage = ref(1)
 const itemsPerPage = 12
 const filters = ref({})
 const route = useRoute()
+
+// Quick View State
+const showQuickView = ref(false)
+const quickViewProduct = ref(null)
+
+function openQuickView(product) {
+    quickViewProduct.value = product
+    showQuickView.value = true
+}
+function closeQuickView() {
+    showQuickView.value = false
+    quickViewProduct.value = null
+}
 
 const fetchProducts = async () => {
     loading.value = true
