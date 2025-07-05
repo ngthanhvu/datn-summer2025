@@ -4,34 +4,98 @@
     <ServiceFeatures />
     <CategoriesList />
 
-    <NewProducts />
+    <Suspense>
+      <template #default>
+        <NewProducts />
+      </template>
+      <template #fallback>
+        <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px] tw-animate-pulse">
+          <div class="tw-h-8 tw-bg-gray-200 tw-rounded tw-mb-4"></div>
+          <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
+            <div v-for="i in 5" :key="i" class="tw-bg-gray-200 tw-rounded-lg tw-h-80"></div>
+          </div>
+        </div>
+      </template>
+    </Suspense>
 
     <div class="tw-mt-3">
       <Banner />
     </div>
 
-    <CategoryProducts />
+    <Suspense>
+      <template #default>
+        <CategoryProducts />
+      </template>
+      <template #fallback>
+        <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px] tw-animate-pulse">
+          <div class="tw-h-8 tw-bg-gray-200 tw-rounded tw-mb-4"></div>
+          <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
+            <div v-for="i in 5" :key="i" class="tw-bg-gray-200 tw-rounded-lg tw-h-80"></div>
+          </div>
+        </div>
+      </template>
+    </Suspense>
 
-    <BrandsShowcase />
+    <Suspense>
+      <template #default>
+        <BrandsShowcase />
+      </template>
+      <template #fallback>
+        <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px] tw-animate-pulse">
+          <div class="tw-h-8 tw-bg-gray-200 tw-rounded tw-mb-4"></div>
+          <div class="tw-grid tw-grid-cols-6 tw-gap-4">
+            <div v-for="i in 6" :key="i" class="tw-bg-gray-200 tw-rounded-lg tw-h-20"></div>
+          </div>
+        </div>
+      </template>
+    </Suspense>
 
-    <LatestReviews />
+    <Suspense>
+      <template #default>
+        <LatestReviews />
+      </template>
+      <template #fallback>
+        <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px] tw-animate-pulse">
+          <div class="tw-h-8 tw-bg-gray-200 tw-rounded tw-mb-4"></div>
+          <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-4">
+            <div v-for="i in 3" :key="i" class="tw-bg-gray-200 tw-rounded-lg tw-h-40"></div>
+          </div>
+        </div>
+      </template>
+    </Suspense>
 
     <div class="tw-mt-3">
-      <BlogsLatest />
+      <Suspense>
+        <template #default>
+          <BlogsLatest />
+        </template>
+        <template #fallback>
+          <div class="tw-bg-white tw-p-8 tw-rounded-[5px] tw-animate-pulse">
+            <div class="tw-h-8 tw-bg-gray-200 tw-rounded tw-mb-4"></div>
+            <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-4">
+              <div v-for="i in 3" :key="i" class="tw-bg-gray-200 tw-rounded-lg tw-h-60"></div>
+            </div>
+          </div>
+        </template>
+      </Suspense>
     </div>
   </div>
 </template>
 
 <script setup>
-import SwiperSlider from '~/components/home/SwiperSlider.vue';
-import ServiceFeatures from '~/components/home/ServiceFeatures.vue';
-import CategoriesList from '~/components/home/CategoriesList.vue';
-import BlogsLatest from '~/components/home/BlogsLatest.vue';
-import NewProducts from '~/components/home/NewProducts.vue';
-import CategoryProducts from '~/components/home/CategoryProducts.vue';
-import BrandsShowcase from '~/components/home/BrandsShowcase.vue';
-import LatestReviews from '~/components/home/LatestReviews.vue';
-import Banner from '@/components/home/Banner.vue';
+import { defineAsyncComponent } from 'vue';
+
+// Lazy load components để tăng tốc độ load trang chủ
+const SwiperSlider = defineAsyncComponent(() => import('~/components/home/SwiperSlider.vue'))
+const ServiceFeatures = defineAsyncComponent(() => import('~/components/home/ServiceFeatures.vue'))
+const CategoriesList = defineAsyncComponent(() => import('~/components/home/CategoriesList.vue'))
+const BlogsLatest = defineAsyncComponent(() => import('~/components/home/BlogsLatest.vue'))
+const NewProducts = defineAsyncComponent(() => import('~/components/home/NewProducts.vue'))
+const CategoryProducts = defineAsyncComponent(() => import('~/components/home/CategoryProducts.vue'))
+const BrandsShowcase = defineAsyncComponent(() => import('~/components/home/BrandsShowcase.vue'))
+const LatestReviews = defineAsyncComponent(() => import('~/components/home/LatestReviews.vue'))
+const Banner = defineAsyncComponent(() => import('@/components/home/Banner.vue'))
+
 useHead({
   title: 'Trang chủ - DEVGANG',
   meta: [

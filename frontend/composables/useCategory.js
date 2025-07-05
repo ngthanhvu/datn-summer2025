@@ -5,19 +5,61 @@ export const useCategory = () => {
     const apiBaseUrl = config.public.apiBaseUrl
 
     const API = axios.create({
-        baseURL: apiBaseUrl
+        baseURL: apiBaseUrl,
+        timeout: 10000 // Thêm timeout 10 giây
     })
 
-    const getCategories = async () => {
-        const response = await API.get('/api/categories')
-        const categories = response.data
+    // Cache system
+    const cache = new Map()
+    const CACHE_DURATION = 5 * 60 * 1000 // 5 phút
 
-        return categories
+    const getCachedData = (key) => {
+        const cached = cache.get(key)
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+            return cached.data
+        }
+        return null
+    }
+
+    const setCachedData = (key, data) => {
+        cache.set(key, {
+            data,
+            timestamp: Date.now()
+        })
+    }
+
+    const clearCache = () => {
+        cache.clear()
+    }
+
+    const getCategories = async () => {
+        try {
+            const cacheKey = 'categories'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
+            const response = await API.get('/api/categories')
+            const categories = response.data
+            setCachedData(cacheKey, categories)
+            return categories
+        } catch (error) {
+            console.error('Error getting categories:', error)
+            return []
+        }
     }
 
     const getCategoryById = async (id) => {
         try {
+            const cacheKey = `category_${id}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get(`/api/categories/${id}`)
+            setCachedData(cacheKey, response.data)
             return response.data
         } catch (error) {
             console.error('Error getting category:', error)
@@ -33,6 +75,8 @@ export const useCategory = () => {
                     'Accept': 'application/json'
                 }
             })
+            // Clear cache khi có thay đổi
+            clearCache()
             return response.data
         } catch (error) {
             console.error('Error creating category:', error)
@@ -53,6 +97,8 @@ export const useCategory = () => {
                     'Accept': 'application/json'
                 }
             })
+            // Clear cache khi có thay đổi
+            clearCache()
             return response.data
         } catch (error) {
             console.error('Error updating category:', error.response?.data || error)
@@ -63,6 +109,8 @@ export const useCategory = () => {
     const deleteCategory = async (id) => {
         try {
             const response = await API.delete(`/api/categories/${id}`)
+            // Clear cache khi có thay đổi
+            clearCache()
             return response.data
         } catch (error) {
             console.error('Error deleting category:', error)
@@ -75,6 +123,8 @@ export const useCategory = () => {
             const response = await API.post('/api/categories/bulk-delete', {
                 ids: Array.from(ids)
             })
+            // Clear cache khi có thay đổi
+            clearCache()
             return response.data
         } catch (error) {
             console.error('Error bulk deleting categories:', error.response?.data || error)
@@ -84,6 +134,12 @@ export const useCategory = () => {
 
     const logCategoryStats = async () => {
         try {
+            const cacheKey = 'category_stats'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const categories = await getCategories()
 
             const totalCategories = categories.length
@@ -103,13 +159,16 @@ export const useCategory = () => {
                 })
             }
 
-            return {
+            const stats = {
                 totalCategories,
                 totalProducts,
                 activeCategories,
                 topCategories,
                 emptyCategories
             }
+
+            setCachedData(cacheKey, stats)
+            return stats
         } catch (error) {
             console.error('❌ Lỗi khi lấy thống kê danh mục:', error)
             return null
@@ -123,6 +182,7 @@ export const useCategory = () => {
         updateCategory,
         deleteCategory,
         bulkDeleteCategories,
-        logCategoryStats
+        logCategoryStats,
+        clearCache
     }
 }

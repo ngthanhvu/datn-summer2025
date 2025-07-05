@@ -96,7 +96,9 @@ const { data, pending, error, refresh } = await useAsyncData(
     return product
   },
   {
-    watch: [() => route.params.slug]
+    watch: [() => route.params.slug],
+    server: false,
+    lazy: true
   }
 )
 
@@ -275,15 +277,18 @@ onMounted(() => {
   }
 })
 
-watch(data, () => {
+watch(data, async () => {
   if (data.value) {
-    fetchReviews()
+    await Promise.all([
+      fetchReviews(),
+      fetchRelatedProducts()
+    ])
   }
 }, { immediate: true })
 
 const relatedProducts = ref([])
 
-watch(data, async () => {
+const fetchRelatedProducts = async () => {
   if (data.value?.categories_id) {
     try {
       const products = await getProducts()
@@ -294,7 +299,7 @@ watch(data, async () => {
       console.error('Error fetching related products:', error)
     }
   }
-}, { immediate: true })
+}
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', {
