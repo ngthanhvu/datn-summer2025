@@ -11,7 +11,7 @@
         <div v-show="isExpanded">
             <div class="tw-space-y-4">
                 <div v-for="(item, index) in items" :key="index" class="tw-flex tw-items-center tw-gap-4">
-                    <img :src="item.image" :alt="item.name" class="tw-w-20 tw-h-20 tw-object-cover">
+                    <img :src="getImageUrl(item.image)" :alt="item.name" class="tw-w-20 tw-h-20 tw-object-cover">
                     <div class="tw-flex-1">
                         <h3 class="tw-font-medium">{{ item.name }}</h3>
                         <p class="tw-text-sm tw-text-gray-500">Size: {{ item.size }} | Số lượng: {{ item.quantity }}</p>
@@ -47,6 +47,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useNuxtApp } from '#app'
 
 defineProps({
     items: {
@@ -60,6 +61,7 @@ defineProps({
 })
 
 const isExpanded = ref(true)
+const { $config: runtimeConfig } = useNuxtApp()
 
 const toggleExpanded = () => {
     isExpanded.value = !isExpanded.value
@@ -70,5 +72,13 @@ const formatPrice = (price) => {
         style: 'currency',
         currency: 'VND'
     }).format(price)
+}
+
+const getImageUrl = (path) => {
+    if (!path) return '/default-image.jpg'
+    if (path.startsWith('http://') || path.startsWith('https://')) return path
+    if (path.startsWith('/storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + path
+    if (path.startsWith('storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
+    return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
 }
 </script>

@@ -1,15 +1,14 @@
 <template>
-    <div class="tw-p-4">
-        <h2 class="tw-text-2xl tw-font-semibold tw-text-gray-800 tw-mb-8 tw-text-center">
-            {{ isEditMode ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới' }}
-        </h2>
-
-        <form @submit.prevent="handleSubmit" class="tw-flex tw-flex-col tw-gap-6 tw-mb-8">
+    <h2 class="tw-text-2xl tw-font-semibold tw-text-gray-800 tw-mb-8 tw-text-center tw-mt-5">
+        {{ isEditMode ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới' }}
+    </h2>
+    <div class="tw-p-6 tw-w-[50%] tw-bg-white mx-auto tw-border tw-border-gray-200 tw-mb-[50px] tw-rounded-md">
+        <form @submit.prevent="handleSubmit" class="tw-flex tw-flex-col tw-gap-3 tw-mb-3">
             <!-- Title -->
             <div class="tw-flex tw-flex-col">
                 <label for="blog-title" class="tw-font-medium tw-text-gray-700 tw-mb-2">Tiêu đề *</label>
                 <input id="blog-title" v-model="formData.title" type="text"
-                    class="tw-w-full tw-px-3 tw-py-3 tw-border tw-border-gray-300 tw-rounded-md tw-text-sm tw-transition-colors focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                    class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
                     :class="{ 'tw-border-red-500': errors.title }" placeholder="Nhập tiêu đề bài viết..." />
                 <span v-if="errors.title" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.title }}</span>
             </div>
@@ -22,7 +21,7 @@
                     :class="{ 'tw-border-red-500': errors.description }" placeholder="Nhập mô tả bài viết..."
                     rows="3"></textarea>
                 <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description
-                    }}</span>
+                }}</span>
             </div>
 
             <!-- Image Upload -->
@@ -51,11 +50,10 @@
             <!-- Status -->
             <div class="tw-flex tw-flex-col">
                 <label class="tw-font-medium tw-text-gray-700 tw-mb-2">Trạng thái *</label>
-                <select v-model="formData.status"
-                    class="tw-w-full tw-px-3 tw-py-3 tw-border tw-border-gray-300 tw-rounded-md tw-text-sm focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
-                    <option value="draft">Bản nháp</option>
+                <select v-model="formData.status" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2">
+                    <!-- <option value="draft">Bản nháp</option> -->
                     <option value="published">Đã xuất bản</option>
-                    <option value="archived">Lưu trữ</option>
+                    <!-- <option value="archived">Lưu trữ</option> -->
                 </select>
                 <span v-if="errors.status" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.status }}</span>
             </div>
@@ -65,7 +63,7 @@
                 <label class="tw-font-medium tw-text-gray-700 tw-mb-2">Nội dung *</label>
                 <ClientOnly>
                     <QuillEditor v-model:content="formData.content" contentType="html" :options="quillOptions"
-                        class="tw-rounded-md tw-min-h-80" :class="{ 'tw-border-red-500': errors.content }" />
+                        class="tw-min-h-80" :class="{ 'tw-border-red-500': errors.content }" />
                     <template #fallback>
                         <div class="tw-p-4 tw-text-center tw-text-gray-500">Đang tải editor...</div>
                     </template>
@@ -75,7 +73,7 @@
                 <span v-if="errors.content" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.content }}</span>
             </div>
 
-            <div class="tw-flex tw-justify-end tw-gap-4 tw-pt-4 tw-border-t tw-border-gray-200">
+            <div class="tw-flex tw-justify-end tw-gap-4 tw-pt-4 tw-border-gray-200">
                 <button type="button" @click="handleCancel"
                     class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
                     Hủy
@@ -252,6 +250,11 @@ const handleCancel = () => router.push('/admin/blogs')
 </script>
 
 <style scoped>
-.tw-bg-primary { background-color: #3bb77e; }
-.tw-bg-primary-dark { background-color: #2ea16d; }
+.tw-bg-primary {
+    background-color: #3bb77e;
+}
+
+.tw-bg-primary-dark {
+    background-color: #2ea16d;
+}
 </style>

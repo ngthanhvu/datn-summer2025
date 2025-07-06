@@ -1,5 +1,5 @@
 <template>
-    <div class="form-container mx-auto tw-mt-[100px]" id="loginForm">
+    <div class="form-container mx-auto tw-mt-[100px] tw-bg-white tw-mb-10 tw-border tw-border-gray-150" id="loginForm">
         <h2 class="text-center mb-4 mt-3 tw-font-semibold tw-text-2xl">Đăng Nhập</h2>
         <form @submit.prevent="handleLogin">
             <div class="mb-3">
@@ -186,7 +186,6 @@ const handleLogin = async () => {
 .form-container {
     max-width: 500px;
     padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
 }
 

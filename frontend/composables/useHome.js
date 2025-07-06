@@ -5,11 +5,37 @@ export const useHome = () => {
     const apiBaseUrl = config.public.apiBaseUrl
 
     const API = axios.create({
-        baseURL: apiBaseUrl
+        baseURL: apiBaseUrl,
+        timeout: 10000 // Thêm timeout 10 giây
     })
+
+    // Cache system
+    const cache = new Map()
+    const CACHE_DURATION = 3 * 60 * 1000 // 3 phút
+
+    const getCachedData = (key) => {
+        const cached = cache.get(key)
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+            return cached.data
+        }
+        return null
+    }
+
+    const setCachedData = (key, data) => {
+        cache.set(key, {
+            data,
+            timestamp: Date.now()
+        })
+    }
 
     const getNewProducts = async (limit = 10) => {
         try {
+            const cacheKey = `new_products_${limit}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get('/api/products', {
                 params: {
                     sort_by: 'created_at',
@@ -17,6 +43,7 @@ export const useHome = () => {
                     limit: limit
                 }
             })
+            setCachedData(cacheKey, response.data)
             return response.data
         } catch (error) {
             console.error('Error getting new products:', error)
@@ -26,11 +53,18 @@ export const useHome = () => {
 
     const getProductsByCategory = async (categoryId = null, limit = 10) => {
         try {
+            const cacheKey = `products_category_${categoryId}_${limit}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const params = { limit }
             if (categoryId) {
                 params.category = categoryId
             }
             const response = await API.get('/api/products', { params })
+            setCachedData(cacheKey, response.data)
             return response.data
         } catch (error) {
             console.error('Error getting products by category:', error)
@@ -40,9 +74,15 @@ export const useHome = () => {
 
     const getBrandsWithProductCount = async () => {
         try {
+            const cacheKey = 'brands_with_count'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get('/api/brands')
             const brands = response.data
-
+            setCachedData(cacheKey, brands)
             return brands
         } catch (error) {
             console.error('Error getting brands with product count:', error)
@@ -52,10 +92,18 @@ export const useHome = () => {
 
     const getLatestReviews = async (perPage = 6) => {
         try {
+            const cacheKey = `latest_reviews_${perPage}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get('/api/reviews/latest', {
                 params: { per_page: perPage }
             })
-            return response.data.data
+            const data = response.data.data
+            setCachedData(cacheKey, data)
+            return data
         } catch (error) {
             console.error('Error getting latest reviews:', error)
             return []
@@ -64,6 +112,12 @@ export const useHome = () => {
 
     const getReviewStats = async () => {
         try {
+            const cacheKey = 'review_stats'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get('/api/product-reviews');
 
             const reviews = Array.isArray(response.data) ? response.data : [];
@@ -76,11 +130,14 @@ export const useHome = () => {
 
             const verifiedReviews = reviews.filter(review => review.is_verified).length;
 
-            return {
+            const stats = {
                 totalReviews,
                 averageRating: parseFloat(averageRating),
                 verifiedReviews
             };
+
+            setCachedData(cacheKey, stats)
+            return stats
         } catch (error) {
             console.error('Error getting review stats:', error);
             return {
@@ -91,11 +148,18 @@ export const useHome = () => {
         }
     };
 
-
     const getCategories = async () => {
         try {
+            const cacheKey = 'categories'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get('/api/categories')
-            return response.data
+            const data = response.data
+            setCachedData(cacheKey, data)
+            return data
         } catch (error) {
             console.error('Error getting categories:', error)
             return []
@@ -152,6 +216,11 @@ export const useHome = () => {
         }
     }
 
+    // Clear cache function
+    const clearCache = () => {
+        cache.clear()
+    }
+
     return {
         getNewProducts,
         getProductsByCategory,
@@ -161,6 +230,7 @@ export const useHome = () => {
         getCategories,
         formatPrice,
         formatDate,
-        logBrandStats
+        logBrandStats,
+        clearCache
     }
 } 

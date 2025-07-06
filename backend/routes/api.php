@@ -19,6 +19,7 @@ use App\Http\Controllers\FavoriteProductController;
 use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessengerController;
+use App\Http\Controllers\StockMovementController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -35,9 +36,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
 
-    Route::post('/inventory/update', [InventoryController::class, 'updateStock']);
-    Route::get('/inventory/movements', [InventoryController::class, 'getMovements']);
-    Route::get('inventory/movement/{id}/pdf', [InventoryController::class, 'exportMovementPdf']);
+    Route::get('/inventory', [InventoryController::class, 'index']);
 
     Route::post('/blogs', [BlogsController::class, 'store']);
     Route::put('/blogs/{id}', [BlogsController::class, 'update']);
@@ -81,6 +80,10 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/message/{messageId}', [MessengerController::class, 'deleteMessage']);
         Route::get('/admins', [MessengerController::class, 'getAdmins']);
     });
+
+    Route::post('/coupons/{id}/claim', [CouponsController::class, 'claim']);
+    Route::post('/coupons/{id}/use', [CouponsController::class, 'use']);
+    Route::get('/coupons/my-coupons', [CouponsController::class, 'myCoupons']);
 });
 
 // Public blog routes
@@ -182,3 +185,8 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/products', [DashboardController::class, 'getProductsStats']);
     Route::get('/recent-orders', [DashboardController::class, 'getRecentOrders']);
 });
+
+Route::get('/stock-movement', [StockMovementController::class, 'index']);
+Route::get('/stock-movement/{id}', [StockMovementController::class, 'show']);
+Route::post('/stock-movement', [StockMovementController::class, 'store']);
+Route::delete('/stock-movement/{id}', [StockMovementController::class, 'destroy']);

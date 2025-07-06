@@ -11,19 +11,20 @@
             <table class="tw-w-full tw-text-sm">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
-                        <th class="tw-px-3 tw-py-2 tw-text-left">
+                        <th class="tw-px-3 tw-py-2 tw-text-center">
                             <div class="tw-flex tw-items-center">
                                 <input type="checkbox" :checked="selectedCategories.size === categories.length"
                                     @change="toggleSelectAll" class="tw-rounded">
                             </div>
                         </th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">#</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Ảnh</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Tên danh mục</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Mô tả</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Danh mục cha</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Trạng thái</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Thao tác</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">#</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Ảnh</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Tên danh mục</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Mô tả</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Danh mục cha</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Số lượng sản phẩm</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Trạng thái</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -39,16 +40,17 @@
                             <input type="checkbox" :checked="selectedCategories.has(category.id)"
                                 @change="toggleSelect(category.id)" class="tw-rounded">
                         </td>
-                        <td class="tw-px-3 tw-py-2">{{ index + 1 }}</td>
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-3 tw-py-2 text-center">{{ index + 1 }}</td>
+                        <td class="tw-px-3 tw-py-2 text-center">
                             <img :src="category.image" :alt="category.name"
                                 class="tw-w-8 tw-h-8 tw-object-cover tw-rounded">
                         </td>
-                        <td class="tw-px-3 tw-py-2">{{ category.name }}</td>
-                        <td class="tw-px-3 tw-py-2">{{ category.description }}</td>
-                        <td class="tw-px-3 tw-py-2">{{category.parent_id ? categories.find(c => c.id ===
+                        <td class="tw-px-3 tw-py-2 text-center">{{ category.name }}</td>
+                        <td class="tw-px-3 tw-py-2 text-center">{{ category.description }}</td>
+                        <td class="tw-px-3 tw-py-2 text-center">{{category.parent_id ? categories.find(c => c.id ===
                             category.parent_id).name : 'Không có danh mục cha'}}</td>
-                        <td class="tw-px-3 tw-py-2">
+                        <td class="tw-px-3 tw-py-2 text-center">{{ category.products_count }}</td>
+                        <td class="tw-px-3 tw-py-2 text-center">
                             <span :class="[
                                 'tw-px-2 tw-py-0.5 tw-rounded-full tw-text-xs',
                                 Number(category.is_active) === 1 ? 'tw-bg-green-100 tw-text-green-700' : 'tw-bg-red-100 tw-text-red-700'
@@ -56,8 +58,8 @@
                                 {{ Number(category.is_active) === 1 ? 'Hoạt động' : 'Vô hiệu' }}
                             </span>
                         </td>
-                        <td class="tw-px-3 tw-py-2">
-                            <div class="tw-flex tw-items-center tw-gap-2">
+                        <td class="tw-px-3 tw-py-2 text-center">
+                            <div class="tw-flex tw-items-center tw-justify-center tw-gap-2">
                                 <NuxtLink :to="`/admin/categories/${category.id}/edit`"
                                     class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-blue-600 hover:tw-text-blue-900 hover:tw-bg-blue-50 tw-rounded-lg tw-transition-colors tw-duration-150"
                                     title="Chỉnh sửa danh mục">

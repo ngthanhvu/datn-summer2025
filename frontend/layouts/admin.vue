@@ -37,7 +37,7 @@
           </div>
         </div>
       </header>
-      <main class="content">
+      <main class="content tw-bg-[#F5F7FB] screen">
         <slot />
       </main>
     </div>
@@ -153,5 +153,9 @@ const handleBackHome = () => {
   border-radius: 50%;
   font-size: 0.7rem;
   padding: 2px 6px;
+}
+
+.screen {
+  min-height: calc(100vh - 64px);
 }
 </style>

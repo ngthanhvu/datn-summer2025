@@ -1,5 +1,6 @@
 <template>
-    <div class="form-container mx-auto tw-mt-[100px]" id="registerForm">
+    <div class="form-container mx-auto tw-mt-[100px] tw-bg-white tw-mb-10 tw-border tw-border-gray-150"
+        id="registerForm">
         <h2 class="text-center mb-4 tw-font-semibold tw-text-2xl">Đăng Ký</h2>
         <form @submit.prevent="handleRegister">
             <div class="mb-2">
@@ -206,7 +207,6 @@ const handleRegister = async () => {
 .form-container {
     max-width: 500px;
     padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
 }
 

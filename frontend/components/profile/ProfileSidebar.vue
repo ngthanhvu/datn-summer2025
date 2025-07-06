@@ -33,5 +33,6 @@ const items = [
     { key: 'info', label: 'Thông tin tài khoản' },
     { key: 'address', label: 'Địa chỉ' },
     { key: 'orders', label: 'Đơn hàng' },
+    { key: 'coupon', label: 'Mã giảm giá' },
 ]
 </script>

@@ -16,5 +16,5 @@ useHead({
     }
   ]
 })
-import BlogForm from '../../components/admin/blogs/BlogForm.vue'
+import BlogForm from '~/components/admin/blogs/BlogForm.vue'
 </script>

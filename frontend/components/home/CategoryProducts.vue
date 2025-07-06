@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-mt-8">
+    <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[10px]">
         <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
             <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800">Sản phẩm theo danh mục</h2>
         </div>
@@ -9,16 +9,16 @@
             <button @click="selectCategory(null)" :class="[
                 'tw-px-4 tw-py-2 tw-rounded-full tw-text-sm tw-font-medium tw-transition-colors',
                 selectedCategory === null
-                    ? 'tw-bg-blue-600 tw-text-white'
-                    : 'tw-bg-gray-100 tw-text-gray-700 tw-hover:bg-gray-200'
+                    ? 'tw-bg-[#81aacc] tw-text-white'
+                    : 'tw-bg-white tw-border tw-border-gray-300 tw-text-gray-700 tw-hover:bg-gray-200'
             ]">
                 Tất cả sản phẩm
             </button>
             <button v-for="category in categories" :key="category.id" @click="selectCategory(category.id)" :class="[
                 'tw-px-4 tw-py-2 tw-rounded-full tw-text-sm tw-font-medium tw-transition-colors',
                 selectedCategory === category.id
-                    ? 'tw-bg-blue-600 tw-text-white'
-                    : 'tw-bg-gray-100 tw-text-gray-700 tw-hover:bg-gray-200'
+                    ? 'tw-bg-[#81aacc] tw-text-white'
+                    : 'tw-bg-white tw-border tw-border-gray-300 tw-text-gray-700 tw-hover:bg-gray-200'
             ]">
                 {{ category.name }}
             </button>
@@ -41,18 +41,22 @@
 
         <!-- Products Grid -->
         <div v-else class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
-            <Card v-for="product in filteredProducts.slice(0, 5)" :key="product.id" :product="product" />
+            <Card v-for="product in filteredProducts.slice(0, 5)" :key="product.id" :product="product"
+                @quick-view="openQuickView" />
         </div>
 
         <!-- Empty State -->
         <div v-if="!loading && filteredProducts.length === 0" class="tw-text-center tw-py-8">
             <p class="tw-text-gray-500">Không có sản phẩm nào trong danh mục này</p>
         </div>
+        <!-- Quick View Modal -->
+        <QuickView :show="showQuickView" :product="quickViewProduct" @close="closeQuickView" />
     </div>
 </template>
 
 <script setup>
 import Card from './Card.vue'
+import QuickView from '~/components/product-detail/Quick-view.vue'
 
 const { getProductsByCategory, getCategories } = useHome()
 
@@ -62,6 +66,19 @@ const allProducts = ref([])
 const filteredProducts = ref([])
 const loading = ref(true)
 const categoriesLoading = ref(true)
+
+// Quick View State
+const showQuickView = ref(false)
+const quickViewProduct = ref(null)
+
+function openQuickView(product) {
+    quickViewProduct.value = product
+    showQuickView.value = true
+}
+function closeQuickView() {
+    showQuickView.value = false
+    quickViewProduct.value = null
+}
 
 // Lấy danh mục
 const fetchCategories = async () => {

@@ -15,6 +15,6 @@ class Inventory extends Model
 
     public function variant()
     {
-        return $this->belongsTo(Variants::class);
+        return $this->belongsTo(Variants::class, 'variant_id');
     }
 }

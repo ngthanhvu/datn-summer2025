@@ -27,7 +27,6 @@ class ProductsController extends Controller
                 'name',
                 'description',
                 'price',
-                'original_price',
                 'discount_price',
                 'slug',
                 'categories_id',
@@ -41,17 +40,47 @@ class ProductsController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-        if ($request->has('category') && !empty($request->category)) {
+        // Ưu tiên filter theo category_id nếu có
+        if ($request->has('category_id') && !empty($request->category_id)) {
+            $categoryIds = is_array($request->category_id) ? array_filter($request->category_id) : [$request->category_id];
+            $query->whereIn('categories_id', $categoryIds);
+        } else if ($request->has('category') && !empty($request->category)) {
             $categories = is_array($request->category) ? array_filter($request->category) : [$request->category];
-            if (!empty($categories)) {
-                $query->whereIn('categories_id', $categories);
+            $categoryIds = [];
+            foreach ($categories as $cat) {
+                if (is_numeric($cat)) {
+                    $categoryIds[] = $cat;
+                } else {
+                    $catModel = \App\Models\Categories::where('slug', $cat)->first();
+                    if ($catModel) {
+                        $categoryIds[] = $catModel->id;
+                    }
+                }
+            }
+            if (!empty($categoryIds)) {
+                $query->whereIn('categories_id', $categoryIds);
             }
         }
 
-        if ($request->has('brand') && !empty($request->brand)) {
+        // Ưu tiên filter theo brand_id nếu có
+        if ($request->has('brand_id') && !empty($request->brand_id)) {
+            $brandIds = is_array($request->brand_id) ? array_filter($request->brand_id) : [$request->brand_id];
+            $query->whereIn('brand_id', $brandIds);
+        } else if ($request->has('brand') && !empty($request->brand)) {
             $brands = is_array($request->brand) ? array_filter($request->brand) : [$request->brand];
-            if (!empty($brands)) {
-                $query->whereIn('brand_id', $brands);
+            $brandIds = [];
+            foreach ($brands as $b) {
+                if (is_numeric($b)) {
+                    $brandIds[] = $b;
+                } else {
+                    $brandModel = \App\Models\Brands::where('slug', $b)->first();
+                    if ($brandModel) {
+                        $brandIds[] = $brandModel->id;
+                    }
+                }
+            }
+            if (!empty($brandIds)) {
+                $query->whereIn('brand_id', $brandIds);
             }
         }
 
@@ -104,7 +133,6 @@ class ProductsController extends Controller
                 'name',
                 'description',
                 'price',
-                'original_price',
                 'discount_price',
                 'slug',
                 'categories_id',
@@ -120,10 +148,10 @@ class ProductsController extends Controller
     {
         try {
             $product = Products::with(['images' => function ($query) {
-                $query->select('id', 'image_path', 'is_main', 'product_id');
+                $query->select('id', 'image_path', 'is_main', 'product_id', 'variant_id');
             }, 'variants' => function ($query) {
                 $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
-            }, 'categories', 'brand'])
+            }, 'variants.images', 'categories', 'brand'])
                 ->where('slug', $slug)
                 ->firstOrFail();
 
@@ -131,6 +159,17 @@ class ProductsController extends Controller
                 $image->image_path = url('storage/' . $image->image_path);
                 return $image;
             });
+
+            // Đảm bảo images của từng variant cũng có url đầy đủ
+            if ($product->variants) {
+                foreach ($product->variants as $variant) {
+                    if ($variant->images) {
+                        foreach ($variant->images as $img) {
+                            $img->image_path = url('storage/' . $img->image_path);
+                        }
+                    }
+                }
+            }
 
             return response()->json($product);
         } catch (\Exception $e) {
@@ -148,7 +187,6 @@ class ProductsController extends Controller
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
                 'price' => 'required|numeric',
-                'original_price' => 'required|numeric',
                 'discount_price' => 'required|numeric',
                 'is_active' => 'required|boolean',
             ]);
@@ -165,7 +203,6 @@ class ProductsController extends Controller
                 "name" => $request->name,
                 "price" => $request->price,
                 "description" => $request->description,
-                "original_price" => $request->original_price,
                 "discount_price" => $request->discount_price,
                 "slug" => $slug,
                 "categories_id" => $request->categories_id,
@@ -192,15 +229,36 @@ class ProductsController extends Controller
             }
 
             if ($request->has('variants')) {
-                foreach ($request->variants as $variant) {
-                    if (!empty($variant['price']) && (!empty($variant['color']) || !empty($variant['size']))) {
-                        Variants::create([
-                            'color' => $variant['color'],
-                            'size' => $variant['size'],
-                            'price' => $variant['price'],
-                            'sku' => $variant['sku'] ?? '',
-                            'product_id' => $product->id,
-                        ]);
+                foreach ($request->input('variants', []) as $variantIndex => $variant) {
+                    if (!empty($variant['color']) && !empty($variant['sizes']) && is_array($variant['sizes']) && count($variant['sizes']) > 0) {
+                        $firstVariant = null;
+
+                        foreach ($variant['sizes'] as $sizeObj) {
+                            $createdVariant = Variants::create([
+                                'color' => $variant['color'],
+                                'size' => $sizeObj['size'],
+                                'price' => $sizeObj['price'],
+                                'sku' => $sizeObj['sku'] ?? '',
+                                'product_id' => $product->id,
+                            ]);
+
+                            if ($firstVariant === null) {
+                                $firstVariant = $createdVariant;
+                            }
+                        }
+
+                        $variantImages = $request->file("variants.$variantIndex.images", []);
+                        if ($variantImages && $firstVariant) {
+                            foreach ($variantImages as $variantImage) {
+                                $imagePath = $variantImage->store('products', 'public');
+                                Images::create([
+                                    'image_path' => $imagePath,
+                                    'is_main' => false,
+                                    'product_id' => $product->id,
+                                    'variant_id' => $firstVariant->id,
+                                ]);
+                            }
+                        }
                     }
                 }
             }
@@ -220,15 +278,20 @@ class ProductsController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            \Log::info('🔥 Update product request', [
+                'id' => $id,
+                'request_data' => $request->all(),
+                'files' => $request->allFiles()
+            ]);
+
             $product = Products::findOrFail($id);
 
             $request->validate([
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
                 'price' => 'required|numeric',
-                'original_price' => 'required|numeric',
                 'discount_price' => 'required|numeric',
-                'is_active' => 'required|boolean',
+                'is_active' => 'required|in:0,1',
             ]);
 
             $slug = Str::slug($request->name);
@@ -242,17 +305,22 @@ class ProductsController extends Controller
                 "name" => $request->name,
                 "price" => $request->price,
                 "description" => $request->description,
-                "original_price" => $request->original_price,
                 "discount_price" => $request->discount_price,
                 "slug" => $slug,
                 "categories_id" => $request->categories_id,
                 "brand_id" => $request->brand_id,
+                "is_active" => $request->is_active,
             ]);
 
+            // Handle main image update
             if ($request->hasFile('is_main')) {
                 $oldMainImage = Images::where('product_id', $product->id)->where('is_main', true)->first();
                 if ($oldMainImage) {
-                    Storage::disk('public')->delete($oldMainImage->image_path);
+                    try {
+                        Storage::disk('public')->delete($oldMainImage->image_path);
+                    } catch (\Exception $e) {
+                        \Log::warning('Failed to delete old main image', ['path' => $oldMainImage->image_path, 'error' => $e->getMessage()]);
+                    }
                     $oldMainImage->delete();
                 }
 
@@ -264,10 +332,20 @@ class ProductsController extends Controller
                 ]);
             }
 
+            // Handle additional images update
             if ($request->hasFile('image_path')) {
-                $oldImages = Images::where('product_id', $product->id)->where('is_main', false)->get();
+                // Delete old additional images (not main image)
+                $oldImages = Images::where('product_id', $product->id)
+                    ->where('is_main', false)
+                    ->whereNull('variant_id')
+                    ->get();
+
                 foreach ($oldImages as $oldImage) {
-                    Storage::disk('public')->delete($oldImage->image_path);
+                    try {
+                        Storage::disk('public')->delete($oldImage->image_path);
+                    } catch (\Exception $e) {
+                        \Log::warning('Failed to delete old additional image', ['path' => $oldImage->image_path, 'error' => $e->getMessage()]);
+                    }
                     $oldImage->delete();
                 }
 
@@ -282,27 +360,95 @@ class ProductsController extends Controller
                 }
             }
 
-            if ($request->has('variants')) {
+            // Handle variants update
+            if ($request->has('variants') && is_array($request->input('variants'))) {
+                \Log::info('🔥 Processing variants', ['variants' => $request->input('variants')]);
+
+                // Delete old variants and their images
+                $oldVariants = Variants::where('product_id', $product->id)->get();
+                foreach ($oldVariants as $oldVariant) {
+                    // Delete variant images
+                    $variantImages = Images::where('variant_id', $oldVariant->id)->get();
+                    foreach ($variantImages as $variantImage) {
+                        try {
+                            Storage::disk('public')->delete($variantImage->image_path);
+                        } catch (\Exception $e) {
+                            \Log::warning('Failed to delete old variant image', ['path' => $variantImage->image_path, 'error' => $e->getMessage()]);
+                        }
+                        $variantImage->delete();
+                    }
+                }
                 Variants::where('product_id', $product->id)->delete();
 
-                foreach ($request->variants as $variant) {
-                    if (!empty($variant['price']) && (!empty($variant['color']) || !empty($variant['size']))) {
-                        Variants::create([
-                            'color' => $variant['color'],
-                            'size' => $variant['size'],
-                            'price' => $variant['price'],
-                            'sku' => $variant['sku'] ?? '',
-                            'product_id' => $product->id,
-                        ]);
+                // Create new variants
+                foreach ($request->input('variants', []) as $variantIndex => $variant) {
+                    \Log::info('🔥 Processing variant', ['variant' => $variant]);
+
+                    // Validate variant data structure
+                    if (!isset($variant['color']) || !isset($variant['sizes']) || !is_array($variant['sizes'])) {
+                        \Log::warning('🔥 Invalid variant structure', ['variant' => $variant]);
+                        continue;
+                    }
+
+                    if (!empty($variant['color']) && !empty($variant['sizes']) && count($variant['sizes']) > 0) {
+                        $firstVariant = null;
+
+                        // Create variants for each size
+                        foreach ($variant['sizes'] as $sizeIndex => $sizeObj) {
+                            \Log::info('🔥 Creating variant size', ['sizeObj' => $sizeObj]);
+
+                            if (!isset($sizeObj['size']) || !isset($sizeObj['price'])) {
+                                \Log::warning('🔥 Invalid size object', ['sizeObj' => $sizeObj]);
+                                continue;
+                            }
+
+                            $createdVariant = Variants::create([
+                                'color' => $variant['color'],
+                                'size' => $sizeObj['size'],
+                                'price' => $sizeObj['price'],
+                                'sku' => $sizeObj['sku'] ?? '',
+                                'product_id' => $product->id,
+                            ]);
+
+                            if ($firstVariant === null) {
+                                $firstVariant = $createdVariant;
+                            }
+                        }
+
+                        // Handle variant images
+                        if ($request->hasFile("variants.$variantIndex.images")) {
+                            $variantImages = $request->file("variants.$variantIndex.images");
+                            \Log::info('🔥 Processing variant images', ['variantImages' => $variantImages]);
+
+                            if (is_array($variantImages) && $firstVariant) {
+                                foreach ($variantImages as $variantImage) {
+                                    $imagePath = $variantImage->store('products', 'public');
+                                    Images::create([
+                                        'image_path' => $imagePath,
+                                        'is_main' => false,
+                                        'product_id' => $product->id,
+                                        'variant_id' => $firstVariant->id,
+                                    ]);
+                                }
+                            }
+                        }
                     }
                 }
             }
+
+            \Log::info('🔥 Product updated successfully', ['product_id' => $product->id]);
 
             return response()->json([
                 'message' => 'Product updated successfully',
                 'product' => $product->fresh(),
             ], 200);
         } catch (\Exception $e) {
+            \Log::error('🔥 Product update failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'message' => 'Product update failed',
                 'error' => $e->getMessage(),
@@ -355,7 +501,7 @@ class ProductsController extends Controller
         $products = Products::with(['images' => function ($query) {
             $query->select('id', 'image_path', 'is_main', 'product_id');
         }])
-            ->select('id', 'name', 'price', 'original_price', 'discount_price', 'slug', 'categories_id')
+            ->select('id', 'name', 'price', 'discount_price', 'slug', 'categories_id')
             ->where('name', 'like', "%{$q}%")
             ->get();
 

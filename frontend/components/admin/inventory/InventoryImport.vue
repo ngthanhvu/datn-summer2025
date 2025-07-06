@@ -1,321 +1,274 @@
 <template>
-    <div class="tw-p-6">
-        <div class="tw-mb-6">
-            <h1 class="tw-text-2xl tw-font-bold tw-mb-4">Nhập/Xuất kho</h1>
-            <div class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-md tw-mb-6">
-                <form @submit.prevent="handleImport" class="tw-space-y-4">
-                    <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
-                        <div>
-                            <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Sản phẩm</label>
-                            <select v-model="importForm.variant_id" class="tw-w-full tw-border tw-rounded-md tw-p-2"
-                                required>
-                                <option value="">Chọn sản phẩm</option>
-                                <option v-for="variant in variants" :key="variant.id" :value="variant.id">
-                                    {{ variant.product.name }} - {{ variant.color }} - {{ variant.size }} (SKU: {{
-                                        variant.sku }})
-                                </option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Số lượng nhập</label>
-                            <input type="number" v-model="importForm.quantity"
-                                class="tw-w-full tw-border tw-rounded-md tw-p-2" min="1" required>
-                        </div>
-                        <div class="md:tw-col-span-2">
-                            <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Ghi chú</label>
-                            <textarea v-model="importForm.note" class="tw-w-full tw-border tw-rounded-md tw-p-2"
-                                rows="3"></textarea>
-                        </div>
-                    </div>
-                    <button type="submit"
-                        class="tw-bg-[#3BB77E] tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-[#5ebd91]">
-                        Nhập kho
-                    </button>
-                </form>
+    <div class="tw-max-w-4xl tw-mx-auto tw-p-6">
+        <!-- Header -->
+        <div class="tw-mb-8">
+            <div class="tw-flex tw-items-center tw-justify-between">
+                <div>
+                    <h1 class="tw-text-3xl tw-font-bold tw-text-gray-900 tw-mb-2">Nhập kho sản phẩm</h1>
+                    <p class="tw-text-gray-600">Tạo phiếu nhập kho mới cho các sản phẩm</p>
+                </div>
+                <NuxtLink to="/admin/inventory"
+                    class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-gray-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-gray-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-gray-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
+                    <svg class="tw-w-4 tw-h-4 tw-mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Quay lại
+                </NuxtLink>
             </div>
-            <!-- Tabs for Import/Export History -->
-            <div class="tw-mb-4">
-                <button @click="activeTab = 'import'" :class="tabClass('import')">Lịch sử nhập kho</button>
-                <button @click="activeTab = 'export'" :class="tabClass('export')">Lịch sử xuất kho</button>
-            </div>
-            <div class="tw-bg-white tw-rounded-lg tw-shadow-md">
-                <div class="tw-p-4">
-                    <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
-                        <h2 class="tw-text-xl tw-font-semibold">
-                            {{ activeTab === 'import' ? 'Lịch sử nhập kho' : 'Lịch sử xuất kho' }}
-                        </h2>
-                        <div class="tw-flex tw-gap-2">
-                            <input type="date" v-model="filters.date" class="tw-border tw-rounded-md tw-p-2">
+        </div>
+
+        <div class="tw-bg-white tw-rounded-xl tw-shadow-sm tw-border tw-border-gray-200">
+            <form @submit.prevent="submitForm">
+                <div class="tw-px-6 tw-py-4 tw-border-b tw-border-gray-200">
+                    <h2 class="tw-text-xl tw-font-semibold tw-text-gray-900">Thông tin phiếu nhập</h2>
+                </div>
+
+                <div class="tw-p-6 tw-space-y-6">
+                    <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-6">
+                        <div>
+                            <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Loại giao
+                                dịch</label>
+                            <div class="tw-flex tw-space-x-4">
+                                <label class="tw-flex tw-items-center">
+                                    <input type="radio" v-model="formData.type" value="import"
+                                        class="tw-h-4 tw-w-4 tw-text-blue-600 focus:tw-ring-blue-500 tw-border-gray-300">
+                                    <span class="tw-ml-2 tw-text-sm tw-text-gray-700">Nhập kho</span>
+                                </label>
+                                <label class="tw-flex tw-items-center">
+                                    <input type="radio" v-model="formData.type" value="export"
+                                        class="tw-h-4 tw-w-4 tw-text-blue-600 focus:tw-ring-blue-500 tw-border-gray-300">
+                                    <span class="tw-ml-2 tw-text-sm tw-text-gray-700">Xuất kho</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="notes" class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Ghi
+                                chú</label>
+                            <input type="text" id="note" v-model="formData.note"
+                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+                                placeholder="Nhập ghi chú cho phiếu nhập/xuất">
                         </div>
                     </div>
-                    <div class="tw-overflow-x-auto">
-                        <table class="tw-min-w-full tw-text-sm">
-                            <thead>
-                                <tr class="tw-bg-gray-50">
-                                    <th
-                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                                        Thời gian</th>
-                                    <th
-                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                                        Sản phẩm</th>
-                                    <th
-                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                                        Loại</th>
-                                    <th
-                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                                        Số lượng</th>
-                                    <th
-                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                                        Ghi chú</th>
-                                    <th
-                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                                        Người thực hiện</th>
-                                    <th
-                                        class="tw-px-3 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase">
-                                        Tải PDF</th>
-                                </tr>
-                            </thead>
-                            <tbody class="tw-divide-y tw-divide-gray-200">
-                                <template v-if="loading">
-                                    <tr v-for="n in 5" :key="n">
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-20 tw-animate-pulse">
-                                            </div>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-32 tw-animate-pulse">
-                                            </div>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-16 tw-animate-pulse">
-                                            </div>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-10 tw-animate-pulse">
-                                            </div>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-24 tw-animate-pulse">
-                                            </div>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-20 tw-animate-pulse">
-                                            </div>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-bg-gray-200 tw-h-4 tw-rounded tw-w-12 tw-animate-pulse">
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr v-for="movement in filteredMovements" :key="movement.id"
-                                        class="hover:tw-bg-gray-50">
-                                        <td class="tw-px-3 tw-py-2 tw-whitespace-nowrap">{{ movement.created_at ?
-                                            formatDate(movement.created_at) : '-' }}</td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-font-medium">{{ movement.variant.product.name }}</div>
-                                            <div class="tw-text-xs tw-text-gray-500">{{ movement.variant.color }} - {{
-                                                movement.variant.size }} (SKU: {{ movement.variant.sku }})</div>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <span :class="{
-                                                'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium': true,
-                                                'tw-bg-green-100 tw-text-green-800': movement.type === 'import',
-                                                'tw-bg-red-100 tw-text-red-800': movement.type === 'export',
-                                                'tw-bg-yellow-100 tw-text-yellow-800': movement.type === 'adjustment'
-                                            }">
-                                                {{ getMovementTypeLabel(movement.type) }}
-                                            </span>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <span :class="{
-                                                'tw-font-medium': true,
-                                                'tw-text-green-600': movement.type === 'import',
-                                                'tw-text-red-600': movement.type === 'export',
-                                                'tw-text-yellow-600': movement.type === 'adjustment'
-                                            }">
-                                                {{ movement.type === 'import' ? '+' : movement.type === 'export' ? '-' :
-                                                    ''
-                                                }}{{ movement.quantity }}
-                                            </span>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">{{ movement.note || '-' }}</td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <div class="tw-flex tw-items-center">
-                                                <div class="tw-text-xs tw-font-medium">{{ movement.user ?
-                                                    movement.user.username : 'Không xác định' }}</div>
-                                            </div>
-                                        </td>
-                                        <td class="tw-px-3 tw-py-2">
-                                            <button @click="downloadMovementPdf(movement.id)"
-                                                class="tw-bg-[#3BB77E] tw-text-white tw-px-2 tw-py-1 tw-rounded hover:tw-bg-[#5ebd91] tw-text-xs">
-                                                Tải PDF
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="filteredMovements.length === 0">
-                                        <td colspan="7" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">Không có
-                                            dữ
-                                            liệu</td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="tw-mt-4 tw-flex tw-justify-between tw-items-center">
-                        <div class="tw-text-sm tw-text-gray-500">
-                            Hiển thị {{ filteredMovements.length }} kết quả
-                        </div>
-                        <div class="tw-flex tw-gap-2">
-                            <button @click="loadMore"
-                                class="tw-px-4 tw-py-2 tw-bg-gray-100 tw-text-gray-700 tw-rounded-md hover:tw-bg-gray-200">
-                                Xem thêm
+                    <div>
+                        <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
+                            <h3 class="tw-text-lg tw-font-medium tw-text-gray-900">Danh sách sản phẩm</h3>
+                            <button type="button" @click="addProductItem"
+                                class="tw-inline-flex tw-items-center tw-px-3 tw-py-2 tw-bg-blue-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-blue-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-ring-offset-2">
+                                <svg class="tw-w-4 tw-h-4 tw-mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Thêm sản phẩm
                             </button>
+                        </div>
+                        <div class="tw-space-y-4">
+                            <div v-for="(item, index) in formData.items" :key="index"
+                                class="tw-border tw-border-gray-200 tw-rounded-lg tw-p-4 tw-bg-gray-50">
+                                <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-5 tw-gap-4 tw-items-end">
+                                    <div class="md:tw-col-span-2">
+                                        <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Sản
+                                            phẩm</label>
+                                        <select v-model="item.variant_id"
+                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+                                            required>
+                                            <option value="">Chọn sản phẩm</option>
+                                            <option v-for="variant in variants" :key="variant.id" :value="variant.id">
+                                                {{ variant.product.name }} - {{ variant.color }} - {{ variant.size }}
+                                                (SKU: {{ variant.sku }})
+                                            </option>
+                                        </select>
+                                        <div v-if="item.variant_id" class="tw-flex tw-items-center tw-gap-4 tw-mt-2">
+                                            <img v-if="getVariantImage(item.variant_id)"
+                                                :src="getVariantImage(item.variant_id)" alt="Ảnh biến thể"
+                                                class="tw-w-16 tw-h-16 tw-object-cover tw-rounded" />
+                                            <div v-if="getVariantInfo(item.variant_id)">
+                                                <div class="tw-text-sm tw-font-medium">Tên: {{
+                                                    getVariantInfo(item.variant_id).product?.name }}</div>
+                                                <div class="tw-text-xs">Màu: <span class="tw-font-semibold">{{
+                                                    getVariantInfo(item.variant_id).color }}</span></div>
+                                                <div class="tw-text-xs">Size: <span class="tw-font-semibold">{{
+                                                    getVariantInfo(item.variant_id).size }}</span></div>
+                                                <div class="tw-text-xs">SKU: <span class="tw-font-semibold">{{
+                                                    getVariantInfo(item.variant_id).sku }}</span></div>
+                                                <div class="tw-text-xs">Giá: <span class="tw-font-semibold">{{
+                                                    formatCurrency(getVariantInfo(item.variant_id).price) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Số
+                                            lượng</label>
+                                        <input type="number" v-model.number="item.quantity" min="1"
+                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+                                            placeholder="Số lượng" required>
+                                    </div>
+                                    <div>
+                                        <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">
+                                            {{ formData.type === 'import' ? 'Giá nhập' : 'Giá xuất' }} (VNĐ)
+                                        </label>
+                                        <input type="number" v-model.number="item.unit_price" min="0" step="1000"
+                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+                                            placeholder="Giá" required>
+                                    </div>
+                                    <div>
+                                        <button type="button" @click="removeProductItem(index)"
+                                            class="tw-w-full tw-px-3 tw-py-2 tw-bg-red-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-offset-2">
+                                            <svg class="tw-w-4 tw-h-4 tw-mx-auto" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="formData.items.length > 0" class="tw-bg-blue-50 tw-rounded-lg tw-p-6">
+                        <h3 class="tw-text-lg tw-font-medium tw-text-blue-900 tw-mb-4">Tổng kết phiếu {{ formData.type
+                            === 'import'
+                            ? 'nhập' : 'xuất' }}</h3>
+                        <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-4">
+                            <div class="tw-text-center">
+                                <p class="tw-text-sm tw-text-blue-600">Tổng số sản phẩm</p>
+                                <p class="tw-text-2xl tw-font-bold tw-text-blue-900">{{ formData.items.length }}</p>
+                            </div>
+                            <div class="tw-text-center">
+                                <p class="tw-text-sm tw-text-blue-600">Tổng số lượng</p>
+                                <p class="tw-text-2xl tw-font-bold tw-text-blue-900">{{ totalQuantity }}</p>
+                            </div>
+                            <div class="tw-text-center">
+                                <p class="tw-text-sm tw-text-blue-600">Tổng giá trị</p>
+                                <p class="tw-text-2xl tw-font-bold tw-text-blue-900">{{ formatCurrency(totalValue) }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <div class="tw-px-6 tw-py-4 tw-border-t tw-border-gray-200 tw-bg-gray-50 tw-rounded-b-xl">
+                    <div class="tw-flex tw-justify-end tw-space-x-3">
+                        <router-link to="/inventory/stock"
+                            class="tw-px-6 tw-py-2 tw-text-sm tw-font-medium tw-text-gray-700 tw-bg-white tw-border tw-border-gray-300 tw-rounded-lg hover:tw-bg-gray-50 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-gray-500">
+                            Hủy
+                        </router-link>
+                        <button type="submit" :disabled="!isFormValid || loading" :class="[
+                            'tw-px-6 tw-py-2 tw-text-sm tw-font-medium tw-text-white tw-rounded-lg focus:tw-outline-none focus:tw-ring-2',
+                            formData.type === 'import'
+                                ? 'tw-bg-green-600 hover:tw-bg-green-700 focus:tw-ring-green-500'
+                                : 'tw-bg-red-600 hover:tw-bg-red-700 focus:tw-ring-red-500',
+                            (!isFormValid || loading) ? 'tw-opacity-50 tw-cursor-not-allowed' : ''
+                        ]">
+                            <span v-if="loading" class="tw-inline-flex tw-items-center">
+                                <svg class="tw-animate-spin -tw-ml-1 tw-mr-2 tw-h-4 tw-w-4 tw-text-white" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="tw-opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="tw-opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                Đang xử lý...
+                            </span>
+                            <span v-else>
+                                {{ formData.type === 'import' ? 'Tạo phiếu nhập' : 'Tạo phiếu xuất' }}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </template>
 
 <script setup>
-const { getInventories, updateStock, getMovements, getVariants, downloadMovementPdf } = useInventories()
-const variants = ref([])
-const recentImports = ref([])
-const importForm = ref({
-    variant_id: '',
-    quantity: 1,
-    note: ''
-})
+import { ref, computed, onMounted } from 'vue'
+import { useProducts } from '~/composables/useProducts';
+import { useInventories } from '~/composables/useInventorie';
 const notyf = useNuxtApp().$notyf
 
-const activeTab = ref('import')
+const { createStockMovement } = useInventories();
+const { getVariant } = useProducts();
 
-const tabClass = (tab) => {
-    return [
-        'tw-px-4 tw-py-2 tw-rounded-t-md tw-font-semibold',
-        activeTab.value === tab ? 'tw-bg-[#3BB77E] tw-text-white' : 'tw-bg-white tw-text-gray-700',
-        'tw-mr-2'
-    ].join(' ')
-}
-
-const filters = ref({
-    date: ''
-})
-
-const recentMovements = ref([])
+const variants = ref([])
 const loading = ref(false)
-
-const fetchVariants = async () => {
+const formData = ref({
+    type: 'import',
+    note: '',
+    items: []
+})
+const isFormValid = computed(() => {
+    if (formData.value.items.length === 0) return false
+    return formData.value.items.every(item => {
+        return item.variant_id && item.quantity > 0 && item.unit_price > 0
+    })
+})
+const totalQuantity = computed(() => formData.value.items.reduce((sum, item) => sum + (item.quantity || 0), 0))
+const totalValue = computed(() => formData.value.items.reduce((sum, item) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0))
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(amount || 0)
+}
+const addProductItem = () => {
+    formData.value.items.push({ variant_id: '', quantity: 1, unit_price: 0 })
+}
+const removeProductItem = (index) => {
+    formData.value.items.splice(index, 1)
+}
+const submitForm = async () => {
+    loading.value = true
     try {
-        loading.value = true
-        const data = await getVariants()
-        variants.value = data
-    } catch (error) {
-        console.error('Error fetching variants:', error)
+        const payload = {
+            type: formData.value.type,
+            note: formData.value.note,
+            items: formData.value.items.map(item => ({
+                variant_id: item.variant_id,
+                quantity: item.quantity,
+                unit_price: item.unit_price
+            }))
+        }
+        await createStockMovement(payload)
+        notyf.success('Tạo phiếu thành công!')
+        navigateTo('/admin/inventory')
+    } catch (err) {
+        notyf.error('Có lỗi xảy ra khi tạo phiếu!')
     } finally {
         loading.value = false
     }
 }
-
-const fetchRecentMovements = async () => {
-    try {
-        loading.value = true
-        const data = await getMovements({ limit: 20 })
-        recentMovements.value = data
-    } catch (error) {
-        console.error('Error fetching movements:', error)
-    } finally {
-        loading.value = false
+const getVariantImage = (variantId) => {
+    const variant = variants.value.find(v => v.id === variantId)
+    if (variant && variant.images && variant.images.length > 0) {
+        return variant.images[0].image_path
     }
+    return null
 }
-
-const handleImport = async () => {
-    try {
-        const response = await updateStock({
-            variant_id: importForm.value.variant_id,
-            quantity: importForm.value.quantity,
-            type: 'import',
-            note: importForm.value.note
-        })
-
-        if (!response) {
-            throw new Error('Không nhận được phản hồi từ server')
-        }
-
-        importForm.value = {
-            variant_id: '',
-            quantity: 1,
-            note: ''
-        }
-
-        await fetchRecentMovements()
-
-        notyf.success('Nhập kho thành công')
-    } catch (error) {
-        console.error('Error importing stock:', error)
-        let errorMessage = 'Có lỗi xảy ra khi nhập kho'
-
-        if (error.response?.data?.message) {
-            errorMessage = error.response.data.message
-        } else if (error.response?.data?.errors) {
-            // Handle validation errors
-            const errors = error.response.data.errors
-            errorMessage = Object.values(errors).flat().join('\n')
-        }
-
-        console.log(errorMessage)
-    }
+const getVariantInfo = (variantId) => {
+    return variants.value.find(v => v.id === variantId)
 }
+onMounted(async () => {
+    // Lấy danh sách variants từ API
+    variants.value = await getVariant();
+    console.log(variants.value);
 
-const formatDate = (date) => {
-    return new Date(date).toLocaleString('vi-VN')
-}
-
-const getMovementTypeLabel = (type) => {
-    const labels = {
-        import: 'Nhập kho',
-        export: 'Xuất kho',
-        adjustment: 'Điều chỉnh'
-    }
-    return labels[type] || type
-}
-
-const filteredMovements = computed(() => {
-    let result = recentMovements.value.filter(m => m.type === activeTab.value)
-    if (filters.value.date) {
-        const filterDate = new Date(filters.value.date).toDateString()
-        result = result.filter(m => new Date(m.created_at).toDateString() === filterDate)
-    }
-    return result
+    addProductItem();
 })
+</script>
 
-const loadMore = async () => {
-    try {
-        const currentLength = recentMovements.value.length
-        const newData = await getMovements({
-            type: activeTab.value,
-            limit: 10,
-            offset: currentLength
-        })
-        recentMovements.value = [...recentMovements.value, ...newData]
-    } catch (error) {
-        console.error('Error loading more movements:', error)
+<script>
+export default {
+    filters: {
+        currency(val) {
+            if (!val) return '0 đ'
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val)
+        }
     }
 }
-
-function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
-
-function toVietnameseText(number) {
-    return number + ' đồng chẵn'
-}
-
-onMounted(() => {
-    fetchVariants()
-    fetchRecentMovements()
-})
 </script>

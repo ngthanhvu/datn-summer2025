@@ -8,6 +8,7 @@
             </template>
             <ProfileAddress v-if="selectedTab === 'address'" />
             <ProfileOrders v-if="selectedTab === 'orders'" />
+            <ProfileCoupon v-if="selectedTab === 'coupon'" />
         </div>
     </div>
 </template>
@@ -19,6 +20,7 @@ import ProfileInfo from '../../components/profile/ProfileInfo.vue'
 import ProfileChangePassword from '../../components/profile/ProfileChangePassword.vue'
 import ProfileAddress from '../../components/profile/ProfileAddress.vue'
 import ProfileOrders from '../../components/profile/ProfileOrders.vue'
+import ProfileCoupon from '../../components/profile/ProfileCoupon.vue'
 
 const selectedTab = ref('info')
 </script>

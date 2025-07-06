@@ -9,28 +9,12 @@ export const useCoupon = () => {
         baseURL: apiBaseUrl
     })
 
-    API.interceptors.request.use(
-        (config) => {
-            const token = localStorage.getItem('token')
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`
-            }
-            return config
-        },
-        (error) => {
-            return Promise.reject(error)
-        }
-    )
-
-    API.interceptors.response.use(
-        (response) => {
-            return response
-        },
-        (error) => {
-            console.error('API Error:', error.response?.data || error.message)
-            return Promise.reject(error)
-        }
-    )
+    const getTokenFromCookie = () => {
+        const cookie = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('token='))
+        return cookie ? cookie.split('=')[1] : null
+    }
 
     const getCoupons = async () => {
         try {
@@ -145,12 +129,52 @@ export const useCoupon = () => {
         }
     }
 
+    const claimCoupon = async (couponId) => {
+        try {
+            const token = getTokenFromCookie()
+            if (!token) throw new Error('Bạn chưa đăng nhập')
+
+            const response = await API.post(`/api/coupons/${couponId}/claim`, {}, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            console.log('Claim coupon response:', response.data)
+            return response.data
+        } catch (err) {
+            console.error('Error claiming coupon:', err)
+            throw err
+        }
+    }
+
+    const getMyCoupons = async () => {
+        try {
+            const token = getTokenFromCookie()
+            if (!token) throw new Error('Bạn chưa đăng nhập')
+
+            const response = await API.get('/api/coupons/my-coupons', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            console.log('Claimed coupons response:', response.data)
+            return response.data
+        } catch (err) {
+            console.error('Error getting claimed coupons:', err)
+            throw err
+        }
+    }
+
     return {
         getCoupons,
         getCouponById,
         createCoupon,
         updateCoupon,
         deleteCoupon,
-        validateCoupon
+        validateCoupon,
+        claimCoupon,
+        getMyCoupons
     }
 }
