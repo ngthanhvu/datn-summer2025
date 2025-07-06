@@ -1,8 +1,8 @@
 <template>
     <div class="tw-max-w-7xl tw-mx-auto tw-px-4 tw-py-8 container tw-mt-5">
-        <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-12">
+        <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2">
             <!-- Left Column - Contact Form -->
-            <div class="tw-bg-white">
+            <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
                 <h1 class="tw-text-2xl tw-font-normal tw-mb-6">
                     Công ty TNHH EGANY
                 </h1>
@@ -53,7 +53,7 @@
             </div>
 
             <!-- Right Column - Map -->
-            <div class="tw-bg-white">
+            <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
                 <h2 class="tw-text-xl tw-font-semibold tw-mb-4">Vị trí của chúng tôi</h2>
                 <div class="tw-aspect-w-16 tw-aspect-h-9">
                     <img alt="Google map showing location of EGANY Tech at 150/8 Nguyễn Duy Cung, Phường 12, Gò Vấp, Hồ Chí Minh with map details and markers"

@@ -11,48 +11,50 @@
             <table class="tw-w-full tw-text-sm">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
-                        <th class="tw-px-3 tw-py-2 tw-text-left">
-                            <div class="tw-flex tw-items-center tw-gap-2">
+                        <th class="tw-px-3 tw-py-2 tw-text-center">
+                            <div class="tw-flex tw-items-center">
                                 <input type="checkbox" :checked="selectedBrands.size === brands.length"
                                     @change="toggleSelectAll" class="tw-rounded">
                             </div>
                         </th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">#</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Logo</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Tên thương hiệu</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Mô tả</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Danh mục cha</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Trạng thái</th>
-                        <th class="tw-px-3 tw-py-2 tw-text-left">Thao tác</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">#</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Logo</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Tên thương hiệu</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Mô tả</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Danh mục cha</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Số lượng sản phẩm</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Trạng thái</th>
+                        <th class="tw-px-3 tw-py-2 tw-text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Skeleton loading -->
                     <tr v-if="props.isLoading" v-for="n in 8" :key="'skeleton-' + n">
-                        <td v-for="i in 8" :key="i" class="tw-px-4 tw-py-3">
+                        <td v-for="i in 8" :key="i" class="tw-px-4 tw-py-3 text-center">
                             <div class="skeleton-loader"></div>
                         </td>
                     </tr>
                     <template v-else-if="brands.length > 0">
                         <tr v-for="(brand, index) in brands" :key="brand.id" class="tw-border-b hover:tw-bg-gray-50">
-                            <td class="tw-px-4 tw-py-3">
+                            <td class="tw-px-3 tw-py-2">
                                 <input type="checkbox" :checked="selectedBrands.has(brand.id)"
                                     @change="toggleSelect(brand.id)" class="tw-rounded">
                             </td>
-                            <td class="tw-px-4 tw-py-3">{{ index + 1 }}</td>
-                            <td class="tw-px-4 tw-py-3">
+                            <td class="tw-px-4 tw-py-3 text-center">{{ index + 1 }}</td>
+                            <td class="tw-px-4 tw-py-3 text-center">
                                 <img :src="brand.image" :alt="brand.name"
                                     class="tw-w-10 tw-h-10 tw-object-cover tw-rounded">
                             </td>
-                            <td class="tw-px-4 tw-py-3">{{ brand.name }}</td>
-                            <td class="tw-px-4 tw-py-3">{{ brand.description }}</td>
-                            <td class="tw-px-4 tw-py-3">{{ getParentBrandName(brand) }}</td>
-                            <td class="tw-px-4 tw-py-3">
+                            <td class="tw-px-4 tw-py-3 text-center">{{ brand.name }}</td>
+                            <td class="tw-px-4 tw-py-3 text-center">{{ brand.description }}</td>
+                            <td class="tw-px-4 tw-py-3 text-center">{{ getParentBrandName(brand) }}</td>
+                            <td class="tw-px-4 tw-py-3 text-center">{{ brand.products_count }}</td>
+                            <td class="tw-px-4 tw-py-3 text-center">
                                 <span :class="getStatusClass(brand.is_active)">
                                     {{ getStatusText(brand.is_active) }}
                                 </span>
                             </td>
-                            <td class="tw-px-4 tw-py-3">
+                            <td class="tw-px-4 tw-py-3 text-center">
                                 <div class="tw-flex tw-items-center tw-gap-2">
                                     <NuxtLink :to="`/admin/brands/${brand.id}/edit`"
                                         class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-blue-600 hover:tw-text-blue-900 hover:tw-bg-blue-50 tw-rounded-lg tw-transition-colors tw-duration-150"
@@ -79,11 +81,8 @@
                         </tr>
                     </template>
                     <tr v-else>
-                        <td colspan="8" class="tw-py-8">
-                            <div class="tw-text-center tw-text-gray-500">
-                                <i class="fas fa-box-open tw-text-4xl tw-mb-3"></i>
-                                <p class="tw-text-lg">Không có thương hiệu nào</p>
-                            </div>
+                        <td colspan="8" class="tw-px-3 text-center tw-py-2 tw-text-center tw-text-gray-500">
+                            Không có dữ liệu
                         </td>
                     </tr>
                 </tbody>

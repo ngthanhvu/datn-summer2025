@@ -15,6 +15,7 @@ class Orders_detail extends Model
         'variant_id',
         'quantity',
         'price',
+        'original_price',
         'total_price',
     ];
 

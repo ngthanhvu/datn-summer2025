@@ -6,7 +6,8 @@ export const useInventories = () => {
     const token = useCookie('token')
 
     const API = axios.create({
-        baseURL: apiBaseUrl
+        baseURL: apiBaseUrl,
+        timeout: 10000 // Thêm timeout 10 giây
     })
 
     API.interceptors.request.use(async (config) => {
@@ -16,9 +17,35 @@ export const useInventories = () => {
         return config
     })
 
+    // Cache cho inventories
+    const cache = new Map()
+    const CACHE_DURATION = 2 * 60 * 1000 // 2 phút
+
+    const getCachedData = (key) => {
+        const cached = cache.get(key)
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+            return cached.data
+        }
+        return null
+    }
+
+    const setCachedData = (key, data) => {
+        cache.set(key, {
+            data,
+            timestamp: Date.now()
+        })
+    }
+
     const getInventories = async (params) => {
         try {
+            const cacheKey = `inventories_${JSON.stringify(params)}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get('/api/inventory', { params })
+            setCachedData(cacheKey, response.data)
             return response.data
         } catch (error) {
             console.error('Error fetching inventories:', error)
@@ -26,59 +53,43 @@ export const useInventories = () => {
         }
     }
 
-    const updateStock = async (data) => {
+    const createStockMovement = async (data) => {
         try {
-            const response = await API.post('/api/inventory/update', data)
-            return response.data
-        } catch (error) {
-            console.error('Error updating stock:', error)
-            throw error
-        }
-    }
-
-    const getMovements = async (params) => {
-        try {
-            const response = await API.get('/api/inventory/movements', { params })
-            return response.data
-        } catch (error) {
-            console.error('Error fetching movements:', error)
-            throw error
-        }
-    }
-
-    const getVariants = async () => {
-        try {
-            const response = await API.get('/api/variants')
-            return response.data
-        } catch (error) {
-            console.error('Error fetching variants:', error)
-            throw error
-        }
-    }
-
-    const downloadMovementPdf = async (id) => {
-        try {
-            const response = await API.get(`/api/inventory/movement/${id}/pdf`, {
-                responseType: 'blob'
+            const res = await API.post('/api/stock-movement', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Accept': 'application/json'
+                }
             })
-            const url = window.URL.createObjectURL(new Blob([response.data]))
-            const link = document.createElement('a')
-            link.href = url
-            link.setAttribute('download', `phieu-movement-${id}.pdf`)
-            document.body.appendChild(link)
-            link.click()
-            link.remove()
-        } catch (error) {
-            console.error('Error downloading movement PDF:', error)
-            throw error
+            // Clear cache khi có thay đổi
+            cache.clear()
+            return res.data
+        } catch (err) {
+            console.log("Error create stockMovement:".err)
+            throw err
+        }
+    }
+
+    const getStockMovement = async () => {
+        try {
+            const cacheKey = 'stock_movements'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
+            const res = await API.get('/api/stock-movement')
+            setCachedData(cacheKey, res.data)
+            return res.data
+        } catch (err) {
+            console.log("Error get data: ".err)
+            return []
         }
     }
 
     return {
         getInventories,
-        updateStock,
-        getMovements,
-        getVariants,
-        downloadMovementPdf
+        createStockMovement,
+        getStockMovement
     }
 }

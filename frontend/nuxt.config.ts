@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   css: [
     'bootstrap/dist/css/bootstrap.min.css',
     '~/assets/css/tailwind.css',
+    '~/assets/css/notyf.css',
   ],
   postcss: {
     plugins: {
@@ -24,6 +25,20 @@ export default defineNuxtConfig({
         '/api': {
           target: 'http://localhost:8000',
           changeOrigin: true,
+        }
+      }
+    },
+    optimizeDeps: {
+      include: ['apexcharts']
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor': ['vue', 'vue-router'],
+            'ui': ['bootstrap', 'swiper'],
+            'charts': ['apexcharts']
+          }
         }
       }
     }
@@ -48,5 +63,26 @@ export default defineNuxtConfig({
       turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY,
       apiBaseUrl: process.env.NUXT_API_BASE_URL,
     },
+  },
+  ssr: true,
+  nitro: {
+    experimental: {
+      wasm: true
+    },
+    storage: {
+      redis: {
+        driver: 'redis',
+        /* redis connection options */
+      }
+    }
+  },
+  experimental: {
+    payloadExtraction: false
+  },
+  modules: [
+    '@nuxtjs/tailwindcss'
+  ],
+  build: {
+    transpile: ['apexcharts']
   }
 })

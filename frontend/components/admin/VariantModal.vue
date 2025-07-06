@@ -26,22 +26,16 @@
                                 <div>Giá: {{ formatPrice(variant.price) }}</div>
                             </div>
                         </div>
-                        <div class="tw-flex tw-gap-2">
+                        <!-- <div class="tw-flex tw-gap-2">
                             <button class="tw-p-2 tw-text-blue-600 hover:tw-text-blue-800">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="tw-p-2 tw-text-red-600 hover:tw-text-red-800">
                                 <i class="fas fa-trash"></i>
                             </button>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
-            </div>
-
-            <div class="tw-mt-6 tw-flex tw-justify-end tw-gap-2">
-                <button @click="$emit('close')" class="tw-px-4 tw-py-2 tw-border tw-rounded-lg hover:tw-bg-gray-50">
-                    Đóng
-                </button>
             </div>
         </div>
     </div>

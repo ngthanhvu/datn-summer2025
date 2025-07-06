@@ -16,6 +16,13 @@ export const useCarts = () => {
     const isLoading = ref(false)
     const error = ref(null)
 
+    // Tạo axios instance với timeout
+    const API = axios.create({
+        baseURL: baseUrl,
+        timeout: 10000, // 10 giây timeout
+        withCredentials: true
+    })
+
     const getToken = () => {
         let token = null
         if (process.client) {
@@ -47,15 +54,15 @@ export const useCarts = () => {
     const fetchCart = async () => {
         try {
             isLoading.value = true
-            const response = await axios.get(`${baseUrl}api/${getCartEndpoint()}`, {
-                headers: getHeaders(),
-                withCredentials: true
+            error.value = null
+            const response = await API.get(`api/${getCartEndpoint()}`, {
+                headers: getHeaders()
             })
             cart.value = response.data
             return response.data
         } catch (err) {
             console.error('Error fetching cart:', err)
-            error.value = err.response?.data?.error || 'Có lỗi xảy ra'
+            error.value = err.response?.data?.error || 'Có lỗi xảy ra khi tải giỏ hàng'
             throw err
         } finally {
             isLoading.value = false
@@ -65,18 +72,18 @@ export const useCarts = () => {
     const addToCart = async (variantId, quantity = 1) => {
         try {
             isLoading.value = true
+            error.value = null
             const payload = { variant_id: variantId, quantity }
 
             if (quantity <= 0) {
                 throw new Error('Số lượng phải lớn hơn 0')
             }
 
-            const response = await axios.post(
-                `${baseUrl}api/${getCartEndpoint()}`,
+            const response = await API.post(
+                `api/${getCartEndpoint()}`,
                 payload,
                 {
-                    headers: getHeaders(),
-                    withCredentials: true
+                    headers: getHeaders()
                 }
             )
             await fetchCart()
@@ -100,6 +107,7 @@ export const useCarts = () => {
     const updateQuantity = async (cartId, quantity) => {
         try {
             isLoading.value = true
+            error.value = null
             if (quantity <= 0) {
                 throw new Error('Số lượng phải lớn hơn 0')
             }
@@ -121,12 +129,11 @@ export const useCarts = () => {
                 throw new Error(`Số lượng vượt quá tồn kho. Chỉ còn ${currentItem.variant.inventory.quantity} sản phẩm.`)
             }
 
-            await axios.put(
-                `${baseUrl}api/${getCartEndpoint()}/${cartId}`,
+            await API.put(
+                `api/${getCartEndpoint()}/${cartId}`,
                 { quantity },
                 {
-                    headers: getHeaders(),
-                    withCredentials: true
+                    headers: getHeaders()
                 }
             )
             await fetchCart()
@@ -144,15 +151,14 @@ export const useCarts = () => {
         if (!sessionId || !token) return
 
         try {
-            await axios.post(
-                `${baseUrl}api/cart/transfer-session-to-user`,
+            await API.post(
+                `api/cart/transfer-session-to-user`,
                 {},
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'X-Session-Id': sessionId
-                    },
-                    withCredentials: true
+                    }
                 }
             )
             localStorage.removeItem('sessionId')
@@ -165,9 +171,9 @@ export const useCarts = () => {
     const removeFromCart = async (cartId) => {
         try {
             isLoading.value = true
-            await axios.delete(`${baseUrl}api/${getCartEndpoint()}/${cartId}`, {
-                headers: getHeaders(),
-                withCredentials: true
+            error.value = null
+            await API.delete(`api/${getCartEndpoint()}/${cartId}`, {
+                headers: getHeaders()
             })
             await fetchCart()
         } catch (err) {

@@ -5,11 +5,36 @@ export const useProducts = () => {
     const apiBaseUrl = config.public.apiBaseUrl
 
     const API = axios.create({
-        baseURL: apiBaseUrl
+        baseURL: apiBaseUrl,
+        timeout: 10000
     })
+
+    const cache = new Map()
+    const CACHE_DURATION = 5 * 60 * 1000 // 5 phút
+
+    const getCachedData = (key) => {
+        const cached = cache.get(key)
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+            return cached.data
+        }
+        return null
+    }
+
+    const setCachedData = (key, data) => {
+        cache.set(key, {
+            data,
+            timestamp: Date.now()
+        })
+    }
 
     const getProducts = async (filters = {}) => {
         try {
+            const cacheKey = `products_${JSON.stringify(filters)}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const params = new URLSearchParams()
 
             if (filters.color) {
@@ -22,10 +47,18 @@ export const useProducts = () => {
                 params.append('max_price', filters.max_price)
             }
             if (filters.category) {
-                params.append('category', filters.category)
+                if (Array.isArray(filters.category)) {
+                    filters.category.forEach(id => params.append('category[]', id))
+                } else {
+                    params.append('category', filters.category)
+                }
             }
             if (filters.brand) {
-                params.append('brand', filters.brand)
+                if (Array.isArray(filters.brand)) {
+                    filters.brand.forEach(id => params.append('brand[]', id))
+                } else {
+                    params.append('brand', filters.brand)
+                }
             }
             if (filters.sort_by) {
                 params.append('sort_by', filters.sort_by)
@@ -33,6 +66,7 @@ export const useProducts = () => {
             }
 
             const response = await API.get(`/api/products?${params.toString()}`)
+            setCachedData(cacheKey, response.data)
             return response.data
         } catch (error) {
             console.error('Error getting products:', error)
@@ -41,20 +75,67 @@ export const useProducts = () => {
     }
 
     const getBrands = async () => {
-        const response = await API.get('/api/brands')
-        return response.data
+        try {
+            const cacheKey = 'brands'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
+            const response = await API.get('/api/brands')
+            setCachedData(cacheKey, response.data)
+            return response.data
+        } catch (error) {
+            console.error('Error getting brands:', error)
+            return []
+        }
     }
 
     const getCategories = async () => {
-        const response = await API.get('/api/categories')
-        const categories = response.data
+        try {
+            const cacheKey = 'categories'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
 
-        return categories
+            const response = await API.get('/api/categories')
+            const categories = response.data
+            setCachedData(cacheKey, categories)
+            return categories
+        } catch (error) {
+            console.error('Error getting categories:', error)
+            return []
+        }
+    }
+
+    const getVariant = async () => {
+        try {
+            const cacheKey = 'variants'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
+            const res = await API.get('/api/variants')
+            setCachedData(cacheKey, res.data)
+            return res.data
+        } catch (err) {
+            console.error('Bug:', err)
+            return []
+        }
     }
 
     const getProductById = async (id) => {
         try {
+            const cacheKey = `product_${id}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get(`/api/products/${id}`)
+            setCachedData(cacheKey, response.data)
             return response.data
         } catch (error) {
             console.error('Error getting product:', error)
@@ -64,7 +145,14 @@ export const useProducts = () => {
 
     const getProductBySlug = async (slug) => {
         try {
+            const cacheKey = `product_slug_${slug}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get(`/api/products/slug/${slug}`)
+            setCachedData(cacheKey, response.data)
             return response.data
         } catch (error) {
             console.error('Error getting product by slug:', error)
@@ -114,7 +202,7 @@ export const useProducts = () => {
 
     const bulkDeleteProducts = async (ids) => {
         try {
-            const response = await API.delete('/api/products/bulk-delete', {
+            const response = await API.delete('/api/products/delete/bulk-delete', {
                 data: { ids }
             })
             return response.data
@@ -345,6 +433,7 @@ export const useProducts = () => {
         getTemplateSheet,
         importFile,
         bulkDeleteProducts,
-        logCategoryStats
+        logCategoryStats,
+        getVariant
     }
 }

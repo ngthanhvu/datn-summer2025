@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-mt-8">
+    <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[10px]">
         <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
             <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800">Thương hiệu nổi bật</h2>
             <NuxtLink to="/brands" class="tw-text-blue-600 tw-hover:text-blue-800 tw-font-medium tw-transition-colors">
@@ -20,7 +20,7 @@
         <!-- Brands Grid -->
         <div v-else class="tw-grid tw-grid-cols-2 sm:tw-grid-cols-3 md:tw-grid-cols-4 lg:tw-grid-cols-6 tw-gap-4">
             <div v-for="brand in brands" :key="brand.id"
-                class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-hover:shadow-md tw-transition-shadow tw-p-4 tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-group"
+                class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-hover:shadow-md tw-transition-shadow tw-p-4 tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-group tw-border tw-border-gray-100"
                 @click="navigateToBrand(brand.slug || brand.id)">
                 <div class="tw-text-center">
                     <div class="tw-w-16 tw-h-16 tw-mx-auto tw-mb-2 tw-flex tw-items-center tw-justify-center">
@@ -97,6 +97,9 @@ const fetchBrands = async () => {
 }
 
 const getBrandLogo = (brand) => {
+    if (brand.image) {
+        return brand.image
+    }
     if (brand.logo) {
         return brand.logo.startsWith('http') ? brand.logo : `https://placehold.co/100x100?text=${brand.name.charAt(0)}`
     }

@@ -28,6 +28,19 @@ class ProductImportController extends Controller
 
         $initialCount = Products::count();
 
+        function utf8ize(
+            $mixed
+        ) {
+            if (is_array($mixed)) {
+                foreach ($mixed as $key => $value) {
+                    $mixed[$key] = utf8ize($value);
+                }
+            } elseif (is_string($mixed)) {
+                return mb_convert_encoding($mixed, 'UTF-8', 'auto');
+            }
+            return $mixed;
+        }
+
         try {
             DB::beginTransaction();
 
@@ -65,14 +78,17 @@ class ProductImportController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Có lỗi validation trong file Excel',
-                'errors' => $errors
+                'errors' => utf8ize($errors)
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
-
+            $message = $e->getMessage();
+            if (!mb_check_encoding($message, 'UTF-8')) {
+                $message = mb_convert_encoding($message, 'UTF-8', 'auto');
+            }
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi import: ' . $e->getMessage()
+                'message' => 'Có lỗi xảy ra khi import: ' . $message
             ], 500);
         }
     }

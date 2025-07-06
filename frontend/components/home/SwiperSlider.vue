@@ -48,4 +48,16 @@ const images = [
   opacity: 1;
   background: #fff;
 }
+
+:deep(.swiper-pagination-bullet) {
+  width: 24px !important;
+  height: 6px !important;
+  border-radius: 3px !important;
+  background: #d0d2d6 !important;
+  transition: background 0.2s;
+}
+
+:deep(.swiper-pagination-bullet-active) {
+  background: #81aacc !important;
+}
 </style>

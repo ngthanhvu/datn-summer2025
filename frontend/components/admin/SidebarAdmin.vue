@@ -15,7 +15,7 @@
 
         <!-- Products Dropdown -->
         <div class="nav-item dropdown-toggle" @click="showProductsMenu = !showProductsMenu">
-          <i class="fas fa-box"></i>
+          <i class="fa-solid fa-cube"></i>
           <span>Sản phẩm</span>
         </div>
         <div v-show="showProductsMenu" class="submenu">
@@ -44,7 +44,8 @@
         </div>
         <div v-show="showInventoryMenu" class="submenu">
           <NuxtLink to="/admin/inventory" class="nav-sub-item">Tổng quan kho</NuxtLink>
-          <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập kho</NuxtLink>
+          <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập hàng</NuxtLink>
+          <NuxtLink to="/admin/inventory/history" class="nav-sub-item">Hoá đơn</NuxtLink>
         </div>
       </div>
 
@@ -58,12 +59,12 @@
         <NuxtLink to="/admin/messages" class="nav-item">
           <i class="fas fa-envelope"></i>
           <span>Tin nhắn</span>
-          <span class="badge">5</span>
+          <span v-if="unreadMessages > 0" class="badge">{{ unreadMessages }}</span>
         </NuxtLink>
         <NuxtLink to="/admin/comments" class="nav-item">
           <i class="fas fa-comments"></i>
           <span>Đánh giá</span>
-          <span class="badge">12</span>
+          <span v-if="unapprovedReviews > 0" class="badge">{{ unapprovedReviews }}</span>
         </NuxtLink>
       </div>
 
@@ -84,10 +85,33 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useChat } from '~/composables/useChat'
+import { useAdminReviews } from '~/composables/useAdminReviews'
 
 const showProductsMenu = ref(false)
 const showInventoryMenu = ref(false)
+
+const unreadMessages = ref(0)
+const unapprovedReviews = ref(0)
+
+const { getUnreadCount } = useChat()
+const { getAllReviews } = useAdminReviews()
+
+onMounted(async () => {
+  // Lấy số tin nhắn chưa đọc
+  try {
+    const res = await getUnreadCount()
+    unreadMessages.value = res.unread_count || 0
+  } catch { }
+
+  // Lấy số đánh giá chưa duyệt
+  try {
+    const reviews = await getAllReviews(1, 100)
+    // Nếu API trả về {data: [...]}, còn không thì sửa lại cho đúng
+    unapprovedReviews.value = (reviews.data || reviews).filter(r => !r.is_approved).length
+  } catch { }
+})
 
 const handleLogout = () => {
   console.log('Logout clicked')

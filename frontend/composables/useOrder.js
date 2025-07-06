@@ -5,7 +5,7 @@ import { useAuth } from './useAuth'
 export const useOrder = () => {
     const config = useRuntimeConfig()
     const apiBaseUrl = config.public.apiBaseUrl
-    const { token } = useAuth()
+    const { token, user } = useAuth()
     const orders = ref([])
     const currentOrder = ref(null)
     const loading = ref(false)
@@ -22,7 +22,7 @@ export const useOrder = () => {
         return req
     })
 
-    const getOrders = async (params = {}) => {
+    const getAllOrders = async (params = {}) => {
         loading.value = true
         error.value = null
         try {
@@ -31,7 +31,23 @@ export const useOrder = () => {
             return res.data
         } catch (err) {
             error.value = err.response?.data?.message || err.message
-            console.error('Get orders error:', err.response?.data || err.message)
+            console.error('Get all orders error:', err.response?.data || err.message)
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
+    const getMyOrders = async (params = {}) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await API.get('/api/user/orders', { params })
+            orders.value = res.data
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message
+            console.error('Get my orders error:', err.response?.data || err.message)
             throw err
         } finally {
             loading.value = false
@@ -184,7 +200,8 @@ export const useOrder = () => {
         currentOrder,
         loading,
         error,
-        getOrders,
+        getAllOrders,
+        getMyOrders,
         getOrder,
         createOrder,
         cancelOrder,

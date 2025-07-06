@@ -1,21 +1,76 @@
 <template>
-    <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
-        <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
-            <div>
-                <h1 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ title }}</h1>
-                <p class="tw-text-gray-600">{{ description }}</p>
-            </div>
-            <NuxtLink to="/admin/brands"
-                class="tw-bg-gray-100 tw-text-gray-600 tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-gray-200">
-                <i class="fas fa-arrow-left"></i>
-                Quay lại
-            </NuxtLink>
+    <div class="tw-flex tw-justify-between tw-items-center tw-mb-6 tw-pt-6 tw-pl-6">
+        <div>
+            <h1 class="tw-text-2xl tw-font-semibold tw-text-gray-900">Thêm thương hiệu mới</h1>
+            <p class="tw-text-gray-600">Điền thông tin để tạo thương hiệu mới</p>
+        </div>
+    </div>
+    <div class="tw-bg-white tw-shadow tw-p-10 tw-w-[50%] mx-auto tw-rounded-[10px] tw-border tw-border-gray-250">
+        <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium tw-mb-1">Tên thương hiệu <span
+                    class="tw-text-red-500">*</span></label>
+            <input v-model="formData.name" type="text" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
+                placeholder="Nhập tên thương hiệu" />
+            <div v-if="formErrors.name" class="tw-text-red-500 tw-text-sm">{{ formErrors.name }}</div>
         </div>
 
-        <Form :fields="formFields" v-model="formData" @submit="handleSubmit" :errors="formErrors" />
+        <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium tw-mb-1">Mô tả</label>
+            <textarea v-model="formData.description" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
+                placeholder="Nhập mô tả thương hiệu" rows="4"></textarea>
+            <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm">{{ formErrors.description }}</div>
+        </div>
 
-        <div class="tw-mt-6">
-            <ImageUpload v-model="imageData" label="Logo thương hiệu" required />
+        <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium tw-mb-1">Thương hiệu cha</label>
+            <select v-model="formData.parent_id" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2">
+                <option value="">Chọn thương hiệu cha</option>
+                <option v-for="option in parentOptions" :key="option.value" :value="option.value">
+                    {{ option.label }}
+                </option>
+            </select>
+            <div v-if="formErrors.parent_id" class="tw-text-red-500 tw-text-sm">{{ formErrors.parent_id }}</div>
+        </div>
+
+        <div class="tw-mb-4 tw-flex tw-items-center">
+            <label class="tw-block tw-font-medium tw-mb-1 tw-mr-2">Trạng thái</label>
+            <button @click="formData.is_active = !formData.is_active" :class="[
+                'tw-relative tw-inline-flex tw-h-6 tw-w-11 tw-items-center tw-rounded-full tw-transition-colors tw-focus:outline-none tw-focus:ring-2 tw-focus:ring-blue-500 tw-focus:ring-offset-2',
+                formData.is_active ? 'tw-bg-[#3BB77E]' : 'tw-bg-gray-200'
+            ]">
+                <span :class="[
+                    'tw-inline-block tw-h-4 tw-w-4 tw-transform tw-rounded-full tw-bg-white tw-transition-transform',
+                    formData.is_active ? 'tw-translate-x-6' : 'tw-translate-x-1'
+                ]"></span>
+            </button>
+            <span class="tw-ml-2">{{ formData.is_active ? 'Kích hoạt' : 'Ẩn' }}</span>
+        </div>
+
+        <div class="tw-mb-4">
+            <label class="tw-block tw-font-medium tw-mb-1">
+                Logo thương hiệu <span class="tw-text-red-500">*</span>
+            </label>
+            <div class="tw-relative tw-border-2 tw-border-dashed tw-border-gray-300 tw-rounded-lg tw-p-6 tw-text-center hover:tw-border-primary tw-cursor-pointer"
+                @click="$refs.imageInput.click()">
+                <input ref="imageInput" type="file" class="tw-hidden" accept="image/png, image/jpeg, image/gif"
+                    @change="onImageChange" />
+                <div class="tw-flex tw-flex-col tw-items-center">
+                    <i class="fas fa-cloud-upload-alt tw-text-3xl tw-text-gray-400"></i>
+                    <p class="tw-mt-2 tw-text-gray-600">Click để tải logo lên</p>
+                    <p class="tw-text-xs tw-text-gray-400">PNG, JPG, GIF (tối đa 2MB)</p>
+                </div>
+            </div>
+            <div v-if="formErrors.image" class="tw-text-red-500 tw-text-sm tw-mt-1">
+                {{ formErrors.image }}
+            </div>
+            <div v-if="imagePreview" class="tw-mt-4 tw-relative tw-inline-block">
+                <img :src="imagePreview" alt="Preview" class="tw-max-h-40 tw-rounded-lg tw-shadow tw-object-cover" />
+                <button @click="removeImage"
+                    class="tw-absolute tw-top-1 tw-right-1 tw-bg-white tw-rounded-full tw-p-1 tw-shadow hover:tw-bg-gray-100"
+                    title="Xóa logo">
+                    <i class="fas fa-times tw-text-red-500"></i>
+                </button>
+            </div>
         </div>
 
         <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
@@ -25,7 +80,7 @@
             </NuxtLink>
             <button @click="handleSubmit"
                 class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
-                {{ submitText }}
+                Tạo thương hiệu
             </button>
         </div>
     </div>
@@ -33,77 +88,23 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import Form from '~/components/admin/Form.vue'
-import ImageUpload from '~/components/admin/ImageUpload.vue'
+import { useBrand } from '~/composables/useBrand.js'
+import { useNuxtApp, navigateTo } from '#app'
 
-const props = defineProps({
-    title: {
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true
-    },
-    submitText: {
-        type: String,
-        required: true
-    },
-    initialData: {
-        type: Object,
-        default: () => ({
-            name: '',
-            description: '',
-            image: null,
-            parent_id: '',
-            is_active: true
-        })
-    }
+const notyf = useNuxtApp().$notyf
+const { getBrands, createBrand } = useBrand()
+
+const formData = ref({
+    name: '',
+    description: '',
+    image: null,
+    parent_id: '',
+    is_active: true
 })
-
-const emit = defineEmits(['submit'])
-
-const formData = ref({ ...props.initialData })
 const imageData = ref(null)
+const imagePreview = ref(null)
 
-const formFields = ref([
-    {
-        name: 'name',
-        label: 'Tên thương hiệu',
-        type: 'text',
-        placeholder: 'Nhập tên thương hiệu',
-        required: true,
-        validation: {
-            required: 'Vui lòng nhập tên thương hiệu',
-            minLength: { value: 3, message: 'Tên thương hiệu phải có ít nhất 3 ký tự' }
-        }
-    },
-    {
-        name: 'description',
-        label: 'Mô tả',
-        type: 'textarea',
-        placeholder: 'Nhập mô tả thương hiệu',
-        rows: 4,
-        validation: {
-            minLength: { value: 10, message: 'Mô tả phải có ít nhất 10 ký tự' }
-        }
-    },
-    {
-        name: 'parent_id',
-        label: 'Thương hiệu cha',
-        type: 'select',
-        placeholder: 'Chọn thương hiệu cha',
-        options: [],
-        clearable: true
-    },
-    {
-        name: 'is_active',
-        label: 'Trạng thái',
-        type: 'toggle',
-        value: true
-    }
-])
-
+const parentOptions = ref([])
 const formErrors = ref({
     name: '',
     description: '',
@@ -112,11 +113,40 @@ const formErrors = ref({
     image: ''
 })
 
+function onImageChange(e) {
+    const file = e.target.files[0]
+    if (file) {
+        if (file.size > 2 * 1024 * 1024) { // 2MB
+            formErrors.value.image = 'Dung lượng logo tối đa 2MB'
+            return
+        }
+        imageData.value = file
+        imagePreview.value = URL.createObjectURL(file)
+        formErrors.value.image = ''
+    }
+}
+
+function removeImage() {
+    imageData.value = null
+    imagePreview.value = null
+}
+
+onMounted(async () => {
+    try {
+        const brands = await getBrands()
+        parentOptions.value = brands.map(brand => ({
+            value: brand.id,
+            label: brand.name
+        }))
+    } catch (e) {
+        parentOptions.value = []
+    }
+})
+
 const validateForm = () => {
     const errors = { ...formErrors.value }
     let hasError = false
 
-    // Validate name
     if (!formData.value.name) {
         errors.name = 'Vui lòng nhập tên thương hiệu'
         hasError = true
@@ -125,13 +155,11 @@ const validateForm = () => {
         hasError = true
     }
 
-    // Validate description if provided
-    if (formData.value.description && formData.value.description.length < 10) {
-        errors.description = 'Mô tả phải có ít nhất 10 ký tự'
+    if (!formData.value.description) {
+        errors.description = 'Vui lòng nhập mô tả thương hiệu'
         hasError = true
     }
 
-    // Validate image
     if (!imageData.value) {
         errors.image = 'Vui lòng chọn logo thương hiệu'
         hasError = true
@@ -168,12 +196,18 @@ const handleSubmit = async () => {
         formDataToSend.append('image', imageData.value)
     }
 
-    emit('submit', formDataToSend)
+    try {
+        const result = await createBrand(formDataToSend)
+        if (result) {
+            notyf.success('Tạo thương hiệu thành công')
+            await navigateTo('/admin/brands')
+        }
+    } catch (error) {
+        console.error('Error creating brand:', error)
+        const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo thương hiệu'
+        notyf.error(errorMessage)
+    }
 }
-
-defineExpose({
-    formFields
-})
 </script>
 
 <style scoped>
@@ -183,5 +217,9 @@ defineExpose({
 
 .tw-bg-primary-dark {
     background-color: #2ea16d;
+}
+
+.tw-border-primary {
+    border-color: #3bb77e;
 }
 </style>

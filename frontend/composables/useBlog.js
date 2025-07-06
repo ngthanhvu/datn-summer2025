@@ -7,14 +7,10 @@ export const useBlog = () => {
     const apiBaseUrl = config.public.apiBaseUrl;
     const token = useCookie('token');
 
-    const API = axios.create({
-        baseURL: apiBaseUrl
-    });
+    const API = axios.create({ baseURL: apiBaseUrl });
 
     API.interceptors.request.use((req) => {
-        if (token.value) {
-            req.headers.Authorization = `Bearer ${token.value}`;
-        }
+        if (token.value) req.headers.Authorization = `Bearer ${token.value}`;
         return req;
     });
 
@@ -30,7 +26,6 @@ export const useBlog = () => {
         try {
             const params = { page, ...filters };
             const response = await API.get('/api/blogs', { params });
-
             if (response.data.success) {
                 blogs.value = response.data.data.data;
                 pagination.value = {
@@ -90,16 +85,21 @@ export const useBlog = () => {
         }
     };
 
+    const handleError = (err) => {
+        const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
+        const validationErrors = err.response?.data?.errors || null;
+        error.value = errorMessage;
+        const errorObj = new Error(errorMessage);
+        if (validationErrors) errorObj.errors = validationErrors;
+        throw errorObj;
+    };
+
     const createBlog = async (blogData) => {
         loading.value = true;
         error.value = null;
         try {
-            console.log('Creating blog - Token:', token.value);
             const response = await API.post('/api/blogs', blogData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token.value}`
-                }
+                headers: { 'Authorization': `Bearer ${token.value}` }
             });
             if (response.data.success) {
                 return response.data;
@@ -107,15 +107,7 @@ export const useBlog = () => {
                 throw new Error(response.data.message || 'Failed to create blog');
             }
         } catch (err) {
-            console.log('Error creating blog:', err.response?.data);
-            const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
-            const validationErrors = err.response?.data?.errors || null;
-            error.value = errorMessage;
-            const errorObj = new Error(errorMessage);
-            if (validationErrors) {
-                errorObj.errors = validationErrors;
-            }
-            throw errorObj;
+            handleError(err);
         } finally {
             loading.value = false;
         }
@@ -125,15 +117,9 @@ export const useBlog = () => {
         loading.value = true;
         error.value = null;
         try {
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
-            }
-
-            const response = await API.put(`/api/blogs/${id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token.value}`
-                }
+            formData.append('_method', 'PUT');
+            const response = await API.post(`/api/blogs/${id}`, formData, {
+                headers: { 'Authorization': `Bearer ${token.value}` }
             });
             if (response.data.success) {
                 return response.data;
@@ -141,14 +127,7 @@ export const useBlog = () => {
                 throw new Error(response.data.message || 'Failed to update blog');
             }
         } catch (err) {
-            const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
-            const validationErrors = err.response?.data?.errors || null;
-            error.value = errorMessage;
-            const errorObj = new Error(errorMessage);
-            if (validationErrors) {
-                errorObj.errors = validationErrors;
-            }
-            throw errorObj;
+            handleError(err);
         } finally {
             loading.value = false;
         }
@@ -158,7 +137,6 @@ export const useBlog = () => {
         loading.value = true;
         error.value = null;
         try {
-
             const response = await API.put(`/api/blogs/${id}`, blogData, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -171,14 +149,7 @@ export const useBlog = () => {
                 throw new Error(response.data.message || 'Failed to update blog');
             }
         } catch (err) {
-            const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
-            const validationErrors = err.response?.data?.errors || null;
-            error.value = errorMessage;
-            const errorObj = new Error(errorMessage);
-            if (validationErrors) {
-                errorObj.errors = validationErrors;
-            }
-            throw errorObj;
+            handleError(err);
         } finally {
             loading.value = false;
         }
@@ -202,10 +173,7 @@ export const useBlog = () => {
         }
     };
 
-    const clearError = () => {
-        error.value = null;
-    };
-
+    const clearError = () => { error.value = null; };
     const resetState = () => {
         blogs.value = [];
         blog.value = null;

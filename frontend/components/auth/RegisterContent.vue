@@ -1,47 +1,51 @@
 <template>
-    <div class="form-container mx-auto tw-mt-[100px]" id="registerForm">
+    <div class="form-container mx-auto tw-mt-[100px] tw-bg-white tw-mb-10 tw-border tw-border-gray-150"
+        id="registerForm">
         <h2 class="text-center mb-4 tw-font-semibold tw-text-2xl">Đăng Ký</h2>
         <form @submit.prevent="handleRegister">
             <div class="mb-2">
-                <label for="registerUsername" class="form-label">Tên người dùng</label>
-                <input v-model="form.username" type="text" :class="['form-control', { 'is-invalid': error.username }]"
-                    id="registerUsername" name="username" placeholder="Nhập tên người dùng">
-                <div class="invalid-feedback" v-if="error.username">{{ error.username }}</div>
+                <label for="registerUsername">Tên người dùng</label>
+                <input v-model="form.username" type="text" id="registerUsername" name="username"
+                    placeholder="Nhập tên người dùng"
+                    class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded tw-text-base focus:tw-outline-none focus:tw-border-[#81aacc] focus:tw-ring-1 focus:tw-ring-[#81aacc]" />
+                <p v-if="error.username" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ error.username }}</p>
             </div>
             <div class="mb-2">
-                <label for="registerEmail" class="form-label">Email</label>
-                <input v-model="form.email" type="email" :class="['form-control', { 'is-invalid': error.email }]"
-                    id="registerEmail" name="email" placeholder="Nhập email của bạn">
-                <div class="invalid-feedback" v-if="error.email">{{ error.email }}</div>
+                <label for="registerEmail">Email</label>
+                <input v-model="form.email" type="email" id="registerEmail" name="email"
+                    placeholder="Nhập email của bạn"
+                    class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded tw-text-base focus:tw-outline-none focus:tw-border-[#81aacc] focus:tw-ring-1 focus:tw-ring-[#81aacc]" />
+                <p v-if="error.email" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ error.email }}</p>
             </div>
             <div class="mb-2">
-                <label for="registerPassword" class="form-label">Mật khẩu</label>
+                <label for="registerPassword">Mật khẩu</label>
                 <div class="position-relative">
-                    <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
-                        :class="['form-control', { 'is-invalid': error.password }]" id="registerPassword"
-                        name="password" placeholder="Nhập mật khẩu">
+                    <input v-model="form.password" :type="showPassword ? 'text' : 'password'" id="registerPassword"
+                        name="password" placeholder="Nhập mật khẩu"
+                        class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded tw-text-base focus:tw-outline-none focus:tw-border-[#81aacc] focus:tw-ring-1 focus:tw-ring-[#81aacc]" />
                     <button type="button"
-                        class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
-                        @click="showPassword = !showPassword">
+                        class="btn position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+                        style="color:#81aacc;" @click="showPassword = !showPassword">
                         <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
-                <div class="invalid-feedback" v-if="error.password">{{ error.password }}</div>
+                <p v-if="error.password" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ error.password }}</p>
             </div>
             <div class="mb-2">
-                <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                <label for="confirmPassword">Xác nhận mật khẩu</label>
                 <div class="position-relative">
                     <input v-model="form.confirm_password" :type="showConfirmPassword ? 'text' : 'password'"
-                        :class="['form-control', { 'is-invalid': error.confirm_password }]" id="confirmPassword"
-                        name="confirm_password" placeholder="Xác nhận mật khẩu">
+                        id="confirmPassword" name="confirm_password" placeholder="Xác nhận mật khẩu"
+                        class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded tw-text-base focus:tw-outline-none focus:tw-border-[#81aacc] focus:tw-ring-1 focus:tw-ring-[#81aacc]" />
                     <button type="button"
-                        class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
-                        @click="showConfirmPassword = !showConfirmPassword">
+                        class="btn position-absolute top-50 end-0 translate-middle-y text-decoration-none pe-3"
+                        style="color:#81aacc" @click="showConfirmPassword = !showConfirmPassword">
                         <i :class="showConfirmPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
-                <div class="invalid-feedback" v-if="error.confirm_password">{{ error.confirm_password }}</div>
-                <p class="text-danger mt-2 tw-text-[14px]" v-if="error.register">{{ error.register }}</p>
+                <p v-if="error.confirm_password" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ error.confirm_password }}
+                </p>
+                <p class="tw-text-red-500 tw-text-sm tw-mt-1" v-if="error.register">{{ error.register }}</p>
             </div>
             <div id="cf-turnstile" data-theme="light"></div>
             <button type="submit"
@@ -203,13 +207,12 @@ const handleRegister = async () => {
 .form-container {
     max-width: 500px;
     padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
 }
 
 .toggle-form {
     cursor: pointer;
-    color: #0d6efd;
+    color: #81aacc;
 }
 
 .toggle-form:hover {

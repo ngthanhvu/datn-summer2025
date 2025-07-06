@@ -79,7 +79,6 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
     {
         $this->currentRow++;
 
-        // Tìm hoặc tạo category
         $category = Categories::firstOrCreate(
             ['name' => $row['category']],
             [
@@ -88,7 +87,6 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
             ]
         );
 
-        // Tìm hoặc tạo brand
         $brand = Brands::firstOrCreate(
             ['name' => $row['brand']],
             [
@@ -97,12 +95,10 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
             ]
         );
 
-        // Tính toán giá
         $price = (float) $row['price'];
         $originalPrice = isset($row['original_price']) ? (float) $row['original_price'] : $price;
         $discountPrice = isset($row['discount_price']) ? (float) $row['discount_price'] : null;
 
-        // Tạo sản phẩm
         $product = Products::create([
             'name' => $row['name'],
             'description' => $row['description'] ?? '',
@@ -115,10 +111,8 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
             'is_active' => isset($row['is_active']) ? (bool) $row['is_active'] : true,
         ]);
 
-        // Xử lý variant nếu có
         $this->handleProductVariants($product, $row);
 
-        // Xử lý hình ảnh
         $this->handleProductImages($product, $row);
 
         return $product;
@@ -168,7 +162,6 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
 
     private function handleProductVariants($product, $row)
     {
-        // Chỉ tạo variant nếu có thông tin color hoặc size
         if (isset($row['variant_color']) || isset($row['variant_size'])) {
             $variant = Variants::create([
                 'product_id' => $product->id,
@@ -178,7 +171,6 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
                 'sku' => $this->generateVariantSKU($product, $row['variant_color'] ?? $row['variant_size'] ?? '')
             ]);
 
-            // Tạo inventory record nếu có quantity
             if (isset($row['variant_quantity']) && $row['variant_quantity'] > 0) {
                 \App\Models\Inventory::create([
                     'variant_id' => $variant->id,
@@ -192,12 +184,13 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
 
     private function generateVariantSKU($product, $variantIdentifier)
     {
-        // Tạo SKU từ product ID và variant identifier
-        $baseSKU = strtoupper(substr($product->name, 0, 3)) . '-' .
-            strtoupper(substr($variantIdentifier, 0, 3)) . '-' .
+        $baseName = \Illuminate\Support\Str::ascii($product->name);
+        $baseVariant = \Illuminate\Support\Str::ascii($variantIdentifier);
+
+        $baseSKU = strtoupper(substr($baseName, 0, 3)) . '-' .
+            strtoupper(substr($baseVariant, 0, 3)) . '-' .
             str_pad($product->id, 4, '0', STR_PAD_LEFT);
 
-        // Kiểm tra xem SKU đã tồn tại chưa
         $counter = 1;
         $sku = $baseSKU;
         while (Variants::where('sku', $sku)->exists()) {
@@ -213,7 +206,6 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
         $imageOrder = 1;
         $hasMainImage = false;
 
-        // Xử lý hình ảnh từ URL
         if (isset($row['image_url']) && $row['image_url']) {
             $imageUrls = explode('|', $row['image_url']);
             foreach ($imageUrls as $imageUrl) {
@@ -230,7 +222,6 @@ class ProductImport implements ToModel, WithHeadingRow, WithEvents, WithValidati
             }
         }
 
-        // Xử lý hình ảnh embed từ Excel
         if (isset($this->images[$this->currentRow])) {
             Images::create([
                 'product_id' => $product->id,

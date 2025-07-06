@@ -61,7 +61,6 @@
                     </tr>
                 </thead>
                 <tbody class="tw-divide-y tw-divide-gray-200">
-                    <!-- Skeleton loading -->
                     <tr v-if="isLoading" v-for="n in 8" :key="'skeleton-' + n">
                         <td v-for="i in 8" :key="i" class="tw-px-4 tw-py-3">
                             <div class="skeleton-loader"></div>
@@ -119,6 +118,11 @@
                             </button>
                         </td>
                     </tr>
+                    <tr v-if="!isLoading && filteredOrders.length === 0">
+                        <td colspan="8" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
+                            Không có dữ liệu
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -142,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useOrder } from '~/composables/useOrder'
 import OrderDetails from './OrderDetails.vue'
 
@@ -175,18 +179,15 @@ const props = defineProps({
     }
 })
 
-onMounted(async () => {
-    await getOrders()
-})
-
 const filteredOrders = computed(() => {
-    return orders.value.data?.filter(order => {
+    const orderList = Array.isArray(props.orders) ? props.orders : (props.orders?.data || [])
+    return orderList.filter(order => {
         const matchesSearch = order.id.toString().includes(searchQuery.value) ||
             order.user?.username?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             order.user?.email?.toLowerCase().includes(searchQuery.value.toLowerCase())
         const matchesStatus = !filterStatus.value || order.status === filterStatus.value
         return matchesSearch && matchesStatus
-    }) || []
+    })
 })
 
 const handleView = (order) => {

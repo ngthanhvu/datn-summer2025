@@ -8,7 +8,7 @@
         </div>
 
         <!-- Filters section -->
-        <div class="tw-flex tw-gap-4 tw-mb-4">
+        <!-- <div class="tw-flex tw-gap-4 tw-mb-4">
             <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-w-40">
                 <option value="">Tất cả trạng thái</option>
                 <option value="draft">Bản nháp</option>
@@ -18,7 +18,7 @@
 
             <input v-model="searchQuery" type="text" class="tw-border tw-rounded tw-px-2 tw-py-1 tw-w-40"
                 placeholder="Tìm kiếm bài viết..." />
-        </div>
+        </div> -->
 
         <!-- Table section -->
         <div class="tw-overflow-x-auto">
@@ -112,6 +112,11 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr>
+                            <td colspan="8" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
                     </template>
                 </tbody>
             </table>
@@ -143,34 +148,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useBlog } from '@/composables/useBlog'
+import { defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
 
-const { blogs, loading, error, pagination, fetchBlogs, deleteBlog } = useBlog()
+const props = defineProps({
+    blogs: { type: Array, default: () => [] },
+    loading: { type: Boolean, default: false },
+    error: { type: [String, null], default: null },
+    pagination: { type: Object, default: null }
+})
+const emit = defineEmits(['delete', 'refresh'])
 const router = useRouter()
-
-const selectedStatus = ref('')
-const searchQuery = ref('')
-
-onMounted(async () => {
-    await fetchBlogs()
-})
-
-watch([selectedStatus, searchQuery], async () => {
-    await fetchBlogs(1, {
-        status: selectedStatus.value,
-        search: searchQuery.value
-    })
-})
-
-const changePage = async (page) => {
-    if (page < 1 || page > pagination.value.last_page) return
-    await fetchBlogs(page, {
-        status: selectedStatus.value,
-        search: searchQuery.value
-    })
-}
 
 const handleEdit = (blog) => {
     router.push(`/admin/blogs/${blog.id}/edit`)
@@ -178,9 +166,13 @@ const handleEdit = (blog) => {
 
 const handleDelete = async (blog) => {
     if (confirm(`Bạn có chắc chắn muốn xóa bài viết "${blog.title}"?`)) {
-        await deleteBlog(blog.id)
-        await fetchBlogs(pagination.value.current_page)
+        emit('delete', blog.id)
+        emit('refresh')
     }
+}
+
+const changePage = (page) => {
+    emit('refresh', page)
 }
 
 function getStatusLabel(status) {
