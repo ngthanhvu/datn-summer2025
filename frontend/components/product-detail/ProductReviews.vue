@@ -179,11 +179,16 @@
                                 class="tw-w-12 tw-h-12 tw-rounded-full tw-object-cover tw-border-2 tw-border-gray-200" />
                             <div>
                                 <div class="tw-font-semibold tw-text-gray-800">{{ review.user?.username ||
-                                    review.user?.name }}
-                                </div>
-                                <div class="tw-text-sm tw-text-gray-500 tw-flex tw-items-center tw-gap-1">
-                                    <i class="bi bi-calendar3"></i> {{ new Date(review.created_at).toLocaleDateString()
-                                    }}
+                                    review.user?.name }}</div>
+                                <div class="tw-flex tw-items-center tw-gap-2 tw-mt-1">
+                                    <span class="tw-text-sm tw-text-gray-500 tw-flex tw-items-center tw-gap-1">
+                                        <i class="bi bi-calendar3"></i> {{ new Date(review.created_at).toLocaleDateString()
+                                        }}
+                                    </span>
+                                    <span v-if="user && review.user_id === user.id">
+                                        <span v-if="review.is_hidden" class="tw-bg-red-100 tw-text-red-600 tw-text-xs tw-font-semibold tw-rounded-full tw-px-3 tw-py-1 tw-ml-2">Vi phạm ngôn từ</span>
+                                        <span v-else-if="!review.is_approved" class="tw-bg-yellow-100 tw-text-yellow-700 tw-text-xs tw-font-semibold tw-rounded-full tw-px-3 tw-py-1 tw-ml-2">Đang chờ duyệt</span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -210,7 +215,9 @@
                             </div>
                         </div>
                     </div>
-                    <p class="tw-text-gray-700 tw-my-4 tw-leading-relaxed">{{ review.content }}</p>
+                    <div class="tw-flex tw-items-center tw-gap-2">
+                        <p class="tw-text-gray-700 tw-my-4 tw-leading-relaxed">{{ review.content }}</p>
+                    </div>
 
                     <!-- Hiển thị hình ảnh đánh giá -->
                     <div v-if="review.images && review.images.length > 0" class="tw-mt-4 tw-flex tw-flex-wrap tw-gap-3">

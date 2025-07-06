@@ -224,7 +224,8 @@ const reviewsLoading = ref(false)
 const fetchReviews = async (page = 1) => {
   try {
     reviewsLoading.value = true
-    const response = await getReviewsByProductSlug(data.value.slug, page, reviewsPerPage.value)
+    const userId = isAuthenticated.value && user.value ? user.value.id : null
+    const response = await getReviewsByProductSlug(data.value.slug, page, reviewsPerPage.value, userId)
 
     reviewPaginationData.value = {
       current_page: response.current_page,
@@ -239,7 +240,11 @@ const fetchReviews = async (page = 1) => {
     totalReviewPages.value = response.last_page
     totalReviews.value = response.total
 
-    reviews.value = response.data
+    // Hiển thị tất cả đánh giá đã duyệt và không bị ẩn, cộng với đánh giá của chính user (nếu có)
+    reviews.value = response.data.filter(review => {
+      if (userId && review.user_id === userId) return true;
+      return !!review.is_approved && !review.is_hidden;
+    })
 
     if (reviews.value.length > 0) {
       const total = response.total
@@ -422,7 +427,7 @@ const submitReview = async () => {
       notyf.success('Đã cập nhật đánh giá thành công')
     } else {
       await addReview(reviewData)
-      notyf.success('Đã gửi đánh giá thành công')
+      notyf.success('Đã gửi đánh giá thành công. Đánh giá sẽ được hiển thị sau khi được duyệt.')
     }
 
     reviewForm.value = {
@@ -513,6 +518,16 @@ const checkUserHasReviewed = async () => {
     const response = await checkUserReview(user.value.id, data.value.slug)
     userHasReviewed.value = response.hasReviewed
     userReview.value = response.review || null
+
+    // Kiểm tra trạng thái đánh giá của user
+    if (response.hasReviewed && response.review) {
+      const review = response.review
+      if (review.is_hidden) {
+        notyf.info('Đánh giá của bạn chứa từ khóa không phù hợp và đã bị ẩn')
+      } else if (!review.is_approved) {
+        notyf.info('Đánh giá của bạn đang chờ duyệt')
+      }
+    }
 
   } catch (error) {
     console.error('Lỗi khi kiểm tra đánh giá của người dùng:', error)

@@ -10,13 +10,39 @@ use App\Models\Products;
 
 class ProductReviewController extends Controller
 {
+    private $badWords = [
+        'cặc', 'lồn', 'chó đẻ', 'rác rưởi', 'lừa đảo', 'hàng giả', 'sủa', 'thối', 'đểu', 'vớ vẩn',
+        'tào lao', 'phịa', 'bẩn thỉu', 'khốn nạn', 'mạt sát', 'vô dụng', 'lởm', 'đểu cáng', 'lừa gạt',
+        'hạ phẩm', 'mất dạy', 'kệch cỡm', 'bội bạc', 'chửi rủa', 'ngớ ngẩn', 'xấu xí', 'không ra gì',
+        'dối trá', 'độc hại', 'lôi thôi', 'kém chất lượng', 'vô giá trị', 'giả mạo', 'đểu cáng', 'lởm', 'lừa gạt',
+    ];
+    
+
+    private function containsBadWords($content) {
+        foreach ($this->badWords as $word) {
+            if (stripos($content, $word) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 5);
-        $reviews = ProductReview::with(['user', 'product', 'replies', 'images'])
-            ->whereNull('parent_id')
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+        $query = ProductReview::with(['user', 'product', 'replies', 'images'])
+            ->whereNull('parent_id');
+        if ($request->get('badwords') == 1) {
+            $badWords = $this->badWords;
+            $query->where(function($q) use ($badWords) {
+                foreach ($badWords as $word) {
+                    $q->orWhere('content', 'LIKE', "%$word%");
+                }
+            });
+        } else if ($request->get('negative') == 1) {
+            $query->where('rating', '<=', 2);
+        }
+        $reviews = $query->orderByDesc('created_at')->paginate($perPage);
         return response()->json($reviews);
     }
 
@@ -43,6 +69,15 @@ class ProductReviewController extends Controller
             return response()->json([
                 'message' => 'Bạn đã đánh giá sản phẩm này rồi. Vui lòng chỉnh sửa đánh giá hiện có thay vì tạo mới.'
             ], 422);
+        }
+
+        if ($this->containsBadWords($validated['content'])) {
+            $validated['is_hidden'] = true;
+            $validated['is_approved'] = false;
+        } else {
+            // Đánh giá mới mặc định là chờ duyệt
+            $validated['is_approved'] = false;
+            $validated['is_hidden'] = false;
         }
 
         $review = ProductReview::create($validated);
@@ -80,6 +115,26 @@ class ProductReviewController extends Controller
             'delete_image_ids' => 'nullable|array',
             'delete_image_ids.*' => 'integer|exists:review_images,id'
         ]);
+
+        // Xử lý logic trạng thái
+        if (isset($validated['is_approved']) && isset($validated['is_hidden'])) {
+            // Nếu admin thay đổi trạng thái thủ công
+            if ($validated['is_approved'] === true) {
+                $validated['is_hidden'] = false; // Đã duyệt thì không ẩn
+            } else if ($validated['is_hidden'] === true) {
+                $validated['is_approved'] = false; // Bị ẩn thì không duyệt
+            }
+        } else if (isset($validated['content'])) {
+            // Kiểm tra từ khóa tiêu cực khi cập nhật nội dung
+            if ($this->containsBadWords($validated['content'])) {
+                $validated['is_hidden'] = true;
+                $validated['is_approved'] = false;
+            } else if ($review->is_hidden) {
+                // Nếu không còn từ khóa tiêu cực và đang bị ẩn, chuyển về chờ duyệt
+                $validated['is_hidden'] = false;
+                $validated['is_approved'] = false;
+            }
+        }
 
         $review->update($validated);
 
@@ -124,12 +179,20 @@ class ProductReviewController extends Controller
     public function getByProductSlug($slug, Request $request)
     {
         $perPage = $request->get('per_page', 3);
-        $reviews = ProductReview::with(['user', 'replies.images', 'images'])
+        $userId = $request->user('api')?->id ?? $request->get('user_id');
+        $query = ProductReview::with(['user', 'replies.images', 'images'])
             ->where('product_slug', 'LIKE', '%' . $slug . '%')
             ->whereNull('parent_id')
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
-
+            ->where(function($q) use ($userId) {
+                $q->where(function($q2) {
+                    $q2->where('is_approved', true)->where('is_hidden', false);
+                });
+                if ($userId) {
+                    $q->orWhere('user_id', $userId);
+                }
+            })
+            ->orderByDesc('created_at');
+        $reviews = $query->paginate($perPage);
         return response()->json($reviews);
     }
 
@@ -266,6 +329,8 @@ class ProductReviewController extends Controller
         $perPage = $request->get('per_page', 6);
         $reviews = ProductReview::with(['user', 'product', 'images'])
             ->whereNull('parent_id')
+            ->where('is_approved', true)
+            ->where('is_hidden', false)
             ->orderByDesc('created_at')
             ->paginate($perPage);
 
