@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px]">
+    <div v-if="shouldShowRecommend" class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px]">
         <div class="tw-flex tw-justify-between tw-items-center tw-mb-3">
             <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800">Sản phẩm đề xuất</h2>
             <NuxtLink to="/products/trending"
@@ -34,13 +34,13 @@
 
         <!-- Products Grid -->
         <div v-else class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
-            <Card v-for="product in (recommendedProducts.length > 0 ? recommendedProducts : newProducts.slice(0, 5))" :key="product.id" :product="product"
-                @quick-view="openQuickView" />
+            <Card v-for="product in (recommendedProducts.length > 0 ? recommendedProducts.slice(0, 5) : newProducts.slice(0, 5))"
+                :key="product.id" :product="product" @quick-view="openQuickView" />
         </div>
 
         <!-- Empty State -->
         <div v-if="!loading && !error && recommendedProducts.length === 0 && newProducts.length === 0" class="tw-text-center tw-py-8">
-            <p class="tw-text-gray-500">Chưa có sản phẩm mới</p>
+            <p class="tw-text-gray-500">Chưa có sản phẩm đề xuất</p>
         </div>
         <!-- Quick View Modal -->
         <QuickView :show="showQuickView" :product="quickViewProduct" @close="closeQuickView" />
@@ -65,9 +65,13 @@ const recommendedProducts = ref([])
 const loading = ref(true)
 const error = ref(null)
 
-// Quick View State
 const showQuickView = ref(false)
 const quickViewProduct = ref(null)
+
+const shouldShowRecommend = computed(() => {
+    if (!isAuthenticated.value || !user.value) return false
+    return Boolean(user.value.username && user.value.gender && user.value.dateOfBirth)
+})
 
 function openQuickView(product) {
     quickViewProduct.value = product
@@ -82,9 +86,7 @@ function getFullImagePath(imagePath) {
     if (!imagePath) return ''
     if (imagePath.startsWith('http')) return imagePath
     let path = imagePath
-    // Nếu chưa có '/storage/' ở đầu thì thêm vào
     if (!path.startsWith('/storage/')) {
-        // Nếu đã có 'storage/' ở đầu thì thêm dấu '/'
         if (path.startsWith('storage/')) {
             path = '/' + path
         } else {
@@ -101,7 +103,6 @@ const fetchProducts = async () => {
         if (isAuthenticated.value && user.value) {
             const rec = await getRecommendedProducts()
             if (rec && rec.length > 0) {
-                // Đảm bảo đường dẫn ảnh đúng cho tất cả sản phẩm đề xuất
                 rec.forEach(product => {
                     if (product.images && Array.isArray(product.images)) {
                         product.images = product.images.map(img => ({
@@ -115,7 +116,6 @@ const fetchProducts = async () => {
                 return
             }
         }
-        // Fallback
         const products = await getNewProducts(10)
         products.forEach(product => {
             if (product.images && Array.isArray(product.images)) {

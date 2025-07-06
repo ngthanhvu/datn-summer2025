@@ -8,15 +8,13 @@
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
         <CouponList />
       </div>
+    </div>
 
-
-    </div><div class="tw-mt-3">
+    <div class="tw-mt-3" v-if="shouldShowRecommend">
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
         <Trending />
       </div>
     </div>
-
-
 
     <Suspense>
       <template #default>
@@ -98,6 +96,7 @@
 
 <script setup>
 import { defineAsyncComponent } from 'vue';
+import { useAuth } from '~/composables/useAuth'
 
 // Lazy load components để tăng tốc độ load trang chủ
 const SwiperSlider = defineAsyncComponent(() => import('~/components/home/SwiperSlider.vue'))
@@ -111,6 +110,12 @@ const LatestReviews = defineAsyncComponent(() => import('~/components/home/Lates
 const Banner = defineAsyncComponent(() => import('@/components/home/Banner.vue'))
 const CouponList = defineAsyncComponent(() => import('~/components/home/CouponList.vue'))
 const Trending = defineAsyncComponent(() => import('~/components/home/Trending.vue'))
+
+const { user, isAuthenticated } = useAuth()
+const shouldShowRecommend = computed(() => {
+  if (!isAuthenticated.value || !user.value) return false
+  return Boolean(user.value.username && user.value.gender && user.value.dateOfBirth)
+})
 
 useHead({
   title: 'Trang chủ - DEVGANG',

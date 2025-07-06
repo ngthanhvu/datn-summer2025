@@ -586,7 +586,6 @@ class ProductsController extends Controller
         if ($gender) {
             $keyword = $gender === 'male' ? 'nam' : ($gender === 'female' ? 'nữ' : null);
         }
-
         if ($keyword) {
             $query->where(function ($q) use ($keyword) {
                 $q->whereHas('categories', function ($catQ) use ($keyword) {
@@ -595,22 +594,18 @@ class ProductsController extends Controller
                     ->orWhere('name', 'like', '%' . $keyword . '%');
             });
         }
-
-        if ($dateOfBirth) {
-            $age = \Carbon\Carbon::parse($dateOfBirth)->age;
-            if (\Schema::hasColumn('products', 'min_age') && \Schema::hasColumn('products', 'max_age')) {
-                $query->where('min_age', '<=', $age)->where('max_age', '>=', $age);
-            }
-        }
-
-        if ($address) {
-            if (\Schema::hasColumn('products', 'city')) {
-                $query->where('city', 'like', '%' . $address . '%');
-            }
-        }
-
-        $products = $query->with('images')->orderByDesc('created_at')->limit(10)->get();
-
+        // if ($dateOfBirth) {
+        //     $age = \Carbon\Carbon::parse($dateOfBirth)->age;
+        //     if (\Schema::hasColumn('products', 'min_age') && \Schema::hasColumn('products', 'max_age')) {
+        //         $query->where('min_age', '<=', $age)->where('max_age', '>=', $age);
+        //     }
+        // }
+        // if ($address) {
+        //     if (\Schema::hasColumn('products', 'city')) {
+        //         $query->where('city', 'like', '%' . $address . '%');
+        //     }
+        // }
+        $products = $query->with(['images', 'variants'])->orderByDesc('created_at')->limit(10)->get();
         return response()->json($products);
     }
 }
