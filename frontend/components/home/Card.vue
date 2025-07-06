@@ -1,10 +1,10 @@
 <template>
   <NuxtLink :to="`/chi-tiet/${product.slug}`" class="tw-block">
-    <div class="tw-w-full tw-overflow-hidden tw-group tw-pb-3 tw-relative tw-rounded-[5px] tw-bg-white">
+    <div class="tw-w-full tw-overflow-hidden tw-group tw-pb-2 sm:tw-pb-3 tw-relative tw-rounded-[5px] tw-bg-white">
       <!-- Image wrapper -->
       <div class="tw-relative tw-overflow-hidden">
         <img :src="getMainImage" :alt="product.name"
-          class="tw-w-full tw-object-cover tw-h-80 tw-transition-transform group-hover:tw-scale-105 tw-duration-300" />
+          class="tw-w-full tw-object-cover tw-h-48 sm:tw-h-80 tw-transition-transform group-hover:tw-scale-105 tw-duration-300" />
 
         <!-- Hover overlay -->
         <div
@@ -13,13 +13,13 @@
 
         <!-- Hover buttons -->
         <div
-          class="tw-absolute tw-bottom-2 tw-left-1/2 -tw-translate-x-1/2 tw-flex tw-gap-2 tw-opacity-0 tw-translate-y-4 group-hover:tw-opacity-100 group-hover:tw-translate-y-0 tw-transition-all tw-duration-300">
+          class="tw-absolute tw-bottom-2 tw-left-1/2 -tw-translate-x-1/2 tw-flex tw-gap-1 sm:tw-gap-2 tw-opacity-0 tw-translate-y-4 group-hover:tw-opacity-100 group-hover:tw-translate-y-0 tw-transition-all tw-duration-300">
           <!-- Add to cart -->
           <button
-            class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
+            class="tw-bg-white tw-rounded tw-w-8 tw-h-8 sm:tw-w-10 sm:tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
             title="Thêm vào giỏ" @click.prevent="addToCart">
-            <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-4 tw-w-4 sm:tw-h-5 sm:tw-w-5" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5H19M7 13L5.4 5M16 16a1 1 0 100 2 1 1 0 000-2zm-8 0a1 1 0 100 2 1 1 0 000-2z" />
             </svg>
@@ -27,10 +27,10 @@
 
           <!-- Quick view -->
           <button
-            class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
+            class="tw-bg-white tw-rounded tw-w-8 tw-h-8 sm:tw-w-10 sm:tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
             title="Xem nhanh" @click.prevent="onQuickView">
-            <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-4 tw-w-4 sm:tw-h-5 sm:tw-w-5" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -41,27 +41,29 @@
       </div>
 
       <!-- Product info -->
-      <div class="tw-px-3 tw-mt-2">
-        <p class="tw-text-xs tw-uppercase tw-text-gray-400">{{ categoryName }}</p>
-        <p class="tw-text-sm tw-font-medium tw-text-gray-900">{{ product.name }}</p>
+      <div class="tw-px-2 sm:tw-px-3 tw-mt-1 sm:tw-mt-2">
+        <p class="tw-text-xs tw-uppercase tw-text-gray-400 tw-truncate">{{ categoryName }}</p>
+        <p class="tw-text-sm sm:tw-text-sm tw-font-medium tw-text-gray-900 tw-line-clamp-2 tw-leading-tight">{{
+          product.name }}</p>
 
         <!-- Price -->
-        <div class="tw-flex tw-items-center tw-gap-2 tw-mt-1">
-          <p class="tw-text-[#81AACC] tw-font-semibold tw-text-base">{{ formatPrice(product.discount_price ||
+        <div class="tw-flex tw-items-center tw-gap-1 sm:tw-gap-2 tw-mt-1 tw-flex-wrap">
+          <p class="tw-text-[#81AACC] tw-font-semibold tw-text-sm sm:tw-text-base">{{ formatPrice(product.discount_price
+            ||
             product.price) }}</p>
           <template v-if="product.discount_price && product.discount_price < product.price">
-            <p class="tw-text-gray-400 tw-line-through tw-text-sm">{{ formatPrice(product.price) }}</p>
-            <span class="tw-bg-red-600 tw-text-white tw-text-xs tw-rounded-full tw-px-2 tw-py-[1px]">
+            <p class="tw-text-gray-400 tw-line-through tw-text-xs sm:tw-text-sm">{{ formatPrice(product.price) }}</p>
+            <span class="tw-bg-red-600 tw-text-white tw-text-xs tw-rounded-full tw-px-1 sm:tw-px-2 tw-py-[1px]">
               -{{ calculateDiscount(product.price, product.discount_price) }}%
             </span>
           </template>
         </div>
 
         <!-- Variants & extra -->
-        <div class="tw-flex tw-items-center tw-justify-between tw-mt-3">
+        <div class="tw-flex tw-items-center tw-justify-between tw-mt-2 sm:tw-mt-3">
           <div class="tw-flex tw-items-center tw-gap-1" v-if="product.variants && product.variants.length">
             <div v-for="(variant, index) in displayedVariants" :key="index"
-              class="tw-w-4 tw-h-4 tw-rounded-full tw-border tw-border-gray-300"
+              class="tw-w-3 tw-h-3 sm:tw-w-4 sm:tw-h-4 tw-rounded-full tw-border tw-border-gray-300"
               :style="{ backgroundColor: variant.color }">
             </div>
             <span v-if="product.variants.length > maxDisplayVariants" class="tw-text-xs tw-text-gray-500">
@@ -135,12 +137,19 @@ function onQuickView() {
 }
 </script>
 
-<!-- <style scoped>
-.favorite-tooltip {
-  @apply tw-invisible tw-opacity-0 tw-transition-all tw-duration-200;
+<style scoped>
+/* Custom line clamp for better text truncation */
+.tw-line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.group:hover .favorite-tooltip {
-  @apply tw-visible tw-opacity-100;
+/* Ensure proper spacing on very small screens */
+@media (max-width: 480px) {
+  .tw-line-clamp-2 {
+    line-height: 1.2;
+  }
 }
-</style> -->
+</style>

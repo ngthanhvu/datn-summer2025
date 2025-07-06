@@ -80,6 +80,10 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/message/{messageId}', [MessengerController::class, 'deleteMessage']);
         Route::get('/admins', [MessengerController::class, 'getAdmins']);
     });
+
+    Route::post('/coupons/{id}/claim', [CouponsController::class, 'claim']);
+    Route::post('/coupons/{id}/use', [CouponsController::class, 'use']);
+    Route::get('/coupons/my-coupons', [CouponsController::class, 'myCoupons']);
 });
 
 // Public blog routes

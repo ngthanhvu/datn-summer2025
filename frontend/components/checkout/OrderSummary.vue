@@ -22,7 +22,7 @@
                 </button>
             </div>
             <div v-if="availableCoupons.length > 0" class="tw-mt-4">
-                <h3 class="tw-text-sm tw-font-medium tw-mb-2">Mã giảm giá có sẵn:</h3>
+                <h3 class="tw-text-sm tw-font-medium tw-mb-2">Mã giảm giá đã lưu:</h3>
                 <div class="tw-max-h-[300px] tw-overflow-y-auto tw-pr-2 tw-space-y-3">
                     <div v-for="coupon in availableCoupons" :key="coupon.id"
                         class="tw-bg-white tw-shadow-sm tw-rounded-sm tw-flex tw-cursor-pointer hover:tw-shadow-md tw-transition"
@@ -46,6 +46,14 @@
                                 </span>
                                 <span v-if="coupon.min_order_value" class="tw-text-xs tw-text-gray-500 tw-ml-2">
                                     (Đơn tối thiểu {{ formatPrice(coupon.min_order_value) }})
+                                </span>
+                            </div>
+                            <div class="tw-flex tw-items-center tw-mt-1">
+                                <span class="tw-text-xs tw-text-green-600">
+                                    <i class="fa-solid fa-check tw-mr-1"></i>Có thể sử dụng
+                                </span>
+                                <span class="tw-text-xs tw-text-gray-500 tw-ml-2">
+                                    Hạn: {{ formatDate(coupon.end_date) }}
                                 </span>
                             </div>
                         </div>
@@ -133,20 +141,26 @@ const selectCoupon = (coupon) => {
 
 const fetchAvailableCoupons = async () => {
     try {
-        const coupons = await couponService.getCoupons()
+        // Lấy danh sách coupon đã lưu của user
+        const myCouponsData = await couponService.getMyCoupons()
+        const myCoupons = myCouponsData?.coupons || []
 
-        if (!coupons || !Array.isArray(coupons)) {
-            console.error('Invalid coupons data:', coupons)
+        if (!myCoupons || !Array.isArray(myCoupons)) {
+            console.error('Invalid my coupons data:', myCoupons)
             return
         }
 
         const now = new Date()
-        availableCoupons.value = coupons.filter(coupon => {
-            return coupon.is_active
+        availableCoupons.value = myCoupons.filter(coupon => {
+            // Chỉ hiển thị coupon đang hoạt động và chưa sử dụng
+            return coupon.is_active &&
+                coupon.pivot?.status !== 'used' &&
+                new Date(coupon.start_date) <= now &&
+                new Date(coupon.end_date) >= now
         })
 
     } catch (error) {
-        console.error('Error fetching coupons:', error)
+        console.error('Error fetching my coupons:', error)
     }
 }
 
@@ -156,6 +170,15 @@ const getImageUrl = (path) => {
     if (path.startsWith('/storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + path
     if (path.startsWith('storage/')) return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
     return runtimeConfig.public.apiBaseUrl.replace(/\/$/, '') + '/' + path
+}
+
+const formatDate = (dateString) => {
+    if (!dateString) return 'N/A'
+    try {
+        return new Date(dateString).toLocaleDateString('vi-VN')
+    } catch (error) {
+        return 'N/A'
+    }
 }
 
 onMounted(() => {

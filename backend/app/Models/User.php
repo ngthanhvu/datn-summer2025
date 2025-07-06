@@ -105,14 +105,14 @@ class User extends Authenticatable implements JWTSubject
             ->whereNotNull('otp_expires_at')
             ->where('otp_expires_at', '<=', Carbon::now());
     }
-
-    public function inventoryMovements()
-    {
-        return $this->hasMany(InventoryMovement::class);
-    }
-
     public function stockMovements()
     {
         return $this->hasMany(StockMovement::class);
+    }
+    public function coupons()
+    {
+        return $this->belongsToMany(Coupons::class, 'coupon_user', 'user_id', 'coupon_id')
+            ->withPivot('claimed_at', 'used_at', 'status')
+            ->withTimestamps();
     }
 }

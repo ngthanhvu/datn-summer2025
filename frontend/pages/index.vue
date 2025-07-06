@@ -4,6 +4,13 @@
     <ServiceFeatures />
     <CategoriesList />
 
+    <div class="tw-mt-3">
+      <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
+        <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800 tw-mb-6 tw-text-center">Mã Giảm Giá</h2>
+        <CouponList />
+      </div>
+    </div>
+
     <Suspense>
       <template #default>
         <NewProducts />
@@ -95,6 +102,7 @@ const CategoryProducts = defineAsyncComponent(() => import('~/components/home/Ca
 const BrandsShowcase = defineAsyncComponent(() => import('~/components/home/BrandsShowcase.vue'))
 const LatestReviews = defineAsyncComponent(() => import('~/components/home/LatestReviews.vue'))
 const Banner = defineAsyncComponent(() => import('@/components/home/Banner.vue'))
+const CouponList = defineAsyncComponent(() => import('~/components/home/CouponList.vue'))
 
 useHead({
   title: 'Trang chủ - DEVGANG',
