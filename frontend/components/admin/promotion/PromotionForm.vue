@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="tw-bg-white tw-rounded-lg tw-p-6 tw-w-[50%] mx-auto tw-border tw-border-gray-200">
         <form @submit.prevent="handleSubmit" class="form form-grid">
             <div class="form-group">
                 <label for="name">Tên chương trình</label>
@@ -11,6 +11,13 @@
                 <label for="code">Mã giảm giá</label>
                 <input id="code" v-model="formData.code" type="text" required placeholder="Nhập mã giảm giá" />
                 <span v-if="errors.code" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.code }}</span>
+            </div>
+            <div class="form-group">
+                <label for="description">Mô tả</label>
+                <textarea id="description" v-model="formData.description" rows="3"
+                    placeholder="Nhập mô tả chi tiết về chương trình khuyến mãi"></textarea>
+                <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="type">Loại giảm giá</label>
@@ -37,7 +44,7 @@
                     <span class="suffix">đ</span>
                 </div>
                 <span v-if="errors.min_order_value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.min_order_value
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
                 <label for="max_discount_value">Giảm tối đa</label>
@@ -48,14 +55,14 @@
                 </div>
                 <span v-if="errors.max_discount_value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                     errors.max_discount_value
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
                 <label for="usage_limit">Giới hạn sử dụng</label>
                 <input id="usage_limit" v-model.number="formData.usage_limit" type="number" :min="0" :step="1"
                     placeholder="0 = không giới hạn" />
                 <span v-if="errors.usage_limit" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.usage_limit
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
                 <label for="start_date">Ngày bắt đầu</label>
@@ -111,6 +118,7 @@ function validateForm() {
     const err = {}
     if (!formData.value.name) err.name = 'Vui lòng nhập tên chương trình.'
     if (!formData.value.code) err.code = 'Vui lòng nhập mã giảm giá.'
+    if (!formData.value.description) err.description = 'Vui lòng nhập mô tả chương trình.'
     if (formData.value.value === '' || formData.value.value === null || formData.value.value < 0) err.value = 'Giá trị giảm phải lớn hơn hoặc bằng 0.'
     if (formData.value.min_order_value === '' || formData.value.min_order_value === null || formData.value.min_order_value < 0) err.min_order_value = 'Đơn hàng tối thiểu phải lớn hơn hoặc bằng 0.'
     if (formData.value.type !== 'percent' && (formData.value.max_discount_value === '' || formData.value.max_discount_value === null || formData.value.max_discount_value < 0)) err.max_discount_value = 'Giảm tối đa phải lớn hơn hoặc bằng 0.'
@@ -140,6 +148,7 @@ const handleSubmit = async () => {
         formData.value = {
             name: '',
             code: '',
+            description: '',
             type: 'percent',
             value: 0,
             min_order_value: 0,
@@ -147,10 +156,10 @@ const handleSubmit = async () => {
             usage_limit: 0,
             start_date: '',
             end_date: '',
-            description: '',
             is_active: true
         }
         errors.value = {}
+        navigateTo('/admin/promotions')
     } catch (error) {
         // Hiển thị thông báo lỗi
         Swal.fire({

@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->integer('price');
             $table->string('description');
-            $table->integer('original_price')->nullable();
             $table->integer('discount_price')->nullable();
             $table->string('slug')->unique();
             $table->boolean('is_active')->default(true);

@@ -9,7 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Models\InventoryMovement;
+use App\Models\Inventory;
+use App\Models\Variants;
+use App\Models\StockMovement;
+use App\Models\StockMovementItem;
 
 class OrdersController extends Controller
 {
@@ -141,40 +144,54 @@ class OrdersController extends Controller
             ]);
 
             foreach ($validated['items'] as $item) {
+                $variant = Variants::find($item['variant_id']);
+                if (!$variant) {
+                    throw new \Exception("Không tìm thấy biến thể: variant_id = {$item['variant_id']}");
+                }
+
+                $finalPrice = ($variant->discount_price && $variant->discount_price > 0)
+                    ? $variant->discount_price
+                    : $variant->price;
+
                 Orders_detail::create([
                     'order_id' => $order->id,
                     'variant_id' => $item['variant_id'],
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total_price' => $item['quantity'] * $item['price']
+                    'price' => $finalPrice,
+                    'original_price' => $variant->price,
+                    'total_price' => $item['quantity'] * $finalPrice
+                ]);
+            }
+
+            // Tạo phiếu xuất kho cho đơn hàng
+            $stockMovement = StockMovement::create([
+                'type' => 'export',
+                'user_id' => Auth::id(),
+                'note' => 'Xuất kho khi đặt hàng #' . $order->id,
+            ]);
+
+            foreach ($validated['items'] as $item) {
+                $variant = Variants::find($item['variant_id']);
+                $finalPrice = ($variant && $variant->discount_price && $variant->discount_price > 0)
+                    ? $variant->discount_price
+                    : ($variant ? $variant->price : $item['price']);
+                $stockMovementItem = StockMovementItem::create([
+                    'stock_movement_id' => $stockMovement->id,
+                    'variant_id' => $item['variant_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $finalPrice,
                 ]);
 
-                $inventory = DB::table('inventories')
-                    ->where('variant_id', $item['variant_id'])
-                    ->first();
-
-                if (!$inventory) {
-                    throw new \Exception("Không tìm thấy sản phẩm trong kho: variant_id = {$item['variant_id']}");
-                }
-
-                if ($inventory->quantity < $item['quantity']) {
-                    throw new \Exception("Số lượng sản phẩm trong kho không đủ: variant_id = {$item['variant_id']}");
-                }
-
-                if ($validated['payment_method'] === 'cod') {
-                    DB::table('inventories')
-                        ->where('variant_id', $item['variant_id'])
-                        ->update([
-                            'quantity' => DB::raw('quantity - ' . $item['quantity'])
-                        ]);
-
-                    InventoryMovement::create([
-                        'variant_id' => $item['variant_id'],
-                        'type' => 'export',
-                        'quantity' => $item['quantity'],
-                        'note' => 'Xuất kho khi đặt hàng',
-                        'user_id' => Auth::id(),
-                    ]);
+                // Trừ kho
+                $inventory = Inventory::where('variant_id', $item['variant_id'])->first();
+                if ($inventory) {
+                    if ($inventory->quantity < $item['quantity']) {
+                        throw new \Exception("Số lượng tồn kho không đủ cho biến thể: {$item['variant_id']}");
+                    }
+                    $inventory->quantity -= $item['quantity'];
+                    $inventory->save();
+                } else {
+                    throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                 }
             }
 
@@ -279,8 +296,27 @@ class OrdersController extends Controller
                 ], 400);
             }
 
+            if (!in_array($order->status, ['pending', 'processing'])) {
+                return response()->json([
+                    'message' => 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận hoặc đang xử lý'
+                ], 400);
+            }
+
+            $createdAt = $order->created_at;
+            $now = now();
+            if ($now->diffInHours($createdAt) > 24) {
+                return response()->json([
+                    'message' => 'Chỉ có thể hủy đơn hàng trong vòng 24 giờ kể từ khi đặt hàng'
+                ], 400);
+            }
+
+            if (in_array($order->payment_method, ['momo', 'vnpay', 'paypal'])) {
+                $order->payment_status = 'refunded';
+            } else {
+                $order->payment_status = 'canceled';
+            }
+
             $order->status = 'cancelled';
-            $order->payment_status = 'canceled';
             $order->save();
 
             return response()->json([
@@ -324,5 +360,50 @@ class OrdersController extends Controller
         } while (Orders::where('tracking_code', $trackingCode)->exists());
 
         return $trackingCode;
+    }
+    public function reorder($id)
+    {
+        try {
+            $originalOrder = Orders::with('orderDetails')->findOrFail($id);
+
+            if ($originalOrder->user_id !== Auth::id()) {
+                return response()->json([
+                    'message' => 'Bạn không có quyền mua lại đơn hàng này'
+                ], 403);
+            }
+
+            foreach ($originalOrder->orderDetails as $detail) {
+                $existing = DB::table('carts')->where([
+                    'user_id' => Auth::id(),
+                    'variant_id' => $detail->variant_id
+                ])->first();
+
+                if ($existing) {
+                    DB::table('carts')->where('id', $existing->id)->update([
+                        'quantity' => $existing->quantity + $detail->quantity,
+                        'price' => $detail->price,
+                        'updated_at' => now()
+                    ]);
+                } else {
+                    DB::table('carts')->insert([
+                        'user_id' => Auth::id(),
+                        'variant_id' => $detail->variant_id,
+                        'quantity' => $detail->quantity,
+                        'price' => $detail->price,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'message' => 'Các sản phẩm trong đơn hàng đã được thêm vào giỏ hàng'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Có lỗi xảy ra khi mua lại đơn hàng',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

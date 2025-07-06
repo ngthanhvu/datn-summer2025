@@ -5,17 +5,60 @@ export const useBrand = () => {
     const apiBaseUrl = config.public.apiBaseUrl
 
     const API = axios.create({
-        baseURL: apiBaseUrl
+        baseURL: apiBaseUrl,
+        timeout: 10000 // Thêm timeout 10 giây
     })
 
+    // Cache system
+    const cache = new Map()
+    const CACHE_DURATION = 5 * 60 * 1000 // 5 phút
+
+    const getCachedData = (key) => {
+        const cached = cache.get(key)
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+            return cached.data
+        }
+        return null
+    }
+
+    const setCachedData = (key, data) => {
+        cache.set(key, {
+            data,
+            timestamp: Date.now()
+        })
+    }
+
+    const clearCache = () => {
+        cache.clear()
+    }
+
     const getBrands = async () => {
-        const response = await API.get('/api/brands')
-        return response.data
+        try {
+            const cacheKey = 'brands'
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
+            const response = await API.get('/api/brands')
+            setCachedData(cacheKey, response.data)
+            return response.data
+        } catch (error) {
+            console.error('Error getting brands:', error)
+            return []
+        }
     }
 
     const getBrandById = async (id) => {
         try {
+            const cacheKey = `brand_${id}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
             const response = await API.get(`/api/brands/${id}`)
+            setCachedData(cacheKey, response.data)
             return response.data
         } catch (error) {
             console.error('Error getting brand:', error)
@@ -26,6 +69,8 @@ export const useBrand = () => {
     const createBrand = async (brand) => {
         try {
             const response = await API.post('/api/brands', brand)
+            // Clear cache khi có thay đổi
+            clearCache()
             return response.data
         } catch (error) {
             console.error('Error creating brand:', error)
@@ -47,6 +92,8 @@ export const useBrand = () => {
                     'Accept': 'application/json'
                 }
             })
+            // Clear cache khi có thay đổi
+            clearCache()
             return response.data
         } catch (error) {
             console.error('Error updating brand:', error.response?.data || error)
@@ -57,6 +104,8 @@ export const useBrand = () => {
     const deleteBrand = async (id) => {
         try {
             const response = await API.delete(`/api/brands/${id}`)
+            // Clear cache khi có thay đổi
+            clearCache()
             return response.data
         } catch (error) {
             console.error('Error deleting brand:', error)
@@ -69,6 +118,8 @@ export const useBrand = () => {
             const response = await API.post('/api/brands/bulk-delete', {
                 ids: Array.from(ids)
             })
+            // Clear cache khi có thay đổi
+            clearCache()
             return response.data
         } catch (error) {
             console.error('Error bulk deleting brands:', error.response?.data || error)
@@ -82,6 +133,7 @@ export const useBrand = () => {
         createBrand,
         updateBrand,
         deleteBrand,
-        bulkDeleteBrands
+        bulkDeleteBrands,
+        clearCache
     }
 }

@@ -4,7 +4,7 @@
             <ProductFilter v-model="showFilter" @filter="handleFilter" />
             <main class="tw-flex-1">
                 <div
-                    class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 tw-mb-6">
+                    class="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 tw-mb-3 tw-bg-white tw-p-3 tw-rounded-[5px]">
                     <div class="tw-flex tw-items-center tw-gap-4 tw-w-full md:tw-w-auto">
                         <button @click="showFilter = !showFilter"
                             class="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-gray-600 md:tw-hidden">
@@ -45,8 +45,10 @@
                 </div>
 
                 <!-- Products Grid -->
-                <div v-else class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
-                    <Card v-for="product in paginatedProducts" :key="product.id" :product="product" />
+                <div v-else
+                    class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4 tw-bg-white tw-p-8 tw-rounded-[5px]">
+                    <Card v-for="product in paginatedProducts" :key="product.id" :product="product"
+                        @quick-view="openQuickView" />
                 </div>
 
                 <div v-if="totalPages > 1 && !loading"
@@ -83,14 +85,18 @@
                 </div>
             </main>
         </div>
+        <!-- Quick View Modal -->
+        <QuickView :show="showQuickView" :product="quickViewProduct" @close="closeQuickView" />
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import ProductFilter from '~/components/product/ProductFilter.vue'
 import ProductSort from '~/components/product/ProductSort.vue'
 import Card from '~/components/home/Card.vue'
+import QuickView from '~/components/product-detail/Quick-view.vue'
+import { useRoute } from 'vue-router'
 
 const showFilter = ref(false)
 const products = ref([])
@@ -100,17 +106,45 @@ const { getProducts, searchProducts } = useProducts()
 const currentPage = ref(1)
 const itemsPerPage = 12
 const filters = ref({})
+const route = useRoute()
 
-onMounted(async () => {
+// Quick View State
+const showQuickView = ref(false)
+const quickViewProduct = ref(null)
+
+function openQuickView(product) {
+    quickViewProduct.value = product
+    showQuickView.value = true
+}
+function closeQuickView() {
+    showQuickView.value = false
+    quickViewProduct.value = null
+}
+
+const fetchProducts = async () => {
     loading.value = true
     try {
-        products.value = await getProducts()
+        const filtersObj = {}
+        if (route.query.category) {
+            filtersObj.category = route.query.category
+        }
+        if (route.query.brand) {
+            filtersObj.brand = route.query.brand
+        }
+        filters.value = filtersObj
+        products.value = await getProducts(filtersObj)
     } catch (error) {
         console.error('Error fetching products:', error)
     } finally {
         loading.value = false
     }
-})
+}
+
+onMounted(fetchProducts)
+watch(
+    [() => route.query.category, () => route.query.brand],
+    fetchProducts
+)
 
 const handleSort = async (sortOption) => {
     loading.value = true

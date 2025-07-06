@@ -39,7 +39,7 @@
       <p class="tw-text-gray-600 tw-mb-6">
         Bạn chưa có sản phẩm nào trong danh sách yêu thích
       </p>
-      <NuxtLink to="/product"
+      <NuxtLink to="/san-pham"
         class="tw-bg-[#81AACC] tw-text-white tw-px-6 tw-py-3 tw-rounded-md hover:tw-bg-[#6B8FA8] tw-transition-colors">
         Khám phá sản phẩm
       </NuxtLink>

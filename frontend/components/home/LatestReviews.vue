@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-mt-8">
+    <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[10px]">
         <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
             <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800">Đánh giá gần nhất</h2>
             <NuxtLink to="/reviews" class="tw-text-blue-600 tw-hover:text-blue-800 tw-font-medium tw-transition-colors">
@@ -38,7 +38,7 @@
 
             <div v-else class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-6">
                 <div v-for="review in latestReviews" :key="review.id"
-                    class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-flex tw-flex-col tw-gap-2">
+                    class="tw-bg-white tw-rounded-lg tw-p-6 tw-flex tw-flex-col tw-gap-2 tw-border tw-border-gray-100 ">
                     <ReviewCard :review="review" />
                 </div>
             </div>

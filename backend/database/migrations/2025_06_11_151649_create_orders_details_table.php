@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('variant_id')->constrained()->cascadeOnDelete();
             $table->integer('quantity');
             $table->integer('price');
-            $table->integer('original_price')->nulltable();
+            $table->integer('original_price')->nullable();
             $table->integer('total_price');
             $table->timestamps();
         });

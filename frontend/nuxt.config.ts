@@ -30,6 +30,17 @@ export default defineNuxtConfig({
     },
     optimizeDeps: {
       include: ['apexcharts']
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor': ['vue', 'vue-router'],
+            'ui': ['bootstrap', 'swiper'],
+            'charts': ['apexcharts']
+          }
+        }
+      }
     }
   },
   app: {
@@ -57,6 +68,21 @@ export default defineNuxtConfig({
   nitro: {
     experimental: {
       wasm: true
+    },
+    storage: {
+      redis: {
+        driver: 'redis',
+        /* redis connection options */
+      }
     }
+  },
+  experimental: {
+    payloadExtraction: false
+  },
+  modules: [
+    '@nuxtjs/tailwindcss'
+  ],
+  build: {
+    transpile: ['apexcharts']
   }
 })

@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('inventories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('variant_id')->constrained('variants')->onDelete('cascade');
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->integer('quantity')->default(0);
             $table->timestamps();
         });

@@ -27,6 +27,9 @@
 definePageMeta({
     layout: 'admin'
 })
+useHead({
+    title: "Quản lý đơn hàng"
+})
 
 import { ref, onMounted } from 'vue'
 import Modal from '~/components/admin/Modal.vue'

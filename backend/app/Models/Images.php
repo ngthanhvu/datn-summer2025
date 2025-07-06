@@ -12,10 +12,16 @@ class Images extends Model
         'image_path',
         'is_main',
         'product_id',
+        'variant_id'
     ];
 
     public function product()
     {
         return $this->belongsTo(Products::class, 'product_id');
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(Variants::class, 'variant_id');
     }
 }

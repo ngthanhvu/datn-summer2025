@@ -11,63 +11,260 @@
                 Quay lại
             </NuxtLink>
         </div>
-
         <div class="tw-flex tw-flex-col tw-gap-6">
-            <div class="tw-grid tw-grid-cols-2 tw-gap-6">
-                <div class="tw-space-y-4">
-                    <Form v-if="isDataLoaded" :fields="basicFields" :initial-data="formData"
-                        @update:modelValue="updateFormData" @submit="handleSubmit" />
+            <div class="tw-grid tw-grid-cols-5 tw-gap-6">
+                <div
+                    class="tw-col-span-2 tw-space-y-4 tw-p-6 tw-rounded-[10px] tw-border tw-border-gray-150 tw-bg-white">
+                    <div v-if="isDataLoaded">
+                        <!-- Tên sản phẩm -->
+                        <div class="tw-mb-4">
+                            <label class="tw-block tw-font-medium">Tên sản phẩm</label>
+                            <input v-model="formData.name" type="text"
+                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
+                                placeholder="Nhập tên sản phẩm" />
+                            <div v-if="formErrors.name" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.name }}
+                            </div>
+                        </div>
+                        <!-- Giá -->
+                        <div class="tw-mb-4">
+                            <label class="tw-block tw-font-medium">Giá bán</label>
+                            <input v-model="formData.price" type="number" min="0" step="1000"
+                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
+                                placeholder="Nhập giá sản phẩm" />
+                            <div v-if="formErrors.price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.price
+                            }}</div>
+                        </div>
+                        <!-- Giá gốc -->
+                        <div class="tw-mb-4">
+                            <label class="tw-block tw-font-medium">Giá gốc</label>
+                            <input v-model="formData.original_price" type="number" min="0" step="1000"
+                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá gốc" />
+                        </div>
+                        <!-- Giá khuyến mãi -->
+                        <div class="tw-mb-4">
+                            <label class="tw-block tw-font-medium">Giá khuyến mãi</label>
+                            <input v-model="formData.discount_price" type="number" min="0" step="1000"
+                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
+                                placeholder="Nhập giá khuyến mãi" />
+                            <div v-if="formErrors.discount_price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                                formErrors.discount_price }}</div>
+                        </div>
+                        <!-- Danh mục -->
+                        <div class="tw-mb-4">
+                            <label class="tw-block tw-font-medium">Danh mục</label>
+                            <select v-model="formData.category" class="tw-input tw-w-full tw-border tw-rounded tw-p-2">
+                                <option value="">Chọn danh mục</option>
+                                <option v-for="opt in categoryOptions" :key="opt.value" :value="opt.value">{{ opt.label
+                                    }}</option>
+                            </select>
+                            <div v-if="formErrors.category" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                                formErrors.category }}</div>
+                        </div>
+                        <!-- Thương hiệu -->
+                        <div class="tw-mb-4">
+                            <label class="tw-block tw-font-medium">Thương hiệu</label>
+                            <select v-model="formData.brand" class="tw-input tw-w-full tw-border tw-rounded tw-p-2">
+                                <option value="">Chọn thương hiệu</option>
+                                <option v-for="opt in brandOptions" :key="opt.value" :value="opt.value">{{ opt.label }}
+                                </option>
+                            </select>
+                            <div v-if="formErrors.brand" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.brand
+                            }}</div>
+                        </div>
+                        <!-- Mô tả -->
+                        <div class="tw-mb-4">
+                            <label class="tw-block tw-font-medium">Mô tả</label>
+                            <QuillEditor v-model:content="formData.description" contentType="html"
+                                class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mô tả sản phẩm"
+                                style="height: 140px;" />
+                            <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                                formErrors.description }}</div>
+                        </div>
+                        <!-- Trạng thái -->
+                        <div class="toggle">
+                            <input type="checkbox" id="status" v-model="formData.status" />
+                            <label for="status"></label>
+                        </div>
+                        <span class="tw-ml-2">{{ formData.status ? 'Hiển thị' : 'Ẩn' }}</span>
+                    </div>
                     <div v-else class="tw-text-center tw-text-gray-500">Đang tải danh mục và thương hiệu...</div>
                 </div>
-                <div class="tw-space-y-4">
-                    <Form :fields="imageFields" :initial-data="formData" @update:modelValue="updateFormData" />
-                </div>
-            </div>
-
-            <div class="tw-w-full">
-                <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
-                    <h2 class="tw-text-xl tw-font-semibold">Biến thể sản phẩm</h2>
-                    <div class="tw-flex tw-gap-2">
-                        <button v-if="!showVariants" @click="showVariantsSection"
-                            class="tw-bg-gray-100 tw-text-gray-600 tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-gray-200">
-                            <i class="fas fa-plus"></i>
-                            Thêm biến thể
-                        </button>
-                        <button v-if="showVariants" @click="addVariant"
-                            class="tw-bg-gray-100 tw-text-gray-600 tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-gray-200">
-                            <i class="fas fa-plus"></i>
-                            Thêm biến thể
-                        </button>
+                <div class="tw-col-span-3 tw-space-y-4">
+                    <!-- Ảnh chính -->
+                    <div class="tw-mb-4 tw-border tw-border-gray-150 tw-p-5 tw-rounded-[10px] tw-bg-white">
+                        <label class="tw-block tw-font-medium">Ảnh chính</label>
+                        <div>
+                            <label
+                                class="tw-flex tw-flex-col tw-items-center tw-justify-center tw-w-full tw-h-40 tw-border-2 tw-border-gray-300 tw-border-dashed tw-rounded-lg tw-cursor-pointer hover:tw-bg-gray-50">
+                                <div class="tw-flex tw-flex-col tw-items-center tw-justify-center">
+                                    <i class="fas fa-cloud-upload-alt tw-text-3xl tw-text-gray-400 tw-mb-2"></i>
+                                    <span class="tw-text-gray-500 tw-font-semibold">Click để tải ảnh lên</span>
+                                    <span class="tw-text-xs tw-text-gray-400">PNG, JPG, GIF (tối đa 2MB)</span>
+                                </div>
+                                <input type="file" accept="image/*" class="tw-hidden" @change="onMainImageChange" />
+                            </label>
+                        </div>
+                        <div v-if="formErrors.mainImage" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                            formErrors.mainImage }}</div>
+                        <div v-if="formData.mainImagePreview" class="tw-relative tw-w-48 tw-h-48 tw-mt-4">
+                            <img :src="formData.mainImagePreview"
+                                class="tw-w-full tw-h-full tw-object-cover tw-rounded-lg tw-shadow" />
+                            <button @click="removeMainImage"
+                                class="tw-absolute tw-top-2 tw-right-2 tw-p-2 tw-rounded-full tw-bg-white tw-shadow hover:tw-bg-gray-100"
+                                title="Xóa ảnh">
+                                <i class="fas fa-times tw-text-red-500"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <div v-if="showVariants" class="tw-w-full">
-                    <div class="tw-flex tw-gap-4 tw-overflow-x-auto tw-pb-4 tw-w-full">
-                        <div v-for="(variant, index) in formData.variants" :key="index"
-                            class="tw-bg-gray-50 tw-p-4 tw-rounded-lg tw-flex-1 tw-min-w-[300px]">
-                            <div class="tw-flex tw-justify-between tw-mb-2">
-                                <h3 class="tw-font-medium">Biến thể {{ index + 1 }}</h3>
-                                <button @click="removeVariant(index)" class="tw-text-red-500 hover:tw-text-red-700">
-                                    <i class="fas fa-trash"></i>
+                    <!-- Ảnh phụ -->
+                    <div class="tw-mb-4 tw-border tw-border-gray-150 tw-p-5 tw-rounded-[10px] tw-bg-white">
+                        <label class="tw-block tw-font-medium">Ảnh phụ</label>
+                        <div>
+                            <label
+                                class="tw-flex tw-flex-col tw-items-center tw-justify-center tw-w-full tw-h-40 tw-border-2 tw-border-gray-300 tw-border-dashed tw-rounded-lg tw-cursor-pointer hover:tw-bg-gray-50">
+                                <div class="tw-flex tw-flex-col tw-items-center tw-justify-center">
+                                    <i class="fas fa-cloud-upload-alt tw-text-3xl tw-text-gray-400 tw-mb-2"></i>
+                                    <span class="tw-text-gray-500 tw-font-semibold">Click để tải ảnh lên</span>
+                                    <span class="tw-text-xs tw-text-gray-400">PNG, JPG, GIF (tối đa 2MB)</span>
+                                </div>
+                                <input type="file" accept="image/*" multiple class="tw-hidden"
+                                    @change="onAdditionalImagesChange" />
+                            </label>
+                        </div>
+                        <div v-if="formErrors.additionalImages" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                            formErrors.additionalImages }}</div>
+                        <div v-if="formData.additionalImagePreviews.length > 0"
+                            class="tw-grid tw-grid-cols-4 tw-gap-4 tw-mt-4">
+                            <div v-for="(img, idx) in formData.additionalImagePreviews" :key="idx"
+                                class="tw-relative tw-group">
+                                <img :src="img" class="tw-w-full tw-h-32 tw-object-cover tw-rounded-lg tw-shadow" />
+                                <button @click="removeAdditionalImage(idx)"
+                                    class="tw-absolute tw-top-2 tw-right-2 tw-p-2 tw-rounded-full tw-bg-white tw-shadow tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity"
+                                    title="Xóa ảnh">
+                                    <i class="fas fa-times tw-text-red-500"></i>
                                 </button>
                             </div>
-                            <Form :fields="variantFields" :initial-data="variant"
-                                @update:modelValue="(val) => updateVariant(val, index)" />
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
-            <NuxtLink to="/admin/products"
-                class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
-                Hủy
-            </NuxtLink>
-            <button @click="handleSubmit"
-                class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
-                Lưu thay đổi
-            </button>
+            <!-- Biến thể sản phẩm -->
+            <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
+                <h2 class="tw-text-xl tw-font-semibold">Biến thể sản phẩm</h2>
+                <div class="tw-flex tw-gap-2">
+                    <button v-if="!showVariants" @click="showVariantsSection"
+                        class="tw-bg-gray-100 tw-text-gray-600 tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-gray-200">
+                        <i class="fas fa-plus"></i>
+                        Thêm biến thể
+                    </button>
+                    <button v-if="showVariants" @click="addVariant"
+                        class="tw-bg-white tw-border tw-border-gray-150 tw-text-gray-600 tw-rounded tw-px-4 tw-py-2 tw-flex tw-items-center tw-gap-2 hover:tw-bg-gray-200">
+                        <i class="fas fa-plus"></i>
+                        Thêm biến thể
+                    </button>
+                </div>
+            </div>
+            <div v-if="showVariants" class="tw-w-full">
+                <div class="tw-space-y-4">
+                    <div v-for="(variant, vIdx) in formData.variants" :key="vIdx"
+                        class="tw-bg-white tw-border tw-border-gray-150 tw-p-4 tw-rounded-lg">
+                        <div class="tw-flex tw-justify-between tw-mb-4">
+                            <h3 class="tw-font-medium">Biến thể {{ vIdx + 1 }}</h3>
+                            <button @click="removeVariantColor(vIdx)" class="tw-text-red-500 hover:tw-text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <!-- Header row for labels -->
+                        <div class="tw-grid tw-grid-cols-5 tw-gap-4 tw-mb-2">
+                            <div class="tw-font-medium">Màu sắc</div>
+                            <div class="tw-font-medium">Kích thước</div>
+                            <div class="tw-font-medium">Giá</div>
+                            <div class="tw-font-medium">SKU</div>
+                            <div class="tw-font-medium">Ảnh phụ</div>
+                        </div>
+                        <!-- Variant rows -->
+                        <div v-for="(sizeObj, sIdx) in variant.sizes" :key="sIdx"
+                            class="tw-grid tw-grid-cols-5 tw-gap-2 tw-items-center tw-mb-2 tw-p-2 tw-bg-white tw-rounded tw-border-b tw-border-gray-100 last:tw-border-b-0">
+                            <!-- Màu sắc -->
+                            <div>
+                                <input v-model="variant.colorName" type="text"
+                                    class="tw-input tw-w-40 tw-border tw-rounded tw-p-2" placeholder="Nhập tên màu" />
+                                <div v-if="formErrors.variants[vIdx]?.color" class="tw-text-red-500 tw-text-sm tw-mt-1">
+                                    {{ formErrors.variants[vIdx].color }}
+                                </div>
+                            </div>
+                            <!-- Kích thước -->
+                            <div>
+                                <input v-model="sizeObj.size" type="text"
+                                    class="tw-input tw-w-40 tw-border tw-rounded tw-p-2"
+                                    placeholder="Nhập kích thước" />
+                                <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.size"
+                                    class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                                        formErrors.variants[vIdx].sizes[sIdx].size }}</div>
+                            </div>
+                            <!-- Giá -->
+                            <div>
+                                <input v-model="sizeObj.price" type="number" min="0" step="1000"
+                                    class="tw-input tw-w-40 tw-border tw-rounded tw-p-2" placeholder="Nhập giá" />
+                                <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.price"
+                                    class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                                        formErrors.variants[vIdx].sizes[sIdx].price }}</div>
+                            </div>
+                            <!-- SKU -->
+                            <div class="tw-flex tw-gap-2 tw-items-center tw-w-40">
+                                <input v-model="sizeObj.sku" type="text"
+                                    class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mã SKU" />
+                                <button v-if="variant.sizes.length > 1" @click="removeSizeFromVariant(vIdx, sIdx)"
+                                    class="tw-text-red-500 hover:tw-text-red-700 tw-p-2">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.sku"
+                                    class="tw-text-red-500 tw-text-sm tw-mt-1">{{
+                                        formErrors.variants[vIdx].sizes[sIdx].sku }}</div>
+                            </div>
+                            <!-- Ảnh phụ -->
+                            <div v-if="sIdx === 0" class="tw-flex tw-items-center tw-gap-3" style="min-width:110px;">
+                                <input type="file" multiple :id="`variant-upload-${vIdx}`"
+                                    @change="onVariantImagesChange($event, vIdx)" class="tw-hidden" />
+                                <label :for="`variant-upload-${vIdx}`"
+                                    class="tw-inline-flex tw-items-center tw-bg-gray-100 hover:tw-bg-blue-500 tw-text-blue-600 hover:tw-text-white tw-font-medium tw-px-3 tw-py-1 tw-rounded tw-cursor-pointer tw-gap-1 tw-text-sm tw-transition"
+                                    style="user-select: none; min-width: 90px; justify-content: center;">
+                                    <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
+                                    </svg>
+                                    <span> Tải ảnh </span>
+                                </label>
+                                <div class="tw-flex tw-gap-1"
+                                    v-if="variant.imagesPreview && variant.imagesPreview.length">
+                                    <img v-for="(img, i) in variant.imagesPreview" :key="i" :src="img"
+                                        class="tw-w-10 tw-border-gray-100 tw-border tw-h-10 tw-object-cover tw-rounded" />
+                                </div>
+                            </div>
+                            <div v-else style="min-width:110px;"></div>
+                        </div>
+                        <!-- Add size button -->
+                        <div class="tw-mt-2">
+                            <button @click="addSizeToVariant(vIdx)"
+                                class="tw-bg-blue-100 tw-text-blue-600 tw-rounded tw-px-3 tw-py-1 tw-text-sm hover:tw-bg-blue-200">
+                                <i class="fas fa-plus tw-mr-1"></i>
+                                Thêm kích thước
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tw-flex tw-justify-end tw-gap-4 tw-mt-6">
+                <NuxtLink to="/admin/products"
+                    class="tw-px-4 tw-py-2 tw-border tw-rounded tw-text-gray-600 hover:tw-bg-gray-50">
+                    Hủy
+                </NuxtLink>
+                <button @click="handleSubmit"
+                    class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 hover:tw-bg-primary-dark">
+                    Lưu thay đổi
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -83,7 +280,8 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
-import Form from '~/components/admin/Form.vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { useProducts } from '~/composables/useProducts'
 import { useCategory } from '~/composables/useCategory'
 import { useBrand } from '~/composables/useBrand'
@@ -105,19 +303,10 @@ const basicFields = ref([
     },
     {
         name: 'price',
-        label: 'Giá',
+        label: 'Giá bán',
         type: 'number',
         placeholder: 'Nhập giá sản phẩm',
         required: true,
-        min: 0,
-        step: 1000
-    },
-    {
-        name: 'original_price',
-        label: 'Giá gốc',
-        type: 'number',
-        placeholder: 'Nhập giá gốc',
-        required: false,
         min: 0,
         step: 1000
     },
@@ -129,14 +318,6 @@ const basicFields = ref([
         required: false,
         min: 0,
         step: 1000
-    },
-    {
-        name: 'quantity',
-        label: 'Số lượng',
-        type: 'number',
-        placeholder: 'Nhập số lượng',
-        required: true,
-        min: 0
     },
     {
         name: 'category',
@@ -193,14 +374,6 @@ const variantFields = [
         step: 1000
     },
     {
-        name: 'quantity',
-        label: 'Số lượng',
-        type: 'number',
-        placeholder: 'Nhập số lượng',
-        required: true,
-        min: 0
-    },
-    {
         name: 'sku',
         label: 'SKU',
         type: 'text',
@@ -228,9 +401,7 @@ const imageFields = [
 const formData = ref({
     name: '',
     price: 0,
-    original_price: 0,
     discount_price: 0,
-    quantity: 0,
     category: '',
     brand: '',
     description: '',
@@ -239,6 +410,18 @@ const formData = ref({
     mainImagePreview: null,
     additionalImages: [],
     additionalImagePreviews: [],
+    variants: []
+})
+
+const formErrors = ref({
+    name: '',
+    price: '',
+    discount_price: '',
+    category: '',
+    brand: '',
+    description: '',
+    mainImage: '',
+    additionalImages: '',
     variants: []
 })
 
@@ -287,28 +470,29 @@ onMounted(async () => {
             const additionalImages = product.images.filter(img => !img.is_main)
 
             // Initialize formData with product data
-            formData.value = {
-                name: product.name || '',
-                price: product.price || 0,
-                original_price: product.original_price || 0,
-                discount_price: product.discount_price || 0,
-                quantity: product.quantity || 0,
-                category: product.categories_id ? String(product.categories_id) : '',
-                brand: product.brand_id ? String(product.brand_id) : '',
-                description: product.description || '',
-                status: !!product.is_active,
-                mainImage: null,
-                mainImagePreview: mainImage ? `${apiBaseUrl}/storage/${mainImage.image_path}` : null,
-                additionalImages: [],
-                additionalImagePreviews: additionalImages.map(img => `${apiBaseUrl}/storage/${img.image_path}`),
-                variants: product.variants ? product.variants.map(variant => ({
-                    color: variant.color || '',
+            formData.value.name = product.name || ''
+            formData.value.price = product.price || 0
+            formData.value.original_price = product.original_price || 0
+            formData.value.discount_price = product.discount_price || 0
+            formData.value.quantity = product.quantity || 0
+            formData.value.category = product.categories_id ? String(product.categories_id) : ''
+            formData.value.brand = product.brand_id ? String(product.brand_id) : ''
+            formData.value.description = product.description || ''
+            formData.value.status = !!product.is_active
+            formData.value.mainImage = null
+            formData.value.mainImagePreview = mainImage ? `${apiBaseUrl}/storage/${mainImage.image_path}` : null
+            formData.value.additionalImages = []
+            formData.value.additionalImagePreviews = additionalImages.map(img => `${apiBaseUrl}/storage/${img.image_path}`)
+            formData.value.variants = product.variants ? product.variants.map(variant => ({
+                colorName: variant.color || '',
+                sizes: [{
                     size: variant.size || '',
                     price: variant.price || 0,
-                    quantity: variant.quantity || 0,
                     sku: variant.sku || ''
-                })) : []
-            }
+                }],
+                images: variant.images ? variant.images.map(img => img.image_path) : [],
+                imagesPreview: variant.images ? variant.images.map(img => `${apiBaseUrl}/storage/${img.image_path}`) : []
+            })) : []
             console.log('Dữ liệu form sau khi xử lý:', formData.value)
             if (product.variants && product.variants.length > 0) {
                 showVariants.value = true
@@ -336,13 +520,27 @@ const updateVariant = (val, index) => {
     formData.value = { ...formData.value, variants: updatedVariants }
 }
 
+const onVariantImagesChange = (e, vIdx) => {
+    const files = Array.from(e.target.files)
+    if (!formData.value.variants[vIdx].images) formData.value.variants[vIdx].images = []
+    if (!formData.value.variants[vIdx].imagesPreview) formData.value.variants[vIdx].imagesPreview = []
+    formData.value.variants[vIdx].images = files
+    formData.value.variants[vIdx].imagesPreview = []
+    files.forEach(file => {
+        const reader = new FileReader()
+        reader.onload = (ev) => {
+            formData.value.variants[vIdx].imagesPreview.push(ev.target.result)
+        }
+        reader.readAsDataURL(file)
+    })
+}
+
 const handleSubmit = async () => {
     try {
         if (!formData.value.mainImage && !formData.value.mainImagePreview) {
             notyf.error('Vui lòng chọn ảnh chính cho sản phẩm')
             return
         }
-
         const productData = new FormData()
         productData.append('name', formData.value.name || '')
         productData.append('description', formData.value.description || '')
@@ -353,17 +551,14 @@ const handleSubmit = async () => {
         productData.append('is_active', formData.value.status ? '1' : '0')
         productData.append('categories_id', String(formData.value.category || ''))
         productData.append('brand_id', String(formData.value.brand || ''))
-
         if (formData.value.mainImage instanceof File) {
             productData.append('is_main', formData.value.mainImage)
         }
-
         formData.value.additionalImages.forEach((img) => {
             if (img instanceof File) {
                 productData.append('image_path[]', img)
             }
         })
-
         if (formData.value.variants.length > 0) {
             formData.value.variants.forEach((variant, idx) => {
                 productData.append(`variants[${idx}][color]`, variant.color || '')
@@ -371,9 +566,13 @@ const handleSubmit = async () => {
                 productData.append(`variants[${idx}][price]`, String(variant.price || 0))
                 productData.append(`variants[${idx}][quantity]`, String(variant.quantity || 0))
                 productData.append(`variants[${idx}][sku]`, variant.sku || '')
+                if (variant.images && variant.images.length > 0) {
+                    variant.images.forEach(imgFile => {
+                        productData.append(`variants[${idx}][images][]`, imgFile)
+                    })
+                }
             })
         }
-
         await updateProduct(route.params.id, productData)
         await navigateTo('/admin/products')
     } catch (error) {
@@ -393,11 +592,13 @@ const addVariant = () => {
         size: '',
         price: 0,
         quantity: 0,
-        sku: ''
+        sku: '',
+        images: [],
+        imagesPreview: []
     })
 }
 
-const removeVariant = (index) => {
+const removeVariantColor = (index) => {
     formData.value.variants.splice(index, 1)
     if (formData.value.variants.length === 0) {
         showVariants.value = false

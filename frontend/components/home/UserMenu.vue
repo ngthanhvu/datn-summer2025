@@ -12,16 +12,16 @@
                     <i class="bi bi-gear-wide-connected tw-mr-3"></i>
                     <span>Trang quản trị</span>
                 </NuxtLink>
-                <NuxtLink to="/profile"
+                <NuxtLink to="/trang-ca-nhan"
                     class="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-gray-700 hover:tw-bg-gray-50 hover:tw-text-[#81AACC]">
                     <i class="bi bi-person-circle tw-mr-3"></i>
                     <span>Trang cá nhân</span>
                 </NuxtLink>
-                <a href="/history"
+                <NuxtLink to="/kho-voucher"
                     class="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-gray-700 hover:tw-bg-gray-50 hover:tw-text-[#81AACC]">
-                    <i class="bi bi-clock-history tw-mr-3"></i>
-                    <span>Lịch sử đơn hàng</span>
-                </a>
+                    <i class="fa-solid fa-ticket tw-mr-3"></i>
+                    <span>Kho Voucher</span>
+                </NuxtLink>
                 <button @click="handleLogout"
                     class="tw-flex tw-w-full tw-items-center tw-px-4 tw-py-2 tw-text-gray-700 hover:tw-bg-gray-50 hover:tw-text-[#81AACC]">
                     <i class="bi bi-box-arrow-in-right tw-mr-3"></i>

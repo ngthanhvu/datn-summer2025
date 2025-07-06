@@ -12,17 +12,17 @@
             <a href="/search" class="tw-text-gray-700" @click="close">
                 <i class="bi bi-search tw-text-xl"></i>
             </a>
-            <NuxtLink to="/wishlist" class="tw-text-gray-700 tw-relative" @click="close">
+            <NuxtLink to="/san-pham-yeu-thich" class="tw-text-gray-700 tw-relative" @click="close">
                 <i class="bi bi-heart tw-text-xl"></i>
                 <span
                     class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">2</span>
             </NuxtLink>
-            <NuxtLink to="/cart" class="tw-text-gray-700 tw-relative" @click="close">
+            <NuxtLink to="/gio-hang" class="tw-text-gray-700 tw-relative" @click="close">
                 <i class="bi bi-cart tw-text-xl"></i>
                 <span
                     class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">2</span>
             </NuxtLink>
-            <NuxtLink to="/profile" class="tw-text-gray-700" @click="close">
+            <NuxtLink to="/trang-ca-nhan" class="tw-text-gray-700" @click="close">
                 <i class="bi bi-person tw-text-xl"></i>
             </NuxtLink>
         </div>
@@ -33,23 +33,24 @@
                 </NuxtLink>
             </li>
             <li class="tw-py-3 tw-border-b">
-                <NuxtLink to="/product" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">
+                <NuxtLink to="/san-pham" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">
                     Sản phẩm</NuxtLink>
             </li>
             <li class="tw-py-3 tw-border-b">
-                <NuxtLink to="/about" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">Giới
+                <NuxtLink to="/gioi-thieu" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">Giới
                     thiệu</NuxtLink>
             </li>
             <li class="tw-py-3 tw-border-b">
-                <NuxtLink to="/blogs" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">Tin
+                <NuxtLink to="/tin-tuc" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">Tin
                     tức</NuxtLink>
             </li>
             <li class="tw-py-3 tw-border-b">
-                <NuxtLink to="/contact" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">
+                <NuxtLink to="/lien-he" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">
                     Liên hệ</NuxtLink>
             </li>
             <li class="tw-py-3 tw-border-b">
-                <NuxtLink to="/order-tracking" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block" @click="close">
+                <NuxtLink to="/tra-cuu-don-hang" class="tw-text-gray-700 tw-font-medium tw-px-4 tw-block"
+                    @click="close">
                     Kiểm tra đơn hàng</NuxtLink>
             </li>
         </ul>

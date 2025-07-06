@@ -15,7 +15,7 @@
 
         <!-- Products Dropdown -->
         <div class="nav-item dropdown-toggle" @click="showProductsMenu = !showProductsMenu">
-          <i class="fas fa-box"></i>
+          <i class="fa-solid fa-cube"></i>
           <span>Sản phẩm</span>
         </div>
         <div v-show="showProductsMenu" class="submenu">
@@ -44,7 +44,8 @@
         </div>
         <div v-show="showInventoryMenu" class="submenu">
           <NuxtLink to="/admin/inventory" class="nav-sub-item">Tổng quan kho</NuxtLink>
-          <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập kho</NuxtLink>
+          <NuxtLink to="/admin/inventory/import" class="nav-sub-item">Nhập hàng</NuxtLink>
+          <NuxtLink to="/admin/inventory/history" class="nav-sub-item">Hoá đơn</NuxtLink>
         </div>
       </div>
 
@@ -102,14 +103,14 @@ onMounted(async () => {
   try {
     const res = await getUnreadCount()
     unreadMessages.value = res.unread_count || 0
-  } catch {}
+  } catch { }
 
   // Lấy số đánh giá chưa duyệt
   try {
     const reviews = await getAllReviews(1, 100)
     // Nếu API trả về {data: [...]}, còn không thì sửa lại cho đúng
     unapprovedReviews.value = (reviews.data || reviews).filter(r => !r.is_approved).length
-  } catch {}
+  } catch { }
 })
 
 const handleLogout = () => {

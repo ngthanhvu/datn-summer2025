@@ -15,6 +15,7 @@ class Coupons extends Model
         'name',                  // Tên giảm giá
         'code',                  // Mã giảm giá
         'type',                  // Loại giảm giá (percent/fixed)
+        'description',           // Mô tả chương trình khuyến mãi
         'value',                 // Giá trị giảm
         'min_order_value',       // Giá trị đơn hàng tối thiểu
         'max_discount_value',    // Giảm giá tối đa
@@ -41,5 +42,11 @@ class Coupons extends Model
         return $this->is_active &&
             $now->isBefore($this->end_date) &&
             ($this->usage_limit === null || $this->used_count < $this->usage_limit);
+    }
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'coupon_user', 'coupon_id', 'user_id')
+            ->withPivot('claimed_at', 'used_at', 'status')
+            ->withTimestamps();
     }
 }

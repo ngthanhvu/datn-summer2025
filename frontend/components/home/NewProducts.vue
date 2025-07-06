@@ -1,6 +1,6 @@
 <template>
-    <div class="tw-mt-8">
-        <div class="tw-flex tw-justify-between tw-items-center tw-mb-6">
+    <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px]">
+        <div class="tw-flex tw-justify-between tw-items-center tw-mb-3">
             <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800">Sản phẩm mới</h2>
             <NuxtLink to="/products/new"
                 class="tw-text-blue-600 tw-hover:text-blue-800 tw-font-medium tw-transition-colors">
@@ -23,34 +23,63 @@
             </div>
         </div>
 
+        <!-- Error State -->
+        <div v-else-if="error" class="tw-text-center tw-py-8">
+            <div class="tw-text-red-500 tw-mb-4">{{ error }}</div>
+            <button @click="fetchNewProducts"
+                class="tw-px-4 tw-py-2 tw-bg-blue-600 tw-text-white tw-rounded hover:tw-bg-blue-700">
+                Thử lại
+            </button>
+        </div>
+
         <!-- Products Grid -->
         <div v-else class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
-            <Card v-for="product in newProducts.slice(0, 5)" :key="product.id" :product="product" />
+            <Card v-for="product in newProducts.slice(0, 5)" :key="product.id" :product="product"
+                @quick-view="openQuickView" />
         </div>
 
         <!-- Empty State -->
-        <div v-if="!loading && newProducts.length === 0" class="tw-text-center tw-py-8">
+        <div v-if="!loading && !error && newProducts.length === 0" class="tw-text-center tw-py-8">
             <p class="tw-text-gray-500">Chưa có sản phẩm mới</p>
         </div>
+        <!-- Quick View Modal -->
+        <QuickView :show="showQuickView" :product="quickViewProduct" @close="closeQuickView" />
     </div>
 </template>
 
 <script setup>
 import { useHome } from '../../composables/useHome'
 import Card from './Card.vue'
+import QuickView from '~/components/product-detail/Quick-view.vue'
 
 const { getNewProducts } = useHome()
 
 const newProducts = ref([])
 const loading = ref(true)
+const error = ref(null)
+
+// Quick View State
+const showQuickView = ref(false)
+const quickViewProduct = ref(null)
+
+function openQuickView(product) {
+    quickViewProduct.value = product
+    showQuickView.value = true
+}
+function closeQuickView() {
+    showQuickView.value = false
+    quickViewProduct.value = null
+}
 
 const fetchNewProducts = async () => {
     try {
         loading.value = true
+        error.value = null
         const products = await getNewProducts(10)
         newProducts.value = products
-    } catch (error) {
-        console.error('Error fetching new products:', error)
+    } catch (err) {
+        console.error('Error fetching new products:', err)
+        error.value = 'Không thể tải sản phẩm mới. Vui lòng thử lại.'
     } finally {
         loading.value = false
     }
