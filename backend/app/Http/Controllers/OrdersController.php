@@ -44,7 +44,8 @@ class OrdersController extends Controller
                 'note',
                 'created_at',
                 'updated_at',
-                'tracking_code'
+                'tracking_code',
+                'cancel_reason'
             ]);
         $orders = $query->orderBy('created_at', 'desc')->paginate(10);
         $orders->getCollection()->transform(function ($order) {
@@ -87,7 +88,8 @@ class OrdersController extends Controller
                 'note',
                 'created_at',
                 'updated_at',
-                'tracking_code'
+                'tracking_code',
+                'cancel_reason'
             ])
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
@@ -284,6 +286,10 @@ class OrdersController extends Controller
                 ], 403);
             }
 
+            $request->validate([
+                'cancel_reason' => 'required|string|max:255'
+            ]);
+
             if ($order->status === 'cancelled') {
                 return response()->json([
                     'message' => 'Đơn hàng đã bị hủy trước đó'
@@ -317,6 +323,7 @@ class OrdersController extends Controller
             }
 
             $order->status = 'cancelled';
+            $order->cancel_reason = $request->cancel_reason; // Lưu lý do hủy
             $order->save();
 
             return response()->json([
@@ -342,6 +349,9 @@ class OrdersController extends Controller
         $order->status = $request->status;
         if ($request->has('payment_status')) {
             $order->payment_status = $request->payment_status;
+        }
+        if ($order->status !== 'cancelled' && !empty($order->cancel_reason)) {
+            $order->cancel_reason = null;
         }
         $order->save();
 

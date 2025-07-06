@@ -21,6 +21,7 @@ class Orders extends Model
         'coupon_id',
         'note',
         'tracking_code',
+        'cancel_reason',
     ];
 
     public function user()
@@ -42,4 +43,5 @@ class Orders extends Model
     {
         return $this->hasMany(Orders_detail::class, 'order_id');
     }
+
 }

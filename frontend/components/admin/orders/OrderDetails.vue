@@ -94,6 +94,24 @@
                     </div>
                 </div>
 
+                <!-- Hiển thị lý do hủy nếu đơn hàng đã bị hủy -->
+                <div
+                    v-if="currentOrder.status === 'cancelled' && currentOrder.cancel_reason"
+                    class="tw-mt-4 tw-p-4 tw-bg-red-50 tw-rounded-lg tw-border-l-4 tw-border-red-400"
+                >
+                    <div class="tw-flex tw-items-center">
+                        <div class="tw-w-8 tw-h-8 tw-rounded-full tw-bg-red-100 tw-flex tw-items-center tw-justify-center tw-mr-2 tw-mt-0.5">
+                            <svg class="tw-w-5 tw-h-5 tw-text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="tw-font-medium tw-text-red-600 tw-text-sm md:tw-text-base">Lý do hủy đơn hàng: </span>
+                            <span class="tw-text-red-600 tw-text-sm md:tw-text-base">{{ currentOrder.cancel_reason }}</span>
+                        </div>
+                    </div>  
+                </div>
+
                 <!-- Thông tin khách hàng và thanh toán -->
                 <div class="tw-grid tw-grid-cols-2 tw-gap-6">
                     <div class="tw-bg-gray-50 tw-p-4 tw-rounded-lg">

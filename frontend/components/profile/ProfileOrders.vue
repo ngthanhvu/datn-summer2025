@@ -190,7 +190,7 @@
                                 ]">
                                     <svg class="tw-w-6 tw-h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4m-6 4h.01M11 20h.01" />
                                     </svg>
                                 </div>
                                 <span class="tw-text-sm tw-mt-2">Giao hàng</span>
@@ -326,8 +326,25 @@
                                 <span>{{ formatPrice(selectedOrder.final_price) }}đ</span>
                             </div>
                         </div>
+
+                        <!-- Hiển thị lý do hủy nếu đơn hàng đã bị hủy -->
+                        <div v-if="selectedOrder.status === 'cancelled' && selectedOrder.cancel_reason" class="tw-mt-4 tw-p-4 tw-bg-red-50 tw-rounded-lg tw-border-l-4 tw-border-red-400">
+                            <div class="tw-flex tw-items-center">
+                                <div class="tw-w-8 tw-h-8 tw-rounded-full tw-bg-red-100 tw-flex tw-items-center tw-justify-center tw-mr-2 tw-mt-0.5">
+                                  <svg class="tw-w-5 tw-h-5 tw-text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p>
+                                    <span class="tw-font-medium tw-text-red-600 tw-text-sm md:tw-text-base">Lý do hủy đơn hàng: </span>
+                                    <span class="tw-text-red-600 tw-text-sm md:tw-text-base">{{ selectedOrder.cancel_reason }}</span>
+                                  </p>
+                                </div>
+                            </div>
+                        </div>
                         <div class="tw-mt-4 tw-text-right tw-space-x-2">
-                            <button v-if="canCancelOrder(selectedOrder)" @click="handleCancelOrder"
+                            <button v-if="canCancelOrder(selectedOrder)" @click="showCancelReasonModal = true"
                                 class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
                                 Hủy đơn hàng
                             </button>
@@ -341,6 +358,38 @@
                         </div>
 
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showCancelReasonModal" class="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-50 tw-flex tw-items-center tw-justify-center tw-z-50">
+            <div class="tw-bg-white tw-rounded-lg tw-p-6 tw-w-full tw-max-w-md tw-shadow-lg">
+                <h3 class="tw-text-lg tw-font-bold tw-mb-4">Lý Do Hủy</h3>
+                <div class="tw-mb-4 tw-text-sm tw-bg-yellow-50 tw-p-3 tw-rounded tw-text-yellow-800">
+                    Bạn có thể cập nhật thông tin nhận hàng một lần trước khi hủy. Nếu xác nhận hủy, toàn bộ đơn hàng sẽ bị hủy. Vui lòng chọn lý do hủy phù hợp nhé!
+                </div>
+                <div class="tw-space-y-2 tw-mb-4">
+                    <div v-for="reason in cancelReasons" :key="reason.value" class="tw-flex tw-items-center">
+                        <input
+                            type="radio"
+                            :id="'cancel-reason-' + reason.value"
+                            v-model="cancelReason"
+                            :value="reason.value"
+                            class="tw-mr-2"
+                        />
+                        <label :for="'cancel-reason-' + reason.value" class="tw-cursor-pointer">{{ reason.label }}</label>
+                    </div>
+                    <input
+                        v-if="cancelReason === 'other'"
+                        v-model="cancelReasonOther"
+                        type="text"
+                        class="tw-mt-2 tw-w-full tw-p-2 tw-border tw-rounded"
+                        placeholder="Vui lòng ghi rõ lý do..."
+                    />
+                </div>
+                <div class="tw-flex tw-justify-end tw-gap-2">
+                    <button @click="showCancelReasonModal = false" class="tw-bg-gray-200 tw-px-4 tw-py-2 tw-rounded">Không phải bây giờ</button>
+                    <button @click="confirmCancelOrder" class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">Hủy đơn hàng</button>
                 </div>
             </div>
         </div>
@@ -367,6 +416,9 @@ const showModal = ref(false)
 const selectedOrder = ref(null)
 const selectedStatus = ref('')
 const selectedDate = ref('')
+const showCancelReasonModal = ref(false)
+const cancelReason = ref('')
+const cancelReasonOther = ref('')
 
 const columns = [
     { key: 'id', label: 'Mã đơn hàng' },
@@ -390,6 +442,17 @@ const paymentStatuses = [
     { value: 'failed', label: 'Thanh toán thất bại' },
     { value: 'canceled', label: 'Đã hủy' },
     { value: 'refunded', label: 'Đã hoàn tiền' }
+]
+
+const cancelReasons = [
+    { value: 'change_address', label: 'Tôi muốn thay đổi địa chỉ hoặc số điện thoại nhận hàng.' },
+    { value: 'change_coupon', label: 'Tôi muốn áp dụng hoặc thay đổi mã giảm giá.' },
+    { value: 'change_product', label: 'Tôi muốn thay đổi sản phẩm (kích thước, màu sắc, số lượng...).' },
+    { value: 'payment_issue', label: 'Tôi gặp khó khăn khi thanh toán.' },
+    { value: 'found_better', label: 'Tôi tìm được nơi mua khác tốt hơn.' },
+    { value: 'no_need', label: 'Tôi không còn nhu cầu mua sản phẩm này nữa.' },
+    { value: 'ordered_by_mistake', label: 'Tôi đặt nhầm đơn hàng.' },
+    { value: 'other', label: 'Lý do khác' }
 ]
 
 const fetchOrders = async () => {
@@ -543,17 +606,30 @@ const canCancelOrder = (order) => {
     return diffHours <= 24
 }
 
-const handleCancelOrder = async () => {
-    if (!selectedOrder.value) return
-    if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return
+const confirmCancelOrder = async () => {
+    const notyf = useNuxtApp().$notyf
+    const reasonLabel = cancelReason.value === 'other' 
+        ? cancelReasonOther.value.trim() 
+        : cancelReasons.find(r => r.value === cancelReason.value)?.label || ''
+    
+    if (!reasonLabel) {
+        notyf.error('Vui lòng chọn hoặc nhập lý do hủy đơn hàng')
+        return
+    }
+    
     try {
-        await orderService.cancelOrder(selectedOrder.value.id)
+        await orderService.cancelOrder(selectedOrder.value.id, reasonLabel)
+        showCancelReasonModal.value = false
         closeModal()
         fetchOrders()
+        notyf.success('Hủy đơn hàng thành công!')
+        cancelReason.value = ''
+        cancelReasonOther.value = ''
     } catch (err) {
-        alert(err?.response?.data?.message || err.message || 'Hủy đơn hàng thất bại')
+        notyf.error(err?.response?.data?.message || err.message || 'Hủy đơn hàng thất bại')
     }
 }
+
 const handleReorder = async (orderId) => {
     try {
         const res = await orderService.reorderOrder(orderId)

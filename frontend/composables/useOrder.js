@@ -10,6 +10,19 @@ export const useOrder = () => {
     const currentOrder = ref(null)
     const loading = ref(false)
     const error = ref(null)
+    const showCancelReasonModal = ref(false)
+    const cancelReason = ref('')
+    const cancelReasonOther = ref('')
+    const cancelReasons = [
+        'Tôi muốn thay đổi địa chỉ hoặc số điện thoại nhận hàng.',
+        'Tôi muốn áp dụng hoặc thay đổi mã giảm giá.',
+        'Tôi muốn thay đổi sản phẩm (kích thước, màu sắc, số lượng...).',
+        'Tôi gặp khó khăn khi thanh toán.',
+        'Tôi tìm được nơi mua khác tốt hơn.',
+        'Tôi không còn nhu cầu mua sản phẩm này nữa.',
+        'Tôi đặt nhầm đơn hàng.',
+        'Lý do khác'
+    ]
 
     const API = axios.create({
         baseURL: apiBaseUrl
@@ -94,11 +107,11 @@ export const useOrder = () => {
         }
     }
 
-    const cancelOrder = async (id) => {
+    const cancelOrder = async (id, reason) => {
         loading.value = true
         error.value = null
         try {
-            const res = await API.post(`/api/orders/${id}/cancel`)
+            const res = await API.post(`/api/orders/${id}/cancel`, { cancel_reason: reason })
             return res.data
         } catch (err) {
             error.value = err.response?.data?.message || err.message
@@ -211,6 +224,10 @@ export const useOrder = () => {
         getPaymentMethod,
         formatPrice,
         getOrderByTrackingCode,
-        reorderOrder
+        reorderOrder,
+        showCancelReasonModal,
+        cancelReason,
+        cancelReasonOther,
+        cancelReasons
     }
 } 
