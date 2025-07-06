@@ -61,6 +61,8 @@ class AuthController extends Controller
             'role' => Auth::user()->role,
             'avatar' => Auth::user()->avatar,
             'phone' => Auth::user()->phone,
+            'gender' => Auth::user()->gender,
+            'dateOfBirth' => Auth::user()->dateOfBirth,
         ]);
     }
 
@@ -140,6 +142,8 @@ class AuthController extends Controller
                 'oauth_id' => $user->oauth_id,
                 'otp_expires_at' => $user->otp_expires_at,
                 'status' => $user->status,
+                'gender' => $user->gender,
+                'dateOfBirth' => $user->dateOfBirth,
             ];
         });
 
@@ -306,6 +310,8 @@ class AuthController extends Controller
                 'username' => 'sometimes|string|max:255',
                 'phone' => 'sometimes|string|max:20|nullable',
                 'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048|nullable',
+                'gender' => 'sometimes|string|max:10|nullable',
+                'dateOfBirth' => 'sometimes|date|nullable',
             ]);
 
             if ($validator->fails()) {
@@ -320,6 +326,14 @@ class AuthController extends Controller
 
             if ($request->has('phone')) {
                 $updateData['phone'] = $request->phone;
+            }
+
+            if ($request->has('gender')) {
+                $updateData['gender'] = $request->gender;
+            }
+
+            if ($request->has('dateOfBirth')) {
+                $updateData['dateOfBirth'] = $request->dateOfBirth;
             }
 
             if ($request->hasFile('avatar')) {
@@ -341,6 +355,8 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'phone' => $user->phone,
                     'avatar' => $user->avatar,
+                    'gender' => $user->gender,
+                    'dateOfBirth' => $user->dateOfBirth,
                     'role' => $user->role,
                 ]
             ], 200);
