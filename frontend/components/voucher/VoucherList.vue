@@ -77,7 +77,7 @@
                         <div v-if="coupon.type === 'percent'">
                             Giảm {{ coupon.value || 0 }}%
                             <span v-if="coupon.max_discount_value">tối đa {{ formatCurrency(coupon.max_discount_value)
-                            }}</span>
+                                }}</span>
                         </div>
                         <div v-else>
                             Giảm {{ formatCurrency(coupon.value || 0) }}
@@ -104,9 +104,9 @@
                         </button>
                         <div class="tw-text-xs tw-text-gray-700 hover:tw-underline tw-cursor-pointer">
                             <div>Hạn sử dụng: {{ formatDate(coupon.end_date) }}</div>
-                            <div v-if="coupon.usage_limit">
+                            <!-- <div v-if="coupon.usage_limit">
                                 Đã sử dụng: {{ coupon.used_count || 0 }}/{{ coupon.usage_limit }}
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                 </div>
