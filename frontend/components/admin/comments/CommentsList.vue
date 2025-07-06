@@ -22,6 +22,10 @@
                     <option value="">Chưa đọc</option>
                     <option value="yes">Chưa đọc</option>
                 </select>
+                <select v-model="filterBadwords" class="tw-border tw-rounded tw-px-3 tw-py-1 tw-text-sm">
+                    <option value="">Tiêu cực</option>
+                    <option value="1">Chỉ tiêu cực</option>
+                </select>
                 <input v-model="searchQuery" type="text" placeholder="Nhập từ khóa tìm kiếm ..."
                     class="tw-border tw-rounded tw-px-3 tw-py-1 tw-text-sm tw-w-64" />
             </div>
@@ -141,13 +145,18 @@
                                 </span>
                             </td>
                             <td class="tw-px-4 tw-py-2 tw-text-center">
-                                <button v-if="comment.status !== 'approved'"
+                                <button v-if="comment.status === 'pending'"
                                     @click="updateStatus(comment.id, 'approved')"
-                                    class="tw-bg-green-100 tw-text-green-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Hiển
-                                    thị</button>
+                                    class="tw-bg-green-100 tw-text-green-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Duyệt</button>
+                                <button v-if="comment.status === 'approved'"
+                                    @click="updateStatus(comment.id, 'pending')"
+                                    class="tw-bg-yellow-100 tw-text-yellow-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Bỏ duyệt</button>
                                 <button v-if="comment.status !== 'rejected'"
                                     @click="updateStatus(comment.id, 'rejected')"
                                     class="tw-bg-red-100 tw-text-red-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Ẩn</button>
+                                <button v-if="comment.status === 'rejected'"
+                                    @click="updateStatus(comment.id, 'pending')"
+                                    class="tw-bg-blue-100 tw-text-blue-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Bỏ ẩn</button>
                                 <button @click="deleteComment(comment.id)"
                                     class="tw-bg-gray-100 tw-text-gray-700 tw-rounded tw-px-2 tw-py-1 tw-text-xs"><i
                                         class="fas fa-trash"></i></button>
@@ -161,7 +170,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRuntimeConfig } from 'nuxt/app'
 
 const runtimeConfig = useRuntimeConfig()
@@ -189,6 +198,7 @@ const filterStatus = ref('')
 const filterRating = ref('')
 const filterHasImage = ref('')
 const filterUnread = ref('')
+const filterBadwords = ref('')
 
 const getImageUrl = (url) => {
     if (!url) return 'https://via.placeholder.com/150'
@@ -239,7 +249,7 @@ const getStatusText = (status) => {
     switch (status) {
         case 'pending': return 'Chờ duyệt'
         case 'approved': return 'Đã duyệt'
-        case 'rejected': return 'Đã từ chối'
+        case 'rejected': return 'Vi phạm (ẩn)'
         default: return status
     }
 }
@@ -288,6 +298,14 @@ const isRecentReview = (date) => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays <= 7
 }
+
+watch(filterBadwords, (val) => {
+    if (val === "1") {
+        emit('page-change', { badwords: 1 })
+    } else {
+        emit('page-change', {})
+    }
+})
 </script>
 
 <style scoped>
