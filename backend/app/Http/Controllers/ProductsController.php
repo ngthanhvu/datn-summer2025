@@ -12,6 +12,8 @@ use App\Models\ProductVariants;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class ProductsController extends Controller
 {
@@ -566,5 +568,49 @@ class ProductsController extends Controller
         return response()->json([
             'message' => 'Product favorite successfully',
         ], 200);
+    }
+
+    public function recommend(Request $request)
+    {
+        $gender = $request->get('gender');
+        $dateOfBirth = $request->get('dateOfBirth');
+        $address = $request->get('address');
+
+        $user = auth('api')->user();
+        if (!$gender && $user) $gender = $user->gender;
+        if (!$dateOfBirth && $user) $dateOfBirth = $user->dateOfBirth;
+        if (!$address && $user) $address = $user->address;
+
+        $query = \App\Models\Products::query();
+        $keyword = null;
+        if ($gender) {
+            $keyword = $gender === 'male' ? 'nam' : ($gender === 'female' ? 'nữ' : null);
+        }
+
+        if ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->whereHas('categories', function ($catQ) use ($keyword) {
+                    $catQ->where('name', 'like', '%' . $keyword . '%');
+                })
+                    ->orWhere('name', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        if ($dateOfBirth) {
+            $age = \Carbon\Carbon::parse($dateOfBirth)->age;
+            if (\Schema::hasColumn('products', 'min_age') && \Schema::hasColumn('products', 'max_age')) {
+                $query->where('min_age', '<=', $age)->where('max_age', '>=', $age);
+            }
+        }
+
+        if ($address) {
+            if (\Schema::hasColumn('products', 'city')) {
+                $query->where('city', 'like', '%' . $address . '%');
+            }
+        }
+
+        $products = $query->with('images')->orderByDesc('created_at')->limit(10)->get();
+
+        return response()->json($products);
     }
 }

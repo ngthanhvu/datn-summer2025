@@ -6,10 +6,17 @@
 
     <div class="tw-mt-3">
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
-        <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800 tw-mb-6 tw-text-center">Mã Giảm Giá</h2>
         <CouponList />
       </div>
+
+
+    </div><div class="tw-mt-3">
+      <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
+        <Trending />
+      </div>
     </div>
+
+
 
     <Suspense>
       <template #default>
@@ -103,6 +110,7 @@ const BrandsShowcase = defineAsyncComponent(() => import('~/components/home/Bran
 const LatestReviews = defineAsyncComponent(() => import('~/components/home/LatestReviews.vue'))
 const Banner = defineAsyncComponent(() => import('@/components/home/Banner.vue'))
 const CouponList = defineAsyncComponent(() => import('~/components/home/CouponList.vue'))
+const Trending = defineAsyncComponent(() => import('~/components/home/Trending.vue'))
 
 useHead({
   title: 'Trang chủ - DEVGANG',
