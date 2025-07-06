@@ -18,8 +18,9 @@
         </div>
         <!-- Desktop Grid -->
         <div class="tw-hidden lg:tw-grid lg:tw-grid-cols-5 tw-gap-6">
-            <Card v-for="product in relatedProducts" :key="product.id" :product="product" />
+            <Card v-for="product in relatedProducts" :key="product.id" :product="product" @quick-view="openQuickView" />
         </div>
+        <QuickView :show="showQuickView" :product="quickViewProduct" @close="closeQuickView" />
     </div>
 </template>
 
@@ -27,6 +28,20 @@
 import Card from '~/components/home/Card.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
+import QuickView from '~/components/product-detail/Quick-view.vue'
+
+// Quick View State
+const showQuickView = ref(false)
+const quickViewProduct = ref(null)
+
+function openQuickView(product) {
+    quickViewProduct.value = product
+    showQuickView.value = true
+}
+function closeQuickView() {
+    showQuickView.value = false
+    quickViewProduct.value = null
+}
 
 defineProps({
     relatedProducts: {

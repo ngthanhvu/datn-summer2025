@@ -6,7 +6,7 @@
                 @click="close">
                 <i class="bi bi-x-lg"></i>
             </button>
-            <div class="tw-max-w-xs tw-w-64">
+            <div class="tw-w-80">
                 <ProductImages :product-images="product.images?.map(img => img.image_path) || []"
                     :main-image="mainImage" :product-name="product.name" @update:mainImage="mainImage = $event" />
             </div>
@@ -23,7 +23,7 @@
                         product.price) }}
                 </div>
                 <div v-if="product.variants && product.variants.length > 0" class="tw-mb-2">
-                    <div class="tw-font-medium tw-mb-1">Tiêu đề:</div>
+                    <div class="tw-font-medium tw-mb-1">Kích cỡ:</div>
                     <div class="tw-flex tw-gap-2 tw-flex-wrap">
                         <button v-for="variant in product.variants" :key="variant.id"
                             @click="selectedVariant = variant; selectedColor = (variant.colors && variant.colors[0]) || null"

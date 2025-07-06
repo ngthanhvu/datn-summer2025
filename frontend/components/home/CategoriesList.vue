@@ -5,7 +5,7 @@
 
             <!-- Loading State -->
             <div v-if="loading" class="tw-flex tw-gap-6 tw-justify-center tw-mb-6">
-                <div v-for="i in 8" :key="i" class="tw-flex tw-flex-col tw-items-center">
+                <div v-for="i in 6" :key="i" class="tw-flex tw-flex-col tw-items-center">
                     <div class="tw-w-36 tw-h-36 tw-rounded-full tw-bg-gray-200 tw-animate-pulse"></div>
                     <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-mt-4 tw-mb-2 tw-w-24"></div>
                     <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-w-16"></div>
