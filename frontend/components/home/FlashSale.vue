@@ -1,7 +1,10 @@
 <template>
     <div class="tw-bg-white tw-rounded tw-p-6 tw-mb-6">
         <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
-            <h2 class="tw-text-2xl tw-font-bold tw-text-blue-700">GIẢM SỐC 50%</h2>
+            <div class="tw-flex tw-items-center tw-gap-3">
+                <h1 class="tw-text-2xl tw-font-bold tw-text-blue-700">{{ campaignName }}</h1>
+                <img src="https://theme.hstatic.net/200000696635/1001373943/14/flashsale-hot.png?v=6" alt="Flash Sale" class="tw-h-10 tw-w-auto" />
+            </div>
             <div class="tw-flex tw-items-center tw-gap-2">
                 <span>Kết thúc sau</span>
                 <div class="tw-bg-black tw-text-white tw-px-2 tw-py-1 tw-rounded">{{ countdown.hours }}</div>
@@ -18,7 +21,6 @@
                 :key="product.id"
                 class="tw-relative tw-w-64 tw-flex-shrink-0"
             >
-                <!-- Phần background + ảnh -->
                 <div
                     class=" tw-overflow-hidden tw-flex tw-items-center tw-justify-center"
                     :style="`background: url('${productSaleBg}') center/cover no-repeat; width: 250px; height: 370px; margin: 17px auto;`"
@@ -85,6 +87,7 @@ import productSaleBg from '~/assets/product_sale.jpg'
 
 const flashSaleProducts = ref([])
 const countdown = ref({ hours: '00', minutes: '00', seconds: '00' })
+const campaignName = ref('')
 const { getFlashSales, getMainImage } = useFlashsale()
 
 function formatPrice(price) {
@@ -130,6 +133,7 @@ onMounted(async () => {
     const flashSales = await getFlashSales()
     const fs = getFirstActiveFlashSale(flashSales)
     if (fs && fs.products) {
+        campaignName.value = fs.name || 'Flash Sale'
         flashSaleProducts.value = fs.products.map(p => ({
             ...p.product,
             ...p,
