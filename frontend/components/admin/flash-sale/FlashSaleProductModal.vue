@@ -12,6 +12,35 @@
           <input v-model="search" class="tw-border tw-rounded tw-px-3 tw-py-2 tw-w-80" placeholder="Gõ tên sản phẩm để tìm kiếm" />
           <button class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2 tw-ml-auto" @click="showDiscount = true"><i class="fa fa-plus"></i></button>
         </div>
+        <div v-if="loading" class="tw-text-center tw-py-4">Đang tải sản phẩm...</div>
+        <div v-if="error" class="tw-text-center tw-text-red-500 tw-py-2">{{ error }}</div>
+        <div class="tw-mb-4">
+          <h3 class="tw-font-bold tw-mb-2">Chọn sản phẩm thêm vào Flash Sale</h3>
+          <div class="tw-overflow-x-auto">
+            <table class="tw-w-full tw-bg-white tw-rounded tw-shadow-sm">
+              <thead>
+                <tr class="tw-bg-gray-100 tw-text-gray-700">
+                  <th class="tw-px-2 tw-py-2">Ảnh</th>
+                  <th class="tw-px-2 tw-py-2">Tên sản phẩm</th>
+                  <th class="tw-px-2 tw-py-2">Mã SP</th>
+                  <th class="tw-px-2 tw-py-2">Giá</th>
+                  <th class="tw-px-2 tw-py-2">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in filteredAllProducts" :key="item.id">
+                  <td class="tw-px-2 tw-py-2"><img :src="item.image" class="tw-w-10 tw-h-10 tw-rounded" /></td>
+                  <td class="tw-px-2 tw-py-2">{{ item.name }}</td>
+                  <td class="tw-px-2 tw-py-2">{{ item.sku }}</td>
+                  <td class="tw-px-2 tw-py-2">{{ item.price }}</td>
+                  <td class="tw-px-2 tw-py-2">
+                    <button class="btn btn-primary" @click="addProduct(item)">Thêm</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
         <!-- Popup thiết lập giá giảm -->
         <div v-if="showDiscount" class="tw-absolute tw-top-24 tw-right-8 tw-bg-white tw-shadow-lg tw-rounded tw-p-4 tw-z-50 tw-w-96">
           <div class="tw-font-bold tw-mb-2">Thiết lập giảm giá</div>
@@ -69,7 +98,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useProducts } from '@/composables/useProducts'
 const props = defineProps({
   products: Array
 })
@@ -78,6 +108,61 @@ const search = ref('')
 const showDiscount = ref(false)
 const discountType = ref('%')
 const discountValue = ref(0)
+
+const { getProducts } = useProducts()
+const allProducts = ref([])
+const loading = ref(false)
+const error = ref('')
+
+// Lấy sản phẩm khi mở modal
+onMounted(async () => {
+  loading.value = true
+  try {
+    const data = await getProducts()
+    allProducts.value = data.map(p => {
+      let img = '/default-product.png';
+      if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+        const mainImg = p.images.find(img => img.is_main == 1);
+        img = mainImg ? mainImg.image_path : p.images[0].image_path;
+      }
+      return {
+        ...p,
+        image: img
+      }
+    })
+  } catch (e) {
+    error.value = e.message || 'Không lấy được danh sách sản phẩm'
+  } finally {
+    loading.value = false
+  }
+})
+
+// Sản phẩm local (đã chọn hoặc đang chỉnh sửa)
+const localProducts = ref((props.products || []).map((p, idx) => ({
+  ...p,
+  price: p.price ?? fakePrice(idx).price,
+  salePrice: p.salePrice ?? fakePrice(idx).salePrice,
+  sold: p.sold ?? fakePrice(idx).sold
+})))
+
+// Khi chọn sản phẩm từ danh sách, thêm vào localProducts nếu chưa có
+function addProduct(product) {
+  if (!localProducts.value.find(p => p.id === product.id)) {
+    localProducts.value.push({
+      ...product,
+      flashPrice: '',
+      quantity: 100,
+      sold: product.sold ?? 0
+    })
+  }
+}
+
+// Lọc sản phẩm theo tên
+const filteredAllProducts = computed(() => {
+  if (!search.value) return allProducts.value
+  return allProducts.value.filter(p => p.name.toLowerCase().includes(search.value.toLowerCase()))
+})
+
 function fakePrice(idx) {
   // Giá thường 210tr, giá KM 180tr, số lượng đã bán random 10-99
   return {
@@ -86,21 +171,16 @@ function fakePrice(idx) {
     sold: Math.floor(Math.random() * 90) + 10
   }
 }
-const localProducts = ref((props.products || []).map((p, idx) => ({
-  ...p,
-  price: p.price ?? fakePrice(idx).price,
-  salePrice: p.salePrice ?? fakePrice(idx).salePrice,
-  sold: p.sold ?? fakePrice(idx).sold
-})))
-const filteredProducts = computed(() => {
-  if (!search.value) return localProducts.value
-  return localProducts.value.filter(p => p.name.toLowerCase().includes(search.value.toLowerCase()))
-})
+const filteredProducts = computed(() => localProducts.value)
+
 function remove(idx) {
   localProducts.value.splice(idx, 1)
 }
 function apply() {
-  emit('select', localProducts.value)
+  emit('select', localProducts.value.map(p => ({
+    ...p,
+    image: p.image // giữ đúng link ảnh đã map
+  })))
   emit('close')
 }
 function applyDiscount() {

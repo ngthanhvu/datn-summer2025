@@ -2,10 +2,12 @@
   <div class="tw-bg-[#f7f8fa] tw-p-6 tw-min-h-screen">
     <div class="tw-flex tw-justify-between tw-items-center tw-mb-6 tw-pt-6 tw-pl-6">
       <div>
-        <h1 class="tw-text-2xl tw-font-bold tw-mb-2">{{ form.name ? 'Cập nhật' : 'Thêm' }} chiến dịch Flash Sale</h1>
-        <div class="tw-text-gray-500 tw-mb-4">Điền thông tin để tạo chương trình Flash Sale mới</div>
+        <h1 class="tw-text-2xl tw-font-bold tw-mb-2">{{ props.editData ? 'Cập nhật' : 'Thêm' }} chiến dịch Flash Sale</h1>
+        <div class="tw-text-gray-500 tw-mb-4">Điền thông tin để {{ props.editData ? 'cập nhật' : 'tạo' }} chương trình Flash Sale</div>
       </div>
     </div>
+    <div v-if="error" class="tw-text-red-500 tw-mb-2">{{ error }}</div>
+    <div v-if="success" class="tw-text-green-600 tw-mb-2">{{ success }}</div>
     <div class="tw-flex tw-flex-col md:tw-flex-row tw-gap-8">
       <!-- Container nhập thông tin (40%) -->
       <div class="tw-bg-white tw-rounded tw-shadow tw-p-6 md:tw-w-2/5 tw-mb-6 md:tw-mb-0">
@@ -51,7 +53,7 @@
             </div>
           </div>
           <div class="tw-flex tw-gap-2 tw-mt-6">
-            <button class="btn btn-primary" @click="submit">Hoàn tất</button>
+            <button class="btn btn-primary" :disabled="loading" @click="submit">{{ loading ? 'Đang lưu...' : (props.editData ? 'Cập nhật' : 'Hoàn tất') }}</button>
             <button class="btn btn-secondary">Custom Style</button>
             <button class="btn btn-warning tw-bg-orange-500 hover:tw-bg-orange-600" @click="showProductModal = true">Sản phẩm</button>
           </div>
@@ -93,47 +95,65 @@
       />
     </div>
   </div>
+
 </template>
 
 <script setup>
-definePageMeta({
-  layout: 'admin'
-})
-import { ref, watch, toRefs } from 'vue'
+import { ref, watch } from 'vue'
 import FlashSaleProductModal from './FlashSaleProductModal.vue'
+import { useFlashsale } from '@/composables/useFlashsale'
+import { useRouter } from 'vue-router'
 const props = defineProps({
   editData: Object
 })
 const showProductModal = ref(false)
 const products = ref([
-  { id: 1, name: 'Hoodie', sku: 'woo-hoodie', image: '/img.png', flashPrice: '', quantity: 100 }
+  // Sẽ được cập nhật khi chọn sản phẩm
 ])
 const form = ref({
   name: '',
   start: '',
   end: '',
-  buttonText: '',
-  buttonUrl: '',
   repeat: false,
   repeatMinutes: 60,
   autoIncrease: false,
   active: true
 })
+const loading = ref(false)
+const error = ref('')
+const success = ref('')
+const { createFlashSale, updateFlashSale } = useFlashsale()
+const router = useRouter()
 // Nếu có editData thì fill vào form và products
 watch(() => props.editData, (val) => {
   if (val) {
     form.value = {
       name: val.name || '',
-      start: val.start || '',
-      end: val.end || '',
-      buttonText: val.buttonText || '',
-      buttonUrl: val.buttonUrl || '',
+      start: val.start_time ? val.start_time.slice(0, 16) : (val.start || ''),
+      end: val.end_time ? val.end_time.slice(0, 16) : (val.end || ''),
       repeat: val.repeat || false,
-      repeatMinutes: val.repeatMinutes || 60,
-      autoIncrease: val.autoIncrease || false,
+      repeatMinutes: val.repeat_minutes || val.repeatMinutes || 60,
+      autoIncrease: val.auto_increase || val.autoIncrease || false,
       active: val.active !== undefined ? val.active : true
     }
-    if (val.products) products.value = JSON.parse(JSON.stringify(val.products))
+    if (val.products) {
+      products.value = val.products.map(p => {
+        let img = '/default-product.png';
+        if (p.product?.images && Array.isArray(p.product.images) && p.product.images.length > 0) {
+          const mainImg = p.product.images.find(img => img.is_main == 1);
+          img = mainImg ? mainImg.image_path : p.product.images[0].image_path;
+        }
+        return {
+          id: p.product_id || p.id,
+          product_id: p.product_id || p.id,
+          name: p.product?.name || p.name || '',
+          sku: p.product?.sku || p.sku || '',
+          image: img,
+          flashPrice: p.flash_price || p.flashPrice || '',
+          quantity: p.quantity || 0
+        }
+      })
+    }
   }
 }, { immediate: true })
 function addProduct(product) {
@@ -142,9 +162,39 @@ function addProduct(product) {
 function removeProduct(idx) {
   products.value.splice(idx, 1)
 }
-function submit() {
-  // Xử lý submit form
-  alert('Gửi dữ liệu lên backend')
+async function submit() {
+  error.value = ''
+  success.value = ''
+  loading.value = true
+  try {
+    const payload = {
+      name: form.value.name,
+      start_time: form.value.start,
+      end_time: form.value.end,
+      repeat: form.value.repeat,
+      repeat_minutes: form.value.repeatMinutes,
+      auto_increase: form.value.autoIncrease,
+      active: form.value.active,
+      products: products.value.map(p => ({
+        product_id: p.product_id ? p.product_id : p.id,
+        flash_price: p.flashPrice,
+        quantity: p.quantity
+      }))
+    }
+    let res
+    if (props.editData && props.editData.id) {
+      res = await updateFlashSale(props.editData.id, payload)
+      success.value = 'Cập nhật flash sale thành công!'
+    } else {
+      res = await createFlashSale(payload)
+      success.value = 'Tạo flash sale thành công!'
+      setTimeout(() => router.push('/admin/flashsale'), 1000)
+    }
+  } catch (e) {
+    error.value = e.message || 'Có lỗi xảy ra khi lưu flash sale'
+  } finally {
+    loading.value = false
+  }
 }
 function onSelectProducts(newProducts) {
   products.value = newProducts

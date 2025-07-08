@@ -12,4 +12,7 @@ import FlashSaleForm from '@/components/admin/flash-sale/FlashSaleForm.vue'
 definePageMeta({
   layout: 'admin'
 })
+useHead({
+    title: "Thêm flash sale"
+})
 </script> 
