@@ -19,7 +19,7 @@
             <NuxtLink
                 v-for="product in flashSaleProducts"
                 :key="product.id"
-                :to="{ path: `/chi-tiet/${product.slug}`, query: { flashsale: campaignName, flash_price: product.flash_price, end_time: product.product?.end_time || product.end_time, sold: product.sold } }"
+                :to="{ path: `/chi-tiet/${product.slug}`, query: { flashsale: campaignName, flash_price: product.flash_price, end_time: product.product?.end_time || product.end_time, sold: product.sold, quantity: product.flash_sale_quantity } }"
                 class="tw-relative tw-w-64 tw-flex-shrink-0"
                 style="text-decoration: none; color: inherit;"
             >
@@ -141,7 +141,8 @@ onMounted(async () => {
             ...p,
             flash_price: p.flash_price,
             sold: p.sold ?? 0,
-            end_time: fs.end_time
+            end_time: fs.end_time,
+            flash_sale_quantity: p.quantity
         }))
         updateCountdown(fs.end_time)
         setInterval(() => updateCountdown(fs.end_time), 1000)

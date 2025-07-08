@@ -26,7 +26,7 @@
             <div class="tw-text-[15px] tw-text-gray-600 tw-mb-4">
                 Thương hiệu:
                 <a class="tw-text-[#2f6ad8] hover:tw-underline" href="#">
-                    {{ product.brand?.name || 'EGA' }}
+                    {{ product.brand?.name || 'DEVGANG' }}
                 </a>
                 <span class="tw-mx-2">|</span>
                 Mã sản phẩm:
@@ -38,13 +38,13 @@
             </div>
             <div class="tw-flex tw-items-center tw-gap-3 tw-mb-3">
                 <span class="tw-text-[22px] tw-font-bold">
-                    {{ formatPrice(displayPrice) }}
+                    {{ selectedVariant ? formatPrice(selectedVariantSalePrice) : formatPrice(displayPrice) }}
                 </span>
-                <span v-if="showOriginalPrice" class="tw-line-through tw-text-gray-400 tw-text-[15px]">
-                    {{ formatPrice(product.price) }}
+                <span v-if="selectedVariant" class="tw-line-through tw-text-gray-400 tw-text-[15px]">
+                    {{ formatPrice(selectedVariant.price) }}
                 </span>
-                <span v-if="showOriginalPrice" class="tw-text-[#d43f3f] tw-text-[15px] tw-font-semibold">
-                    -{{ Math.round(100 - (displayPrice / product.price) * 100) }}%
+                <span v-if="selectedVariant && flashSalePercent > 0" class="tw-text-[#d43f3f] tw-text-[15px] tw-font-semibold">
+                    -{{ flashSalePercent }}%
                 </span>
             </div>
             <div v-if="showOriginalPrice" class="tw-text-[13px] tw-text-gray-500 tw-mb-4">
@@ -131,11 +131,13 @@
                         class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">-</button>
                     <input type="number" :value="quantity"
                         @input="$emit('update:quantity', parseInt($event.target.value) || 1)" min="1"
-                        :max="selectedVariantStock" class="tw-w-20 tw-text-center tw-border-x tw-py-3 tw-text-[16px]" />
-                    <button @click="quantity < selectedVariantStock && $emit('update:quantity', quantity + 1)"
+                        :max="flashSalePrice ? flashSaleQuantity : selectedVariantStock" class="tw-w-20 tw-text-center tw-border-x tw-py-3 tw-text-[16px]" />
+                    <button @click="quantity < (flashSalePrice ? flashSaleQuantity : selectedVariantStock) && $emit('update:quantity', quantity + 1)"
                         class="tw-px-3 tw-py-2 hover:tw-bg-gray-100">+</button>
                 </div>
-                <span class="tw-text-sm tw-text-gray-500">Còn lại: {{ selectedVariantStock }} sản phẩm</span>
+                <span class="tw-text-sm tw-text-gray-500">
+                  Còn lại: {{ flashSalePrice ? flashSaleQuantity : selectedVariantStock }} sản phẩm
+                </span>
             </div>
         </div>
 
@@ -211,6 +213,10 @@ const props = defineProps({
         default: ''
     },
     flashSaleSold: {
+        type: Number,
+        default: 0
+    },
+    flashSaleQuantity: {
         type: Number,
         default: 0
     },
@@ -302,4 +308,45 @@ watch(() => props.flashSaleEndTime, (newVal) => {
 onUnmounted(() => {
     if (countdownInterval) clearInterval(countdownInterval)
 })
+
+const selectedVariant = computed(() => {
+    if (!props.product?.variants?.length) return null
+    return props.product.variants.find(
+        v => v.size === props.selectedSize && v.color === props.selectedColor?.name
+    )
+})
+
+const flashSalePercent = computed(() => {
+    if (!props.flashSalePrice || !props.product.price) return 0
+    return Math.round(100 - (props.flashSalePrice / props.product.price) * 100)
+})
+
+const selectedVariantSalePrice = computed(() => {
+    if (!selectedVariant.value) return null
+    if (flashSalePercent.value > 0) {
+        return Math.round(selectedVariant.value.price * (1 - flashSalePercent.value / 100))
+    }
+    return selectedVariant.value.price
+})
+
+const addToCart = async () => {
+    try {
+        if (!selectedVariant.value) {
+            notyf.error('Vui lòng chọn size và màu sắc')
+            return
+        }
+        if (props.quantity > (flashSalePercent.value > 0 ? props.flashSaleQuantity : selectedVariant.value.stock)) {
+            notyf.error('Số lượng vượt quá số lượng còn lại')
+            return
+        }
+        let price = selectedVariant.value.price
+        if (flashSalePercent.value > 0) {
+            price = Math.round(selectedVariant.value.price * (1 - flashSalePercent.value / 100))
+        }
+        await addToCartComposable(selectedVariant.value.id, props.quantity, price)
+        notyf.success('Đã thêm vào giỏ hàng')
+    } catch (error) {
+        notyf.error('Có lỗi xảy ra khi thêm vào giỏ hàng')
+    }
+}
 </script>

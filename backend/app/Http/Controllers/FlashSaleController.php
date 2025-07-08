@@ -21,6 +21,18 @@ class FlashSaleController extends Controller
             'products.product.brand',
             'products.product.variants',
         ])->get();
+
+        // Merge quantity, sold, flash_price vào product
+        foreach ($flashSales as $fs) {
+            foreach ($fs->products as $p) {
+                if ($p->product) {
+                    $p->product->flash_sale_quantity = $p->quantity;
+                    $p->product->flash_sale_sold = $p->sold;
+                    $p->product->flash_price = $p->flash_price;
+                }
+            }
+        }
+
         return response()->json($flashSales);
     }
 

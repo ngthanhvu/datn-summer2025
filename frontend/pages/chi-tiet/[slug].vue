@@ -37,7 +37,8 @@
           :reviews="reviews" :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
           :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
           :user="user" :related-products="relatedProducts"
-          :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold" :product-raw="data"
+          :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="data"
+          :flash-sale-percent="flashSalePercent"
           @update:selected-size="selectedSize = $event"
           @update:selected-color="selectedColor = $event" @update:quantity="quantity = $event"
           @update:active-tab="activeTab = $event" @add-to-cart="addToCart" @update:review-form="reviewForm = $event"
@@ -569,6 +570,12 @@ const flashSalePrice = computed(() => {
 })
 const flashSaleEndTime = computed(() => route.query.end_time)
 const flashSaleSold = computed(() => Number(route.query.sold) || 0)
+const flashSaleQuantity = computed(() => Number(route.query.quantity) || 0)
+
+const flashSalePercent = computed(() => {
+  if (!flashSalePrice.value || !data.value?.price) return 0
+  return Math.round(100 - (flashSalePrice.value / data.value.price) * 100)
+})
 
 const displayPrice = computed(() => {
   if (flashSalePrice.value) return flashSalePrice.value
