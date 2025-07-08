@@ -6,8 +6,13 @@
 
     <div class="tw-mt-3">
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
-        <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800 tw-mb-6 tw-text-center">Mã Giảm Giá</h2>
         <CouponList />
+      </div>
+    </div>
+
+    <div class="tw-mt-3">
+      <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
+        <FlashSale />
       </div>
     </div>
 
@@ -91,7 +96,6 @@
 
 <script setup>
 import { defineAsyncComponent } from 'vue';
-
 // Lazy load components để tăng tốc độ load trang chủ
 const SwiperSlider = defineAsyncComponent(() => import('~/components/home/SwiperSlider.vue'))
 const ServiceFeatures = defineAsyncComponent(() => import('~/components/home/ServiceFeatures.vue'))
@@ -103,6 +107,7 @@ const BrandsShowcase = defineAsyncComponent(() => import('~/components/home/Bran
 const LatestReviews = defineAsyncComponent(() => import('~/components/home/LatestReviews.vue'))
 const Banner = defineAsyncComponent(() => import('@/components/home/Banner.vue'))
 const CouponList = defineAsyncComponent(() => import('~/components/home/CouponList.vue'))
+const FlashSale = defineAsyncComponent(() => import('~/components/home/FlashSale.vue'))
 
 useHead({
   title: 'Trang chủ - DEVGANG',

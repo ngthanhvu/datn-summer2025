@@ -15,7 +15,12 @@ class FlashSaleController extends Controller
 {
     public function index()
     {
-        $flashSales = FlashSale::with('products.product')->get();
+        $flashSales = FlashSale::with([
+            'products.product.mainImage',
+            'products.product.categories',
+            'products.product.brand',
+            'products.product.variants',
+        ])->get();
         return response()->json($flashSales);
     }
 
@@ -109,7 +114,12 @@ class FlashSaleController extends Controller
 
     public function show($id)
     {
-        $flashSale = FlashSale::with('products.product')->findOrFail($id);
+        $flashSale = FlashSale::with([
+            'products.product.mainImage',
+            'products.product.categories',
+            'products.product.brand',
+            'products.product.variants',
+        ])->findOrFail($id);
         return response()->json($flashSale);
     }
 } 

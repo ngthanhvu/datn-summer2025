@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Products;
+use App\Models\Categories;
+use App\Models\Brands;
+use App\Models\Variants;
 
 class FlashSaleProduct extends Model
 {
@@ -29,5 +32,19 @@ class FlashSaleProduct extends Model
     public function mainImage()
     {
         return $this->hasOne(Images::class, 'product_id')->where('is_main', true);
+    }
+    public function categories()
+    {
+        return $this->belongsTo(Categories::class, 'categories_id');
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo(Brands::class, 'brand_id');
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(Variants::class, 'product_id');
     }
 }

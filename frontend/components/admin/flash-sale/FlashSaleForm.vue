@@ -138,10 +138,16 @@ watch(() => props.editData, (val) => {
     }
     if (val.products) {
       products.value = val.products.map(p => {
-        let img = '/default-product.png';
-        if (p.product?.images && Array.isArray(p.product.images) && p.product.images.length > 0) {
-          const mainImg = p.product.images.find(img => img.is_main == 1);
-          img = mainImg ? mainImg.image_path : p.product.images[0].image_path;
+        let img = p.image || '/default-product.png';
+        let imagesArr = [];
+        if (p.product && Array.isArray(p.product.images)) {
+          imagesArr = p.product.images;
+        } else if (Array.isArray(p.images)) {
+          imagesArr = p.images;
+        }
+        if (imagesArr.length > 0) {
+          const mainImg = imagesArr.find(img => img.is_main == 1);
+          img = mainImg ? mainImg.image_path : imagesArr[0].image_path;
         }
         return {
           id: p.product_id || p.id,
