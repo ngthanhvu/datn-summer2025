@@ -20,6 +20,10 @@
           <NuxtLink to="/san-pham" class="hover:tw-text-[#81AACC]">Sản phẩm</NuxtLink>
           <span>/</span>
           <span class="tw-text-gray-900">{{ data.name }}</span>
+          <span v-if="flashSaleName" class="tw-block tw-text-base tw-text-red-500 tw-font-semibold tw-ml-2">
+            {{ flashSaleName }}
+          </span>
+          
         </div>
 
         <!-- Product Detail Component -->
@@ -32,7 +36,9 @@
           :is-submitting="isSubmitting" :preview-images="previewImages" :reviews-loading="reviewsLoading"
           :reviews="reviews" :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
           :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
-          :user="user" :related-products="relatedProducts" @update:selected-size="selectedSize = $event"
+          :user="user" :related-products="relatedProducts"
+          :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold" :product-raw="data"
+          @update:selected-size="selectedSize = $event"
           @update:selected-color="selectedColor = $event" @update:quantity="quantity = $event"
           @update:active-tab="activeTab = $event" @add-to-cart="addToCart" @update:review-form="reviewForm = $event"
           @update:show-review-form="showReviewForm = $event" @submit-review="submitReview"
@@ -556,7 +562,16 @@ const getVisibleReviewPages = () => {
   return pages
 }
 
+const flashSaleName = computed(() => route.query.flashsale)
+const flashSalePrice = computed(() => {
+  const price = route.query.flash_price
+  return price ? Number(price) : null
+})
+const flashSaleEndTime = computed(() => route.query.end_time)
+const flashSaleSold = computed(() => Number(route.query.sold) || 0)
+
 const displayPrice = computed(() => {
+  if (flashSalePrice.value) return flashSalePrice.value
   if (activeVariant.value && activeVariant.value.price) {
     return activeVariant.value.price
   }
@@ -566,6 +581,7 @@ const displayPrice = computed(() => {
 })
 
 const showOriginalPrice = computed(() => {
+  if (flashSalePrice.value) return true
   return data.value && displayPrice.value < data.value.price
 })
 
@@ -603,6 +619,19 @@ watch(mainImage, (newImage, oldImage) => {
     }
   }
 })
+
+function getDiscountPercent(price, flashPrice) {
+  if (!price || !flashPrice) return 0
+  return Math.round(100 - (flashPrice / price) * 100)
+}
+
+function getSoldPercent(product) {
+  if (product.quantity && product.sold) {
+    let percent = Math.round((product.sold / (product.quantity + product.sold)) * 100)
+    return Math.max(percent, 10)
+  }
+  return 50
+}
 </script>
 
 <style scoped>

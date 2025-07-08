@@ -5,6 +5,24 @@
             <h1 class="tw-text-[22px] tw-font-semibold tw-leading-[28px] tw-mb-2">
                 {{ product.name }}
             </h1>
+            <div v-if="flashSalePrice" class="tw-mb-2">
+                <div class="tw-bg-blue-50 tw-p-2 tw-rounded tw-flex tw-items-center tw-justify-between tw-mb-1">
+                    <span class="tw-text-xs tw-text-blue-700 tw-font-semibold">{{flashSaleName}} giảm đến {{ getDiscountPercent(product.price, flashSalePrice) }}%</span>
+                    <span class="tw-text-xs">
+                        Kết thúc sau
+                        <span class="tw-bg-black tw-text-white tw-px-1.5 tw-py-0.5 tw-rounded">{{ countdown.days }}</span> ngày
+                        <span class="tw-bg-black tw-text-white tw-px-1.5 tw-py-0.5 tw-rounded">{{ countdown.hours }}</span> :
+                        <span class="tw-bg-black tw-text-white tw-px-1.5 tw-py-0.5 tw-rounded">{{ countdown.minutes }}</span> :
+                        <span class="tw-bg-black tw-text-white tw-px-1.5 tw-py-0.5 tw-rounded">{{ countdown.seconds }}</span>
+                    </span>
+                </div>
+                <div class="tw-relative tw-h-6 tw-bg-gray-200 tw-rounded-full tw-mb-2">
+                    <div class="tw-absolute tw-left-0 tw-top-0 tw-h-6 tw-bg-blue-600 tw-rounded-full" :style="`width: ${getSoldPercent(productRaw || product)}%; transition: width 0.3s;`"></div>
+                    <div class="tw-absolute tw-left-3 tw-top-0 tw-h-6 tw-flex tw-items-center tw-z-10 tw-text-white tw-font-semibold tw-text-sm">
+                        Đã bán {{ flashSaleSold || (productRaw || product).sold || 0 }} sản phẩm
+                    </div>
+                </div>
+            </div>
             <div class="tw-text-[15px] tw-text-gray-600 tw-mb-4">
                 Thương hiệu:
                 <a class="tw-text-[#2f6ad8] hover:tw-underline" href="#">
@@ -145,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
     product: {
@@ -175,7 +193,27 @@ const props = defineProps({
     showOriginalPrice: {
         type: Boolean,
         default: false
-    }
+    },
+    flashSaleName: {
+        type: String,
+        default: ''
+    },
+    flashSalePrice: {
+        type: Number,
+        default: 0
+    },
+    productRaw: {
+        type: Object,
+        default: null
+    },
+    flashSaleEndTime: {
+        type: String,
+        default: ''
+    },
+    flashSaleSold: {
+        type: Number,
+        default: 0
+    },
 })
 
 const emit = defineEmits([
@@ -187,6 +225,8 @@ const emit = defineEmits([
 
 const hoveredSize = ref('')
 const hoveredColor = ref(null)
+const countdown = ref({ days: '--', hours: '--', minutes: '--', seconds: '--' })
+let countdownInterval = null
 
 const sizes = computed(() => {
     if (!props.product?.variants?.length) return []
@@ -215,4 +255,51 @@ const formatPrice = (price) => {
         currency: 'VND'
     }).format(price)
 }
+
+function getDiscountPercent(price, flashPrice) {
+    if (!price || !flashPrice) return 0
+    return Math.round(100 - (flashPrice / price) * 100)
+}
+
+function getSoldPercent(product) {
+    if (product.quantity && product.sold) {
+        let percent = Math.round((product.sold / (product.quantity + product.sold)) * 100)
+        return Math.max(percent, 10)
+    }
+    return 50
+}
+
+function updateCountdown(endTime) {
+    if (!endTime) {
+        countdown.value = { days: '--', hours: '--', minutes: '--', seconds: '--' }
+        return
+    }
+    const now = new Date()
+    const end = new Date(endTime)
+    let diff = Math.max(0, end - now)
+    if (diff <= 0) {
+        countdown.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
+        return
+    }
+    const days = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0')
+    diff %= 1000 * 60 * 60 * 24
+    const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0')
+    diff %= 1000 * 60 * 60
+    const minutes = String(Math.floor(diff / (1000 * 60))).padStart(2, '0')
+    diff %= 1000 * 60
+    const seconds = String(Math.floor(diff / 1000)).padStart(2, '0')
+    countdown.value = { days, hours, minutes, seconds }
+}
+
+watch(() => props.flashSaleEndTime, (newVal) => {
+    if (countdownInterval) clearInterval(countdownInterval)
+    updateCountdown(newVal)
+    if (newVal) {
+        countdownInterval = setInterval(() => updateCountdown(newVal), 1000)
+    }
+}, { immediate: true })
+
+onUnmounted(() => {
+    if (countdownInterval) clearInterval(countdownInterval)
+})
 </script>

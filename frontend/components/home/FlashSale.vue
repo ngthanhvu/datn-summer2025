@@ -16,10 +16,12 @@
             </div>
         </div>
         <div class="tw-flex tw-gap-4 tw-overflow-x-auto">
-            <div
+            <NuxtLink
                 v-for="product in flashSaleProducts"
                 :key="product.id"
+                :to="{ path: `/chi-tiet/${product.slug}`, query: { flashsale: campaignName, flash_price: product.flash_price, end_time: product.product?.end_time || product.end_time, sold: product.sold } }"
                 class="tw-relative tw-w-64 tw-flex-shrink-0"
+                style="text-decoration: none; color: inherit;"
             >
                 <div
                     class=" tw-overflow-hidden tw-flex tw-items-center tw-justify-center"
@@ -72,7 +74,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </NuxtLink>
         </div>
         <div class="tw-flex tw-justify-center tw-mt-4">
             <NuxtLink to="/flash-sale" class="tw-border tw-px-6 tw-py-2 tw-rounded tw-bg-white tw-font-bold">Xem tất cả &gt;</NuxtLink>
@@ -139,6 +141,7 @@ onMounted(async () => {
             ...p,
             flash_price: p.flash_price,
             sold: p.sold ?? 0,
+            end_time: fs.end_time
         }))
         updateCountdown(fs.end_time)
         setInterval(() => updateCountdown(fs.end_time), 1000)

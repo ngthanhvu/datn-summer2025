@@ -12,6 +12,7 @@
                 <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"
                     :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
                     :show-original-price="showOriginalPrice"
+                    :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold" :product-raw="product"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
@@ -179,6 +180,22 @@ const props = defineProps({
     relatedProducts: {
         type: Array,
         default: () => []
+    },
+    flashSaleName: {
+        type: String,
+        default: ''
+    },
+    flashSalePrice: {
+        type: Number,
+        default: 0
+    },
+    flashSaleEndTime: {
+        type: String,
+        default: ''
+    },
+    flashSaleSold: {
+        type: Number,
+        default: 0
     }
 })
 
