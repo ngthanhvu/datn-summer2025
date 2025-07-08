@@ -62,9 +62,10 @@ import { storeToRefs } from 'pinia'
 import Detail from '~/components/product-detail/Detail.vue'
 import { useCartStore } from '~/stores/useCartStore'
 import { useReviewStore } from '~/stores/useReviewStore'
-// import { useAuthStore } from '~/stores/useAuthStore' // Uncomment if exists
-import { useCookie } from '#app'
-// import { useAuth } from '~/composables/useAuth' // Leave as composable if no store
+import { useAuth } from '~/composables/useAuth'
+import { useCarts } from '~/composables/useCarts'
+
+const { addToCart: addToCartComposable } = useCarts()
 const notyf = useNuxtApp().$notyf
 
 const runtimeConfig = useRuntimeConfig()
@@ -73,9 +74,7 @@ const { getProducts, getProductBySlug } = useProducts()
 const { getInventories } = useInventories()
 const cartStore = useCartStore()
 const reviewStore = useReviewStore()
-// const authStore = useAuthStore() // Uncomment if exists
-// const { user, isAuthenticated } = storeToRefs(authStore) // Uncomment if exists
-import { useAuth } from '~/composables/useAuth'
+
 const { user, isAuthenticated } = useAuth()
 
 const { cart } = storeToRefs(cartStore)
@@ -334,7 +333,7 @@ const addToCart = async () => {
       notyf.error('Số lượng vượt quá số lượng trong kho')
       return
     }
-    await cartStore.addToCart(selectedVariant.id, quantity.value)
+    await addToCartComposable(selectedVariant.id, quantity.value)
     notyf.success('Đã thêm vào giỏ hàng')
   } catch (error) {
     console.error('Error adding to cart:', error)

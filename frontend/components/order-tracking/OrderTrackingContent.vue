@@ -87,6 +87,8 @@ const { $config: runtimeConfig } = useNuxtApp()
 const orderData = ref(null)
 const orderError = ref(null)
 
+const loading = ref(false)
+
 watch(() => orderStore.currentOrder, (newVal) => {
     if (newVal) {
         orderData.value = mapOrderData(newVal)

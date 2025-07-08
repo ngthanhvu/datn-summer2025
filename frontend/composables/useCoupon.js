@@ -159,7 +159,6 @@ export const useCoupon = () => {
                     Authorization: `Bearer ${token}`
                 }
             })
-            console.log('Claimed coupons response:', response.data)
             return response.data
         } catch (err) {
             console.error('Error getting claimed coupons:', err)
