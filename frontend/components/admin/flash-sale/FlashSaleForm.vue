@@ -24,26 +24,31 @@
               <input type="datetime-local" v-model="form.end" class="input" />
             </div>
           </div>
-          <div>
-            <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Button bên phải</label>
-            <input v-model="form.buttonText" class="input" placeholder="Nhập text button" />
+          <div class="tw-flex tw-items-center tw-gap-4">
+            <div class="tw-flex tw-items-center tw-gap-2">
+              <label class="tw-text-sm">Tự động lặp lại</label>
+              <button @click="form.repeat = !form.repeat" :class="form.repeat ? 'tw-bg-pink-500' : 'tw-bg-gray-300'" class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
+                <span :class="form.repeat ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'" class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+              </button>
+            </div>
+            <div v-if="form.repeat" class="tw-flex tw-items-center tw-gap-2">
+              <label class="tw-text-sm">Nhập số phút lặp lại</label>
+              <input v-model="form.repeatMinutes" type="number" min="1" class="input tw-w-24" placeholder="Phút" />
+            </div>
           </div>
-          <div>
-            <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Đường dẫn button</label>
-            <input v-model="form.buttonUrl" class="input" placeholder="Nhập url" />
-          </div>
-          <div class="tw-flex tw-items-center tw-gap-2">
-            <input type="checkbox" v-model="form.repeat" id="repeat" />
-            <label for="repeat" class="tw-text-sm">Tự động lặp lại</label>
-            <input v-if="form.repeat" v-model="form.repeatMinutes" type="number" class="input tw-w-20 tw-ml-2" placeholder="Phút" />
-          </div>
-          <div class="tw-flex tw-items-center tw-gap-2">
-            <input type="checkbox" v-model="form.autoIncrease" id="autoIncrease" />
-            <label for="autoIncrease" class="tw-text-sm">Tự động tăng số lượng bán</label>
-          </div>
-          <div class="tw-flex tw-items-center tw-gap-2">
-            <input type="checkbox" v-model="form.active" id="active" />
-            <label for="active" class="tw-text-sm">Active</label>
+          <div class="tw-flex tw-items-center tw-gap-4 tw-mt-2">
+            <div class="tw-flex tw-items-center tw-gap-2">
+              <label class="tw-text-sm">Tự động tăng số lượng bán</label>
+              <button @click="form.autoIncrease = !form.autoIncrease" :class="form.autoIncrease ? 'tw-bg-gray-400' : 'tw-bg-gray-300'" class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
+                <span :class="form.autoIncrease ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'" class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+              </button>
+            </div>
+            <div class="tw-flex tw-items-center tw-gap-2">
+              <label class="tw-text-sm">Active</label>
+              <button @click="form.active = !form.active" :class="form.active ? 'tw-bg-blue-600' : 'tw-bg-gray-300'" class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
+                <span :class="form.active ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'" class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+              </button>
+            </div>
           </div>
           <div class="tw-flex tw-gap-2 tw-mt-6">
             <button class="btn btn-primary" @click="submit">Hoàn tất</button>
