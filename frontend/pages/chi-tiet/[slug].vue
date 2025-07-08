@@ -58,20 +58,28 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import Detail from '~/components/product-detail/Detail.vue'
-import useCarts from '~/composables/useCarts'
+import { useCartStore } from '~/stores/useCartStore'
+import { useReviewStore } from '~/stores/useReviewStore'
+// import { useAuthStore } from '~/stores/useAuthStore' // Uncomment if exists
 import { useCookie } from '#app'
-import { useReviews } from '~/composables/useReviews'
-import { useAuth } from '~/composables/useAuth'
+// import { useAuth } from '~/composables/useAuth' // Leave as composable if no store
 const notyf = useNuxtApp().$notyf
 
 const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
 const { getProducts, getProductBySlug } = useProducts()
 const { getInventories } = useInventories()
-const { addToCart: addToCartComposable, getUserId, transferCartFromSessionToUser, fetchCart } = useCarts()
-const { getReviewsByProductSlug, addReview, updateReview, deleteReview, checkUserReview } = useReviews()
+const cartStore = useCartStore()
+const reviewStore = useReviewStore()
+// const authStore = useAuthStore() // Uncomment if exists
+// const { user, isAuthenticated } = storeToRefs(authStore) // Uncomment if exists
+import { useAuth } from '~/composables/useAuth'
 const { user, isAuthenticated } = useAuth()
+
+const { cart } = storeToRefs(cartStore)
+const { reviews, isLoadingReviews, error: reviewError } = storeToRefs(reviewStore)
 
 const userHasReviewed = ref(false)
 const userReview = ref(null)
@@ -201,7 +209,13 @@ const tabs = [
 ]
 const activeTab = ref('description')
 
-const reviews = ref([])
+const currentReviewPage = ref(1)
+const reviewsPerPage = ref(3)
+const totalReviewPages = ref(1)
+const totalReviews = ref(0)
+const reviewPaginationData = ref(null)
+const reviewsLoading = ref(false)
+
 const reviewStats = ref({
   average: 0,
   total: 0,
@@ -214,18 +228,11 @@ const reviewStats = ref({
   ]
 })
 
-const currentReviewPage = ref(1)
-const reviewsPerPage = ref(3)
-const totalReviewPages = ref(1)
-const totalReviews = ref(0)
-const reviewPaginationData = ref(null)
-const reviewsLoading = ref(false)
-
 const fetchReviews = async (page = 1) => {
   try {
     reviewsLoading.value = true
     const userId = isAuthenticated.value && user.value ? user.value.id : null
-    const response = await getReviewsByProductSlug(data.value.slug, page, reviewsPerPage.value, userId)
+    const response = await reviewStore.getReviewsByProductSlug(data.value.slug, page, reviewsPerPage.value, userId)
 
     reviewPaginationData.value = {
       current_page: response.current_page,
@@ -327,7 +334,7 @@ const addToCart = async () => {
       notyf.error('Số lượng vượt quá số lượng trong kho')
       return
     }
-    await addToCartComposable(selectedVariant.id, quantity.value)
+    await cartStore.addToCart(selectedVariant.id, quantity.value)
     notyf.success('Đã thêm vào giỏ hàng')
   } catch (error) {
     console.error('Error adding to cart:', error)
@@ -336,8 +343,8 @@ const addToCart = async () => {
 }
 
 const mergeCartAfterLogin = async () => {
-  await transferCartFromSessionToUser()
-  await fetchCart()
+  await cartStore.transferCartFromSessionToUser()
+  await cartStore.fetchCart()
 }
 
 useHead(() => ({
@@ -423,10 +430,10 @@ const submitReview = async () => {
     }
 
     if (editingReviewId.value) {
-      await updateReview(editingReviewId.value, reviewData)
+      await reviewStore.updateReview(editingReviewId.value, reviewData)
       notyf.success('Đã cập nhật đánh giá thành công')
     } else {
-      await addReview(reviewData)
+      await reviewStore.addReview(reviewData)
       notyf.success('Đã gửi đánh giá thành công. Đánh giá sẽ được hiển thị sau khi được duyệt.')
     }
 
@@ -492,7 +499,7 @@ const removeReview = async (reviewId) => {
   if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return
 
   try {
-    await deleteReview(reviewId)
+    await reviewStore.deleteReview(reviewId)
     notyf.success('Đã xóa đánh giá thành công')
 
     const currentPageReviews = reviews.value.length
@@ -515,7 +522,7 @@ const checkUserHasReviewed = async () => {
   if (!isAuthenticated.value || !user.value || !data.value) return
 
   try {
-    const response = await checkUserReview(user.value.id, data.value.slug)
+    const response = await reviewStore.checkUserReview(user.value.id, data.value.slug)
     userHasReviewed.value = response.hasReviewed
     userReview.value = response.review || null
 

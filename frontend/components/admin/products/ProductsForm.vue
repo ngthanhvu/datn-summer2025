@@ -256,8 +256,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useProducts } from '~/composables/useProducts'
-import { useCategory } from '~/composables/useCategory'
-import { useBrand } from '~/composables/useBrand'
+import { useCategoryStore } from '~/stores/useCategoryStore'
+import { useBrandStore } from '~/stores/useBrandStore'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import Swal from 'sweetalert2'
@@ -360,32 +360,27 @@ const formErrors = ref({
 const showVariants = ref(false)
 
 const { createProduct } = useProducts()
-const { getCategories } = useCategory()
-const { getBrands } = useBrand()
+const categoryStore = useCategoryStore()
+const brandStore = useBrandStore()
 
 onMounted(async () => {
     try {
-        const [categories, brands] = await Promise.all([
-            getCategories(),
-            getBrands()
-        ])
-
-        if (categories && Array.isArray(categories)) {
-            const catOptions = categories.map(cat => ({ value: String(cat.id), label: cat.name }))
-            const categoryField = basicFields.value.find(f => f.name === 'category')
-            if (categoryField) {
-                categoryField.options = catOptions
-            }
+        if (!categoryStore.categories.length) {
+            await categoryStore.fetchCategories()
         }
-
-        if (brands && Array.isArray(brands)) {
-            const brandOptions = brands.map(brand => ({ value: String(brand.id), label: brand.name }))
-            const brandField = basicFields.value.find(f => f.name === 'brand')
-            if (brandField) {
-                brandField.options = brandOptions
-            }
+        if (!brandStore.brands.length) {
+            await brandStore.fetchBrands()
         }
-
+        const catOptions = categoryStore.categories.map(cat => ({ value: String(cat.id), label: cat.name }))
+        const categoryField = basicFields.value.find(f => f.name === 'category')
+        if (categoryField) {
+            categoryField.options = catOptions
+        }
+        const brandOptions = brandStore.brands.map(brand => ({ value: String(brand.id), label: brand.name }))
+        const brandField = basicFields.value.find(f => f.name === 'brand')
+        if (brandField) {
+            brandField.options = brandOptions
+        }
         isDataLoaded.value = true
     } catch (err) {
         console.error('Không thể tải danh mục/thương hiệu', err)

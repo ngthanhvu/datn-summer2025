@@ -77,7 +77,7 @@
                         <div v-if="coupon.type === 'percent'">
                             Giảm {{ coupon.value || 0 }}%
                             <span v-if="coupon.max_discount_value">tối đa {{ formatCurrency(coupon.max_discount_value)
-                                }}</span>
+                            }}</span>
                         </div>
                         <div v-else>
                             Giảm {{ formatCurrency(coupon.value || 0) }}
@@ -137,37 +137,16 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useCoupon } from '~/composables/useCoupon';
+import { useCouponStore } from '~/stores/useCouponStore'
 
 const notyf = useNuxtApp().$notyf
+const couponStore = useCouponStore()
 
-const { getCoupons, claimCoupon, getMyCoupons } = useCoupon();
-
-const coupons = ref([])
-const myCoupons = ref([])
-const loading = ref(true)
+const loading = computed(() => couponStore.isLoadingCoupons)
 
 onMounted(async () => {
-    try {
-        loading.value = true
-        const [couponsData, myCouponsData] = await Promise.all([
-            getCoupons(),
-            getMyCoupons().catch(() => ({ coupons: [] }))
-        ])
-
-        coupons.value = couponsData || []
-        myCoupons.value = myCouponsData?.coupons || []
-
-        const claimedIds = myCoupons.value.map(c => c.id)
-        coupons.value.forEach(coupon => {
-            coupon.is_claimed = claimedIds.includes(coupon.id)
-        })
-    } catch (error) {
-        console.error('Error loading coupons:', error)
-        coupons.value = []
-        myCoupons.value = []
-    } finally {
-        loading.value = false
+    if (!couponStore.coupons.length) {
+        await couponStore.fetchCoupons()
     }
 })
 
@@ -177,57 +156,25 @@ const selectedStatus = ref('')
 
 const claimVoucherCode = async (couponId) => {
     try {
-        const result = await claimCoupon(couponId)
-        console.log(`Đã lấy mã voucher thành công:`, result)
-
-        const myCouponsData = await getMyCoupons()
-        myCoupons.value = myCouponsData?.coupons || []
-
-        const claimedIds = myCoupons.value.map(c => c.id)
-        coupons.value.forEach(coupon => {
-            coupon.is_claimed = claimedIds.includes(coupon.id)
-        })
-
+        await couponStore.applyCoupon(couponId)
         notyf.success('Đã lưu mã voucher thành công!')
+        await couponStore.fetchCoupons()
     } catch (err) {
         console.error('Không thể lấy mã voucher:', err)
     }
 }
 
 const filteredCoupons = computed(() => {
-    let filtered = coupons.value || []
-
+    let filtered = couponStore.coupons || []
     if (searchQuery.value) {
-        filtered = filtered.filter(coupon =>
-            coupon.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            coupon.code.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            (coupon.description && coupon.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
-        )
+        filtered = filtered.filter(coupon => coupon.code?.toLowerCase().includes(searchQuery.value.toLowerCase()) || coupon.description?.toLowerCase().includes(searchQuery.value.toLowerCase()))
     }
-
     if (selectedCategory.value) {
         filtered = filtered.filter(coupon => coupon.type === selectedCategory.value)
     }
-
     if (selectedStatus.value) {
-        const now = new Date()
-        filtered = filtered.filter(coupon => {
-            const startDate = new Date(coupon.start_date)
-            const endDate = new Date(coupon.end_date)
-
-            switch (selectedStatus.value) {
-                case 'active':
-                    return coupon.is_active && now >= startDate && now <= endDate
-                case 'expired':
-                    return now > endDate
-                case 'used':
-                    return coupon.usage_limit && coupon.used_count >= coupon.usage_limit
-                default:
-                    return true
-            }
-        })
+        filtered = filtered.filter(coupon => getCouponStatus(coupon) === selectedStatus.value)
     }
-
     return filtered
 })
 

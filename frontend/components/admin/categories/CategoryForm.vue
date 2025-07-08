@@ -90,11 +90,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useCategory } from '~/composables/useCategory.js'
+import { useCategoryStore } from '~/stores/useCategoryStore.js'
 import { useNuxtApp, navigateTo } from '#app'
 
 const notyf = useNuxtApp().$notyf
-const { getCategories, createCategory } = useCategory()
+const categoryStore = useCategoryStore()
 
 const formData = ref({
     name: '',
@@ -130,8 +130,8 @@ function onImageChange(e) {
 
 onMounted(async () => {
     try {
-        const categories = await getCategories()
-        parentOptions.value = categories.map(cat => ({
+        await categoryStore.fetchCategories()
+        parentOptions.value = categoryStore.categories.map(cat => ({
             value: cat.id,
             label: cat.name
         }))
@@ -194,7 +194,7 @@ const handleSubmit = async () => {
     }
 
     try {
-        const result = await createCategory(formDataToSend)
+        const result = await categoryStore.createCategory(formDataToSend)
         if (result) {
             notyf.success('Tạo danh mục thành công')
             await navigateTo('/admin/categories')

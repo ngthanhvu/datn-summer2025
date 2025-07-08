@@ -39,19 +39,18 @@ definePageMeta({
     layout: 'admin',
     middleware: 'admin'
 })
-import { useCategory } from '~/composables/useCategory'
+import { useCategoryStore } from '~/stores/useCategoryStore.js'
 import Swal from 'sweetalert2'
 import CategoriesTable from '~/components/admin/categories/CategoriesTable.vue'
 
-const { getCategories, deleteCategory, bulkDeleteCategories } = useCategory()
-const categories = ref([])
+const categoryStore = useCategoryStore()
 const isLoading = ref(true)
 
 const handleDelete = async (category) => {
     try {
-        await deleteCategory(category.id)
         isLoading.value = true
-        categories.value = await getCategories()
+        await categoryStore.deleteCategory(category.id)
+        await categoryStore.fetchCategories()
         isLoading.value = false
         const Toast = Swal.mixin({
             toast: true,
@@ -86,8 +85,8 @@ const handleBulkDelete = async (selectedCategories) => {
 
         if (result.isConfirmed) {
             isLoading.value = true
-            await bulkDeleteCategories(selectedCategories)
-            categories.value = await getCategories()
+            await categoryStore.bulkDeleteCategories(selectedCategories)
+            await categoryStore.fetchCategories()
             isLoading.value = false
 
             const Toast = Swal.mixin({
@@ -113,7 +112,7 @@ const handleBulkDelete = async (selectedCategories) => {
 const handleRefresh = async () => {
     isLoading.value = true
     try {
-        categories.value = await getCategories()
+        await categoryStore.fetchCategories()
     } catch (error) {
         console.error('Failed to fetch categories:', error)
     } finally {
@@ -124,13 +123,15 @@ const handleRefresh = async () => {
 onMounted(async () => {
     isLoading.value = true
     try {
-        categories.value = await getCategories()
+        await categoryStore.fetchCategories()
     } catch (error) {
         console.error('Failed to fetch categories:', error)
     } finally {
         isLoading.value = false
     }
 })
+
+const categories = computed(() => categoryStore.categories)
 </script>
 
 <style scoped>

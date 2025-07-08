@@ -1,6 +1,12 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
+  devtools: {
+    enabled: true,
+
+    timeline: {
+      enabled: true
+    }
+  },
   css: [
     'bootstrap/dist/css/bootstrap.min.css',
     '~/assets/css/tailwind.css',
@@ -80,7 +86,7 @@ export default defineNuxtConfig({
     payloadExtraction: false
   },
   modules: [
-    '@nuxtjs/tailwindcss'
+    '@nuxtjs/tailwindcss', '@pinia/nuxt'
   ],
   build: {
     transpile: ['apexcharts']

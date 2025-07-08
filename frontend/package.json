@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@pinia/nuxt": "^0.11.1",
     "@vueup/vue-quill": "^1.2.0",
     "apexcharts": "^4.7.0",
     "axios": "^1.9.0",
@@ -18,6 +19,7 @@
     "jspdf": "^3.0.1",
     "notyf": "^3.10.0",
     "nuxt": "^3.17.3",
+    "pinia": "^3.0.3",
     "sweetalert2": "^11.6.13",
     "swiper": "^11.2.6",
     "vue": "^3.5.13",

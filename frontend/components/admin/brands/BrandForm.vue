@@ -88,11 +88,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useBrand } from '~/composables/useBrand.js'
+import { useBrandStore } from '~/stores/useBrandStore'
 import { useNuxtApp, navigateTo } from '#app'
 
 const notyf = useNuxtApp().$notyf
-const { getBrands, createBrand } = useBrand()
+const brandStore = useBrandStore()
 
 const formData = ref({
     name: '',
@@ -133,8 +133,10 @@ function removeImage() {
 
 onMounted(async () => {
     try {
-        const brands = await getBrands()
-        parentOptions.value = brands.map(brand => ({
+        if (!brandStore.brands.length) {
+            await brandStore.fetchBrands()
+        }
+        parentOptions.value = brandStore.brands.map(brand => ({
             value: brand.id,
             label: brand.name
         }))
@@ -197,7 +199,7 @@ const handleSubmit = async () => {
     }
 
     try {
-        const result = await createBrand(formDataToSend)
+        const result = await brandStore.createBrand(formDataToSend)
         if (result) {
             notyf.success('Tạo thương hiệu thành công')
             await navigateTo('/admin/brands')
