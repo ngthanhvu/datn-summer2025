@@ -20,7 +20,7 @@
       <div class="tw-p-4 tw-border-b tw-border-gray-100 tw-sticky tw-top-[64px] tw-z-10 tw-bg-white">
         <div class="tw-relative">
           <input v-model="searchQuery" type="text" placeholder="Tìm kiếm khách hàng..."
-            class="tw-w-full tw-pl-10 tw-pr-4 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg tw-text-sm focus:tw-outline-none focus:tw-ring-2 focus:ring-primary">
+            class="tw-w-full tw-pl-10 tw-pr-4 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg tw-text-sm focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
           <i
             class="fas fa-search tw-absolute tw-left-3 tw-top-1/2 tw-transform tw--translate-y-1/2 tw-text-gray-400"></i>
         </div>

@@ -8,8 +8,9 @@
         </p>
       </div>
       <div class="tw-flex tw-gap-3">
-        <button @click="handleFilterChange" class="tw-bg-primary tw-text-white tw-rounded tw-px-4 tw-py-2">
-          <i class="fas fa-sync-alt tw-mr-2"></i>Làm mới
+        <button @click="handleFilterChange"
+          class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-gray-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-gray-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-gray-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
+          <i class="fas fa-sync-alt tw-mr-2"></i>Tải lại
         </button>
       </div>
     </div>
@@ -50,7 +51,7 @@
             Đánh giá mới nhất hiển thị đầu tiên
           </div>
         </div>
-        <div class="tw-mt-2 tw-text-xs tw-text-gray-500">
+        <div class="tw-mt-2 tw-text-xs tw-text-red-500">
           <i class="fas fa-exclamation-triangle tw-mr-1"></i>
           <strong>Lưu ý:</strong> Đánh giá chứa từ khóa tiêu cực sẽ tự động bị ẩn (rejected).
           Đánh giá chưa được duyệt sẽ hiển thị trạng thái "pending".

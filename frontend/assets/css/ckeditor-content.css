@@ -1,0 +1,142 @@
+/* Phong cách cơ bản cho nội dung CKEditor */
+.editor-content {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Tiêu đề */
+.editor-content h1 {
+    font-size: 2.25rem;
+    font-weight: bold;
+    margin: 1.2em 0 0.6em;
+}
+
+.editor-content h2 {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin: 1.1em 0 0.55em;
+}
+
+.editor-content h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 1em 0 0.5em;
+}
+
+.editor-content h4 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin: 0.9em 0 0.45em;
+}
+
+.editor-content h5 {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin: 0.8em 0 0.4em;
+}
+
+.editor-content h6 {
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 0.7em 0 0.35em;
+}
+
+/* Đoạn văn */
+.editor-content p {
+    margin-bottom: 1em;
+}
+
+/* Danh sách */
+.editor-content ul {
+    padding-left: 1.5em;
+    margin-bottom: 1em;
+}
+
+.editor-content ol {
+    padding-left: 1.5em;
+    margin-bottom: 1em;
+}
+
+.editor-content li {
+    margin-bottom: 0.5em;
+}
+
+/* Blockquote */
+.editor-content blockquote {
+    border-left: 4px solid #ccc;
+    padding-left: 1em;
+    color: #555;
+    font-style: italic;
+    margin: 1em 0;
+}
+
+/* Bảng */
+.editor-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1em;
+}
+
+.editor-content th,
+.editor-content td {
+    border: 1px solid #ccc;
+    padding: 0.75em;
+    text-align: left;
+}
+
+.editor-content th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+
+/* Hình ảnh */
+.editor-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em 0;
+}
+
+/* Link */
+.editor-content a {
+    color: #3bb77e;
+    text-decoration: underline;
+}
+
+.editor-content a:hover {
+    color: #2ea16d;
+}
+
+/* Media Embed (YouTube, Vimeo...) */
+.editor-content .media {
+    margin: 1em 0;
+}
+
+.editor-content iframe {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border: none;
+}
+
+.editor-content figure.image {
+    display: table;
+    margin: 1em auto;
+    text-align: center;
+}
+
+.editor-content figure.image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+}
+
+.editor-content figure.image figcaption {
+    margin-top: 0.5em;
+    color: #777;
+    font-size: 0.875rem;
+    font-style: italic;
+    text-align: center;
+}

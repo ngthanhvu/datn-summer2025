@@ -3,25 +3,32 @@
         <form @submit.prevent="handleSubmit" class="form form-grid">
             <div class="form-group">
                 <label for="name">Tên chương trình</label>
-                <input id="name" v-model="formData.name" type="text" required
-                    placeholder="Nhập tên chương trình khuyến mãi" />
+                <input id="name"
+                    class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                    v-model="formData.name" type="text" required placeholder="Nhập tên chương trình khuyến mãi" />
                 <span v-if="errors.name" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.name }}</span>
             </div>
             <div class="form-group">
                 <label for="code">Mã giảm giá</label>
-                <input id="code" v-model="formData.code" type="text" required placeholder="Nhập mã giảm giá" />
+                <input id="code"
+                    class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                    v-model="formData.code" type="text" required placeholder="Nhập mã giảm giá" />
                 <span v-if="errors.code" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.code }}</span>
             </div>
             <div class="form-group">
                 <label for="description">Mô tả</label>
-                <textarea id="description" v-model="formData.description" rows="3"
+                <textarea id="description"
+                    class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                    v-model="formData.description" rows="3"
                     placeholder="Nhập mô tả chi tiết về chương trình khuyến mãi"></textarea>
                 <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
                 <label for="type">Loại giảm giá</label>
-                <select id="type" v-model="formData.type" required>
+                <select id="type"
+                    class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                    v-model="formData.type" required>
                     <option value="fixed">Giảm số tiền cố định</option>
                     <option value="percent">Giảm theo phần trăm</option>
                 </select>
@@ -29,7 +36,9 @@
             <div class="form-group">
                 <label for="value">Giá trị giảm</label>
                 <div class="input-with-suffix">
-                    <input id="value" v-model.number="formData.value" type="number" required :min="0"
+                    <input id="value"
+                        class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                        v-model.number="formData.value" type="number" required :min="0"
                         :max="formData.type === 'percent' ? 100 : undefined"
                         :step="formData.type === 'percent' ? 1 : 1000" />
                     <span class="suffix">{{ formData.type === 'percent' ? '%' : 'đ' }}</span>
@@ -39,39 +48,48 @@
             <div class="form-group">
                 <label for="min_order_value">Đơn hàng tối thiểu</label>
                 <div class="input-with-suffix">
-                    <input id="min_order_value" v-model.number="formData.min_order_value" type="number" required
-                        :min="0" :step="1000" />
+                    <input id="min_order_value"
+                        class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                        v-model.number="formData.min_order_value" type="number" required :min="0" :step="1000" />
                     <span class="suffix">đ</span>
                 </div>
                 <span v-if="errors.min_order_value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.min_order_value
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="max_discount_value">Giảm tối đa</label>
                 <div class="input-with-suffix">
-                    <input id="max_discount_value" v-model.number="formData.max_discount_value" type="number" required
-                        :min="0" :step="1000" :disabled="formData.type === 'percent'" />
+                    <input id="max_discount_value"
+                        class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                        v-model.number="formData.max_discount_value" type="number" required :min="0" :step="1000"
+                        :disabled="formData.type === 'percent'" />
                     <span class="suffix">đ</span>
                 </div>
                 <span v-if="errors.max_discount_value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                     errors.max_discount_value
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="usage_limit">Giới hạn sử dụng</label>
-                <input id="usage_limit" v-model.number="formData.usage_limit" type="number" :min="0" :step="1"
+                <input id="usage_limit"
+                    class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                    v-model.number="formData.usage_limit" type="number" :min="0" :step="1"
                     placeholder="0 = không giới hạn" />
                 <span v-if="errors.usage_limit" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.usage_limit
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="start_date">Ngày bắt đầu</label>
-                <input id="start_date" v-model="formData.start_date" type="datetime-local" required />
+                <input id="start_date"
+                    class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                    v-model="formData.start_date" type="datetime-local" required />
                 <span v-if="errors.start_date" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.start_date }}</span>
             </div>
             <div class="form-group">
                 <label for="end_date">Ngày kết thúc</label>
-                <input id="end_date" v-model="formData.end_date" type="datetime-local" required />
+                <input id="end_date"
+                    class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                    v-model="formData.end_date" type="datetime-local" required />
                 <span v-if="errors.end_date" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.end_date }}</span>
             </div>
             <div class="form-group">

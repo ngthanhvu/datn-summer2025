@@ -9,21 +9,24 @@
         <div class="tw-mb-4">
             <label class="tw-block tw-font-medium tw-mb-1">Tên thương hiệu <span
                     class="tw-text-red-500">*</span></label>
-            <input v-model="formData.name" type="text" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
+            <input v-model="formData.name" type="text"
+                class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                 placeholder="Nhập tên thương hiệu" />
             <div v-if="formErrors.name" class="tw-text-red-500 tw-text-sm">{{ formErrors.name }}</div>
         </div>
 
         <div class="tw-mb-4">
             <label class="tw-block tw-font-medium tw-mb-1">Mô tả</label>
-            <textarea v-model="formData.description" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
+            <textarea v-model="formData.description"
+                class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                 placeholder="Nhập mô tả thương hiệu" rows="4"></textarea>
             <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm">{{ formErrors.description }}</div>
         </div>
 
         <div class="tw-mb-4">
             <label class="tw-block tw-font-medium tw-mb-1">Thương hiệu cha</label>
-            <select v-model="formData.parent_id" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2">
+            <select v-model="formData.parent_id"
+                class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
                 <option value="">Chọn thương hiệu cha</option>
                 <option v-for="option in parentOptions" :key="option.value" :value="option.value">
                     {{ option.label }}
