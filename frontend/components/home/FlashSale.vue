@@ -27,7 +27,7 @@
                   class="tw-relative tw-overflow-hidden tw-group tw-pb-2 sm:tw-pb-3 tw-bg-white"
                   :style="`width: 250px; height: 370px; margin: 17px auto; background: url('${productSaleBg}') center/cover no-repeat;`"
                 >
-                  <div class="tw-relative tw-overflow-hidden tw-rounded-[5px]" style="width: 236px; height: 320px; margin: 5px auto;">
+                  <div class="tw-relative tw-overflow-hidden tw-rounded-[5px] " style="width: 236px; height: 320px; margin: 5px auto;">
                     <img
                       :src="getMainImage(product)"
                       alt="Ảnh sản phẩm"
