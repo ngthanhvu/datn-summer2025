@@ -5,7 +5,8 @@ export const useCouponStore = defineStore('couponStore', {
     state: () => ({
         coupons: [],
         isLoadingCoupons: false,
-        error: null
+        error: null,
+        myCoupons: []
     }),
     actions: {
         async fetchCoupons() {
@@ -14,6 +15,20 @@ export const useCouponStore = defineStore('couponStore', {
             try {
                 const res = await axios.get('/api/coupons')
                 this.coupons = res.data
+            } catch (err) {
+                this.error = err
+            } finally {
+                this.isLoadingCoupons = false
+            }
+        },
+        async fetchMyCoupons() {
+            this.isLoadingCoupons = true
+            this.error = null
+            try {
+                const { useCoupon } = await import('~/composables/useCoupon')
+                const { getMyCoupons } = useCoupon()
+                const res = await getMyCoupons()
+                this.myCoupons = res?.coupons || []
             } catch (err) {
                 this.error = err
             } finally {

@@ -8,18 +8,17 @@ import OrderSummary from '~/components/checkout/OrderSummary.vue'
 import { useAddress } from '~/composables/useAddress'
 import { useCartStore } from '~/stores/useCartStore'
 import { useCouponStore } from '~/stores/useCouponStore'
-import { useOrderStore } from '~/stores/useOrderStore'
 import { usePayment } from '~/composables/usePayment'
+import { useCheckout } from '~/composables/useCheckout'
 
 const addressService = useAddress()
 const cartStore = useCartStore()
 const couponStore = useCouponStore()
-const orderStore = useOrderStore()
 const paymentService = usePayment()
+const { createOrder: createOrderApi, applyCoupon: applyCouponApi } = useCheckout()
 
 const { cart, isLoadingCart, error: cartError } = storeToRefs(cartStore)
 const { coupons, isLoadingCoupons, error: couponError } = storeToRefs(couponStore)
-const { orders, isLoadingOrders, error: orderError } = storeToRefs(orderStore)
 
 const showAddressForm = ref(false)
 const editingAddressIndex = ref(null)
@@ -160,7 +159,7 @@ const fetchCart = async () => {
 const applyCoupon = async (code) => {
     try {
         isLoading.value = true
-        const result = await couponStore.applyCoupon(code)
+        const result = await applyCouponApi(code, subtotal.value)
         if (result.discount !== undefined) {
             appliedCoupon.value = result.coupon
             discount.value = Math.round(result.discount)
@@ -234,7 +233,7 @@ const placeOrder = async () => {
             final_price: total.value
         }
         console.log('Creating order with data:', orderData)
-        const result = await orderStore.createOrder(orderData)
+        const result = await createOrderApi(orderData)
         if (result && result.order) {
             const paymentMethod = paymentMethods[selectedPaymentMethod.value].code
             const orderId = result.order.id

@@ -138,9 +138,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useCouponStore } from '~/stores/useCouponStore'
+import { useCoupon } from '~/composables/useCoupon'
 
 const notyf = useNuxtApp().$notyf
 const couponStore = useCouponStore()
+const { claimCoupon } = useCoupon()
 
 const loading = computed(() => couponStore.isLoadingCoupons)
 
@@ -156,9 +158,10 @@ const selectedStatus = ref('')
 
 const claimVoucherCode = async (couponId) => {
     try {
-        await couponStore.applyCoupon(couponId)
+        await claimCoupon(couponId)
         notyf.success('Đã lưu mã voucher thành công!')
         await couponStore.fetchCoupons()
+        await couponStore.fetchMyCoupons()
     } catch (err) {
         console.error('Không thể lấy mã voucher:', err)
     }

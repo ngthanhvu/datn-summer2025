@@ -395,7 +395,7 @@ const paymentStatuses = [
 const fetchOrders = async () => {
     try {
         await orderStore.fetchOrders()
-        let filteredOrders = orderStore.orders || []
+        let filteredOrders = Array.isArray(orderStore.orders) ? orderStore.orders : []
 
         if (selectedStatus.value) {
             filteredOrders = filteredOrders.filter(order => order.status === selectedStatus.value)
@@ -409,7 +409,7 @@ const fetchOrders = async () => {
             })
         }
 
-        orders.value = filteredOrders.map(order => ({
+        orders.value = (Array.isArray(filteredOrders) ? filteredOrders : []).map(order => ({
             ...order,
             statusLabel: getStatusLabel(order.status),
             paymentStatusLabel: getPaymentStatusLabel(determinePaymentStatus(order))

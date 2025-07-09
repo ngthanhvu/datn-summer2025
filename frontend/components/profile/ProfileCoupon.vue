@@ -133,13 +133,13 @@ const couponStore = useCouponStore()
 const loading = computed(() => couponStore.isLoadingCoupons)
 
 const myCoupons = computed(() => {
-    // Giả sử couponStore.coupons có trường is_claimed hoặc pivot cho biết đã lưu
-    return (couponStore.coupons || []).filter(coupon => coupon.is_claimed || coupon.pivot)
+    // Lấy trực tiếp từ store
+    return couponStore.myCoupons || []
 })
 
 onMounted(async () => {
-    if (!couponStore.coupons.length) {
-        await couponStore.fetchCoupons()
+    if (!couponStore.myCoupons.length) {
+        await couponStore.fetchMyCoupons()
     }
 })
 

@@ -116,7 +116,7 @@ const emit = defineEmits(['apply-coupon', 'place-order'])
 const couponCode = ref('')
 const availableCoupons = ref([])
 const couponStore = useCouponStore()
-const { coupons, isLoadingCoupons, error: couponError } = storeToRefs(couponStore)
+const { coupons, isLoadingCoupons, error: couponError, myCoupons } = storeToRefs(couponStore)
 const { $config: runtimeConfig } = useNuxtApp()
 
 const total = computed(() => {
@@ -143,15 +143,12 @@ const selectCoupon = (coupon) => {
 
 const fetchAvailableCoupons = async () => {
     try {
-        // Lấy danh sách coupon đã lưu của user thông qua store
-        const myCouponsData = await couponStore.getMyCoupons?.()
-        const myCoupons = myCouponsData?.coupons || []
-        if (!myCoupons || !Array.isArray(myCoupons)) {
-            console.error('Invalid my coupons data:', myCoupons)
-            return
+        // Lấy danh sách coupon đã lưu của user từ store
+        if (!myCoupons.value.length) {
+            await couponStore.fetchMyCoupons()
         }
         const now = new Date()
-        availableCoupons.value = myCoupons.filter(coupon => {
+        availableCoupons.value = (myCoupons.value || []).filter(coupon => {
             // Chỉ hiển thị coupon đang hoạt động và chưa sử dụng
             return coupon.is_active &&
                 coupon.pivot?.status !== 'used' &&

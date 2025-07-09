@@ -78,10 +78,9 @@ import OrderTimeline from '~/components/order-tracking/OrderTimeline.vue'
 import ShippingInfo from '~/components/order-tracking/ShippingInfo.vue'
 import PaymentInfo from '~/components/order-tracking/PaymentInfo.vue'
 import OrderItems from '~/components/order-tracking/OrderItems.vue'
-import { useOrderStore } from '~/stores/useOrderStore'
+import { useOrder } from '~/composables/useOrder'
 import { useNuxtApp } from '#app'
 
-const orderStore = useOrderStore()
 const { $config: runtimeConfig } = useNuxtApp()
 
 const orderData = ref(null)
@@ -89,15 +88,9 @@ const orderError = ref(null)
 
 const loading = ref(false)
 
-watch(() => orderStore.currentOrder, (newVal) => {
-    if (newVal) {
-        orderData.value = mapOrderData(newVal)
-    } else {
-        orderData.value = null
-    }
-}, { immediate: true })
+const { getOrderByTrackingCode } = useOrder()
 
-watch(() => orderStore.error, (newVal) => {
+watch(() => orderError.value, (newVal) => {
     orderError.value = newVal
 })
 
@@ -203,7 +196,8 @@ const searchOrder = async (formData) => {
     try {
         orderError.value = null
         orderData.value = null
-        await orderStore.fetchOrderByTrackingCode(formData.trackingCode)
+        const order = await getOrderByTrackingCode(formData.trackingCode)
+        orderData.value = mapOrderData(order)
     } catch (err) {
         orderError.value = err?.message || 'Không tìm thấy đơn hàng'
     }

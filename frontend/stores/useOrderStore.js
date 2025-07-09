@@ -13,7 +13,7 @@ export const useOrderStore = defineStore('orderStore', {
             this.error = null
             try {
                 const res = await axios.get('/api/orders')
-                this.orders = res.data
+                this.orders = Array.isArray(res.data.data) ? res.data.data : []
             } catch (err) {
                 this.error = err
             } finally {
