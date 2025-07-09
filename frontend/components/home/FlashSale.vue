@@ -24,15 +24,47 @@
                 style="text-decoration: none; color: inherit;"
             >
                 <div
-                    class=" tw-overflow-hidden tw-flex tw-items-center tw-justify-center"
-                    :style="`background: url('${productSaleBg}') center/cover no-repeat; width: 250px; height: 370px; margin: 17px auto;`"
+                  class="tw-relative tw-overflow-hidden tw-group tw-pb-2 sm:tw-pb-3 tw-bg-white"
+                  :style="`width: 250px; height: 370px; margin: 17px auto; background: url('${productSaleBg}') center/cover no-repeat;`"
                 >
+                  <div class="tw-relative tw-overflow-hidden tw-rounded-[5px]" style="width: 236px; height: 320px; margin: 5px auto;">
                     <img
-                        :src="getMainImage(product)"
-                        alt="Ảnh sản phẩm"
-                        class="tw-object-cover"
-                        style="width: 228px; height: 317px; display: block; margin-top: -38px;"
+                      :src="getMainImage(product)"
+                      alt="Ảnh sản phẩm"
+                      class="tw-w-full tw-h-full tw-object-cover tw-transition-transform group-hover:tw-scale-105 tw-duration-300"
                     />
+                    <!-- Hover overlay -->
+                    <div class="tw-absolute tw-inset-0 tw-bg-black/10 tw-opacity-0 group-hover:tw-opacity-100 tw-transition-opacity tw-duration-300"></div>
+                    <!-- Hover buttons -->
+                    <div
+                      class="tw-absolute tw-bottom-4 tw-left-1/2 -tw-translate-x-1/2 tw-flex tw-gap-2 tw-opacity-0 tw-translate-y-4 group-hover:tw-opacity-100 group-hover:tw-translate-y-0 tw-transition-all tw-duration-300"
+                    >
+                      <button
+                        class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
+                        title="Thêm vào giỏ"
+                        @click.prevent.stop="addToCart(product)"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none"
+                          viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5H19M7 13L5.4 5M16 16a1 1 0 100 2 1 1 0 000-2zm-8 0a1 1 0 100 2 1 1 0 000-2z" />
+                        </svg>
+                      </button>
+                      <button
+                        class="tw-bg-white tw-rounded tw-w-10 tw-h-10 tw-flex tw-items-center tw-justify-center tw-shadow hover:tw-bg-gray-100 tw-transition tw-duration-200"
+                        title="Xem nhanh"
+                        @click.prevent.stop="onQuickView(product)"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-5 tw-w-5" fill="none"
+                          viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div class="tw-bg-white tw-px-2 tw-py-3 tw-shadow -tw-mt-4 tw-z-10 tw-relative">
                     <div class="tw-font-bold tw-text-gray-500 tw-text-xs tw-uppercase tw-mb-1 tw-text-left">
@@ -139,6 +171,15 @@ function getUniqueColors(product) {
     }
   }
   return unique.slice(0, 3)
+}
+
+function addToCart(product) {
+  // TODO: Thêm logic thêm vào giỏ hàng
+  console.log('Add to cart:', product)
+}
+function onQuickView(product) {
+  // TODO: Hiển thị modal quick view
+  console.log('Quick view:', product)
 }
 
 onMounted(async () => {
