@@ -220,7 +220,7 @@ const placeOrder = async () => {
         const items = cart.map(item => ({
             variant_id: item.variant.id,
             quantity: item.quantity,
-            price: item.variant.price || 0
+            price: item.price 
         }))
 
         const orderData = {

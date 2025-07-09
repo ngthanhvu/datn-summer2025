@@ -69,6 +69,8 @@
                 <th class="tw-px-3 tw-py-2">Ảnh</th>
                 <th class="tw-px-3 tw-py-2">Tên sản phẩm</th>
                 <th class="tw-px-3 tw-py-2">Mã SP</th>
+                <th class="tw-px-3 tw-py-2">Giá thường</th>
+                <th class="tw-px-3 tw-py-2">Giá KM</th>
                 <th class="tw-px-3 tw-py-2">Giá Flash Sale</th>
                 <th class="tw-px-3 tw-py-2">Số lượng</th>
                 <th class="tw-px-3 tw-py-2">#</th>
@@ -76,9 +78,11 @@
             </thead>
             <tbody>
               <tr v-for="(item, idx) in products" :key="item.id">
-                <td class="tw-px-3 tw-py-2"><img :src="item.image" class="tw-w-10 tw-h-10 tw-rounded" /></td>
+                <td class="tw-px-3 tw-py-2"><img :src="getMainImage(item)" class="tw-w-10 tw-h-10 tw-rounded" /></td>
                 <td class="tw-px-3 tw-py-2">{{ item.name }}</td>
                 <td class="tw-px-3 tw-py-2">{{ item.sku }}</td>
+                <td class="tw-px-3 tw-py-2">{{ item.product?.price ? formatPrice(item.product.price) : (item.price ? formatPrice(item.price) : 'N/A') }}</td>
+                <td class="tw-px-3 tw-py-2">{{ item.product?.discount_price ? formatPrice(item.product.discount_price) : (item.discount_price ? formatPrice(item.discount_price) : 'N/A') }}</td>
                 <td class="tw-px-3 tw-py-2"><input v-model="item.flashPrice" class="input tw-w-24" placeholder="Giá FS" /></td>
                 <td class="tw-px-3 tw-py-2"><input v-model="item.quantity" class="input tw-w-16" placeholder="SL" /></td>
                 <td class="tw-px-3 tw-py-2"><button class="btn btn-danger" @click="removeProduct(idx)">Xóa</button></td>
@@ -99,10 +103,15 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import FlashSaleProductModal from './FlashSaleProductModal.vue'
 import { useFlashsale } from '@/composables/useFlashsale'
+import { useProducts } from '@/composables/useProducts'
 import { useRouter } from 'vue-router'
+function formatPrice(price) {
+  if (price === null || price === undefined || price === '') return 'N/A'
+  return new Intl.NumberFormat('vi-VN').format(Number(price))
+}
 const props = defineProps({
   editData: Object
 })
@@ -122,7 +131,13 @@ const form = ref({
 const loading = ref(false)
 const error = ref('')
 const success = ref('')
-const { createFlashSale, updateFlashSale } = useFlashsale()
+const { createFlashSale, updateFlashSale, getMainImage } = useFlashsale()
+const { getProducts } = useProducts()
+const allProducts = ref([])
+const pendingProducts = ref([])
+onMounted(async () => {
+  allProducts.value = await getProducts()
+})
 const router = useRouter()
 // Nếu có editData thì fill vào form và products
 watch(() => props.editData, (val) => {
@@ -136,32 +151,36 @@ watch(() => props.editData, (val) => {
       autoIncrease: val.auto_increase || val.autoIncrease || false,
       active: val.active !== undefined ? val.active : true
     }
-    if (val.products) {
-      products.value = val.products.map(p => {
-        let img = p.image || '/default-product.png';
-        let imagesArr = [];
-        if (p.product && Array.isArray(p.product.images)) {
-          imagesArr = p.product.images;
-        } else if (Array.isArray(p.images)) {
-          imagesArr = p.images;
-        }
-        if (imagesArr.length > 0) {
-          const mainImg = imagesArr.find(img => img.is_main == 1);
-          img = mainImg ? mainImg.image_path : imagesArr[0].image_path;
-        }
+    pendingProducts.value = val.products || []
+    if (pendingProducts.value.length && allProducts.value.length) {
+      products.value = pendingProducts.value.map(p => {
+        const prodId = String(p.product_id || p.id || (p.product && p.product.id))
+        const origin = allProducts.value.find(ap => String(ap.id) === prodId)
+        const fallback = !origin && p.name ? allProducts.value.find(ap => ap.name === p.name) : undefined
         return {
-          id: p.product_id || p.id,
-          product_id: p.product_id || p.id,
-          name: p.product?.name || p.name || '',
-          sku: p.product?.sku || p.sku || '',
-          image: img,
-          flashPrice: p.flash_price || p.flashPrice || '',
-          quantity: p.quantity || 0
+          ...(origin || fallback || {}),
+          ...p,
+          product: origin || fallback
         }
       })
     }
   }
 }, { immediate: true })
+
+watch(allProducts, (val) => {
+  if (pendingProducts.value.length && val.length) {
+    products.value = pendingProducts.value.map(p => {
+      const prodId = String(p.product_id || p.id || (p.product && p.product.id))
+      const origin = val.find(ap => String(ap.id) === prodId)
+      const fallback = !origin && p.name ? val.find(ap => ap.name === p.name) : undefined
+      return {
+        ...(origin || fallback || {}),
+        ...p,
+        product: origin || fallback
+      }
+    })
+  }
+})
 function addProduct(product) {
   products.value.push({ ...product, flashPrice: '', quantity: 100 })
 }

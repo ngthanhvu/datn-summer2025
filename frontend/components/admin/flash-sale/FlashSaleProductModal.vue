@@ -29,7 +29,7 @@
               </thead>
               <tbody>
                 <tr v-for="item in filteredAllProducts" :key="item.id">
-                  <td class="tw-px-2 tw-py-2"><img :src="item.image" class="tw-w-10 tw-h-10 tw-rounded" /></td>
+                  <td class="tw-px-2 tw-py-2"><img :src="getMainImage(item)" class="tw-w-10 tw-h-10 tw-rounded" /></td>
                   <td class="tw-px-2 tw-py-2">{{ item.name }}</td>
                   <td class="tw-px-2 tw-py-2">{{ item.sku }}</td>
                   <td class="tw-px-2 tw-py-2">{{ item.price }}</td>
@@ -73,7 +73,7 @@
             </thead>
             <tbody>
               <tr v-for="(item, idx) in filteredProducts" :key="item.id">
-                <td class="tw-px-2 tw-py-2"><img :src="item.image" class="tw-w-10 tw-h-10 tw-rounded" /></td>
+                <td class="tw-px-2 tw-py-2"><img :src="getMainImage(item)" class="tw-w-10 tw-h-10 tw-rounded" /></td>
                 <td class="tw-px-2 tw-py-2">{{ item.name }}</td>
                 <td class="tw-px-2 tw-py-2">{{ item.sku }}</td>
                 <td class="tw-px-2 tw-py-2">{{ item.price }}</td>
@@ -100,6 +100,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useProducts } from '@/composables/useProducts'
+import { useFlashsale } from '@/composables/useFlashsale'
 const props = defineProps({
   products: Array
 })
@@ -113,6 +114,7 @@ const { getProducts } = useProducts()
 const allProducts = ref([])
 const loading = ref(false)
 const error = ref('')
+const { getMainImage } = useFlashsale()
 
 // Lấy sản phẩm khi mở modal
 onMounted(async () => {
@@ -138,12 +140,26 @@ onMounted(async () => {
 })
 
 // Sản phẩm local (đã chọn hoặc đang chỉnh sửa)
-const localProducts = ref((props.products || []).map((p, idx) => ({
-  ...p,
-  price: p.price ?? fakePrice(idx).price,
-  salePrice: p.salePrice ?? fakePrice(idx).salePrice,
-  sold: p.sold ?? fakePrice(idx).sold
-})))
+const localProducts = ref([])
+
+watch(
+  [() => props.products, allProducts],
+  ([val, allProds]) => {
+    if (val && allProds.length > 0) {
+      localProducts.value = val.map(p => {
+        const prodId = String(p.product_id || p.id || (p.product && p.product.id))
+        const origin = allProds.find(ap => String(ap.id) === prodId)
+        const fallback = !origin && p.name ? allProds.find(ap => ap.name === p.name) : undefined
+        return {
+          ...(origin || fallback || {}), 
+          ...p,      
+          product: origin || fallback 
+        }
+      })
+    }
+  },
+  { immediate: true }
+)
 
 // Khi chọn sản phẩm từ danh sách, thêm vào localProducts nếu chưa có
 function addProduct(product) {
@@ -179,7 +195,7 @@ function remove(idx) {
 function apply() {
   emit('select', localProducts.value.map(p => ({
     ...p,
-    image: p.image // giữ đúng link ảnh đã map
+    image: p.image
   })))
   emit('close')
 }

@@ -27,7 +27,7 @@
               <th class="tw-px-4 tw-py-2">Thời gian</th>
               <th class="tw-px-4 tw-py-2">Trạng thái</th>
               <th class="tw-px-4 tw-py-2">Lặp lại</th>
-              <th class="tw-px-4 tw-py-2">#</th>
+              <th class="tw-px-4 tw-py-2">Hành động</th>
             </tr>
           </thead>
           <tbody>

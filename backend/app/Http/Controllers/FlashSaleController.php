@@ -132,6 +132,14 @@ class FlashSaleController extends Controller
             'products.product.brand',
             'products.product.variants',
         ])->findOrFail($id);
+        // Merge flash_price, quantity, sold vào product cho từng sản phẩm
+        foreach ($flashSale->products as $p) {
+            if ($p->product) {
+                $p->product->flash_sale_quantity = $p->quantity;
+                $p->product->flash_sale_sold = $p->sold;
+                $p->product->flash_price = $p->flash_price;
+            }
+        }
         return response()->json($flashSale);
     }
 } 
