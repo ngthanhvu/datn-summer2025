@@ -334,7 +334,15 @@ const addToCart = async () => {
       notyf.error('Số lượng vượt quá số lượng trong kho')
       return
     }
-    await addToCartComposable(selectedVariant.id, quantity.value)
+    // Tính đúng giá hiển thị của biến thể đang chọn (giống UI)
+    let price = selectedVariant.price
+    if (flashSalePrice.value && data.value.price) {
+      const percent = Math.round(100 - (flashSalePrice.value / data.value.price) * 100)
+      if (percent > 0) {
+        price = Math.round(selectedVariant.price * (1 - percent / 100))
+      }
+    }
+    await addToCartComposable(selectedVariant.id, quantity.value, price)
     notyf.success('Đã thêm vào giỏ hàng')
   } catch (error) {
     console.error('Error adding to cart:', error)

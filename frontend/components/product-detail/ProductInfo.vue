@@ -339,11 +339,8 @@ const addToCart = async () => {
             notyf.error('Số lượng vượt quá số lượng còn lại')
             return
         }
-        let price = selectedVariant.value.price
-        if (flashSalePercent.value > 0) {
-            price = Math.round(selectedVariant.value.price * (1 - flashSalePercent.value / 100))
-        }
-        await addToCartComposable(selectedVariant.value.id, props.quantity, price)
+        // Truyền đúng giá hiển thị ở UI vào giỏ hàng
+        await addToCartComposable(selectedVariant.value.id, props.quantity, selectedVariantSalePrice.value)
         notyf.success('Đã thêm vào giỏ hàng')
     } catch (error) {
         notyf.error('Có lỗi xảy ra khi thêm vào giỏ hàng')

@@ -69,7 +69,7 @@ class CartController extends Controller
             ], 422);
         }
 
-        $price = $variant->price;
+        $price = $request->has('price') ? $request->price : $variant->price;
 
         $data = [
             'variant_id' => $variant->id,
