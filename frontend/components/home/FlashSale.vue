@@ -34,7 +34,6 @@
                         style="width: 228px; height: 317px; display: block; margin-top: -38px;"
                     />
                 </div>
-                <!-- Phần nội dung dưới -->
                 <div class="tw-bg-white tw-px-2 tw-py-3 tw-shadow -tw-mt-4 tw-z-10 tw-relative">
                     <div class="tw-font-bold tw-text-gray-500 tw-text-xs tw-uppercase tw-mb-1 tw-text-left">
                         {{ product.category?.name || 'KHÁC' }}
@@ -49,18 +48,16 @@
                             -{{ getDiscountPercent(product.price, product.flash_price) }}%
                         </span>
                     </div>
-                    <!-- Biến thể màu/size -->
                     <div class="tw-flex tw-items-center tw-gap-1 tw-mb-1">
                         <span
-                          v-for="(variant, idx) in (product.variants || [])"
-                          :key="variant.id"
+                          v-for="(color, idx) in getUniqueColors(product)"
+                          :key="color"
                           class="tw-inline-block tw-w-4 tw-h-4 tw-rounded-full tw-border tw-border-gray-300"
-                          :style="{ background: variant.color || '#eee' }"
-                          :title="variant.color"
+                          :style="{ background: color || '#eee' }"
+                          :title="color"
                         ></span>
-                        <span v-if="(product.variants || []).length > 3" class="tw-text-xs tw-text-gray-400">+{{ (product.variants || []).length - 3 }}</span>
+                        <span v-if="(product.variants && getUniqueColors(product).length > 3)" class="tw-text-xs tw-text-gray-400">+{{ getUniqueColors(product).length - 3 }}</span>
                     </div>
-                    <!-- Thanh đã bán -->
                     <div class="tw-w-full tw-mt-2 tw-px-2">
                         <div class="tw-relative tw-h-6 tw-bg-gray-200 tw-rounded-full">
                             <div
@@ -129,6 +126,19 @@ function getSoldPercent(product) {
     return Math.max(percent, 10)
   }
   return 50
+}
+
+function getUniqueColors(product) {
+  if (!product.variants) return []
+  const seen = new Set()
+  const unique = []
+  for (const v of product.variants) {
+    if (v.color && !seen.has(v.color)) {
+      seen.add(v.color)
+      unique.push(v.color)
+    }
+  }
+  return unique.slice(0, 3)
 }
 
 onMounted(async () => {

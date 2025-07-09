@@ -66,8 +66,8 @@
               class="tw-w-3 tw-h-3 sm:tw-w-4 sm:tw-h-4 tw-rounded-full tw-border tw-border-gray-300"
               :style="{ backgroundColor: variant.color }">
             </div>
-            <span v-if="product.variants.length > maxDisplayVariants" class="tw-text-xs tw-text-gray-500">
-              +{{ product.variants.length - maxDisplayVariants }}
+            <span v-if="uniqueVariantCount > maxDisplayVariants" class="tw-text-xs tw-text-gray-500">
+              +{{ uniqueVariantCount - maxDisplayVariants }}
             </span>
           </div>
 
@@ -107,8 +107,23 @@ onMounted(async () => {
   }
 })
 
+// Lọc ra các màu duy nhất từ variants
 const displayedVariants = computed(() => {
-  return props.product.variants?.slice(0, maxDisplayVariants) || []
+  if (!props.product.variants) return []
+  const uniqueColors = []
+  const seen = new Set()
+  for (const variant of props.product.variants) {
+    if (variant.color && !seen.has(variant.color)) {
+      seen.add(variant.color)
+      uniqueColors.push(variant)
+    }
+  }
+  return uniqueColors.slice(0, maxDisplayVariants)
+})
+
+const uniqueVariantCount = computed(() => {
+  if (!props.product.variants) return 0
+  return new Set(props.product.variants.map(v => v.color)).size
 })
 
 const getMainImage = computed(() => {

@@ -116,7 +116,6 @@ const loading = ref(false)
 const error = ref('')
 const { getMainImage } = useFlashsale()
 
-// Lấy sản phẩm khi mở modal
 onMounted(async () => {
   loading.value = true
   try {
@@ -139,7 +138,6 @@ onMounted(async () => {
   }
 })
 
-// Sản phẩm local (đã chọn hoặc đang chỉnh sửa)
 const localProducts = ref([])
 
 watch(
@@ -161,7 +159,6 @@ watch(
   { immediate: true }
 )
 
-// Khi chọn sản phẩm từ danh sách, thêm vào localProducts nếu chưa có
 function addProduct(product) {
   if (!localProducts.value.find(p => p.id === product.id)) {
     localProducts.value.push({
@@ -173,20 +170,12 @@ function addProduct(product) {
   }
 }
 
-// Lọc sản phẩm theo tên
 const filteredAllProducts = computed(() => {
   if (!search.value) return allProducts.value
   return allProducts.value.filter(p => p.name.toLowerCase().includes(search.value.toLowerCase()))
 })
 
-function fakePrice(idx) {
-  // Giá thường 210tr, giá KM 180tr, số lượng đã bán random 10-99
-  return {
-    price: 210000000,
-    salePrice: 180000000,
-    sold: Math.floor(Math.random() * 90) + 10
-  }
-}
+
 const filteredProducts = computed(() => localProducts.value)
 
 function remove(idx) {

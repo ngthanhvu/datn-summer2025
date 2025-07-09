@@ -22,7 +22,6 @@ class FlashSaleController extends Controller
             'products.product.variants',
         ])->get();
 
-        // Merge quantity, sold, flash_price vào product
         foreach ($flashSales as $fs) {
             foreach ($fs->products as $p) {
                 if ($p->product) {
@@ -88,9 +87,7 @@ class FlashSaleController extends Controller
                 'products.*.flash_price' => 'required|numeric',
                 'products.*.quantity' => 'required|integer|min:1',
             ]);
-            // Xóa sản phẩm cũ
             $flashSale->products()->delete();
-            // Tạo lại sản phẩm mới
             $flashSale->update($data);
             foreach ($data['products'] as $prod) {
                 FlashSaleProduct::create([
@@ -113,7 +110,6 @@ class FlashSaleController extends Controller
         DB::beginTransaction();
         try {
             $flashSale = FlashSale::findOrFail($id);
-            // Bỏ cộng lại tồn kho khi xóa
             $flashSale->products()->delete();
             $flashSale->delete();
             DB::commit();
@@ -132,7 +128,6 @@ class FlashSaleController extends Controller
             'products.product.brand',
             'products.product.variants',
         ])->findOrFail($id);
-        // Merge flash_price, quantity, sold vào product cho từng sản phẩm
         foreach ($flashSale->products as $p) {
             if ($p->product) {
                 $p->product->flash_sale_quantity = $p->quantity;

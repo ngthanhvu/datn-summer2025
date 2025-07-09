@@ -54,8 +54,7 @@
           </div>
           <div class="tw-flex tw-gap-2 tw-mt-6">
             <button class="btn btn-primary" :disabled="loading" @click="submit">{{ loading ? 'Đang lưu...' : (props.editData ? 'Cập nhật' : 'Hoàn tất') }}</button>
-            <button class="btn btn-secondary">Custom Style</button>
-            <button class="btn btn-warning tw-bg-orange-500 hover:tw-bg-orange-600" @click="showProductModal = true">Sản phẩm</button>
+            <button class="btn btn-warning tw-bg-orange-500 hover:tw-bg-orange-600" @click="showProductModal = true">Thêm sản phẩm</button>
           </div>
         </div>
       </div>
@@ -117,7 +116,7 @@ const props = defineProps({
 })
 const showProductModal = ref(false)
 const products = ref([
-  // Sẽ được cập nhật khi chọn sản phẩm
+
 ])
 const form = ref({
   name: '',
