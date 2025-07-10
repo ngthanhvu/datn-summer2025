@@ -4,7 +4,7 @@
             <h2 class="tw-text-2xl tw-font-semibold tw-text-center tw-mb-10">Thời trang DevGang</h2>
 
             <!-- Loading State -->
-            <div v-if="loading" class="tw-flex tw-gap-6 tw-justify-center tw-mb-6">
+            <div v-if="homeStore.isLoadingCategories" class="tw-flex tw-gap-6 tw-justify-center tw-mb-6">
                 <div v-for="i in 6" :key="i" class="tw-flex tw-flex-col tw-items-center">
                     <div class="tw-w-36 tw-h-36 tw-rounded-full tw-bg-gray-200 tw-animate-pulse"></div>
                     <div class="tw-h-4 tw-bg-gray-200 tw-rounded tw-mt-4 tw-mb-2 tw-w-24"></div>
@@ -13,7 +13,7 @@
             </div>
 
             <!-- Empty State -->
-            <div v-else-if="!categories.length" class="tw-text-center tw-text-gray-500 tw-my-6">
+            <div v-else-if="!homeStore.categories.length" class="tw-text-center tw-text-gray-500 tw-my-6">
                 Không có dữ liệu
             </div>
 
@@ -37,7 +37,7 @@
                         spaceBetween: 8
                     }
                 }" class="categories-swiper">
-                <swiper-slide v-for="category in categories" :key="category.id">
+                <swiper-slide v-for="category in homeStore.categories" :key="category.id">
                     <NuxtLink :to="`/category/${category.slug}`"
                         class="tw-flex tw-flex-col tw-items-center tw-space-y-3 tw-transition-transform tw-duration-300 hover:tw-scale-90 tw-pb-3">
                         <!-- Image inside big circle -->
@@ -61,21 +61,14 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination as SwiperPagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
+import { useHomeStore } from '~/stores/useHomeStore'
 
-const { getCategories, logCategoryStats } = useCategory()
-const categories = ref([])
-const loading = ref(true)
+const homeStore = useHomeStore()
 
 onMounted(async () => {
-    try {
-        loading.value = true
-        categories.value = await getCategories()
-        await logCategoryStats()
-    } catch (error) {
-        console.error('Error fetching categories:', error)
-    } finally {
-        loading.value = false
+    if (!homeStore.hasValidData('categories')) {
+        await homeStore.fetchCategories()
     }
 })
 </script>

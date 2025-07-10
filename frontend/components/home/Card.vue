@@ -66,8 +66,8 @@
               class="tw-w-3 tw-h-3 sm:tw-w-4 sm:tw-h-4 tw-rounded-full tw-border tw-border-gray-300"
               :style="{ backgroundColor: variant.color }">
             </div>
-            <span v-if="product.variants.length > maxDisplayVariants" class="tw-text-xs tw-text-gray-500">
-              +{{ product.variants.length - maxDisplayVariants }}
+            <span v-if="uniqueVariantCount > maxDisplayVariants" class="tw-text-xs tw-text-gray-500">
+              +{{ uniqueVariantCount - maxDisplayVariants }}
             </span>
           </div>
 
@@ -82,6 +82,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import FavoriteButton from '../common/FavoriteButton.vue'
+import { useCategoryStore } from '~/stores/useCategoryStore.js'
 
 const props = defineProps({
   product: {
@@ -92,14 +93,14 @@ const props = defineProps({
 
 const emit = defineEmits(['quick-view'])
 
-const { getCategoryById } = useCategory()
+const categoryStore = useCategoryStore()
 const categoryName = ref('Khác')
 const maxDisplayVariants = 3
 
 onMounted(async () => {
   if (props.product.categories_id) {
     try {
-      const category = await getCategoryById(props.product.categories_id)
+      const category = await categoryStore.fetchCategoryById(props.product.categories_id)
       categoryName.value = category.name
     } catch (error) {
       console.error('Error fetching category:', error)
@@ -107,8 +108,23 @@ onMounted(async () => {
   }
 })
 
+// Lọc ra các màu duy nhất từ variants
 const displayedVariants = computed(() => {
-  return props.product.variants?.slice(0, maxDisplayVariants) || []
+  if (!props.product.variants) return []
+  const uniqueColors = []
+  const seen = new Set()
+  for (const variant of props.product.variants) {
+    if (variant.color && !seen.has(variant.color)) {
+      seen.add(variant.color)
+      uniqueColors.push(variant)
+    }
+  }
+  return uniqueColors.slice(0, maxDisplayVariants)
+})
+
+const uniqueVariantCount = computed(() => {
+  if (!props.product.variants) return 0
+  return new Set(props.product.variants.map(v => v.color)).size
 })
 
 const getMainImage = computed(() => {
@@ -141,6 +157,7 @@ function onQuickView() {
 /* Custom line clamp for better text truncation */
 .tw-line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

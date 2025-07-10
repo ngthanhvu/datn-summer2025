@@ -110,11 +110,20 @@ const formatDate = dateString => {
 }
 
 .image-container {
-    height: 180px;
-    min-height: 180px;
-    max-height: 180px;
+    width: 100%;
+    height: 200px;
+    min-height: 200px;
+    max-height: 200px;
     overflow: hidden;
     position: relative;
+    flex-shrink: 0;
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .blog-card-content {
