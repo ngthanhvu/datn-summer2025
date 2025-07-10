@@ -54,7 +54,7 @@
           </div>
           <div class="tw-flex tw-gap-2 tw-mt-6">
             <button class="btn btn-primary" :disabled="loading" @click="submit">{{ loading ? 'Đang lưu...' : (props.editData ? 'Cập nhật' : 'Hoàn tất') }}</button>
-            <button class="btn btn-warning tw-bg-orange-500 hover:tw-bg-orange-600" @click="showProductModal = true">Thêm sản phẩm</button>
+            <button class="btn btn-warning tw-bg-orange-500 hover:tw-bg-orange-600" @click="goToSelectProducts">Thêm sản phẩm</button>
           </div>
         </div>
       </div>
@@ -71,7 +71,9 @@
                 <th class="tw-px-3 tw-py-2">Giá thường</th>
                 <th class="tw-px-3 tw-py-2">Giá KM</th>
                 <th class="tw-px-3 tw-py-2">Giá Flash Sale</th>
+                <th class="tw-px-3 tw-py-2">Đã bán</th>
                 <th class="tw-px-3 tw-py-2">Số lượng</th>
+                <th class="tw-px-3 tw-py-2">SL Thật</th>
                 <th class="tw-px-3 tw-py-2">#</th>
               </tr>
             </thead>
@@ -79,23 +81,19 @@
               <tr v-for="(item, idx) in products" :key="item.id">
                 <td class="tw-px-3 tw-py-2"><img :src="getMainImage(item)" class="tw-w-10 tw-h-10 tw-rounded" /></td>
                 <td class="tw-px-3 tw-py-2">{{ item.name }}</td>
-                <td class="tw-px-3 tw-py-2">{{ item.sku }}</td>
+                <td class="tw-px-3 tw-py-2">{{ item.sku || item.product?.sku }}</td>
                 <td class="tw-px-3 tw-py-2">{{ item.product?.price ? formatPrice(item.product.price) : (item.price ? formatPrice(item.price) : 'N/A') }}</td>
                 <td class="tw-px-3 tw-py-2">{{ item.product?.discount_price ? formatPrice(item.product.discount_price) : (item.discount_price ? formatPrice(item.discount_price) : 'N/A') }}</td>
                 <td class="tw-px-3 tw-py-2"><input v-model="item.flashPrice" class="input tw-w-24" placeholder="Giá FS" /></td>
+                <td class="tw-px-3 tw-py-2"><input v-model="item.sold" class="input tw-w-16" placeholder="Đã bán" /></td>
                 <td class="tw-px-3 tw-py-2"><input v-model="item.quantity" class="input tw-w-16" placeholder="SL" /></td>
+                <td class="tw-px-3 tw-py-2"><input type="checkbox" v-model="item.realQty" /></td>
                 <td class="tw-px-3 tw-py-2"><button class="btn btn-danger" @click="removeProduct(idx)">Xóa</button></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-      <FlashSaleProductModal
-        v-if="showProductModal"
-        :products="products"
-        @close="showProductModal = false"
-        @select="onSelectProducts"
-      />
     </div>
   </div>
 
@@ -103,7 +101,6 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import FlashSaleProductModal from './FlashSaleProductModal.vue'
 import { useFlashsale } from '@/composables/useFlashsale'
 import { useProducts } from '@/composables/useProducts'
 import { useRouter } from 'vue-router'
@@ -114,7 +111,6 @@ function formatPrice(price) {
 const props = defineProps({
   editData: Object
 })
-const showProductModal = ref(false)
 const products = ref([
 
 ])
@@ -133,11 +129,34 @@ const success = ref('')
 const { createFlashSale, updateFlashSale, getMainImage } = useFlashsale()
 const { getProducts } = useProducts()
 const allProducts = ref([])
-const pendingProducts = ref([])
+const router = useRouter()
+function goToSelectProducts() {
+  if (props.editData && props.editData.id) {
+    router.push(`/admin/flashsale/select-products?flashSaleId=${props.editData.id}`)
+  } else {
+    router.push('/admin/flashsale/select-products')
+  }
+}
 onMounted(async () => {
   allProducts.value = await getProducts()
+  // Lấy sản phẩm đã chọn từ localStorage nếu có
+  const selected = localStorage.getItem('flashsale_selected_products')
+  const flashSaleId = props.editData?.id
+  const editSelected = flashSaleId ? localStorage.getItem(`flashsale_edit_${flashSaleId}`) : null
+  
+  // Ưu tiên lấy từ edit localStorage nếu đang edit
+  const productsToLoad = editSelected || selected
+  
+  if (productsToLoad) {
+    try {
+      products.value = JSON.parse(productsToLoad)
+      localStorage.removeItem('flashsale_selected_products')
+      if (editSelected) {
+        localStorage.removeItem(`flashsale_edit_${flashSaleId}`)
+      }
+    } catch {}
+  }
 })
-const router = useRouter()
 // Nếu có editData thì fill vào form và products
 watch(() => props.editData, (val) => {
   if (val) {
@@ -150,38 +169,40 @@ watch(() => props.editData, (val) => {
       autoIncrease: val.auto_increase || val.autoIncrease || false,
       active: val.active !== undefined ? val.active : true
     }
-    pendingProducts.value = val.products || []
-    if (pendingProducts.value.length && allProducts.value.length) {
-      products.value = pendingProducts.value.map(p => {
-        const prodId = String(p.product_id || p.id || (p.product && p.product.id))
-        const origin = allProducts.value.find(ap => String(ap.id) === prodId)
-        const fallback = !origin && p.name ? allProducts.value.find(ap => ap.name === p.name) : undefined
+    // Xử lý products từ editData
+    if (val.products && val.products.length > 0 && products.value.length === 0) {
+      products.value = val.products.map(p => {
+        const productData = p.product || {}
         return {
-          ...(origin || fallback || {}),
-          ...p,
-          product: origin || fallback
+          id: p.product_id || productData.id,
+          product_id: p.product_id || productData.id,
+          name: productData.name || p.name,
+          price: productData.price || p.price,
+          discount_price: productData.discount_price || p.discount_price,
+          flashPrice: p.flash_price || p.flashPrice || '',
+          quantity: p.quantity || 100,
+          sold: p.sold || 0,
+          realQty: p.real_qty !== undefined ? p.real_qty : true,
+          image: productData.main_image?.image_path || productData.image || '/default-product.png',
+          product: productData
         }
       })
     }
   }
 }, { immediate: true })
 
-watch(allProducts, (val) => {
-  if (pendingProducts.value.length && val.length) {
-    products.value = pendingProducts.value.map(p => {
-      const prodId = String(p.product_id || p.id || (p.product && p.product.id))
-      const origin = val.find(ap => String(ap.id) === prodId)
-      const fallback = !origin && p.name ? val.find(ap => ap.name === p.name) : undefined
-      return {
-        ...(origin || fallback || {}),
-        ...p,
-        product: origin || fallback
-      }
+function addProduct(product) {
+  // Kiểm tra xem sản phẩm đã tồn tại chưa
+  const existingIndex = products.value.findIndex(p => p.id === product.id)
+  if (existingIndex === -1) {
+    products.value.push({ 
+      ...product, 
+      flashPrice: '', 
+      quantity: 100,
+      sold: 0,
+      realQty: true
     })
   }
-})
-function addProduct(product) {
-  products.value.push({ ...product, flashPrice: '', quantity: 100 })
 }
 function removeProduct(idx) {
   products.value.splice(idx, 1)
@@ -201,8 +222,10 @@ async function submit() {
       active: form.value.active,
       products: products.value.map(p => ({
         product_id: p.product_id ? p.product_id : p.id,
-        flash_price: p.flashPrice,
-        quantity: p.quantity
+        flash_price: p.flashPrice !== '' ? Number(p.flashPrice) : '',
+        quantity: Number(p.quantity) || 0,
+        sold: Number(p.sold) || 0,
+        real_qty: p.realQty !== undefined ? p.realQty : true
       }))
     }
     let res
@@ -219,9 +242,6 @@ async function submit() {
   } finally {
     loading.value = false
   }
-}
-function onSelectProducts(newProducts) {
-  products.value = newProducts
 }
 </script>
 

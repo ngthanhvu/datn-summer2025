@@ -51,6 +51,7 @@ class FlashSaleController extends Controller
                 'products.*.product_id' => 'required|exists:products,id',
                 'products.*.flash_price' => 'required|numeric',
                 'products.*.quantity' => 'required|integer|min:1',
+                'products.*.sold' => 'nullable|integer|min:0',
             ]);
             $flashSale = FlashSale::create($data);
             foreach ($data['products'] as $prod) {
@@ -59,6 +60,7 @@ class FlashSaleController extends Controller
                     'product_id' => $prod['product_id'],
                     'flash_price' => $prod['flash_price'],
                     'quantity' => $prod['quantity'],
+                    'sold' => $prod['sold'] ?? 0,
                 ]);
             }
             DB::commit();
@@ -86,6 +88,7 @@ class FlashSaleController extends Controller
                 'products.*.product_id' => 'required|exists:products,id',
                 'products.*.flash_price' => 'required|numeric',
                 'products.*.quantity' => 'required|integer|min:1',
+                'products.*.sold' => 'nullable|integer|min:0',
             ]);
             $flashSale->products()->delete();
             $flashSale->update($data);
@@ -95,6 +98,7 @@ class FlashSaleController extends Controller
                     'product_id' => $prod['product_id'],
                     'flash_price' => $prod['flash_price'],
                     'quantity' => $prod['quantity'],
+                    'sold' => $prod['sold'] ?? 0,
                 ]);
             }
             DB::commit();
