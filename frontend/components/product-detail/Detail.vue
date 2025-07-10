@@ -12,6 +12,8 @@
                 <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"
                     :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
                     :show-original-price="showOriginalPrice"
+                    :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
+                    :flash-sale-percent="flashSalePercent"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
@@ -66,6 +68,7 @@ import ProductInfo from './ProductInfo.vue'
 import ProductDescription from './ProductDescription.vue'
 import ProductReviews from './ProductReviews.vue'
 import RelatedProducts from './RelatedProducts.vue'
+import { ref, computed, watch, toRef } from 'vue'
 
 const props = defineProps({
     product: {
@@ -80,14 +83,8 @@ const props = defineProps({
         type: String,
         required: true
     },
-    selectedSize: {
-        type: String,
-        default: ''
-    },
-    selectedColor: {
-        type: Object,
-        default: null
-    },
+    selectedSize: String,
+    selectedColor: Object,
     quantity: {
         type: Number,
         default: 1
@@ -179,6 +176,30 @@ const props = defineProps({
     relatedProducts: {
         type: Array,
         default: () => []
+    },
+    flashSaleName: {
+        type: String,
+        default: ''
+    },
+    flashSalePrice: {
+        type: Number,
+        default: 0
+    },
+    flashSaleEndTime: {
+        type: String,
+        default: ''
+    },
+    flashSaleSold: {
+        type: Number,
+        default: 0
+    },
+    flashSaleQuantity: {
+        type: Number,
+        default: 0
+    },
+    flashSalePercent: {
+        type: Number,
+        default: 0
     }
 })
 
@@ -205,4 +226,7 @@ const tabs = [
     { id: 'description', name: 'Mô tả' },
     { id: 'reviews', name: 'Đánh giá' },
 ]
+
+const selectedSize = toRef(props, 'selectedSize')
+const selectedColor = toRef(props, 'selectedColor')
 </script>

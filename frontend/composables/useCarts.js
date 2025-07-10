@@ -69,11 +69,12 @@ export const useCarts = () => {
         }
     }
 
-    const addToCart = async (variantId, quantity = 1) => {
+    const addToCart = async (variantId, quantity = 1, price = null) => {
         try {
             isLoading.value = true
             error.value = null
             const payload = { variant_id: variantId, quantity }
+            if (price !== null) payload.price = price
 
             if (quantity <= 0) {
                 throw new Error('Số lượng phải lớn hơn 0')
@@ -95,7 +96,7 @@ export const useCarts = () => {
                 tokenCookie.value = null
                 localStorage.removeItem('token')
 
-                return addToCart(variantId, quantity)
+                return addToCart(variantId, quantity, price)
             }
             error.value = err.response?.data?.error || err.message || 'Không thể thêm vào giỏ hàng'
             throw error.value

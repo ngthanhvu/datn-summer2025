@@ -148,7 +148,15 @@ const fetchAddresses = async () => {
 const fetchCart = async () => {
     try {
         isLoading.value = true
-        await cartStore.fetchCart()
+        const cart = await cartService.fetchCart()
+        cartItems.value = cart.map(item => ({
+            id: item.id,
+            name: item.variant?.product?.name || 'Sản phẩm',
+            variant: `Size: ${item.variant?.size || 'N/A'} | Số lượng: ${item.quantity}`,
+            price: item.price || 0, // Lấy giá đã lưu trong DB
+            quantity: item.quantity,
+            image: item.variant?.product?.main_image?.image_path || 'https://placehold.co/100x100'
+        }))
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi lấy giỏ hàng'
     } finally {
@@ -219,7 +227,7 @@ const placeOrder = async () => {
         const items = cart.value.map(item => ({
             variant_id: item.variant.id,
             quantity: item.quantity,
-            price: item.variant.price || 0
+            price: item.price 
         }))
         const orderData = {
             address_id: addresses.value[selectedAddress.value].id,
