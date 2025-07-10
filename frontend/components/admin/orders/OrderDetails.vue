@@ -284,7 +284,7 @@
                         </select>
                         <select v-model="selectedPaymentStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
                             <option v-for="opt in paymentStatusOptions" :value="opt.value" :key="opt.value">{{ opt.label
-                                }}</option>
+                            }}</option>
                         </select>
                         <button
                             @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })"
@@ -300,7 +300,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useOrder } from '~/composables/useOrder'
+import { useOrderStore } from '~/stores/useOrderStore'
 
 const props = defineProps({
     orderId: {
@@ -309,17 +309,11 @@ const props = defineProps({
     }
 })
 
-const {
-    currentOrder,
-    loading,
-    error,
-    getOrder,
-    updateOrderStatus,
-    getOrderStatus,
-    getPaymentStatus,
-    getPaymentMethod,
-    formatPrice
-} = useOrder()
+const orderStore = useOrderStore()
+
+const currentOrder = computed(() => orderStore.orders.find(o => o.id == props.orderId) || orderStore.currentOrder)
+const loading = computed(() => orderStore.isLoadingOrders)
+const error = computed(() => orderStore.error)
 
 const statusOptions = [
     { value: 'pending', label: 'Chờ xử lý' },
@@ -349,15 +343,17 @@ watch(() => currentOrder.value?.payment_status, (val) => {
 })
 
 onMounted(async () => {
-    await getOrder(props.orderId)
-    console.log('Current Order:', currentOrder.value)
-    console.log('Order Details:', currentOrder.value?.orderDetails)
+    if (!orderStore.orders.length) {
+        await orderStore.fetchOrders()
+    }
+    // Nếu có action fetchOrderById thì gọi ở đây để lấy chi tiết đơn hàng
+    // await orderStore.fetchOrderById(props.orderId)
 })
 
 const handleUpdateStatus = async (data) => {
     try {
-        await updateOrderStatus(props.orderId, data.status, data.payment_status)
-        await getOrder(props.orderId)
+        await orderStore.updateOrder(props.orderId, { status: data.status, payment_status: data.payment_status })
+        // await orderStore.fetchOrderById(props.orderId)
     } catch (err) {
         console.error('Failed to update order status:', err)
     }

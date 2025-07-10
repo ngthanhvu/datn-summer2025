@@ -52,12 +52,12 @@ import { ref, computed, onMounted } from 'vue'
 import CartHeader from '~/components/cart/CartHeader.vue'
 import CartItem from '~/components/cart/CartItem.vue'
 import CartSummary from '~/components/cart/CartSummary.vue'
-import { useCart } from '~/composables/useCarts'
+import { useCartStore } from '~/stores/useCartStore'
 const notyf = useNuxtApp().$notyf
 
-const { cart, fetchCart, removeFromCart, updateQuantity, clearCart } = useCart()
+const cartStore = useCartStore()
 
-const cartItems = computed(() => Array.isArray(cart.value) ? cart.value : [])
+const cartItems = computed(() => Array.isArray(cartStore.cart) ? cartStore.cart : [])
 
 const selectedShipping = ref({
     value: 'standard',
@@ -70,7 +70,7 @@ const subtotal = computed(() => {
 
 const handleRemove = async (itemId) => {
     try {
-        await removeFromCart(itemId)
+        await cartStore.removeFromCart(itemId)
     } catch (error) {
         console.error('Lỗi khi xóa sản phẩm:', error)
     }
@@ -104,13 +104,12 @@ const handleUpdateQuantity = async (itemId, newQuantity) => {
             return
         }
 
-        await updateQuantity(itemId, newQuantity)
+        await cartStore.updateCart(itemId, { quantity: newQuantity })
         notyf.success('Cập nhật số lượng thành công')
     } catch (error) {
         const errorMessage = error.response?.data?.error || error
         notyf.error(errorMessage || 'Có lỗi xảy ra khi cập nhật số lượng')
-
-        await fetchCart()
+        await cartStore.fetchCart()
     }
 }
 
@@ -137,7 +136,7 @@ const handleDecrease = async (itemId) => {
 const handleClearCart = async () => {
     try {
         for (const item of cartItems.value) {
-            await removeFromCart(item.id)
+            await cartStore.removeFromCart(item.id)
         }
     } catch (error) {
         console.error('Lỗi khi xóa giỏ hàng:', error)
@@ -145,7 +144,9 @@ const handleClearCart = async () => {
 }
 
 onMounted(() => {
-    fetchCart()
+    if (!cartStore.cart.length) {
+        cartStore.fetchCart()
+    }
 })
 </script>
 

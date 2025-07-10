@@ -9,7 +9,7 @@
         </div>
 
         <!-- Loading State -->
-        <div v-if="loading"
+        <div v-if="homeStore.isLoadingProducts"
             class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
             <div v-for="i in 5" :key="i"
                 class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-overflow-hidden tw-animate-pulse">
@@ -24,8 +24,8 @@
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="tw-text-center tw-py-8">
-            <div class="tw-text-red-500 tw-mb-4">{{ error }}</div>
+        <div v-else-if="homeStore.error" class="tw-text-center tw-py-8">
+            <div class="tw-text-red-500 tw-mb-4">{{ homeStore.error }}</div>
             <button @click="fetchNewProducts"
                 class="tw-px-4 tw-py-2 tw-bg-blue-600 tw-text-white tw-rounded hover:tw-bg-blue-700">
                 Thử lại
@@ -34,12 +34,13 @@
 
         <!-- Products Grid -->
         <div v-else class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 xl:tw-grid-cols-5 tw-gap-4">
-            <Card v-for="product in newProducts.slice(0, 5)" :key="product.id" :product="product"
+            <Card v-for="product in homeStore.newProducts.slice(0, 5)" :key="product.id" :product="product"
                 @quick-view="openQuickView" />
         </div>
 
         <!-- Empty State -->
-        <div v-if="!loading && !error && newProducts.length === 0" class="tw-text-center tw-py-8">
+        <div v-if="!homeStore.isLoadingProducts && !homeStore.error && homeStore.newProducts.length === 0"
+            class="tw-text-center tw-py-8">
             <p class="tw-text-gray-500">Chưa có sản phẩm mới</p>
         </div>
         <!-- Quick View Modal -->
@@ -48,15 +49,11 @@
 </template>
 
 <script setup>
-import { useHome } from '../../composables/useHome'
+import { useHomeStore } from '~/stores/useHomeStore'
 import Card from './Card.vue'
 import QuickView from '~/components/product-detail/Quick-view.vue'
 
-const { getNewProducts } = useHome()
-
-const newProducts = ref([])
-const loading = ref(true)
-const error = ref(null)
+const homeStore = useHomeStore()
 
 // Quick View State
 const showQuickView = ref(false)
@@ -73,20 +70,16 @@ function closeQuickView() {
 
 const fetchNewProducts = async () => {
     try {
-        loading.value = true
-        error.value = null
-        const products = await getNewProducts(10)
-        newProducts.value = products
+        await homeStore.fetchNewProducts(10)
     } catch (err) {
         console.error('Error fetching new products:', err)
-        error.value = 'Không thể tải sản phẩm mới. Vui lòng thử lại.'
-    } finally {
-        loading.value = false
     }
 }
 
-onMounted(() => {
-    fetchNewProducts()
+onMounted(async () => {
+    if (!homeStore.hasValidData('products')) {
+        await fetchNewProducts()
+    }
 })
 </script>
 

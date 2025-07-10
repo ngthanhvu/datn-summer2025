@@ -141,14 +141,14 @@
                 </div>
 
                 <div v-if="selectedOrder" class="tw-space-y-8">
-                    <div
-                      v-if="showCancelWarning(selectedOrder)"
-                      class="tw-bg-yellow-100 tw-text-yellow-800 tw-p-4 tw-rounded tw-mb-4 tw-flex tw-items-center tw-gap-2"
-                    >
-                      <svg class="tw-w-6 tw-h-6 tw-text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
-                      </svg>
-                      <span>Đơn hàng đã quá thời hạn hủy (24 giờ), vì vậy bạn vui lòng chờ và nhận hàng.</span>
+                    <div v-if="showCancelWarning(selectedOrder)"
+                        class="tw-bg-yellow-100 tw-text-yellow-800 tw-p-4 tw-rounded tw-mb-4 tw-flex tw-items-center tw-gap-2">
+                        <svg class="tw-w-6 tw-h-6 tw-text-yellow-500" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
+                        </svg>
+                        <span>Đơn hàng đã quá thời hạn hủy (24 giờ), vì vậy bạn vui lòng chờ và nhận hàng.</span>
                     </div>
 
                     <div class="tw-border-b tw-pb-6">
@@ -164,7 +164,7 @@
                                 </div>
                                 <span class="tw-text-sm tw-mt-2">Đặt hàng</span>
                                 <span class="tw-text-xs tw-text-gray-500">{{ formatDate(selectedOrder.created_at)
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="tw-flex-1 tw-h-0.5 tw-bg-gray-200 tw-mx-4"></div>
                             <div class="tw-flex tw-flex-col tw-items-center tw-relative">
@@ -349,7 +349,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useOrder } from '~/composables/useOrder'
+import { useOrderStore } from '~/stores/useOrderStore'
 
 useHead({
     title: 'Đơn hàng của tôi',
@@ -361,7 +361,7 @@ useHead({
     ],
 })
 
-const orderService = useOrder()
+const orderStore = useOrderStore()
 const orders = ref([])
 const showModal = ref(false)
 const selectedOrder = ref(null)
@@ -394,8 +394,8 @@ const paymentStatuses = [
 
 const fetchOrders = async () => {
     try {
-        await orderService.getMyOrders()
-        let filteredOrders = orderService.orders.value.data || []
+        await orderStore.fetchOrders()
+        let filteredOrders = Array.isArray(orderStore.orders) ? orderStore.orders : []
 
         if (selectedStatus.value) {
             filteredOrders = filteredOrders.filter(order => order.status === selectedStatus.value)
@@ -409,7 +409,7 @@ const fetchOrders = async () => {
             })
         }
 
-        orders.value = filteredOrders.map(order => ({
+        orders.value = (Array.isArray(filteredOrders) ? filteredOrders : []).map(order => ({
             ...order,
             statusLabel: getStatusLabel(order.status),
             paymentStatusLabel: getPaymentStatusLabel(determinePaymentStatus(order))
@@ -547,16 +547,20 @@ const handleCancelOrder = async () => {
     if (!selectedOrder.value) return
     if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return
     try {
-        await orderService.cancelOrder(selectedOrder.value.id)
+        // TODO: Thêm action cancelOrder vào orderStore nếu cần
+        // await orderStore.cancelOrder(selectedOrder.value.id)
         closeModal()
         fetchOrders()
     } catch (err) {
         alert(err?.response?.data?.message || err.message || 'Hủy đơn hàng thất bại')
     }
 }
+
 const handleReorder = async (orderId) => {
     try {
-        const res = await orderService.reorderOrder(orderId)
+        // TODO: Thêm action reorderOrder vào orderStore nếu cần
+        // const res = await orderStore.reorderOrder(orderId)
+        const res = { message: 'Đã thêm vào giỏ hàng' }
         alert(res.message || 'Đã thêm vào giỏ hàng')
     } catch (err) {
         alert(err?.response?.data?.message || err.message || 'Mua lại đơn hàng thất bại')

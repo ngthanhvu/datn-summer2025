@@ -11,7 +11,8 @@
         </div>
 
         <!-- Loading State -->
-        <div v-if="loading" class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6">
+        <div v-if="homeStore.isLoadingCoupons"
+            class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6">
             <div v-for="i in 4" :key="i"
                 class="tw-flex tw-max-w-xs tw-w-full tw-bg-white tw-shadow-md tw-rounded-md tw-animate-pulse">
                 <div class="tw-left-edge tw-bg-gray-300"></div>
@@ -46,7 +47,7 @@
                         <div v-if="coupon.type === 'percent'">
                             Giảm {{ coupon.value || 0 }}%
                             <span v-if="coupon.max_discount_value">tối đa {{ formatCurrency(coupon.max_discount_value)
-                            }}</span>
+                                }}</span>
                         </div>
                         <div v-else>
                             Giảm {{ formatCurrency(coupon.value || 0) }}
@@ -80,7 +81,7 @@
         </div>
 
         <!-- Empty State -->
-        <div v-if="!loading && latestCoupons.length === 0" class="tw-text-center tw-py-8">
+        <div v-if="!homeStore.isLoadingCoupons && latestCoupons.length === 0" class="tw-text-center tw-py-8">
             <i class="fa-solid fa-ticket tw-text-4xl tw-text-gray-400 tw-mb-4"></i>
             <p class="tw-text-gray-500">Không có voucher nào</p>
         </div>
@@ -88,45 +89,31 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useHomeStore } from '~/stores/useHomeStore'
 import { useCoupon } from '~/composables/useCoupon'
 
 const notyf = useNuxtApp().$notyf
-const { getCoupons, claimCoupon, getMyCoupons } = useCoupon()
+const homeStore = useHomeStore()
+const { getMyCoupons, claimCoupon } = useCoupon()
 
-const latestCoupons = ref([])
 const myCoupons = ref([])
-const loading = ref(true)
 
-onMounted(async () => {
-    try {
-        loading.value = true
-        const [couponsData, myCouponsData] = await Promise.all([
-            getCoupons(),
-            getMyCoupons().catch(() => ({ coupons: [] }))
-        ])
+// Computed property for latest coupons
+const latestCoupons = computed(() => {
+    const allCoupons = homeStore.coupons || []
+    const latest = allCoupons
+        .filter(coupon => coupon.is_active)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 4)
 
-        // Lấy 4 coupon mới nhất
-        const allCoupons = couponsData || []
-        latestCoupons.value = allCoupons
-            .filter(coupon => coupon.is_active)
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-            .slice(0, 4)
+    // Mark claimed coupons
+    const claimedIds = myCoupons.value.map(c => c.id)
+    latest.forEach(coupon => {
+        coupon.is_claimed = claimedIds.includes(coupon.id)
+    })
 
-        myCoupons.value = myCouponsData?.coupons || []
-
-        // Đánh dấu các coupon đã được lưu
-        const claimedIds = myCoupons.value.map(c => c.id)
-        latestCoupons.value.forEach(coupon => {
-            coupon.is_claimed = claimedIds.includes(coupon.id)
-        })
-    } catch (error) {
-        console.error('Error loading coupons:', error)
-        latestCoupons.value = []
-        myCoupons.value = []
-    } finally {
-        loading.value = false
-    }
+    return latest
 })
 
 const claimVoucherCode = async (couponId) => {
@@ -137,12 +124,6 @@ const claimVoucherCode = async (couponId) => {
         // Fetch lại danh sách my-coupons để cập nhật trạng thái
         const myCouponsData = await getMyCoupons()
         myCoupons.value = myCouponsData?.coupons || []
-
-        // Cập nhật trạng thái đã lưu trong danh sách coupons
-        const claimedIds = myCoupons.value.map(c => c.id)
-        latestCoupons.value.forEach(coupon => {
-            coupon.is_claimed = claimedIds.includes(coupon.id)
-        })
 
         notyf.success('Đã lưu mã voucher thành công!')
     } catch (err) {
@@ -187,6 +168,22 @@ const getCouponStatus = (coupon) => {
     if (!coupon.is_active) return 'inactive'
     return 'active'
 }
+
+onMounted(async () => {
+    try {
+        // Load coupons from store if not available
+        if (!homeStore.hasValidData('coupons')) {
+            await homeStore.fetchCoupons()
+        }
+
+        // Load my coupons
+        const myCouponsData = await getMyCoupons().catch(() => ({ coupons: [] }))
+        myCoupons.value = myCouponsData?.coupons || []
+    } catch (error) {
+        console.error('Error loading coupons:', error)
+        myCoupons.value = []
+    }
+})
 </script>
 
 <style scoped>

@@ -90,7 +90,8 @@
 </template>
 
 <script setup>
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, onMounted } from 'vue';
+import { useHomeData } from '~/composables/useHomeData';
 
 // Lazy load components để tăng tốc độ load trang chủ
 const SwiperSlider = defineAsyncComponent(() => import('~/components/home/SwiperSlider.vue'))
@@ -103,6 +104,19 @@ const BrandsShowcase = defineAsyncComponent(() => import('~/components/home/Bran
 const LatestReviews = defineAsyncComponent(() => import('~/components/home/LatestReviews.vue'))
 const Banner = defineAsyncComponent(() => import('@/components/home/Banner.vue'))
 const CouponList = defineAsyncComponent(() => import('~/components/home/CouponList.vue'))
+
+// Initialize home data management
+const { loadHomeData } = useHomeData()
+
+// Load all home data when page mounts
+onMounted(async () => {
+  try {
+    // Load all data in parallel for better performance
+    await loadHomeData()
+  } catch (error) {
+    console.error('Error loading home data:', error)
+  }
+})
 
 useHead({
   title: 'Trang chủ - DEVGANG',

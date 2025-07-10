@@ -2,14 +2,14 @@
     <div class="cart-panel" :class="{ 'cart-panel-open': isOpen }">
         <div class="cart-panel-content">
             <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
-                <h6 class="tw-font-bold tw-m-0">Giỏ hàng ({{ cart?.length || 0 }})</h6>
+                <h6 class="tw-font-bold tw-m-0">Giỏ hàng ({{ cartStore.cart?.length || 0 }})</h6>
                 <button @click="$emit('close')" class="tw-text-gray-500 hover:tw-text-gray-700">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
             <!-- Cart Items -->
             <div class="tw-space-y-4 tw-max-h-[calc(100vh-200px)] tw-overflow-y-auto">
-                <div v-if="!cart?.length" class="tw-text-center tw-py-8">
+                <div v-if="!cartStore.cart?.length" class="tw-text-center tw-py-8">
                     <div class="tw-text-gray-500 tw-mb-4">
                         <i class="bi bi-cart tw-text-4xl tw-block tw-mb-3"></i>
                         <p class="tw-text-lg">Giỏ hàng của bạn đang trống</p>
@@ -19,7 +19,7 @@
                         <i class="bi bi-bag tw-mr-2"></i> Mua sắm ngay
                     </NuxtLink>
                 </div>
-                <div v-else v-for="item in cart" :key="item.id" class="tw-flex tw-gap-4 tw-pb-4 tw-border-b">
+                <div v-else v-for="item in cartStore.cart" :key="item.id" class="tw-flex tw-gap-4 tw-pb-4 tw-border-b">
                     <img :src="getImageUrl(item?.variant?.product?.main_image?.image_path)"
                         :alt="item?.variant?.product?.name" class="tw-w-20 tw-h-20 tw-object-cover tw-rounded">
                     <div class="tw-flex-1">
@@ -48,7 +48,7 @@
                 </div>
             </div>
             <!-- Cart Summary -->
-            <div v-if="cart?.length > 0" class="tw-mt-4 tw-pt-4 tw-border-t">
+            <div v-if="cartStore.cart?.length > 0" class="tw-mt-4 tw-pt-4 tw-border-t">
                 <div class="tw-flex tw-justify-between tw-items-center tw-mb-4">
                     <span class="tw-font-medium">Tổng tiền:</span>
                     <span class="tw-font-bold tw-text-lg">{{ formatPrice(subtotal) }}</span>
@@ -72,7 +72,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useNuxtApp } from '#app'
-import { useCart } from '~/composables/useCarts'
+import { useCartStore } from '~/stores/useCartStore'
 
 const { $config: runtimeConfig } = useNuxtApp()
 const props = defineProps({
@@ -82,29 +82,25 @@ const props = defineProps({
     }
 })
 
-
 defineEmits(['close'])
 
-const { cart, fetchCart, removeFromCart, updateQuantity, increaseQuantity, decreaseQuantity } = useCart()
-
+const cartStore = useCartStore()
 
 onMounted(() => {
-    fetchCart()
+    if (!cartStore.cart.length) {
+        cartStore.fetchCart()
+    }
 })
 
 // Watch isOpen prop
 watch(() => props.isOpen, (newValue) => {
     if (newValue) {
-        fetchCart()
+        cartStore.fetchCart()
     }
 })
 
-// Watch cart changes
-watch(() => cart.value, (newCart) => {
-}, { deep: true })
-
 const subtotal = computed(() => {
-    return cart.value?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0
+    return cartStore.cart?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0
 })
 
 const formatPrice = (price) => {
@@ -116,7 +112,10 @@ const formatPrice = (price) => {
 
 const handleIncrease = async (cartId) => {
     try {
-        await increaseQuantity(cartId)
+        const item = cartStore.cart.find(i => i.id === cartId)
+        if (item) {
+            await cartStore.updateCart(cartId, { quantity: item.quantity + 1 })
+        }
     } catch (error) {
         console.log(error)
     }
@@ -124,7 +123,18 @@ const handleIncrease = async (cartId) => {
 
 const handleDecrease = async (cartId) => {
     try {
-        await decreaseQuantity(cartId)
+        const item = cartStore.cart.find(i => i.id === cartId)
+        if (item && item.quantity > 1) {
+            await cartStore.updateCart(cartId, { quantity: item.quantity - 1 })
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const removeFromCart = async (cartId) => {
+    try {
+        await cartStore.removeFromCart(cartId)
     } catch (error) {
         console.log(error)
     }

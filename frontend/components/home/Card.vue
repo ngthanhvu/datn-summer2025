@@ -82,6 +82,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import FavoriteButton from '../common/FavoriteButton.vue'
+import { useCategoryStore } from '~/stores/useCategoryStore.js'
 
 const props = defineProps({
   product: {
@@ -92,14 +93,14 @@ const props = defineProps({
 
 const emit = defineEmits(['quick-view'])
 
-const { getCategoryById } = useCategory()
+const categoryStore = useCategoryStore()
 const categoryName = ref('Khác')
 const maxDisplayVariants = 3
 
 onMounted(async () => {
   if (props.product.categories_id) {
     try {
-      const category = await getCategoryById(props.product.categories_id)
+      const category = await categoryStore.fetchCategoryById(props.product.categories_id)
       categoryName.value = category.name
     } catch (error) {
       console.error('Error fetching category:', error)
@@ -141,6 +142,7 @@ function onQuickView() {
 /* Custom line clamp for better text truncation */
 .tw-line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

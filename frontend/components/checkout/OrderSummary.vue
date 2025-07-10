@@ -88,7 +88,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useCoupon } from '~/composables/useCoupon'
+import { storeToRefs } from 'pinia'
+import { useCouponStore } from '~/stores/useCouponStore'
 import { useNuxtApp } from '#app'
 
 const props = defineProps({
@@ -114,7 +115,8 @@ const emit = defineEmits(['apply-coupon', 'place-order'])
 
 const couponCode = ref('')
 const availableCoupons = ref([])
-const couponService = useCoupon()
+const couponStore = useCouponStore()
+const { coupons, isLoadingCoupons, error: couponError, myCoupons } = storeToRefs(couponStore)
 const { $config: runtimeConfig } = useNuxtApp()
 
 const total = computed(() => {
@@ -141,24 +143,18 @@ const selectCoupon = (coupon) => {
 
 const fetchAvailableCoupons = async () => {
     try {
-        // Lấy danh sách coupon đã lưu của user
-        const myCouponsData = await couponService.getMyCoupons()
-        const myCoupons = myCouponsData?.coupons || []
-
-        if (!myCoupons || !Array.isArray(myCoupons)) {
-            console.error('Invalid my coupons data:', myCoupons)
-            return
+        // Lấy danh sách coupon đã lưu của user từ store
+        if (!myCoupons.value.length) {
+            await couponStore.fetchMyCoupons()
         }
-
         const now = new Date()
-        availableCoupons.value = myCoupons.filter(coupon => {
+        availableCoupons.value = (myCoupons.value || []).filter(coupon => {
             // Chỉ hiển thị coupon đang hoạt động và chưa sử dụng
             return coupon.is_active &&
                 coupon.pivot?.status !== 'used' &&
                 new Date(coupon.start_date) <= now &&
                 new Date(coupon.end_date) >= now
         })
-
     } catch (error) {
         console.error('Error fetching my coupons:', error)
     }

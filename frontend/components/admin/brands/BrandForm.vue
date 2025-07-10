@@ -9,21 +9,24 @@
         <div class="tw-mb-4">
             <label class="tw-block tw-font-medium tw-mb-1">Tên thương hiệu <span
                     class="tw-text-red-500">*</span></label>
-            <input v-model="formData.name" type="text" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
+            <input v-model="formData.name" type="text"
+                class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                 placeholder="Nhập tên thương hiệu" />
             <div v-if="formErrors.name" class="tw-text-red-500 tw-text-sm">{{ formErrors.name }}</div>
         </div>
 
         <div class="tw-mb-4">
             <label class="tw-block tw-font-medium tw-mb-1">Mô tả</label>
-            <textarea v-model="formData.description" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2"
+            <textarea v-model="formData.description"
+                class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                 placeholder="Nhập mô tả thương hiệu" rows="4"></textarea>
             <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm">{{ formErrors.description }}</div>
         </div>
 
         <div class="tw-mb-4">
             <label class="tw-block tw-font-medium tw-mb-1">Thương hiệu cha</label>
-            <select v-model="formData.parent_id" class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2">
+            <select v-model="formData.parent_id"
+                class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
                 <option value="">Chọn thương hiệu cha</option>
                 <option v-for="option in parentOptions" :key="option.value" :value="option.value">
                     {{ option.label }}
@@ -88,11 +91,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useBrand } from '~/composables/useBrand.js'
+import { useBrandStore } from '~/stores/useBrandStore'
 import { useNuxtApp, navigateTo } from '#app'
 
 const notyf = useNuxtApp().$notyf
-const { getBrands, createBrand } = useBrand()
+const brandStore = useBrandStore()
 
 const formData = ref({
     name: '',
@@ -133,8 +136,10 @@ function removeImage() {
 
 onMounted(async () => {
     try {
-        const brands = await getBrands()
-        parentOptions.value = brands.map(brand => ({
+        if (!brandStore.brands.length) {
+            await brandStore.fetchBrands()
+        }
+        parentOptions.value = brandStore.brands.map(brand => ({
             value: brand.id,
             label: brand.name
         }))
@@ -197,7 +202,7 @@ const handleSubmit = async () => {
     }
 
     try {
-        const result = await createBrand(formDataToSend)
+        const result = await brandStore.createBrand(formDataToSend)
         if (result) {
             notyf.success('Tạo thương hiệu thành công')
             await navigateTo('/admin/brands')

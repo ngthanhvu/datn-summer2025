@@ -8,7 +8,7 @@
         </div>
 
         <!-- Loading State -->
-        <div v-if="loading"
+        <div v-if="homeStore.isLoadingBrands"
             class="tw-grid tw-grid-cols-2 sm:tw-grid-cols-3 md:tw-grid-cols-4 lg:tw-grid-cols-6 tw-gap-4">
             <div v-for="i in 12" :key="i" class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-4 tw-animate-pulse">
                 <div class="tw-w-16 tw-h-16 tw-bg-gray-200 tw-rounded tw-mx-auto tw-mb-2"></div>
@@ -19,7 +19,7 @@
 
         <!-- Brands Grid -->
         <div v-else class="tw-grid tw-grid-cols-2 sm:tw-grid-cols-3 md:tw-grid-cols-4 lg:tw-grid-cols-6 tw-gap-4">
-            <div v-for="brand in brands" :key="brand.id"
+            <div v-for="brand in homeStore.brands" :key="brand.id"
                 class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-hover:shadow-md tw-transition-shadow tw-p-4 tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-group tw-border tw-border-gray-100"
                 @click="navigateToBrand(brand.slug || brand.id)">
                 <div class="tw-text-center">
@@ -61,40 +61,25 @@
         </div>
 
         <!-- Empty State -->
-        <div v-if="!loading && brands.length === 0" class="tw-text-center tw-py-8">
+        <div v-if="!homeStore.isLoadingBrands && homeStore.brands.length === 0" class="tw-text-center tw-py-8">
             <p class="tw-text-gray-500">Chưa có thương hiệu nào</p>
         </div>
     </div>
 </template>
 
 <script setup>
-import { useHome } from '../../composables/useHome'
+import { useHomeStore } from '~/stores/useHomeStore'
 
-const { getBrandsWithProductCount, logBrandStats } = useHome()
+const homeStore = useHomeStore()
 
-const brands = ref([])
-const loading = ref(true)
-const featuredBrand = ref(null)
-
-const fetchBrands = async () => {
-    try {
-        loading.value = true
-        const brandsData = await getBrandsWithProductCount()
-        brands.value = brandsData
-
-        if (brandsData.length > 0) {
-            featuredBrand.value = brandsData.reduce((prev, current) =>
-                (prev.products_count > current.products_count) ? prev : current
-            )
-        }
-
-        await logBrandStats()
-    } catch (error) {
-        console.error('Error fetching brands:', error)
-    } finally {
-        loading.value = false
+const featuredBrand = computed(() => {
+    if (homeStore.brands.length > 0) {
+        return homeStore.brands.reduce((prev, current) =>
+            (prev.products_count > current.products_count) ? prev : current
+        )
     }
-}
+    return null
+})
 
 const getBrandLogo = (brand) => {
     if (brand.image) {
@@ -115,7 +100,9 @@ const navigateToBrand = (brandId) => {
     navigateTo(`/brands/${brandId}`)
 }
 
-onMounted(() => {
-    fetchBrands()
+onMounted(async () => {
+    if (!homeStore.hasValidData('brands')) {
+        await homeStore.fetchBrands()
+    }
 })
 </script>
