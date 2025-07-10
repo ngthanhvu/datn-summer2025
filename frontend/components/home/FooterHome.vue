@@ -69,9 +69,9 @@
           <div class="tw-font-bold tw-mb-4">ĐĂNG KÝ NHẬN TIN</div>
           <form class="tw-relative tw-mb-4">
             <input type="email" placeholder="Nhập địa chỉ email"
-              class="tw-rounded-full tw-px-3 tw-py-3 tw-w-full tw-border tw-border-[#292929] tw-text-gray-700 focus:tw-outline-none tw-pr-16" />
+              class="tw-rounded-full tw-px-3 tw-py-3 tw-w-full tw-border tw-border-[#5A82AB] tw-text-gray-700 focus:tw-outline-none tw-pr-16" />
             <button type="submit"
-              class="tw-absolute tw-top-1/2 tw-right-[5px] -tw-translate-y-1/2 tw-bg-[#292929] tw-text-white tw-px-4 tw-py-2 tw-rounded-full hover:tw-bg-gray-800 tw-flex tw-items-center tw-gap-1">
+              class="tw-absolute tw-top-1/2 tw-right-[5px] -tw-translate-y-1/2 tw-bg-[#5A82AB] tw-text-white tw-px-4 tw-py-2 tw-rounded-full hover:tw-bg-[#81aacc] tw-flex tw-items-center tw-gap-1">
               Đăng ký
             </button>
           </form>
