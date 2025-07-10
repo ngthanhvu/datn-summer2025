@@ -7,8 +7,8 @@
                     <p class="text-gray-600">Quản lý và theo dõi đơn hàng</p>
                 </div>
                 <button @click="handleReload" :disabled="isLoading"
-                    class="tw-bg-blue-500 hover:tw-bg-blue-600 disabled:tw-bg-gray-400 tw-text-white tw-px-4 tw-py-2 tw-rounded-lg tw-flex tw-items-center tw-gap-2 tw-transition-colors">
-                    <i class="fas fa-sync-alt" :class="{ 'tw-animate-spin': isLoading }"></i>
+                    class="tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-bg-gray-600 tw-text-white tw-text-sm tw-font-medium tw-rounded-lg hover:tw-bg-gray-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-gray-500 focus:tw-ring-offset-2 tw-transition-colors tw-duration-200">
+                    <i class="fas fa-sync-alt me-2" :class="{ 'tw-animate-spin': isLoading }"></i>
                     {{ isLoading ? 'Đang tải...' : 'Làm mới' }}
                 </button>
             </div>

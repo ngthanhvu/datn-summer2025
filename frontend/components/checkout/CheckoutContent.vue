@@ -142,7 +142,7 @@ const fetchCart = async () => {
             id: item.id,
             name: item.variant?.product?.name || 'Sản phẩm',
             variant: `Size: ${item.variant?.size || 'N/A'} | Số lượng: ${item.quantity}`,
-            price: item.variant?.price || 0,
+            price: item.price || 0, // Lấy giá đã lưu trong DB
             quantity: item.quantity,
             image: item.variant?.product?.main_image?.image_path || 'https://placehold.co/100x100'
         }))
@@ -220,7 +220,7 @@ const placeOrder = async () => {
         const items = cart.map(item => ({
             variant_id: item.variant.id,
             quantity: item.quantity,
-            price: item.variant.price || 0
+            price: item.price
         }))
 
         const orderData = {

@@ -73,6 +73,6 @@ const formatPrice = (price) => {
 defineEmits(['update:shipping', 'checkout'])
 
 const handleCheckout = () => {
-    navigateTo('/checkout')
+    navigateTo('/thanh-toan')
 }
 </script>

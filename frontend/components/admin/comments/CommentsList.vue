@@ -27,7 +27,7 @@
                     <option value="1">Chỉ tiêu cực</option>
                 </select>
                 <input v-model="searchQuery" type="text" placeholder="Nhập từ khóa tìm kiếm ..."
-                    class="tw-border tw-rounded tw-px-3 tw-py-1 tw-text-sm tw-w-64" />
+                    class="tw-border tw-rounded tw-px-3 tw-py-1 tw-text-sm tw-w-64 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100" />
             </div>
         </div>
         <!-- Table -->
@@ -117,7 +117,7 @@
                                 <div v-else class="tw-mt-2 tw-ml-4">
                                     <div class="tw-flex tw-gap-2">
                                         <input type="text" v-model="comment.replyText" placeholder="Nhập phản hồi ..."
-                                            class="tw-flex-1 tw-border tw-rounded tw-px-3 tw-py-1 tw-text-xs">
+                                            class="tw-flex-1 tw-border tw-rounded tw-px-3 tw-py-1 tw-text-xs focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
                                         <button @click="addReply(comment)"
                                             class="tw-bg-primary tw-text-white tw-rounded tw-px-3 tw-py-1 tw-text-xs">Gửi</button>
                                     </div>
@@ -150,13 +150,15 @@
                                     class="tw-bg-green-100 tw-text-green-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Duyệt</button>
                                 <button v-if="comment.status === 'approved'"
                                     @click="updateStatus(comment.id, 'pending')"
-                                    class="tw-bg-yellow-100 tw-text-yellow-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Bỏ duyệt</button>
+                                    class="tw-bg-yellow-100 tw-text-yellow-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Bỏ
+                                    duyệt</button>
                                 <button v-if="comment.status !== 'rejected'"
                                     @click="updateStatus(comment.id, 'rejected')"
                                     class="tw-bg-red-100 tw-text-red-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Ẩn</button>
                                 <button v-if="comment.status === 'rejected'"
                                     @click="updateStatus(comment.id, 'pending')"
-                                    class="tw-bg-blue-100 tw-text-blue-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Bỏ ẩn</button>
+                                    class="tw-bg-blue-100 tw-text-blue-700 tw-rounded tw-px-2 tw-py-1 tw-mr-1 tw-text-xs">Bỏ
+                                    ẩn</button>
                                 <button @click="deleteComment(comment.id)"
                                     class="tw-bg-gray-100 tw-text-gray-700 tw-rounded tw-px-2 tw-py-1 tw-text-xs"><i
                                         class="fas fa-trash"></i></button>

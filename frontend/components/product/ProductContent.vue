@@ -31,7 +31,8 @@
                 </div>
 
                 <!-- Loading Skeleton -->
-                <div v-if="loading" class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
+                <div v-if="productStore.isLoadingProducts"
+                    class="tw-grid tw-grid-cols-2 md:tw-grid-cols-3 lg:tw-grid-cols-4 tw-gap-4">
                     <div v-for="i in 12" :key="i"
                         class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-overflow-hidden tw-animate-pulse">
                         <div class="tw-h-80 tw-bg-gray-200"></div>
@@ -51,7 +52,7 @@
                         @quick-view="openQuickView" />
                 </div>
 
-                <div v-if="totalPages > 1 && !loading"
+                <div v-if="totalPages > 1 && !productStore.isLoadingProducts"
                     class="tw-flex tw-justify-center tw-items-center tw-space-x-2 tw-mt-8">
                     <!-- Previous -->
                     <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
@@ -74,7 +75,8 @@
                 </div>
 
                 <!-- Empty State -->
-                <div v-if="products.length === 0 && !loading" class="tw-text-center tw-py-12">
+                <div v-if="productStore.products.length === 0 && !productStore.isLoadingProducts"
+                    class="tw-text-center tw-py-12">
                     <svg xmlns="http://www.w3.org/2000/svg" class="tw-h-12 tw-w-12 tw-mx-auto tw-text-gray-400 tw-mb-4"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -97,12 +99,12 @@ import ProductSort from '~/components/product/ProductSort.vue'
 import Card from '~/components/home/Card.vue'
 import QuickView from '~/components/product-detail/Quick-view.vue'
 import { useRoute } from 'vue-router'
+import { useProductStore } from '~/stores/useProductStore'
+
+const productStore = useProductStore()
 
 const showFilter = ref(false)
-const products = ref([])
 const searchQuery = ref('')
-const loading = ref(false)
-const { getProducts, searchProducts } = useProducts()
 const currentPage = ref(1)
 const itemsPerPage = 12
 const filters = ref({})
@@ -121,23 +123,17 @@ function closeQuickView() {
     quickViewProduct.value = null
 }
 
+// Fetch products khi mount hoặc khi filter thay đổi
 const fetchProducts = async () => {
-    loading.value = true
-    try {
-        const filtersObj = {}
-        if (route.query.category) {
-            filtersObj.category = route.query.category
-        }
-        if (route.query.brand) {
-            filtersObj.brand = route.query.brand
-        }
-        filters.value = filtersObj
-        products.value = await getProducts(filtersObj)
-    } catch (error) {
-        console.error('Error fetching products:', error)
-    } finally {
-        loading.value = false
+    const filtersObj = {}
+    if (route.query.category) {
+        filtersObj.category = route.query.category
     }
+    if (route.query.brand) {
+        filtersObj.brand = route.query.brand
+    }
+    filters.value = filtersObj
+    await productStore.fetchProducts(filtersObj)
 }
 
 onMounted(fetchProducts)
@@ -147,58 +143,39 @@ watch(
 )
 
 const handleSort = async (sortOption) => {
-    loading.value = true
-    try {
-        products.value = await getProducts({
-            ...filters.value,
-            sort_by: sortOption.sort_by,
-            sort_direction: sortOption.sort_direction
-        })
-    } catch (error) {
-        console.error('Error sorting products:', error)
-    } finally {
-        loading.value = false
-    }
+    await productStore.fetchProducts({
+        ...filters.value,
+        sort_by: sortOption.sort_by,
+        sort_direction: sortOption.sort_direction
+    })
 }
 
 const handleSearch = async () => {
-    loading.value = true
-    try {
-        if (searchQuery.value.trim() === '') {
-            products.value = await getProducts(filters.value);
-            return;
-        }
-
-        products.value = await searchProducts(searchQuery.value, filters.value);
-
-    } catch (e) {
-        console.error('Lỗi khi tìm kiếm sản phẩm:', e)
-    } finally {
-        loading.value = false
+    if (searchQuery.value.trim() === '') {
+        await productStore.fetchProducts(filters.value)
+        return
     }
+    // Giả sử API hỗ trợ search qua filter "search"
+    await productStore.fetchProducts({
+        ...filters.value,
+        search: searchQuery.value
+    })
 }
 
 const handleFilter = async (newFilters) => {
     filters.value = newFilters
     currentPage.value = 1
-    loading.value = true
-    try {
-        products.value = await getProducts(filters.value)
-    } catch (error) {
-        console.error('Error filtering products:', error)
-    } finally {
-        loading.value = false
-    }
+    await productStore.fetchProducts(filters.value)
 }
 
 const paginatedProducts = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage
     const end = start + itemsPerPage
-    return products.value.slice(start, end)
+    return productStore.products.slice(start, end)
 })
 
 const totalPages = computed(() => {
-    return Math.ceil(products.value.length / itemsPerPage)
+    return Math.ceil(productStore.products.length / itemsPerPage)
 })
 
 const goToPage = (page) => {
@@ -206,7 +183,6 @@ const goToPage = (page) => {
         currentPage.value = page
     }
 }
-
 </script>
 
 <style scoped>

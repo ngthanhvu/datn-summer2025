@@ -7,7 +7,8 @@
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Tên sản phẩm</label>
                         <input v-model="formData.name" type="text"
-                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập tên sản phẩm" />
+                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                            placeholder="Nhập tên sản phẩm" />
                         <div v-if="formErrors.name" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.name }}
                         </div>
                     </div>
@@ -15,7 +16,9 @@
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Giá bán</label>
                         <input v-model="formData.price" type="number" min="0" step="1000"
-                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá sản phẩm" />
+                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                            placeholder="Nhập giá sản phẩm" />
+
                         <div v-if="formErrors.price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ formErrors.price }}
                         </div>
                     </div>
@@ -23,7 +26,8 @@
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Giá khuyến mãi</label>
                         <input v-model="formData.discount_price" type="number" min="0" step="1000"
-                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập giá khuyến mãi" />
+                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                            placeholder="Nhập giá khuyến mãi" />
                         <div v-if="formErrors.discount_price" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                             formErrors.discount_price }}
                         </div>
@@ -31,7 +35,8 @@
                     <!-- Danh mục -->
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Danh mục</label>
-                        <select v-model="formData.category" class="tw-input tw-w-full tw-border tw-rounded tw-p-2">
+                        <select v-model="formData.category"
+                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
                             <option value="">Chọn danh mục</option>
                             <option v-for="opt in basicFields.find(f => f.name === 'category').options" :key="opt.value"
                                 :value="opt.value">{{ opt.label }}</option>
@@ -42,7 +47,8 @@
                     <!-- Thương hiệu -->
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Thương hiệu</label>
-                        <select v-model="formData.brand" class="tw-input tw-w-full tw-border tw-rounded tw-p-2">
+                        <select v-model="formData.brand"
+                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
                             <option value="">Chọn thương hiệu</option>
                             <option v-for="opt in basicFields.find(f => f.name === 'brand').options" :key="opt.value"
                                 :value="opt.value">{{ opt.label }}</option>
@@ -53,9 +59,7 @@
                     <!-- Mô tả -->
                     <div class="tw-mb-4">
                         <label class="tw-block tw-font-medium">Mô tả</label>
-                        <QuillEditor v-model:content="formData.description" contentType="html"
-                            class="tw-input tw-w-full tw-border tw-rounded tw-p-2" placeholder="Nhập mô tả sản phẩm"
-                            style="height: 140px;" />
+                        <CKEditor v-model="formData.description" />
                         <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                             formErrors.description }}</div>
                     </div>
@@ -169,7 +173,7 @@
                                 <!-- Màu sắc -->
                                 <div>
                                     <input v-model="variant.colorName" type="text"
-                                        class="tw-input tw-w-40 tw-border tw-rounded tw-p-2"
+                                        class="tw-input tw-w-40 tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                         placeholder="Nhập tên màu" />
                                     <div v-if="formErrors.variants[vIdx]?.color"
                                         class="tw-text-red-500 tw-text-sm tw-mt-1">
@@ -179,7 +183,7 @@
                                 <!-- Kích thước -->
                                 <div>
                                     <input v-model="sizeObj.size" type="text"
-                                        class="tw-input tw-w-40 tw-border tw-rounded tw-p-2"
+                                        class="tw-input tw-w-40 tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                         placeholder="Nhập kích thước" />
                                     <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.size"
                                         class="tw-text-red-500 tw-text-sm tw-mt-1">{{
@@ -188,7 +192,8 @@
                                 <!-- Giá -->
                                 <div>
                                     <input v-model="sizeObj.price" type="number" min="0" step="1000"
-                                        class="tw-input tw-w-40 tw-border tw-rounded tw-p-2" placeholder="Nhập giá" />
+                                        class="tw-input tw-w-40 tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                                        placeholder="Nhập giá" />
                                     <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.price"
                                         class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                                             formErrors.variants[vIdx].sizes[sIdx].price }}</div>
@@ -196,10 +201,10 @@
                                 <!-- SKU -->
                                 <div class="tw-flex tw-gap-2 tw-items-center tw-w-40">
                                     <input v-model="sizeObj.sku" type="text"
-                                        class="tw-input tw-w-full tw-border tw-rounded tw-p-2"
+                                        class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                         placeholder="Nhập mã SKU" />
                                     <button v-if="variant.sizes.length > 1" @click="removeSizeFromVariant(vIdx, sIdx)"
-                                        class="tw-text-red-500 hover:tw-text-red-700 tw-p-2">
+                                        class="tw-text-red-500 hover:tw-text-red-700 tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                     <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.sku"
@@ -256,10 +261,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useProducts } from '~/composables/useProducts'
-import { useCategory } from '~/composables/useCategory'
-import { useBrand } from '~/composables/useBrand'
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import { useCategoryStore } from '~/stores/useCategoryStore'
+import { useBrandStore } from '~/stores/useBrandStore'
+import CKEditor from '~/components/CKEditor.vue'
 import Swal from 'sweetalert2'
 
 const notyf = useNuxtApp().$notyf
@@ -360,32 +364,27 @@ const formErrors = ref({
 const showVariants = ref(false)
 
 const { createProduct } = useProducts()
-const { getCategories } = useCategory()
-const { getBrands } = useBrand()
+const categoryStore = useCategoryStore()
+const brandStore = useBrandStore()
 
 onMounted(async () => {
     try {
-        const [categories, brands] = await Promise.all([
-            getCategories(),
-            getBrands()
-        ])
-
-        if (categories && Array.isArray(categories)) {
-            const catOptions = categories.map(cat => ({ value: String(cat.id), label: cat.name }))
-            const categoryField = basicFields.value.find(f => f.name === 'category')
-            if (categoryField) {
-                categoryField.options = catOptions
-            }
+        if (!categoryStore.categories.length) {
+            await categoryStore.fetchCategories()
         }
-
-        if (brands && Array.isArray(brands)) {
-            const brandOptions = brands.map(brand => ({ value: String(brand.id), label: brand.name }))
-            const brandField = basicFields.value.find(f => f.name === 'brand')
-            if (brandField) {
-                brandField.options = brandOptions
-            }
+        if (!brandStore.brands.length) {
+            await brandStore.fetchBrands()
         }
-
+        const catOptions = categoryStore.categories.map(cat => ({ value: String(cat.id), label: cat.name }))
+        const categoryField = basicFields.value.find(f => f.name === 'category')
+        if (categoryField) {
+            categoryField.options = catOptions
+        }
+        const brandOptions = brandStore.brands.map(brand => ({ value: String(brand.id), label: brand.name }))
+        const brandField = basicFields.value.find(f => f.name === 'brand')
+        if (brandField) {
+            brandField.options = brandOptions
+        }
         isDataLoaded.value = true
     } catch (err) {
         console.error('Không thể tải danh mục/thương hiệu', err)
@@ -737,5 +736,10 @@ const onVariantImagesChange = (e, vIdx) => {
 
 .toggle input:checked+label::after {
     transform: translateX(24px);
+}
+
+:deep(.ck-editor__editable_inline) {
+    min-height: 200px;
+    max-height: 400px;
 }
 </style>

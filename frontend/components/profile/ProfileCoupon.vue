@@ -124,26 +124,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useCoupon } from '~/composables/useCoupon'
+import { ref, onMounted, computed } from 'vue'
+import { useCouponStore } from '~/stores/useCouponStore'
 
 const notyf = useNuxtApp().$notyf
-const { getMyCoupons } = useCoupon()
+const couponStore = useCouponStore()
 
-const myCoupons = ref([])
-const loading = ref(true)
+const loading = computed(() => couponStore.isLoadingCoupons)
+
+const myCoupons = computed(() => {
+    // Lấy trực tiếp từ store
+    return couponStore.myCoupons || []
+})
 
 onMounted(async () => {
-    try {
-        loading.value = true
-        const data = await getMyCoupons()
-        myCoupons.value = data?.coupons || []
-    } catch (error) {
-        console.error('Error loading my coupons:', error)
-        myCoupons.value = []
-        notyf.error('Không thể tải danh sách voucher')
-    } finally {
-        loading.value = false
+    if (!couponStore.myCoupons.length) {
+        await couponStore.fetchMyCoupons()
     }
 })
 

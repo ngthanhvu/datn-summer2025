@@ -20,6 +20,7 @@ use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessengerController;
 use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\FlashSaleController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -191,3 +192,9 @@ Route::get('/stock-movement', [StockMovementController::class, 'index']);
 Route::get('/stock-movement/{id}', [StockMovementController::class, 'show']);
 Route::post('/stock-movement', [StockMovementController::class, 'store']);
 Route::delete('/stock-movement/{id}', [StockMovementController::class, 'destroy']);
+
+Route::get('flash-sales', [FlashSaleController::class, 'index']);
+Route::post('flash-sales', [FlashSaleController::class, 'store']);
+Route::put('flash-sales/{id}', [FlashSaleController::class, 'update']);
+Route::delete('flash-sales/{id}', [FlashSaleController::class, 'destroy']);
+Route::get('flash-sales/{id}', [FlashSaleController::class, 'show']);
