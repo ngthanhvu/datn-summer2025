@@ -339,7 +339,6 @@ const addToCart = async () => {
             notyf.error('Số lượng vượt quá số lượng còn lại')
             return
         }
-        // Truyền đúng giá hiển thị ở UI vào giỏ hàng
         await addToCartComposable(selectedVariant.value.id, props.quantity, selectedVariantSalePrice.value)
         notyf.success('Đã thêm vào giỏ hàng')
     } catch (error) {
