@@ -147,6 +147,7 @@ const { getProducts } = useProducts()
 const allProducts = ref([])
 const router = useRouter()
 function goToSelectProducts() {
+  localStorage.setItem('flashsale_form_data', JSON.stringify(form.value));
   if (props.editData && props.editData.id) {
     router.push(`/admin/flashsale/select-products?flashSaleId=${props.editData.id}`)
   } else {
@@ -155,6 +156,13 @@ function goToSelectProducts() {
 }
 onMounted(async () => {
   allProducts.value = await getProducts()
+  const savedForm = localStorage.getItem('flashsale_form_data');
+  if (savedForm) {
+    try {
+      Object.assign(form.value, JSON.parse(savedForm));
+      localStorage.removeItem('flashsale_form_data');
+    } catch {}
+  }
   const selected = localStorage.getItem('flashsale_selected_products')
   const flashSaleId = props.editData?.id
   const editSelected = flashSaleId ? localStorage.getItem(`flashsale_edit_${flashSaleId}`) : null
@@ -248,6 +256,8 @@ async function submit() {
       success.value = 'Tạo flash sale thành công!'
       setTimeout(() => router.push('/admin/flashsale'), 1000)
     }
+    // Xóa dữ liệu form tạm sau khi submit thành công
+    localStorage.removeItem('flashsale_form_data');
   } catch (e) {
     error.value = e.message || 'Có lỗi xảy ra khi lưu flash sale'
   } finally {

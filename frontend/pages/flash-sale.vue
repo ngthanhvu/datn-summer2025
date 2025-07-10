@@ -1,6 +1,7 @@
 <template>
   <div class="tw-container tw-mx-auto tw-px-4 tw-py-6">
-    <div class="tw-bg-white tw-rounded tw-p-6 tw-mb-6">
+    <div class="tw-bg-white tw-rounded tw-p-6 tw-mb-6 tw-relative tw-overflow-hidden">
+      <Snowfall />
       <div class="tw-flex tw-items-center tw-gap-3 tw-mb-4">
         <h1 class="tw-text-2xl tw-font-bold tw-text-blue-700">Tất cả Flash Sale</h1>
         <img src="https://theme.hstatic.net/200000696635/1001373943/14/flashsale-hot.png?v=6" alt="Flash Sale" class="tw-h-10 tw-w-auto" />
@@ -93,6 +94,7 @@
 import { ref, onMounted } from 'vue'
 import { useFlashsale } from '@/composables/useFlashsale'
 import productSaleBg from '~/assets/product_sale.jpg'
+import Snowfall from '@/components/common/Snowfall.vue'
 
 const flashSales = ref([])
 const selectedIndex = ref(0)

@@ -1,5 +1,5 @@
 <template>
-    <div class="tw-bg-white tw-rounded tw-p-6 tw-mb-6">
+    <div v-if="flashSaleProducts.length > 0" class="tw-bg-white tw-rounded tw-p-6 tw-mb-6">
         <div class="tw-flex tw-items-center tw-justify-between tw-mb-4">
             <div class="tw-flex tw-items-center tw-gap-3">
                 <h1 class="tw-text-2xl tw-font-bold tw-text-blue-700">{{ campaignName }}</h1>
@@ -7,12 +7,13 @@
             </div>
             <div class="tw-flex tw-items-center tw-gap-2">
                 <span>Kết thúc sau</span>
+                <div class="tw-bg-black tw-text-white tw-px-2 tw-py-1 tw-rounded">{{ countdown.days }}</div>
+                <span>Ngày</span>
                 <div class="tw-bg-black tw-text-white tw-px-2 tw-py-1 tw-rounded">{{ countdown.hours }}</div>
-                <span>Giờ</span>
+                <span>:</span>
                 <div class="tw-bg-black tw-text-white tw-px-2 tw-py-1 tw-rounded">{{ countdown.minutes }}</div>
-                <span>Phút</span>
+                <span>:</span>
                 <div class="tw-bg-black tw-text-white tw-px-2 tw-py-1 tw-rounded">{{ countdown.seconds }}</div>
-                <span>Giây</span>
             </div>
         </div>
         <!-- Tab menu -->
@@ -133,18 +134,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, defineEmits } from 'vue'
 import { useFlashsale } from '@/composables/useFlashsale'
 import productSaleBg from '~/assets/product_sale.jpg'
 
 const flashSaleProducts = ref([])
-const countdown = ref({ hours: '00', minutes: '00', seconds: '00' })
+const countdown = ref({ days: '00', hours: '00', minutes: '00', seconds: '00' })
 const campaignName = ref('')
 const flashSales = ref([])
 const selectedIndex = ref(0)
 let countdownInterval = null
 const { getFlashSales, getMainImage } = useFlashsale()
 const sliderRef = ref(null)
+const emit = defineEmits(['has-flash-sale'])
 
 function formatPrice(price) {
     if (!price) return ''
@@ -169,12 +171,14 @@ function updateCountdown(endTime) {
     const now = new Date()
     const end = new Date(endTime)
     let diff = Math.max(0, end - now)
+    const days = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0')
+    diff %= 1000 * 60 * 60 * 24
     const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0')
     diff %= 1000 * 60 * 60
     const minutes = String(Math.floor(diff / (1000 * 60))).padStart(2, '0')
     diff %= 1000 * 60
     const seconds = String(Math.floor(diff / 1000)).padStart(2, '0')
-    countdown.value = { hours, minutes, seconds }
+    countdown.value = { days, hours, minutes, seconds }
 }
 
 function getSoldPercent(product) {
@@ -228,7 +232,10 @@ function updateTabData() {
         }))
         updateCountdown(fs.end_time)
         countdownInterval = setInterval(() => updateCountdown(fs.end_time), 1000)
+    } else {
+        flashSaleProducts.value = []
     }
+    emit('has-flash-sale', flashSaleProducts.value.length > 0)
 }
 
 function truncate(text, maxLength) {
@@ -261,6 +268,7 @@ onMounted(async () => {
     }
     selectedIndex.value = idx
     updateTabData()
+    emit('has-flash-sale', flashSaleProducts.value.length > 0)
 })
 
 watch(selectedIndex, updateTabData)
