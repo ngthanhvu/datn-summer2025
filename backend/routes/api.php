@@ -20,6 +20,7 @@ use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessengerController;
 use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\SettingController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -68,6 +69,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/favorites', [FavoriteProductController::class, 'store']);
     Route::get('/favorites/check/{slug}', [FavoriteProductController::class, 'check']);
     Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
+    Route::post('/settings', [SettingController::class, 'update']);
 
     // Chat/Messenger routes
     Route::prefix('chat')->group(function () {
@@ -85,6 +87,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/coupons/{id}/use', [CouponsController::class, 'use']);
     Route::get('/coupons/my-coupons', [CouponsController::class, 'myCoupons']);
 });
+Route::get('/settings', [SettingController::class, 'index']);
 
 // Public blog routes
 Route::get('/blogs', [BlogsController::class, 'index']);
