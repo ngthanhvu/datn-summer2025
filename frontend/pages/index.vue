@@ -10,6 +10,12 @@
       </div>
     </div>
 
+    <div class="tw-mt-3" v-if="shouldShowRecommend">
+      <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
+        <Trending />
+      </div>
+     </div>
+     
     <div class="tw-mt-3">
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
         <FlashSale />
@@ -95,6 +101,7 @@
 </template>
 
 <script setup>
+import { useAuth } from '~/composables/useAuth'
 import { defineAsyncComponent, onMounted } from 'vue';
 import { useHomeData } from '~/composables/useHomeData';
 
@@ -109,6 +116,14 @@ const BrandsShowcase = defineAsyncComponent(() => import('~/components/home/Bran
 const LatestReviews = defineAsyncComponent(() => import('~/components/home/LatestReviews.vue'))
 const Banner = defineAsyncComponent(() => import('@/components/home/Banner.vue'))
 const CouponList = defineAsyncComponent(() => import('~/components/home/CouponList.vue'))
+
+const Trending = defineAsyncComponent(() => import('~/components/home/Trending.vue'))
+
+const { user, isAuthenticated } = useAuth()
+const shouldShowRecommend = computed(() => {
+  if (!isAuthenticated.value || !user.value) return false
+  return Boolean(user.value.username && user.value.gender && user.value.dateOfBirth)
+
 const FlashSale = defineAsyncComponent(() => import('~/components/home/FlashSale.vue'))
 
 // Initialize home data management

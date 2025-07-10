@@ -216,6 +216,24 @@ export const useHome = () => {
         }
     }
 
+    const getRecommendedProducts = async () => {
+        try {
+            const userCookie = useCookie('user').value
+            let params = {}
+            if (userCookie) {
+                const user = typeof userCookie === 'string' ? JSON.parse(userCookie) : userCookie
+                if (user.gender) params.gender = user.gender
+                if (user.dateOfBirth) params.dateOfBirth = user.dateOfBirth
+                if (user.address) params.address = user.address
+            }
+            const response = await API.get('/api/products/recommend', { params })
+            return response.data
+        } catch (error) {
+            console.error('Error getting recommended products:', error)
+            return []
+        }
+    }
+
     // Clear cache function
     const clearCache = () => {
         cache.clear()
@@ -231,6 +249,7 @@ export const useHome = () => {
         formatPrice,
         formatDate,
         logBrandStats,
+        getRecommendedProducts,
         clearCache
     }
 } 

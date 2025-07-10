@@ -118,6 +118,7 @@ Route::get('/products/filter-options', [ProductsController::class, 'getFilterOpt
 Route::get('/products', [ProductsController::class, 'index']);
 Route::post('/products', [ProductsController::class, 'store']);
 Route::put('/products/{id}', [ProductsController::class, 'update']);
+Route::get('/products/recommend', [ProductsController::class, 'recommend']);
 Route::get('/products/slug/{slug}', [ProductsController::class, 'getProductBySlug']);
 Route::get('/products/{id}', [ProductsController::class, 'getProductById']);
 Route::delete('/products/{id}', [ProductsController::class, 'destroy']);
