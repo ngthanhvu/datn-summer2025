@@ -14,8 +14,8 @@
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
         <Trending />
       </div>
-     </div>
-     
+    </div>
+
     <div class="tw-mt-3">
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
         <FlashSale />
@@ -123,7 +123,7 @@ const { user, isAuthenticated } = useAuth()
 const shouldShowRecommend = computed(() => {
   if (!isAuthenticated.value || !user.value) return false
   return Boolean(user.value.username && user.value.gender && user.value.dateOfBirth)
-
+})
 const FlashSale = defineAsyncComponent(() => import('~/components/home/FlashSale.vue'))
 
 // Initialize home data management
