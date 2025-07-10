@@ -15,6 +15,19 @@
                 <span>Giây</span>
             </div>
         </div>
+        <!-- Tab menu -->
+        <div v-if="flashSales.length > 1" class="tw-flex tw-gap-6 tw-border-b tw-mb-4 tw-ml-2">
+            <button
+                v-for="(fs, idx) in flashSales"
+                :key="fs.id"
+                @click="selectTab(idx)"
+                class="tw-pb-2 tw-font-medium tw-transition tw-relative"
+                :class="selectedIndex === idx ? 'tw-text-black tw-border-b-2 tw-border-black' : 'tw-text-gray-400'"
+                style="background:none;border:none;outline:none;cursor:pointer;"
+            >
+                {{ fs.name }}
+            </button>
+        </div>
         <div class="tw-flex tw-gap-4 tw-overflow-x-auto">
             <NuxtLink
                 v-for="product in flashSaleProducts"
@@ -112,13 +125,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useFlashsale } from '@/composables/useFlashsale'
 import productSaleBg from '~/assets/product_sale.jpg'
 
 const flashSaleProducts = ref([])
 const countdown = ref({ hours: '00', minutes: '00', seconds: '00' })
 const campaignName = ref('')
+const flashSales = ref([])
+const selectedIndex = ref(0)
+let countdownInterval = null
 const { getFlashSales, getMainImage } = useFlashsale()
 
 function formatPrice(price) {
@@ -182,9 +198,15 @@ function onQuickView(product) {
   console.log('Quick view:', product)
 }
 
-onMounted(async () => {
-    const flashSales = await getFlashSales()
-    const fs = getFirstActiveFlashSale(flashSales)
+function selectTab(idx) {
+    if (selectedIndex.value === idx) return
+    selectedIndex.value = idx
+    updateTabData()
+}
+
+function updateTabData() {
+    if (countdownInterval) clearInterval(countdownInterval)
+    const fs = flashSales.value[selectedIndex.value]
     if (fs && fs.products) {
         campaignName.value = fs.name || 'Flash Sale'
         flashSaleProducts.value = fs.products.map(p => ({
@@ -196,9 +218,29 @@ onMounted(async () => {
             flash_sale_quantity: p.quantity
         }))
         updateCountdown(fs.end_time)
-        setInterval(() => updateCountdown(fs.end_time), 1000)
+        countdownInterval = setInterval(() => updateCountdown(fs.end_time), 1000)
     }
+}
+
+onMounted(async () => {
+    const data = await getFlashSales()
+    flashSales.value = Array.isArray(data) ? data : []
+    // Chọn tab đầu tiên là flash sale đang active, nếu không có thì lấy đầu tiên
+    let idx = 0
+    if (flashSales.value.length > 0) {
+        const activeIdx = flashSales.value.findIndex(fs => {
+            const now = new Date()
+            const start = new Date(fs.start_time)
+            const end = new Date(fs.end_time)
+            return fs.active && start <= now && end >= now
+        })
+        idx = activeIdx !== -1 ? activeIdx : 0
+    }
+    selectedIndex.value = idx
+    updateTabData()
 })
+
+watch(selectedIndex, updateTabData)
 </script>
 
 <style scoped>
