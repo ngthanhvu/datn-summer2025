@@ -93,7 +93,8 @@
 import { ref, onMounted } from 'vue'
 import { useBrandStore } from '~/stores/useBrandStore'
 import { useNuxtApp, navigateTo } from '#app'
-
+import { useBrand } from '~/composables/useBrand';
+const { createBrand } = useBrand();
 const notyf = useNuxtApp().$notyf
 const brandStore = useBrandStore()
 
@@ -202,7 +203,8 @@ const handleSubmit = async () => {
     }
 
     try {
-        const result = await brandStore.createBrand(formDataToSend)
+        // const result = await brandStore.createBrand(formDataToSend)
+        const result = await createBrand(formDataToSend)
         if (result) {
             notyf.success('Tạo thương hiệu thành công')
             await navigateTo('/admin/brands')

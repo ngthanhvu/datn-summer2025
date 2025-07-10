@@ -1,24 +1,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
 import AddressList from '~/components/checkout/AddressList.vue'
 import AddressForm from '~/components/checkout/AddressForm.vue'
 import PaymentMethods from '~/components/checkout/PaymentMethods.vue'
 import OrderSummary from '~/components/checkout/OrderSummary.vue'
 import { useAddress } from '~/composables/useAddress'
-import { useCartStore } from '~/stores/useCartStore'
-import { useCouponStore } from '~/stores/useCouponStore'
-import { usePayment } from '~/composables/usePayment'
+import { useCart } from '~/composables/useCarts'
 import { useCheckout } from '~/composables/useCheckout'
+import { useCoupon } from '~/composables/useCoupon'
+import { usePayment } from '~/composables/usePayment'
 
 const addressService = useAddress()
-const cartStore = useCartStore()
-const couponStore = useCouponStore()
+const cartService = useCart()
+const checkoutService = useCheckout()
+const couponService = useCoupon()
 const paymentService = usePayment()
-const { createOrder: createOrderApi, applyCoupon: applyCouponApi } = useCheckout()
-
-const { cart, isLoadingCart, error: cartError } = storeToRefs(cartStore)
-const { coupons, isLoadingCoupons, error: couponError } = storeToRefs(couponStore)
 
 const showAddressForm = ref(false)
 const editingAddressIndex = ref(null)
@@ -27,17 +23,7 @@ const addresses = ref([])
 const isLoading = ref(false)
 const error = ref(null)
 
-const cartItems = computed(() => {
-    return cart.value.map(item => ({
-        id: item.id,
-        name: item.variant?.product?.name || 'Sản phẩm',
-        variant: `Size: ${item.variant?.size || 'N/A'} | Số lượng: ${item.quantity}`,
-        price: item.variant?.price || 0,
-        quantity: item.quantity,
-        image: item.variant?.product?.main_image?.image_path || 'https://placehold.co/100x100'
-    }))
-})
-
+const cartItems = ref([])
 const shipping = ref(30000)
 const discount = ref(0)
 const appliedCoupon = ref(null)
@@ -71,7 +57,7 @@ const saveAddress = async (address) => {
     try {
         isLoading.value = true
         if (editingAddressIndex.value === null) {
-            await addressService.createAddress({
+            const newAddress = await addressService.createAddress({
                 full_name: address.fullName,
                 phone: address.phone,
                 province: address.province,
@@ -108,7 +94,9 @@ const deleteAddress = async (index) => {
     try {
         const addressId = addresses.value[index].id
         await addressService.deleteAddress(addressId)
+
         await fetchAddresses()
+
         if (selectedAddress.value === index) {
             selectedAddress.value = 0
         }
@@ -121,6 +109,7 @@ const fetchAddresses = async () => {
     try {
         isLoading.value = true
         const response = await addressService.getAddresses()
+
         if (response && response.data && Array.isArray(response.data)) {
             addresses.value = response.data.map(addr => ({
                 id: addr.id,
@@ -167,7 +156,8 @@ const fetchCart = async () => {
 const applyCoupon = async (code) => {
     try {
         isLoading.value = true
-        const result = await applyCouponApi(code, subtotal.value)
+        const result = await couponService.validateCoupon(code, subtotal.value)
+
         if (result.discount !== undefined) {
             appliedCoupon.value = result.coupon
             discount.value = Math.round(result.discount)
@@ -222,13 +212,17 @@ const placeOrder = async () => {
             error.value = 'Vui lòng thêm địa chỉ giao hàng'
             return
         }
+
         isLoading.value = true
-        await cartStore.fetchCart()
-        const items = cart.value.map(item => ({
+
+        const cart = await cartService.fetchCart()
+
+        const items = cart.map(item => ({
             variant_id: item.variant.id,
             quantity: item.quantity,
-            price: item.price 
+            price: item.price
         }))
+
         const orderData = {
             address_id: addresses.value[selectedAddress.value].id,
             payment_method: paymentMethods[selectedPaymentMethod.value].code,
@@ -240,17 +234,26 @@ const placeOrder = async () => {
             discount_price: discount.value,
             final_price: total.value
         }
+
         console.log('Creating order with data:', orderData)
-        const result = await createOrderApi(orderData)
+        const result = await checkoutService.createOrder(orderData)
+        console.log('Order creation result:', result)
+
         if (result && result.order) {
             const paymentMethod = paymentMethods[selectedPaymentMethod.value].code
             const orderId = result.order.id
             const amount = result.order.final_price
+
+            console.log('Payment method:', paymentMethod)
+            console.log('Order ID:', orderId)
+            console.log('Amount:', amount)
+
             if (paymentMethod === 'cod') {
                 navigateTo(`/status?status=success&orderId=${orderId}&amount=${amount}&tracking_code=${result.order.tracking_code}`)
             } else {
                 let paymentUrl
                 let paymentResult
+
                 switch (paymentMethod) {
                     case 'vnpay':
                         paymentResult = await paymentService.generateVnpayUrl(orderId, amount)
