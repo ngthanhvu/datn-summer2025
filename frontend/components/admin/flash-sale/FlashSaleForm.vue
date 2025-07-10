@@ -1,5 +1,5 @@
 <template>
-  <div class="tw-bg-[#f7f8fa] tw-p-6 tw-min-h-screen">
+  <div class="tw-bg-[#f7f8fa] tw-p-6 tw-min-h-screen tw-text-sm">
     <div class="tw-flex tw-justify-between tw-items-center tw-mb-6 tw-pt-6 tw-pl-6">
       <div>
         <h1 class="tw-text-2xl tw-font-bold tw-mb-2">{{ props.editData ? 'Cập nhật' : 'Thêm' }} chiến dịch Flash Sale</h1>
@@ -9,8 +9,7 @@
     <div v-if="error" class="tw-text-red-500 tw-mb-2">{{ error }}</div>
     <div v-if="success" class="tw-text-green-600 tw-mb-2">{{ success }}</div>
     <div class="tw-flex tw-flex-col md:tw-flex-row tw-gap-8">
-      <!-- Container nhập thông tin (40%) -->
-      <div class="tw-bg-white tw-rounded tw-shadow tw-p-6 md:tw-w-2/5 tw-mb-6 md:tw-mb-0">
+      <div class="tw-bg-white tw-rounded tw-shadow tw-p-6 md:tw-w-2/5 tw-mb-6 md:tw-mb-0 tw-text-sm">
         <div class="tw-space-y-4">
           <div>
             <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Tên chiến dịch</label>
@@ -58,40 +57,48 @@
           </div>
         </div>
       </div>
-      <!-- Container hiển thị sản phẩm (60%) -->
-      <div class="tw-bg-white tw-rounded tw-shadow tw-p-6 md:tw-w-3/5">
+      <div class="tw-bg-white tw-rounded tw-shadow tw-p-6 md:tw-w-3/5 tw-text-sm">
         <h3 class="tw-font-bold tw-mb-2">Sản phẩm Flash Sale</h3>
         <div class="tw-overflow-x-auto">
-          <table class="tw-w-full tw-bg-white tw-rounded tw-shadow-sm">
+          <table class="tw-w-full tw-bg-white tw-rounded tw-shadow-sm tw-text-sm">
             <thead>
               <tr class="tw-bg-gray-100 tw-text-gray-700">
                 <th class="tw-px-3 tw-py-2">Ảnh</th>
                 <th class="tw-px-3 tw-py-2">Tên sản phẩm</th>
-                <th class="tw-px-3 tw-py-2">Mã SP</th>
                 <th class="tw-px-3 tw-py-2">Giá thường</th>
                 <th class="tw-px-3 tw-py-2">Giá KM</th>
                 <th class="tw-px-3 tw-py-2">Giá Flash Sale</th>
                 <th class="tw-px-3 tw-py-2">Đã bán</th>
                 <th class="tw-px-3 tw-py-2">Số lượng</th>
                 <th class="tw-px-3 tw-py-2">SL Thật</th>
-                <th class="tw-px-3 tw-py-2">#</th>
+                <th class="tw-px-3 tw-py-2">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, idx) in products" :key="item.id">
+              <tr v-for="(item, idx) in paginatedProducts" :key="item.id">
                 <td class="tw-px-3 tw-py-2"><img :src="getMainImage(item)" class="tw-w-10 tw-h-10 tw-rounded" /></td>
-                <td class="tw-px-3 tw-py-2">{{ item.name }}</td>
-                <td class="tw-px-3 tw-py-2">{{ item.sku || item.product?.sku }}</td>
+                <td class="tw-px-3 tw-py-2">{{ truncate(item.name) }}</td>
                 <td class="tw-px-3 tw-py-2">{{ item.product?.price ? formatPrice(item.product.price) : (item.price ? formatPrice(item.price) : 'N/A') }}</td>
                 <td class="tw-px-3 tw-py-2">{{ item.product?.discount_price ? formatPrice(item.product.discount_price) : (item.discount_price ? formatPrice(item.discount_price) : 'N/A') }}</td>
                 <td class="tw-px-3 tw-py-2"><input v-model="item.flashPrice" class="input tw-w-24" placeholder="Giá FS" /></td>
                 <td class="tw-px-3 tw-py-2"><input v-model="item.sold" class="input tw-w-16" placeholder="Đã bán" /></td>
                 <td class="tw-px-3 tw-py-2"><input v-model="item.quantity" class="input tw-w-16" placeholder="SL" /></td>
                 <td class="tw-px-3 tw-py-2"><input type="checkbox" v-model="item.realQty" /></td>
-                <td class="tw-px-3 tw-py-2"><button class="btn btn-danger" @click="removeProduct(idx)">Xóa</button></td>
+                <td class="tw-px-3 tw-py-2">
+                  <button class="btn btn-danger" @click="removeProduct(idx)" title="Xóa">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
+          <div class="tw-flex tw-justify-center tw-items-center tw-gap-2 tw-mt-2">
+            <button class="tw-px-3 tw-py-1 tw-rounded tw-bg-gray-200" :disabled="productPage === 1" @click="productPage > 1 && (productPage--)">&lt;</button>
+            <span>Trang {{ productPage }} / {{ productTotalPages }}</span>
+            <button class="tw-px-3 tw-py-1 tw-rounded tw-bg-gray-200" :disabled="productPage === productTotalPages" @click="productPage < productTotalPages && (productPage++)">&gt;</button>
+          </div>
         </div>
       </div>
     </div>
@@ -100,20 +107,29 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { useFlashsale } from '@/composables/useFlashsale'
 import { useProducts } from '@/composables/useProducts'
 import { useRouter } from 'vue-router'
 function formatPrice(price) {
   if (price === null || price === undefined || price === '') return 'N/A'
-  return new Intl.NumberFormat('vi-VN').format(Number(price))
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(price))
+}
+function truncate(str, n = 30) {
+  if (!str) return ''
+  return str.length > n ? str.slice(0, n) + '...' : str
 }
 const props = defineProps({
   editData: Object
 })
-const products = ref([
-
-])
+const products = ref([])
+const productPage = ref(1)
+const productPageSize = 5
+const productTotalPages = computed(() => Math.ceil(products.value.length / productPageSize))
+const paginatedProducts = computed(() => {
+  const start = (productPage.value - 1) * productPageSize
+  return products.value.slice(start, start + productPageSize)
+})
 const form = ref({
   name: '',
   start: '',
@@ -139,12 +155,10 @@ function goToSelectProducts() {
 }
 onMounted(async () => {
   allProducts.value = await getProducts()
-  // Lấy sản phẩm đã chọn từ localStorage nếu có
   const selected = localStorage.getItem('flashsale_selected_products')
   const flashSaleId = props.editData?.id
   const editSelected = flashSaleId ? localStorage.getItem(`flashsale_edit_${flashSaleId}`) : null
   
-  // Ưu tiên lấy từ edit localStorage nếu đang edit
   const productsToLoad = editSelected || selected
   
   if (productsToLoad) {
@@ -157,7 +171,6 @@ onMounted(async () => {
     } catch {}
   }
 })
-// Nếu có editData thì fill vào form và products
 watch(() => props.editData, (val) => {
   if (val) {
     form.value = {
@@ -169,7 +182,6 @@ watch(() => props.editData, (val) => {
       autoIncrease: val.auto_increase || val.autoIncrease || false,
       active: val.active !== undefined ? val.active : true
     }
-    // Xử lý products từ editData
     if (val.products && val.products.length > 0 && products.value.length === 0) {
       products.value = val.products.map(p => {
         const productData = p.product || {}
@@ -192,7 +204,6 @@ watch(() => props.editData, (val) => {
 }, { immediate: true })
 
 function addProduct(product) {
-  // Kiểm tra xem sản phẩm đã tồn tại chưa
   const existingIndex = products.value.findIndex(p => p.id === product.id)
   if (existingIndex === -1) {
     products.value.push({ 
