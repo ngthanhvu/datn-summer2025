@@ -6,18 +6,16 @@
                 class="tw-flex tw-flex-col lg:tw-flex-row tw-items-stretch tw-justify-start tw-p-5 tw-bg-white tw-rounded-[10px] tw-border tw-border-bg-gray-200">
                 <!-- Product Images Section -->
                 <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product.name"
-                    @update:main-image="updateMainImage" />
+                    @update:main-image="$emit('update:mainImage', $event)" />
 
                 <!-- Product Info -->
                 <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"
-                    :quantity="quantity"
-                    :selected-variant-stock="selectedVariant?.stock || 0"
-                    :display-price="displayPrice"
+                    :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
                     :show-original-price="showOriginalPrice"
                     :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
                     :flash-sale-percent="flashSalePercent"
-                    @update:selected-size="onUpdateSelectedSize"
-                    @update:selected-color="onUpdateSelectedColor"
+                    @update:selected-size="$emit('update:selectedSize', $event)"
+                    @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
             </div>
         </div>
@@ -70,7 +68,7 @@ import ProductInfo from './ProductInfo.vue'
 import ProductDescription from './ProductDescription.vue'
 import ProductReviews from './ProductReviews.vue'
 import RelatedProducts from './RelatedProducts.vue'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, toRef } from 'vue'
 
 const props = defineProps({
     product: {
@@ -229,64 +227,6 @@ const tabs = [
     { id: 'reviews', name: 'Đánh giá' },
 ]
 
-// State chọn size, màu
-const selectedSize = ref(props.selectedSize || '')
-const selectedColor = ref(props.selectedColor || null)
-
-// Tính toán variant hiện tại
-const selectedVariant = computed(() => {
-  if (!props.product?.variants?.length) return null
-  return props.product.variants.find(
-    v => v.size === selectedSize.value && v.color === selectedColor.value?.name
-  )
-})
-
-// Danh sách ảnh theo variant, luôn gộp thêm ảnh sản phẩm gốc và loại trùng
-const productImages = computed(() => {
-  if (!props.product?.variants?.length) return props.product.images?.map(img => img.image_path) || []
-  const variant = selectedVariant.value
-  let images = []
-  if (variant && variant.images && variant.images.length > 0) {
-    images = variant.images.map(img => img.image_path)
-  } else if (variant && variant.image_path) {
-    images = [variant.image_path]
-  }
-  // Gộp thêm ảnh sản phẩm gốc, loại trùng mạnh hơn
-  function normalizeImagePath(path) {
-    return path ? path.trim().split('?')[0] : ''
-  }
-  const allImages = [...images, ...(props.product.images?.map(img => img.image_path) || [])]
-  const uniqueImages = []
-  const seen = new Set()
-  for (const img of allImages) {
-    const norm = normalizeImagePath(img)
-    if (norm && !seen.has(norm)) {
-      seen.add(norm)
-      uniqueImages.push(img)
-    }
-  }
-  return uniqueImages
-})
-
-// Ảnh chính
-const mainImage = ref(productImages.value[0] || '')
-
-// Khi đổi productImages thì reset mainImage
-watch(productImages, (imgs) => {
-  mainImage.value = imgs[0] || ''
-})
-
-// Khi đổi mainImage từ ProductImages
-function updateMainImage(img) {
-  mainImage.value = img
-}
-
-// Khi chọn size/màu từ ProductInfo
-function onUpdateSelectedSize(size) {
-  selectedSize.value = size
-}
-function onUpdateSelectedColor(color) {
-  selectedColor.value = color
-}
-
+const selectedSize = toRef(props, 'selectedSize')
+const selectedColor = toRef(props, 'selectedColor')
 </script>

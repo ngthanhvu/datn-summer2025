@@ -195,9 +195,15 @@ const selectedVariantStock = computed(() => {
   return variant?.stock || 0
 })
 
-watch(data, () => {
-  if (sizes.value.length > 0) selectedSize.value = sizes.value[0]
-  if (colors.value.length > 0) selectedColor.value = colors.value[0]
+// Reset selectedSize, selectedColor chỉ khi đổi sản phẩm (slug đổi)
+let lastProductId = null
+watch(data, (newVal) => {
+  if (!newVal) return
+  if (lastProductId !== newVal.id) {
+    if (sizes.value.length > 0) selectedSize.value = sizes.value[0]
+    if (colors.value.length > 0) selectedColor.value = colors.value[0]
+    lastProductId = newVal.id
+  }
 }, { immediate: true })
 
 const quantity = ref(1)
@@ -322,10 +328,16 @@ const formatPrice = (price) => {
 
 const addToCart = async () => {
   try {
+    // Log kiểm tra giá trị lựa chọn hiện tại
+    console.log('selectedSize:', selectedSize.value)
+    console.log('selectedColor:', selectedColor.value)
+    console.log('variants:', data.value.variants)
+    // So sánh đúng kiểu dữ liệu để tìm variant
     const selectedVariant = data.value.variants.find(v =>
-      v.size === selectedSize.value &&
-      v.color === selectedColor.value?.name
+      String(v.size) === String(selectedSize.value) &&
+      String(v.color) === String(selectedColor.value?.name)
     )
+    console.log('selectedVariant:', selectedVariant)
     if (!selectedVariant) {
       notyf.error('Vui lòng chọn size và màu sắc')
       return
