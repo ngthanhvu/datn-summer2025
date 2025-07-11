@@ -34,7 +34,6 @@ public static function setEnvValue(array $values): void
 
         file_put_contents($envPath, $envContent);
         
-        // Chỉ clear config, không cache
         \Artisan::call('config:clear');
         
     } catch (\Exception $e) {
