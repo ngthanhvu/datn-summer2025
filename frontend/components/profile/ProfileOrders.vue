@@ -151,6 +151,22 @@
                       <span>Đơn hàng đã quá thời hạn hủy (24 giờ), vì vậy bạn vui lòng chờ và nhận hàng.</span>
                     </div>
 
+                    <div v-if="selectedOrder.return_requested_at" class="tw-mt-4 tw-p-4 tw-bg-orange-50 tw-rounded-lg tw-border-l-4 tw-border-orange-400">
+                        <div class="tw-flex tw-items-center">
+                            <div class="tw-w-8 tw-h-8 tw-rounded-full tw-bg-orange-100 tw-flex tw-items-center tw-justify-center tw-mr-2 tw-mt-0.5">
+                                <svg class="tw-w-5 tw-h-5 tw-text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17l4 4 4-4m0-5V3m-8 9v6a2 2 0 002 2h4a2 2 0 002-2v-6" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p>
+                                    <span class="tw-font-medium tw-text-orange-600 tw-text-sm md:tw-text-base">Bạn đã gửi yêu cầu hoàn hàng vào: </span>
+                                    <span class="tw-text-orange-600 tw-text-sm md:tw-text-base">{{ formatDate(selectedOrder.return_requested_at) }}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="tw-border-b tw-pb-6">
                         <h4 class="tw-font-semibold tw-mb-4">Trạng thái đơn hàng</h4>
                         <div class="tw-flex tw-items-center tw-justify-between">
@@ -327,8 +343,11 @@
                             </div>
                         </div>
 
-                        <!-- Hiển thị lý do hủy nếu đơn hàng đã bị hủy -->
-                        <div v-if="selectedOrder.status === 'cancelled' && selectedOrder.cancel_reason" class="tw-mt-4 tw-p-4 tw-bg-red-50 tw-rounded-lg tw-border-l-4 tw-border-red-400">
+                        <!-- Hủy đơn hàng, hoàn đơn hàng, mua lại đơn hàng -->
+                        <div v-if="selectedOrder.status === 'cancelled' && selectedOrder.cancel_reason" class="tw-mt-4 tw-p-4 tw-bg-red-50 tw-rounded-lg tw-border-l-4 tw-border-red-400 tw-relative">
+                            <div class="tw-text-gray-500 tw-text-xs tw-absolute tw-top-2 tw-right-2">
+                                {{ formatDateNoPrefix(selectedOrder.updated_at) }}
+                            </div>
                             <div class="tw-flex tw-items-center">
                                 <div class="tw-w-8 tw-h-8 tw-rounded-full tw-bg-red-100 tw-flex tw-items-center tw-justify-center tw-mr-2 tw-mt-0.5">
                                   <svg class="tw-w-5 tw-h-5 tw-text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,24 +363,78 @@
                             </div>
                         </div>
                         <div class="tw-mt-4 tw-text-right tw-space-x-2">
-                            <button v-if="canCancelOrder(selectedOrder)" @click="showCancelReasonModal = true"
-                                class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
-                                Hủy đơn hàng
-                            </button>
-
-                            <button
-                                v-if="selectedOrder && (selectedOrder.status === 'completed' || selectedOrder.status === 'cancelled')"
-                                @click="handleReorder(selectedOrder.id)"
-                                class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-blue-700">
-                                Mua lại đơn hàng
-                            </button>
+                            <template v-if="selectedOrder">
+                                <div v-if="selectedOrder.return_status === 'requested'" class="tw-flex tw-items-start tw-mb-2">
+                                    <svg class="tw-w-7 tw-h-7 tw-text-yellow-500 tw-mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 15l-6-6 6-6M3 9h9a6 6 0 016 6v3" />
+                                    </svg>
+                                    <div class="tw-bg-yellow-50 tw-border tw-border-yellow-200 tw-rounded tw-p-4 tw-w-full tw-ml-2 tw-relative">
+                                        <div class="tw-text-gray-500 tw-text-xs tw-absolute tw-top-2 tw-right-2">
+                                            {{ selectedOrder.return_requested_at ? formatDateNoPrefix(selectedOrder.return_requested_at) : formatDateNoPrefix(selectedOrder.updated_at) }}
+                                        </div>
+                                        <div class="tw-text-yellow-700 tw-font-medium tw-text-left">
+                                            Bạn đã gửi yêu cầu hoàn hàng. Vui lòng chờ xác nhận.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else-if="selectedOrder.return_status === 'approved'" class="tw-flex tw-items-start tw-mb-2">
+                                    <svg class="tw-w-7 tw-h-7 tw-text-green-500 tw-mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 15l-6-6 6-6M3 9h9a6 6 0 016 6v3" />
+                                    </svg>
+                                    <div class="tw-bg-green-50 tw-border tw-border-green-200 tw-rounded tw-p-4 tw-w-full tw-ml-2 tw-relative">
+                                        <div class="tw-text-gray-500 tw-text-xs tw-absolute tw-top-2 tw-right-2">
+                                            {{ selectedOrder.return_requested_at ? formatDateNoPrefix(selectedOrder.return_requested_at) : formatDateNoPrefix(selectedOrder.updated_at) }}
+                                        </div>
+                                        <div class="tw-text-green-700 tw-font-bold tw-text-left">
+                                            Yêu cầu hoàn hàng đã được xác nhận.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="selectedOrder.return_status === 'rejected'"
+                                    class="tw-flex tw-items-start tw-mb-2"
+                                    >
+                                    <svg class="tw-w-7 tw-h-7 tw-text-red-500 tw-mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 15l-6-6 6-6M3 9h9a6 6 0 016 6v3" />
+                                    </svg>
+                                    <div class="tw-bg-red-50 tw-border tw-border-red-200 tw-rounded tw-p-4 tw-w-full tw-ml-2 tw-relative">
+                                        <div class="tw-text-gray-500 tw-text-xs tw-absolute tw-top-2 tw-right-2">
+                                            {{ selectedOrder.return_requested_at ? formatDateNoPrefix(selectedOrder.return_requested_at) : formatDateNoPrefix(selectedOrder.updated_at) }}
+                                        </div>
+                                        <div class="tw-text-red-700 tw-font-bold tw-text-left">
+                                        Yêu cầu hoàn hàng đã bị từ chối
+                                        </div>
+                                        <div v-if="selectedOrder.reject_reason" class="tw-text-red-600 tw-text-sm tw-break-words tw-whitespace-pre-line tw-text-left tw-mt-1">
+                                        <span class="tw-font-semibold">Lý do từ chối:</span> {{ selectedOrder.reject_reason }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    v-if="canCancelOrder(selectedOrder)"
+                                    @click="showCancelReasonModal = true"
+                                    class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
+                                    Hủy đơn hàng
+                                </button>
+                                <button
+                                    v-if="selectedOrder && (selectedOrder.status === 'completed' || selectedOrder.status === 'cancelled')"
+                                    @click="handleReorder(selectedOrder.id)"
+                                    class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-blue-700">
+                                    Mua lại đơn hàng
+                                </button>
+                                <button
+                                    v-if="canRequestReturn(selectedOrder)"
+                                    @click="handleRequestReturn(selectedOrder.id)"
+                                    class="tw-bg-orange-500 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-orange-600">
+                                    Yêu cầu hoàn hàng
+                                </button>
+                            </template>
                         </div>
-
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Chọn lý do hủy đơn hàng -->
         <div v-if="showCancelReasonModal" class="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-50 tw-flex tw-items-center tw-justify-center tw-z-50">
             <div class="tw-bg-white tw-rounded-lg tw-p-6 tw-w-full tw-max-w-md tw-shadow-lg">
                 <h3 class="tw-text-lg tw-font-bold tw-mb-4">Lý Do Hủy</h3>
@@ -647,6 +720,87 @@ const showCancelWarning = (order) => {
     const diffHours = (now - createdAt) / (1000 * 60 * 60)
     return diffHours > 24
 }
+
+const canRequestReturn = (order) => {
+    if (!order) return false
+    if (!['cancelled', 'completed'].includes(order.status)) return false
+    if (order.return_status === 'requested' || order.return_status === 'approved' || order.return_status === 'rejected') return false
+    if (!['vnpay', 'momo', 'paypal'].includes(order.payment_method)) return false
+    const completedOrCancelledAt = new Date(order.updated_at)
+    const now = new Date()
+    const diffDays = (now - completedOrCancelledAt) / (1000 * 60 * 60 * 24)
+    return diffDays <= 3
+}
+
+const handleRequestReturn = async (orderId) => {
+    const notyf = useNuxtApp().$notyf
+    const order = orders.value.find(order => order.id === orderId)
+    if (!order) {
+        notyf.error('Không tìm thấy đơn hàng!');
+        return;
+    }
+    if (!['cancelled', 'completed'].includes(order.status)) {
+        notyf.error('Chỉ có thể hoàn hàng cho đơn đã hủy hoặc đã hoàn thành');
+        return;
+    }
+    if (order.return_requested_at) {
+        notyf.error('Bạn đã gửi yêu cầu hoàn hàng cho đơn này rồi');
+        return;
+    }
+    if (order.payment_method === 'cod') {
+        notyf.error('Đơn thanh toán COD không hỗ trợ hoàn hàng');
+        return;
+    }
+    const completedOrCancelledAt = new Date(order.updated_at);
+    const now = new Date();
+    const diffDays = (now - completedOrCancelledAt) / (1000 * 60 * 60 * 24);
+    if (diffDays > 3) {
+        notyf.error('Chỉ có thể hoàn hàng trong vòng 3 ngày kể từ khi đơn hoàn thành hoặc bị hủy');
+        return;
+    }
+
+    try {
+        await orderService.requestReturn(orderId)
+        const orderIndex = orders.value.findIndex(order => order.id === orderId)
+        if (orderIndex !== -1) {
+            orders.value[orderIndex].return_status = 'requested'
+            orders.value[orderIndex].return_requested_at = new Date().toISOString()
+        }
+        notyf.success('Yêu cầu hoàn hàng đã được gửi!')
+        fetchOrders()
+    } catch (err) {
+        notyf.error(err?.response?.data?.message || err.message || 'Gửi yêu cầu hoàn hàng thất bại')
+    }
+}
+
+// const getReturnStatusLabel = (status) => {
+//     switch (status) {
+//         case 'requested': return 'Đang gửi yêu cầu hoàn hàng'
+//         case 'approved': return 'Đã duyệt hoàn hàng'
+//         case 'rejected': return 'Đã từ chối hoàn hàng'
+//         default: return 'Chưa yêu cầu hoàn hàng'
+//     }
+// }
+
+// const getReturnStatusBadgeClass = (status) => {
+//     switch (status) {
+//         case 'requested':
+//             return 'tw-bg-orange-100 tw-text-orange-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
+//         case 'approved':
+//             return 'tw-bg-green-100 tw-text-green-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
+//         case 'rejected':
+//             return 'tw-bg-red-100 tw-text-red-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
+//         default:
+//             return 'tw-bg-gray-100 tw-text-gray-700 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[10px]'
+//     }
+// }
+
+const formatDateNoPrefix = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
 
 onMounted(() => {
     fetchOrders()

@@ -22,6 +22,8 @@ class Orders extends Model
         'note',
         'tracking_code',
         'cancel_reason',
+        'return_status',
+        'reject_reason',
     ];
 
     public function user()

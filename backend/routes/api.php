@@ -56,7 +56,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
     Route::put('/orders/{id}/status', [OrdersController::class, 'updateStatus']);
     Route::post('/orders/{id}/cancel', [OrdersController::class, 'cancel']);
+    Route::post('/orders/{id}/return', [OrdersController::class, 'requestReturn']);
     Route::post('/orders/{id}/reorder', [OrdersController::class, 'reorder']);
+    Route::post('/orders/{id}/return/approve', [OrdersController::class, 'approveReturn']);
+    Route::post('/orders/{id}/return/reject', [OrdersController::class, 'rejectReturn']);
 
     Route::get('/me/address', [AddressController::class, 'getMyAddress']);
     Route::get('/addresses', [AddressController::class, 'index']);
@@ -190,3 +193,5 @@ Route::get('/stock-movement', [StockMovementController::class, 'index']);
 Route::get('/stock-movement/{id}', [StockMovementController::class, 'show']);
 Route::post('/stock-movement', [StockMovementController::class, 'store']);
 Route::delete('/stock-movement/{id}', [StockMovementController::class, 'destroy']);
+
+

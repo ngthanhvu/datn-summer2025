@@ -193,6 +193,21 @@ export const useOrder = () => {
             loading.value = false;
         }
     }
+
+    const requestReturn = async (id) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await API.post(`/api/orders/${id}/return`)
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
     const reorderOrder = async (id) => {
         loading.value = true
         error.value = null
@@ -207,6 +222,45 @@ export const useOrder = () => {
             loading.value = false
         }
     };
+
+    const canRequestReturn = (order) => {
+        if (!order) return false
+        if (!['cancelled', 'completed'].includes(order.status)) return false
+        if (order.return_requested_at) return false
+        if (order.payment_method === 'cod') return false
+        const completedOrCancelledAt = new Date(order.updated_at);
+        const now = new Date();
+        const diffDays = (now - completedOrCancelledAt) / (1000 * 60 * 60 * 24);
+        return diffDays <= 3;
+    }
+
+    const approveReturn = async (id) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await API.post(`/api/orders/${id}/return/approve`)
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+    const rejectReturn = async (id, reason) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await API.post(`/api/orders/${id}/return/reject`, { reject_reason: reason })
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
 
     return {
         orders,
@@ -225,9 +279,13 @@ export const useOrder = () => {
         formatPrice,
         getOrderByTrackingCode,
         reorderOrder,
+        requestReturn,
         showCancelReasonModal,
         cancelReason,
         cancelReasonOther,
-        cancelReasons
+        cancelReasons,
+        canRequestReturn,
+        approveReturn,
+        rejectReturn
     }
 } 
