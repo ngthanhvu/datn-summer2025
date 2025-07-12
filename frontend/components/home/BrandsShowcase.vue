@@ -100,9 +100,5 @@ const navigateToBrand = (brandId) => {
     navigateTo(`/brands/${brandId}`)
 }
 
-onMounted(async () => {
-    if (!homeStore.hasValidData('brands')) {
-        await homeStore.fetchBrands()
-    }
-})
+// XÓA toàn bộ onMounted fetch data, chỉ lấy state từ store
 </script>

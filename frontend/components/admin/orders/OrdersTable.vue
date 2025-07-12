@@ -159,6 +159,9 @@ const filterStatus = ref('')
 const showModal = ref(false)
 const selectedOrder = ref(null)
 
+const isLoading = computed(() => orderStore.isLoadingOrders)
+const error = computed(() => orderStore.error)
+
 onMounted(async () => {
     if (!orderStore.orders.length) {
         await orderStore.fetchOrders()

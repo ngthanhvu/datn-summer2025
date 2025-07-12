@@ -9,14 +9,14 @@
         <CouponList />
       </div>
     </div>
-    
+
     <div class="tw-mt-3" v-if="showFlashSale">
       <div class="tw-bg-[#e6f0fa] tw-p-8 tw-rounded-[5px] tw-shadow-md tw-relative tw-overflow-hidden">
         <Snowfall />
         <FlashSale @has-flash-sale="handleFlashSaleStatus" />
       </div>
     </div>
-    
+
     <div class="tw-mt-3" v-if="shouldShowRecommend">
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
         <Trending />
@@ -128,7 +128,7 @@ const shouldShowRecommend = computed(() => {
 })
 const FlashSale = defineAsyncComponent(() => import('~/components/home/FlashSale.vue'))
 
-const showFlashSale = ref(true); 
+const showFlashSale = ref(true);
 
 function handleFlashSaleStatus(status) {
   showFlashSale.value = status;

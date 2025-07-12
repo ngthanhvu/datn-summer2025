@@ -47,7 +47,7 @@
                         <div v-if="coupon.type === 'percent'">
                             Giảm {{ coupon.value || 0 }}%
                             <span v-if="coupon.max_discount_value">tối đa {{ formatCurrency(coupon.max_discount_value)
-                                }}</span>
+                            }}</span>
                         </div>
                         <div v-else>
                             Giảm {{ formatCurrency(coupon.value || 0) }}
@@ -169,21 +169,7 @@ const getCouponStatus = (coupon) => {
     return 'active'
 }
 
-onMounted(async () => {
-    try {
-        // Load coupons from store if not available
-        if (!homeStore.hasValidData('coupons')) {
-            await homeStore.fetchCoupons()
-        }
-
-        // Load my coupons
-        const myCouponsData = await getMyCoupons().catch(() => ({ coupons: [] }))
-        myCoupons.value = myCouponsData?.coupons || []
-    } catch (error) {
-        console.error('Error loading coupons:', error)
-        myCoupons.value = []
-    }
-})
+// XÓA toàn bộ onMounted fetch data, chỉ lấy state từ store
 </script>
 
 <style scoped>

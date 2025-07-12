@@ -98,22 +98,28 @@ const fetchDashboardData = async () => {
   try {
     loading.value = true
 
-    const statsResponse = await getStats()
+    // Gọi song song các API để tối ưu tốc độ load dashboard
+    const [
+      statsResponse,
+      revenueResponse,
+      ordersResponse,
+      recentOrdersResponse
+    ] = await Promise.all([
+      getStats(),
+      getYearlyRevenue(),
+      getOrdersByStatus(),
+      getRecentOrders({ limit: 5 })
+    ])
+
     if (statsResponse.success) {
       statistics.value = statsResponse.data
     }
-
-    const revenueResponse = await getYearlyRevenue()
     if (revenueResponse.success) {
       revenueData.value = revenueResponse.data
     }
-
-    const ordersResponse = await getOrdersByStatus()
     if (ordersResponse.success) {
       ordersData.value = ordersResponse.data
     }
-
-    const recentOrdersResponse = await getRecentOrders({ limit: 5 })
     if (recentOrdersResponse.success) {
       recentOrders.value = recentOrdersResponse.data
     } else {

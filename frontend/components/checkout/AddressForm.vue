@@ -15,14 +15,15 @@
                     <div>
                         <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Họ và tên</label>
                         <input v-model="form.fullName" type="text"
-                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md"
-                            :class="{ 'tw-border-red-500': errors.full_name }">
+                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md focus:tw-outline-none focus:tw-border-[#81aacc]"
+                            :class="{ 'tw-border-red-500': errors.full_name }" placeholder="Nhập họ và tên">
                         <p v-if="errors.full_name" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.full_name }}</p>
                     </div>
                     <div>
                         <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Số điện thoại</label>
-                        <input v-model="form.phone" type="tel" class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md"
-                            :class="{ 'tw-border-red-500': errors.phone }">
+                        <input v-model="form.phone" type="tel"
+                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md focus:tw-outline-none focus:tw-border-[#81aacc]"
+                            :class="{ 'tw-border-red-500': errors.phone }" placeholder="Nhập số điện thoại">
                         <p v-if="errors.phone" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.phone }}</p>
                     </div>
                     <div class="tw-grid tw-grid-cols-2 tw-gap-4">
@@ -30,7 +31,7 @@
                             <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Tỉnh/Thành</label>
                             <!-- Trong phần select tỉnh/thành -->
                             <select v-model="form.province" @change="onProvinceChange"
-                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md"
+                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md focus:tw-outline-none focus:tw-border-[#81aacc]"
                                 :class="{ 'tw-border-red-500': errors.province }">
                                 <option value="">Chọn tỉnh/thành</option>
                                 <option v-for="province in provinces" :key="province.code" :value="province.name">
@@ -43,7 +44,7 @@
                         <div>
                             <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Quận/Huyện</label>
                             <select v-model="form.district" @change="onDistrictChange"
-                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md"
+                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md focus:tw-outline-none focus:tw-border-[#81aacc]"
                                 :class="{ 'tw-border-red-500': errors.district }">
                                 <option value="">Chọn quận/huyện</option>
                                 <option v-for="district in districts" :key="district.code" :value="district.name"
@@ -58,7 +59,8 @@
                     <div class="tw-grid tw-grid-cols-2 tw-gap-4">
                         <div>
                             <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Phường/Xã</label>
-                            <select v-model="form.ward" class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md"
+                            <select v-model="form.ward"
+                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md focus:tw-outline-none focus:tw-border-[#81aacc]"
                                 :class="{ 'tw-border-red-500': errors.ward }">
                                 <option value="">Chọn phường/xã</option>
                                 <option v-for="ward in wards" :key="ward.code" :value="ward.name">
@@ -70,20 +72,22 @@
                         <div>
                             <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Thôn/Xóm</label>
                             <input v-model="form.hamlet" type="text"
-                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md">
+                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md focus:tw-outline-none focus:tw-border-[#81aacc]"
+                                placeholder="Nhập thôn/xóm">
                         </div>
                     </div>
                     <div>
                         <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Địa chỉ chi tiết</label>
                         <input v-model="form.detail" type="text"
-                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md"
+                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md focus:tw-outline-none focus:tw-border-[#81aacc]"
                             :class="{ 'tw-border-red-500': errors.street }" placeholder="Số nhà, tên đường">
                         <p v-if="errors.street" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.street }}</p>
                     </div>
                     <div>
                         <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Ghi chú</label>
-                        <textarea v-model="form.note" class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md" rows="3"
-                            placeholder="Ghi chú về địa chỉ giao hàng"></textarea>
+                        <textarea v-model="form.note"
+                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded-md focus:tw-outline-none focus:tw-border-[#81aacc]"
+                            rows="3" placeholder="Ghi chú về địa chỉ giao hàng"></textarea>
                     </div>
                     <div class="tw-flex tw-gap-3">
                         <button @click="handleSave"

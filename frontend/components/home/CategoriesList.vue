@@ -66,11 +66,7 @@ import { useHomeStore } from '~/stores/useHomeStore'
 
 const homeStore = useHomeStore()
 
-onMounted(async () => {
-    if (!homeStore.hasValidData('categories')) {
-        await homeStore.fetchCategories()
-    }
-})
+// XÓA onMounted fetch data, chỉ lấy state từ store
 </script>
 
 <style scoped>

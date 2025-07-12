@@ -2,8 +2,10 @@
   <div class="tw-bg-[#f7f8fa] tw-p-6 tw-min-h-screen tw-text-sm">
     <div class="tw-flex tw-justify-between tw-items-center tw-mb-6 tw-pt-6 tw-pl-6">
       <div>
-        <h1 class="tw-text-2xl tw-font-bold tw-mb-2">{{ props.editData ? 'Cập nhật' : 'Thêm' }} chiến dịch Flash Sale</h1>
-        <div class="tw-text-gray-500 tw-mb-4">Điền thông tin để {{ props.editData ? 'cập nhật' : 'tạo' }} chương trình Flash Sale</div>
+        <h1 class="tw-text-2xl tw-font-bold tw-mb-2">{{ props.editData ? 'Cập nhật' : 'Thêm' }} chiến dịch Flash Sale
+        </h1>
+        <div class="tw-text-gray-500 tw-mb-4">Điền thông tin để {{ props.editData ? 'cập nhật' : 'tạo' }} chương trình
+          Flash Sale</div>
       </div>
     </div>
     <div v-if="error" class="tw-text-red-500 tw-mb-2">{{ error }}</div>
@@ -28,8 +30,10 @@
           <div class="tw-flex tw-items-center tw-gap-4">
             <div class="tw-flex tw-items-center tw-gap-2">
               <label class="tw-text-sm">Tự động lặp lại</label>
-              <button @click="form.repeat = !form.repeat" :class="form.repeat ? 'tw-bg-pink-500' : 'tw-bg-gray-300'" class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
-                <span :class="form.repeat ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'" class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+              <button @click="form.repeat = !form.repeat" :class="form.repeat ? 'tw-bg-pink-500' : 'tw-bg-gray-300'"
+                class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
+                <span :class="form.repeat ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'"
+                  class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
               </button>
             </div>
             <div v-if="form.repeat" class="tw-flex tw-items-center tw-gap-2">
@@ -40,20 +44,31 @@
           <div class="tw-flex tw-items-center tw-gap-4 tw-mt-2">
             <div class="tw-flex tw-items-center tw-gap-2">
               <label class="tw-text-sm">Tự động tăng số lượng bán</label>
-              <button @click="form.autoIncrease = !form.autoIncrease" :class="form.autoIncrease ? 'tw-bg-gray-400' : 'tw-bg-gray-300'" class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
-                <span :class="form.autoIncrease ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'" class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+              <button @click="form.autoIncrease = !form.autoIncrease"
+                :class="form.autoIncrease ? 'tw-bg-gray-400' : 'tw-bg-gray-300'"
+                class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
+                <span :class="form.autoIncrease ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'"
+                  class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
               </button>
             </div>
             <div class="tw-flex tw-items-center tw-gap-2">
               <label class="tw-text-sm">Active</label>
-              <button @click="form.active = !form.active" :class="form.active ? 'tw-bg-blue-600' : 'tw-bg-gray-300'" class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
-                <span :class="form.active ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'" class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+              <button @click="form.active = !form.active" :class="form.active ? 'tw-bg-blue-600' : 'tw-bg-gray-300'"
+                class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
+                <span :class="form.active ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'"
+                  class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
               </button>
             </div>
           </div>
           <div class="tw-flex tw-gap-2 tw-mt-6">
-            <button class="btn btn-primary" :disabled="loading" @click="submit">{{ loading ? 'Đang lưu...' : (props.editData ? 'Cập nhật' : 'Hoàn tất') }}</button>
-            <button class="btn btn-warning tw-bg-orange-500 hover:tw-bg-orange-600" @click="goToSelectProducts">Thêm sản phẩm</button>
+            <button class="btn btn-primary tw-border-[#3BB77E] tw-border-none hover:tw-bg-[#74c09d]" :disabled="loading"
+              @click="submit">{{
+
+                loading ?
+                  'Đang lưu...' :
+                  (props.editData ? 'Cập nhật' : 'Hoàn tất') }}</button>
+            <button class="btn btn-warning tw-bg-orange-500 hover:tw-bg-orange-600" @click="goToSelectProducts">Thêm sản
+              phẩm</button>
           </div>
         </div>
       </div>
@@ -78,16 +93,23 @@
               <tr v-for="(item, idx) in paginatedProducts" :key="item.id">
                 <td class="tw-px-3 tw-py-2"><img :src="getMainImage(item)" class="tw-w-10 tw-h-10 tw-rounded" /></td>
                 <td class="tw-px-3 tw-py-2">{{ truncate(item.name) }}</td>
-                <td class="tw-px-3 tw-py-2">{{ item.product?.price ? formatPrice(item.product.price) : (item.price ? formatPrice(item.price) : 'N/A') }}</td>
-                <td class="tw-px-3 tw-py-2">{{ item.product?.discount_price ? formatPrice(item.product.discount_price) : (item.discount_price ? formatPrice(item.discount_price) : 'N/A') }}</td>
-                <td class="tw-px-3 tw-py-2"><input v-model="item.flashPrice" class="input tw-w-24" placeholder="Giá FS" /></td>
-                <td class="tw-px-3 tw-py-2"><input v-model="item.sold" class="input tw-w-16" placeholder="Đã bán" /></td>
-                <td class="tw-px-3 tw-py-2"><input v-model="item.quantity" class="input tw-w-16" placeholder="SL" /></td>
+                <td class="tw-px-3 tw-py-2">{{ item.product?.price ? formatPrice(item.product.price) : (item.price ?
+                  formatPrice(item.price) : 'N/A') }}</td>
+                <td class="tw-px-3 tw-py-2">{{ item.product?.discount_price ? formatPrice(item.product.discount_price) :
+                  (item.discount_price ? formatPrice(item.discount_price) : 'N/A') }}</td>
+                <td class="tw-px-3 tw-py-2"><input v-model="item.flashPrice" class="input tw-w-24"
+                    placeholder="Giá FS" /></td>
+                <td class="tw-px-3 tw-py-2"><input v-model="item.sold" class="input tw-w-16" placeholder="Đã bán" />
+                </td>
+                <td class="tw-px-3 tw-py-2"><input v-model="item.quantity" class="input tw-w-16" placeholder="SL" />
+                </td>
                 <td class="tw-px-3 tw-py-2"><input type="checkbox" v-model="item.realQty" /></td>
                 <td class="tw-px-3 tw-py-2">
                   <button class="btn btn-danger" @click="removeProduct(idx)" title="Xóa">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                      width="20" height="20">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
                 </td>
@@ -95,9 +117,11 @@
             </tbody>
           </table>
           <div class="tw-flex tw-justify-center tw-items-center tw-gap-2 tw-mt-2">
-            <button class="tw-px-3 tw-py-1 tw-rounded tw-bg-gray-200" :disabled="productPage === 1" @click="productPage > 1 && (productPage--)">&lt;</button>
+            <button class="tw-px-3 tw-py-1 tw-rounded tw-bg-gray-200" :disabled="productPage === 1"
+              @click="productPage > 1 && (productPage--)">&lt;</button>
             <span>Trang {{ productPage }} / {{ productTotalPages }}</span>
-            <button class="tw-px-3 tw-py-1 tw-rounded tw-bg-gray-200" :disabled="productPage === productTotalPages" @click="productPage < productTotalPages && (productPage++)">&gt;</button>
+            <button class="tw-px-3 tw-py-1 tw-rounded tw-bg-gray-200" :disabled="productPage === productTotalPages"
+              @click="productPage < productTotalPages && (productPage++)">&gt;</button>
           </div>
         </div>
       </div>
@@ -161,14 +185,14 @@ onMounted(async () => {
     try {
       Object.assign(form.value, JSON.parse(savedForm));
       localStorage.removeItem('flashsale_form_data');
-    } catch {}
+    } catch { }
   }
   const selected = localStorage.getItem('flashsale_selected_products')
   const flashSaleId = props.editData?.id
   const editSelected = flashSaleId ? localStorage.getItem(`flashsale_edit_${flashSaleId}`) : null
-  
+
   const productsToLoad = editSelected || selected
-  
+
   if (productsToLoad) {
     try {
       products.value = JSON.parse(productsToLoad)
@@ -176,7 +200,7 @@ onMounted(async () => {
       if (editSelected) {
         localStorage.removeItem(`flashsale_edit_${flashSaleId}`)
       }
-    } catch {}
+    } catch { }
   }
 })
 watch(() => props.editData, (val) => {
@@ -214,9 +238,9 @@ watch(() => props.editData, (val) => {
 function addProduct(product) {
   const existingIndex = products.value.findIndex(p => p.id === product.id)
   if (existingIndex === -1) {
-    products.value.push({ 
-      ...product, 
-      flashPrice: '', 
+    products.value.push({
+      ...product,
+      flashPrice: '',
       quantity: 100,
       sold: 0,
       realQty: true
@@ -266,15 +290,28 @@ async function submit() {
 }
 </script>
 
-<style scoped>
+<style>
 .input {
   @apply tw-border tw-rounded tw-px-2 tw-py-1 tw-w-full;
 }
+
 .btn {
   @apply tw-px-4 tw-py-2 tw-rounded;
 }
-.btn-primary { @apply tw-bg-green-500 tw-text-white; }
-.btn-secondary { @apply tw-bg-purple-600 tw-text-white; }
-.btn-warning { @apply tw-bg-orange-500 tw-text-white; }
-.btn-danger { @apply tw-bg-red-500 tw-text-white; }
-</style> 
+
+.btn-primary {
+  @apply tw-bg-[#3BB77E] tw-text-white;
+}
+
+.btn-secondary {
+  @apply tw-bg-purple-600 tw-text-white;
+}
+
+.btn-warning {
+  @apply tw-bg-orange-500 tw-text-white;
+}
+
+.btn-danger {
+  @apply tw-bg-red-500 tw-text-white;
+}
+</style>

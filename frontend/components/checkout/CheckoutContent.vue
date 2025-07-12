@@ -178,7 +178,7 @@ const selectedPaymentMethod = ref(0)
 const paymentMethods = ref([])
 
 const updatePaymentMethods = () => {
-    const s = settings.value
+    const s = settings.value || {}
 
     paymentMethods.value = [
         {
@@ -232,7 +232,7 @@ const placeOrder = async () => {
 
         const orderData = {
             address_id: addresses.value[selectedAddress.value].id,
-            payment_method: paymentMethods[selectedPaymentMethod.value].code,
+            payment_method: paymentMethods.value[selectedPaymentMethod.value]?.code || 'cod',
             coupon_id: appliedCoupon.value?.id || null,
             items: items,
             note: '',
@@ -247,7 +247,7 @@ const placeOrder = async () => {
         console.log('Order creation result:', result)
 
         if (result && result.order) {
-            const paymentMethod = paymentMethods[selectedPaymentMethod.value].code
+            const paymentMethod = paymentMethods.value[selectedPaymentMethod.value]?.code || 'cod'
             const orderId = result.order.id
             const amount = result.order.final_price
 
