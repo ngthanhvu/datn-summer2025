@@ -284,7 +284,7 @@
                         </select>
                         <select v-model="selectedPaymentStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
                             <option v-for="opt in paymentStatusOptions" :value="opt.value" :key="opt.value">{{ opt.label
-                                }}</option>
+                            }}</option>
                         </select>
                         <button
                             @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })"
