@@ -313,24 +313,35 @@
                 </div>
 
                 <!-- Cập nhật trạng thái và duyệt/từ chối hoàn hàng -->
-                <div class="order-status">
-                    <h3>Cập nhật trạng thái</h3>
-                    <div class="tw-flex tw-items-center tw-gap-4 tw-mb-2 tw-justify-between">
-                        <div class="tw-flex tw-items-center tw-gap-4">
-                            <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
-                                <option v-for="opt in statusOptions" :value="opt.value" :key="opt.value">{{ opt.label }}</option>
-                            </select>
-                            <select v-model="selectedPaymentStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
-                                <option v-for="opt in paymentStatusOptions" :value="opt.value" :key="opt.value">{{ opt.label }}</option>
-                            </select>
-                            <button @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })" class="tw-bg-primary tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-primary-dark">Gửi</button>
-                        </div>
-                        <div v-if="currentOrder.return_status === 'requested'" class="tw-flex tw-items-center tw-gap-2">
-                            <button @click="handleApproveReturn" class="tw-bg-green-600 tw-text-white tw-px-4 tw-py-2 tw-rounded">Duyệt hoàn hàng</button>
-                            <button @click="openRejectModal" class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">Từ chối hoàn hàng</button>
-                        </div>
-                    </div>
-                </div>
+<div class="order-status">
+  <h3>Cập nhật trạng thái</h3>
+  <div class="tw-flex tw-items-center tw-gap-4 tw-mb-2 tw-justify-between">
+    <div class="tw-flex tw-items-center tw-gap-4">
+      <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
+        <option v-for="opt in statusOptions" :value="opt.value" :key="opt.value">{{ opt.label }}</option>
+      </select>
+      <select v-model="selectedPaymentStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
+        <option v-for="opt in paymentStatusOptions" :value="opt.value" :key="opt.value">{{ opt.label }}</option>
+      </select>
+      <button
+        @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })"
+        class="tw-bg-primary tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-primary-dark">
+        Gửi
+      </button>
+    </div>
+
+    <!-- Duyệt hoặc từ chối hoàn hàng nếu có yêu cầu -->
+    <div v-if="currentOrder.return_status === 'requested'" class="tw-flex tw-items-center tw-gap-2">
+      <button @click="handleApproveReturn" class="tw-bg-green-600 tw-text-white tw-px-4 tw-py-2 tw-rounded">
+        Duyệt hoàn hàng
+      </button>
+      <button @click="openRejectModal" class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
+        Từ chối hoàn hàng
+      </button>
+    </div>
+  </div>
+</div>
+
             </div>
         </template>
 
@@ -354,7 +365,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useOrder } from '~/composables/useOrder'
+import { useOrderStore } from '~/stores/useOrderStore'
 
 const props = defineProps({
     orderId: {
@@ -363,18 +374,23 @@ const props = defineProps({
     }
 })
 
+const orderStore = useOrderStore()
+
+// Sử dụng reactive state từ Pinia store
+const currentOrder = computed(() => orderStore.orders.find(o => o.id == props.orderId) || orderStore.currentOrder)
+const loading = computed(() => orderStore.isLoadingOrders)
+const error = computed(() => orderStore.error)
+
+// Sử dụng các hàm tiện ích từ composable useOrder
 const {
-    currentOrder,
-    loading,
-    error,
-    getOrder,
-    updateOrderStatus,
-    getOrderStatus,
-    getPaymentStatus,
-    getPaymentMethod,
-    formatPrice,
-    approveReturn,
-    rejectReturn
+  getOrder,
+  updateOrderStatus,
+  getOrderStatus,
+  getPaymentStatus,
+  getPaymentMethod,
+  formatPrice,
+  approveReturn,
+  rejectReturn
 } = useOrder()
 
 const statusOptions = [
@@ -443,15 +459,17 @@ const handleRejectReturn = async () => {
 }
 
 onMounted(async () => {
-    await getOrder(props.orderId)
-    console.log('Current Order:', currentOrder.value)
-    console.log('Order Details:', currentOrder.value?.orderDetails)
+    if (!orderStore.orders.length) {
+        await orderStore.fetchOrders()
+    }
+    // Nếu có action fetchOrderById thì gọi ở đây để lấy chi tiết đơn hàng
+    // await orderStore.fetchOrderById(props.orderId)
 })
 
 const handleUpdateStatus = async (data) => {
     try {
-        await updateOrderStatus(props.orderId, data.status, data.payment_status)
-        await getOrder(props.orderId)
+        await orderStore.updateOrder(props.orderId, { status: data.status, payment_status: data.payment_status })
+        // await orderStore.fetchOrderById(props.orderId)
     } catch (err) {
         console.error('Failed to update order status:', err)
     }

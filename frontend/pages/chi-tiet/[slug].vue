@@ -20,6 +20,10 @@
           <NuxtLink to="/san-pham" class="hover:tw-text-[#81AACC]">Sản phẩm</NuxtLink>
           <span>/</span>
           <span class="tw-text-gray-900">{{ data.name }}</span>
+          <span v-if="flashSaleName" class="tw-block tw-text-base tw-text-red-500 tw-font-semibold tw-ml-2">
+            {{ flashSaleName }}
+          </span>
+          
         </div>
 
         <!-- Product Detail Component -->
@@ -32,7 +36,10 @@
           :is-submitting="isSubmitting" :preview-images="previewImages" :reviews-loading="reviewsLoading"
           :reviews="reviews" :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
           :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
-          :user="user" :related-products="relatedProducts" @update:selected-size="selectedSize = $event"
+          :user="user" :related-products="relatedProducts"
+          :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="data"
+          :flash-sale-percent="flashSalePercent"
+          @update:selected-size="selectedSize = $event"
           @update:selected-color="selectedColor = $event" @update:quantity="quantity = $event"
           @update:active-tab="activeTab = $event" @add-to-cart="addToCart" @update:review-form="reviewForm = $event"
           @update:show-review-form="showReviewForm = $event" @submit-review="submitReview"
@@ -58,20 +65,27 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import Detail from '~/components/product-detail/Detail.vue'
-import useCarts from '~/composables/useCarts'
-import { useCookie } from '#app'
-import { useReviews } from '~/composables/useReviews'
+import { useCartStore } from '~/stores/useCartStore'
+import { useReviewStore } from '~/stores/useReviewStore'
 import { useAuth } from '~/composables/useAuth'
+import { useCarts } from '~/composables/useCarts'
+
+const { addToCart: addToCartComposable } = useCarts()
 const notyf = useNuxtApp().$notyf
 
 const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
 const { getProducts, getProductBySlug } = useProducts()
 const { getInventories } = useInventories()
-const { addToCart: addToCartComposable, getUserId, transferCartFromSessionToUser, fetchCart } = useCarts()
-const { getReviewsByProductSlug, addReview, updateReview, deleteReview, checkUserReview } = useReviews()
+const cartStore = useCartStore()
+const reviewStore = useReviewStore()
+
 const { user, isAuthenticated } = useAuth()
+
+const { cart } = storeToRefs(cartStore)
+const { reviews, isLoadingReviews, error: reviewError } = storeToRefs(reviewStore)
 
 const userHasReviewed = ref(false)
 const userReview = ref(null)
@@ -188,9 +202,15 @@ const selectedVariantStock = computed(() => {
   return variant?.stock || 0
 })
 
-watch(data, () => {
-  if (sizes.value.length > 0) selectedSize.value = sizes.value[0]
-  if (colors.value.length > 0) selectedColor.value = colors.value[0]
+// Reset selectedSize, selectedColor chỉ khi đổi sản phẩm (slug đổi)
+let lastProductId = null
+watch(data, (newVal) => {
+  if (!newVal) return
+  if (lastProductId !== newVal.id) {
+    if (sizes.value.length > 0) selectedSize.value = sizes.value[0]
+    if (colors.value.length > 0) selectedColor.value = colors.value[0]
+    lastProductId = newVal.id
+  }
 }, { immediate: true })
 
 const quantity = ref(1)
@@ -201,7 +221,13 @@ const tabs = [
 ]
 const activeTab = ref('description')
 
-const reviews = ref([])
+const currentReviewPage = ref(1)
+const reviewsPerPage = ref(3)
+const totalReviewPages = ref(1)
+const totalReviews = ref(0)
+const reviewPaginationData = ref(null)
+const reviewsLoading = ref(false)
+
 const reviewStats = ref({
   average: 0,
   total: 0,
@@ -214,17 +240,11 @@ const reviewStats = ref({
   ]
 })
 
-const currentReviewPage = ref(1)
-const reviewsPerPage = ref(3)
-const totalReviewPages = ref(1)
-const totalReviews = ref(0)
-const reviewPaginationData = ref(null)
-const reviewsLoading = ref(false)
-
 const fetchReviews = async (page = 1) => {
   try {
     reviewsLoading.value = true
-    const response = await getReviewsByProductSlug(data.value.slug, page, reviewsPerPage.value)
+    const userId = isAuthenticated.value && user.value ? user.value.id : null
+    const response = await reviewStore.getReviewsByProductSlug(data.value.slug, page, reviewsPerPage.value, userId)
 
     reviewPaginationData.value = {
       current_page: response.current_page,
@@ -239,7 +259,11 @@ const fetchReviews = async (page = 1) => {
     totalReviewPages.value = response.last_page
     totalReviews.value = response.total
 
-    reviews.value = response.data
+    // Hiển thị tất cả đánh giá đã duyệt và không bị ẩn, cộng với đánh giá của chính user (nếu có)
+    reviews.value = response.data.filter(review => {
+      if (userId && review.user_id === userId) return true;
+      return !!review.is_approved && !review.is_hidden;
+    })
 
     if (reviews.value.length > 0) {
       const total = response.total
@@ -310,10 +334,16 @@ const formatPrice = (price) => {
 
 const addToCart = async () => {
   try {
+    // Log kiểm tra giá trị lựa chọn hiện tại
+    console.log('selectedSize:', selectedSize.value)
+    console.log('selectedColor:', selectedColor.value)
+    console.log('variants:', data.value.variants)
+    // So sánh đúng kiểu dữ liệu để tìm variant
     const selectedVariant = data.value.variants.find(v =>
-      v.size === selectedSize.value &&
-      v.color === selectedColor.value?.name
+      String(v.size) === String(selectedSize.value) &&
+      String(v.color) === String(selectedColor.value?.name)
     )
+    console.log('selectedVariant:', selectedVariant)
     if (!selectedVariant) {
       notyf.error('Vui lòng chọn size và màu sắc')
       return
@@ -322,7 +352,15 @@ const addToCart = async () => {
       notyf.error('Số lượng vượt quá số lượng trong kho')
       return
     }
-    await addToCartComposable(selectedVariant.id, quantity.value)
+    // Tính đúng giá hiển thị của biến thể đang chọn (giống UI)
+    let price = selectedVariant.price
+    if (flashSalePrice.value && data.value.price) {
+      const percent = Math.round(100 - (flashSalePrice.value / data.value.price) * 100)
+      if (percent > 0) {
+        price = Math.round(selectedVariant.price * (1 - percent / 100))
+      }
+    }
+    await addToCartComposable(selectedVariant.id, quantity.value, price)
     notyf.success('Đã thêm vào giỏ hàng')
   } catch (error) {
     console.error('Error adding to cart:', error)
@@ -331,8 +369,8 @@ const addToCart = async () => {
 }
 
 const mergeCartAfterLogin = async () => {
-  await transferCartFromSessionToUser()
-  await fetchCart()
+  await cartStore.transferCartFromSessionToUser()
+  await cartStore.fetchCart()
 }
 
 useHead(() => ({
@@ -418,11 +456,11 @@ const submitReview = async () => {
     }
 
     if (editingReviewId.value) {
-      await updateReview(editingReviewId.value, reviewData)
+      await reviewStore.updateReview(editingReviewId.value, reviewData)
       notyf.success('Đã cập nhật đánh giá thành công')
     } else {
-      await addReview(reviewData)
-      notyf.success('Đã gửi đánh giá thành công')
+      await reviewStore.addReview(reviewData)
+      notyf.success('Đã gửi đánh giá thành công. Đánh giá sẽ được hiển thị sau khi được duyệt.')
     }
 
     reviewForm.value = {
@@ -487,7 +525,7 @@ const removeReview = async (reviewId) => {
   if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return
 
   try {
-    await deleteReview(reviewId)
+    await reviewStore.deleteReview(reviewId)
     notyf.success('Đã xóa đánh giá thành công')
 
     const currentPageReviews = reviews.value.length
@@ -510,9 +548,19 @@ const checkUserHasReviewed = async () => {
   if (!isAuthenticated.value || !user.value || !data.value) return
 
   try {
-    const response = await checkUserReview(user.value.id, data.value.slug)
+    const response = await reviewStore.checkUserReview(user.value.id, data.value.slug)
     userHasReviewed.value = response.hasReviewed
     userReview.value = response.review || null
+
+    // Kiểm tra trạng thái đánh giá của user
+    if (response.hasReviewed && response.review) {
+      const review = response.review
+      if (review.is_hidden) {
+        notyf.info('Đánh giá của bạn chứa từ khóa không phù hợp và đã bị ẩn')
+      } else if (!review.is_approved) {
+        notyf.info('Đánh giá của bạn đang chờ duyệt')
+      }
+    }
 
   } catch (error) {
     console.error('Lỗi khi kiểm tra đánh giá của người dùng:', error)
@@ -541,7 +589,22 @@ const getVisibleReviewPages = () => {
   return pages
 }
 
+const flashSaleName = computed(() => route.query.flashsale)
+const flashSalePrice = computed(() => {
+  const price = route.query.flash_price
+  return price ? Number(price) : null
+})
+const flashSaleEndTime = computed(() => route.query.end_time)
+const flashSaleSold = computed(() => Number(route.query.sold) || 0)
+const flashSaleQuantity = computed(() => Number(route.query.quantity) || 0)
+
+const flashSalePercent = computed(() => {
+  if (!flashSalePrice.value || !data.value?.price) return 0
+  return Math.round(100 - (flashSalePrice.value / data.value.price) * 100)
+})
+
 const displayPrice = computed(() => {
+  if (flashSalePrice.value) return flashSalePrice.value
   if (activeVariant.value && activeVariant.value.price) {
     return activeVariant.value.price
   }
@@ -551,6 +614,7 @@ const displayPrice = computed(() => {
 })
 
 const showOriginalPrice = computed(() => {
+  if (flashSalePrice.value) return true
   return data.value && displayPrice.value < data.value.price
 })
 
@@ -588,6 +652,19 @@ watch(mainImage, (newImage, oldImage) => {
     }
   }
 })
+
+function getDiscountPercent(price, flashPrice) {
+  if (!price || !flashPrice) return 0
+  return Math.round(100 - (flashPrice / price) * 100)
+}
+
+function getSoldPercent(product) {
+  if (product.quantity && product.sold) {
+    let percent = Math.round((product.sold / (product.quantity + product.sold)) * 100)
+    return Math.max(percent, 10)
+  }
+  return 50
+}
 </script>
 
 <style scoped>

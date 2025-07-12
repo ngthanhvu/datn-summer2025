@@ -40,8 +40,8 @@ export const useOrder = () => {
         error.value = null
         try {
             const res = await API.get('/api/orders', { params })
-            orders.value = res.data
-            return res.data
+            orders.value = Array.isArray(res.data.data) ? res.data.data : []
+            return orders.value
         } catch (err) {
             error.value = err.response?.data?.message || err.message
             console.error('Get all orders error:', err.response?.data || err.message)
@@ -56,8 +56,8 @@ export const useOrder = () => {
         error.value = null
         try {
             const res = await API.get('/api/user/orders', { params })
-            orders.value = res.data
-            return res.data
+            orders.value = Array.isArray(res.data.data) ? res.data.data : []
+            return orders.value
         } catch (err) {
             error.value = err.response?.data?.message || err.message
             console.error('Get my orders error:', err.response?.data || err.message)

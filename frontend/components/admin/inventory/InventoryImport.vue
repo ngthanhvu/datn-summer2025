@@ -46,7 +46,7 @@
                             <label for="notes" class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Ghi
                                 chú</label>
                             <input type="text" id="note" v-model="formData.note"
-                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+                                class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                 placeholder="Nhập ghi chú cho phiếu nhập/xuất">
                         </div>
                     </div>
@@ -71,7 +71,7 @@
                                         <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Sản
                                             phẩm</label>
                                         <select v-model="item.variant_id"
-                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                             required>
                                             <option value="">Chọn sản phẩm</option>
                                             <option v-for="variant in variants" :key="variant.id" :value="variant.id">
@@ -102,7 +102,7 @@
                                         <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Số
                                             lượng</label>
                                         <input type="number" v-model.number="item.quantity" min="1"
-                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                             placeholder="Số lượng" required>
                                     </div>
                                     <div>
@@ -110,7 +110,7 @@
                                             {{ formData.type === 'import' ? 'Giá nhập' : 'Giá xuất' }} (VNĐ)
                                         </label>
                                         <input type="number" v-model.number="item.unit_price" min="0" step="1000"
-                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+                                            class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                             placeholder="Giá" required>
                                     </div>
                                     <div>

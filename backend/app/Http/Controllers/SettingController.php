@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Setting;
+use App\Helpers\EnvHelper;
+
+class SettingController extends Controller
+{
+    public function index()
+    {
+        return response()->json(Setting::all()->pluck('value', 'key'));
+    }
+
+public function update(Request $request)
+{
+    try {
+        $data = $request->all();
+
+        // Cập nhật database trước
+        foreach ($data as $key => $value) {
+            Setting::setValue($key, is_array($value) ? json_encode($value) : $value);
+        }
+
+        // Cập nhật .env sau
+        $envFields = [
+            'smtpHost'        => 'MAIL_HOST',
+            'smtpPort'        => 'MAIL_PORT',
+            'smtpUser'        => 'MAIL_USERNAME',
+            'smtpPass'        => 'MAIL_PASSWORD',
+            'emailFrom'       => 'MAIL_FROM_ADDRESS',
+            'vnpayTmnCode'    => 'VNPAY_TMN_CODE',
+            'vnpayHashSecret' => 'VNPAY_HASH_SECRET',
+            'vnpayUrl'        => 'VNPAY_URL',
+            'momoPartnerCode' => 'MOMO_PARTNER_CODE',
+            'momoAccessKey'   => 'MOMO_ACCESS_KEY',
+            'momoSecretKey'   => 'MOMO_SECRET_KEY',
+            'paypalClientId'  => 'PAYPAL_CLIENT_ID',
+            'paypalSecret'    => 'PAYPAL_SECRET',
+            'paypalMode'      => 'PAYPAL_MODE',
+            'paypalCurrency'  => 'PAYPAL_CURRENCY',
+            'paypalApiUrl'    => 'PAYPAL_API_URL',
+        ];
+
+        $envData = [];
+        foreach ($envFields as $dbKey => $envKey) {
+            if (isset($data[$dbKey])) {
+                $envData[$envKey] = $data[$dbKey];
+            }
+        }
+
+        if ($envData) {
+            EnvHelper::setEnvValue($envData); 
+        }
+
+        return response()->json(['message' => 'Cập nhật cài đặt thành công']);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error updating settings: ' . $e->getMessage());
+        return response()->json(['error' => 'Lỗi khi cập nhật cài đặt'], 500);
+    }
+}
+
+}

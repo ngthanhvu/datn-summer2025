@@ -155,17 +155,13 @@ class OrdersController extends Controller
                     throw new \Exception("Không tìm thấy biến thể: variant_id = {$item['variant_id']}");
                 }
 
-                $finalPrice = ($variant->discount_price && $variant->discount_price > 0)
-                    ? $variant->discount_price
-                    : $variant->price;
-
                 Orders_detail::create([
                     'order_id' => $order->id,
                     'variant_id' => $item['variant_id'],
                     'quantity' => $item['quantity'],
-                    'price' => $finalPrice,
+                    'price' => $item['price'], 
                     'original_price' => $variant->price,
-                    'total_price' => $item['quantity'] * $finalPrice
+                    'total_price' => $item['quantity'] * $item['price']
                 ]);
             }
 

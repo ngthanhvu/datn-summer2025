@@ -142,7 +142,7 @@ const fetchCart = async () => {
             id: item.id,
             name: item.variant?.product?.name || 'Sản phẩm',
             variant: `Size: ${item.variant?.size || 'N/A'} | Số lượng: ${item.quantity}`,
-            price: item.variant?.price || 0,
+            price: item.price || 0, // Lấy giá đã lưu trong DB
             quantity: item.quantity,
             image: item.variant?.product?.main_image?.image_path || 'https://placehold.co/100x100'
         }))
@@ -175,36 +175,43 @@ const applyCoupon = async (code) => {
 }
 
 const selectedPaymentMethod = ref(0)
-const paymentMethods = [
-    {
-        title: 'Thanh toán khi nhận hàng (COD)',
-        description: 'Thanh toán bằng tiền mặt khi nhận hàng',
-        code: 'cod',
-        image: 'https://cdn-icons-png.flaticon.com/512/2897/2897832.png',
-        img: 'https://cdn-icons-png.flaticon.com/512/2897/2897832.png'
-    },
-    {
-        title: 'VNPay',
-        description: 'Thanh toán qua cổng thanh toán VNPay',
-        code: 'vnpay',
-        image: 'https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg',
-        img: 'https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg'
-    },
-    {
-        title: 'Momo',
-        description: 'Thanh toán qua ví điện tử Momo',
-        code: 'momo',
-        image: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png',
-        img: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png'
-    },
-    {
-        title: 'PayPal',
-        description: 'Thanh toán qua PayPal',
-        code: 'paypal',
-        image: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png',
-        img: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png'
-    }
-]
+const paymentMethods = ref([])
+
+const updatePaymentMethods = () => {
+    const s = settings.value
+
+    paymentMethods.value = [
+        {
+            title: 'Thanh toán khi nhận hàng (COD)',
+            description: Number(s.enableCod) ? 'Thanh toán bằng tiền mặt khi nhận hàng' : 'Sắp ra mắt',
+            code: 'cod',
+            image: 'https://cdn-icons-png.flaticon.com/512/2897/2897832.png',
+            enabled: !!Number(s.enableCod)
+        },
+        {
+            title: 'VNPay',
+            description: Number(s.enableVnpay) ? 'Thanh toán qua cổng thanh toán VNPay' : 'Sắp ra mắt',
+            code: 'vnpay',
+            image: 'https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg',
+            enabled: !!Number(s.enableVnpay)
+        },
+        {
+            title: 'Momo',
+            description: Number(s.enableMomo) ? 'Thanh toán qua ví điện tử Momo' : 'Sắp ra mắt',
+            code: 'momo',
+            image: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png',
+            enabled: !!Number(s.enableMomo)
+        },
+        {
+            title: 'PayPal',
+            description: Number(s.enablePaypal) ? 'Thanh toán qua PayPal' : 'Sắp ra mắt',
+            code: 'paypal',
+            image: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png',
+            enabled: !!Number(s.enablePaypal)
+        }
+    ]
+}
+
 
 const placeOrder = async () => {
     try {
@@ -220,7 +227,7 @@ const placeOrder = async () => {
         const items = cart.map(item => ({
             variant_id: item.variant.id,
             quantity: item.quantity,
-            price: item.variant.price || 0
+            price: item.price
         }))
 
         const orderData = {
@@ -285,13 +292,18 @@ const placeOrder = async () => {
     }
 }
 
+import useSettings from '~/composables/useSettingsApi'
+const { settings, fetchSettings } = useSettings()
+
 onMounted(async () => {
     try {
         isLoading.value = true
         await Promise.all([
+            fetchSettings(),
             fetchAddresses(),
             fetchCart()
         ])
+        updatePaymentMethods()
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi tải dữ liệu'
     } finally {

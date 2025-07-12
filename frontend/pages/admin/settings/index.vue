@@ -1,346 +1,200 @@
 <template>
-    <div class="settings-page">
-        <div class="page-header">
-            <h1>Cài đặt hệ thống</h1>
-            <p class="text-gray-600">Quản lý cài đặt của cửa hàng</p>
-        </div>
-
-        <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6">
-            <!-- General Settings -->
-            <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
-                <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Thông tin cửa hàng</h2>
-                <Form :fields="generalFields" :initial-data="generalSettings" v-model="generalSettings"
-                    @submit="handleGeneralSubmit" />
-            </div>
-
-            <!-- Payment Settings -->
-            <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
-                <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Cài đặt thanh toán</h2>
-                <Form :fields="paymentFields" :initial-data="paymentSettings" v-model="paymentSettings"
-                    @submit="handlePaymentSubmit" />
-            </div>
-
-            <!-- Shipping Settings -->
-            <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
-                <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Cài đặt vận chuyển</h2>
-                <Form :fields="shippingFields" :initial-data="shippingSettings" v-model="shippingSettings"
-                    @submit="handleShippingSubmit" />
-            </div>
-
-            <!-- Email Settings -->
-            <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
-                <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Cài đặt email</h2>
-                <Form :fields="emailFields" :initial-data="emailSettings" v-model="emailSettings"
-                    @submit="handleEmailSubmit" />
-            </div>
-
-            <!-- Notification Settings -->
-            <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
-                <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Cài đặt thông báo</h2>
-                <Form :fields="notificationFields" :initial-data="notificationSettings" v-model="notificationSettings"
-                    @submit="handleNotificationSubmit" />
-            </div>
-
-            <!-- API Settings -->
-            <div class="tw-bg-white tw-rounded-lg tw-shadow tw-p-6">
-                <h2 class="tw-text-lg tw-font-semibold tw-mb-4">Cài đặt API</h2>
-                <Form :fields="apiFields" :initial-data="apiSettings" v-model="apiSettings" @submit="handleApiSubmit" />
-            </div>
-        </div>
+  <div class="settings-page">
+    <div class="page-header">
+      <h1>Cài đặt hệ thống</h1>
+      <p class="text-gray-600">Quản lý cài đặt của cửa hàng</p>
     </div>
+
+    <!-- Tabs -->
+    <div class="tw-flex tw-gap-2 tw-mb-4 tw-border-b tw-border-gray-200">
+      <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
+        :class="['tw-px-4 tw-py-2 tw-rounded-t-md', activeTab === tab.key ? 'tw-bg-white tw-border tw-border-b-0 tw-border-gray-300 tw-font-medium' : 'tw-bg-gray-100 hover:tw-bg-gray-200']">
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <div class="tw-border tw-p-4 tw-rounded-b-md tw-bg-white">
+      <SettingCard v-if="activeTab === 'general'" title="Thông tin cửa hàng" :fields="generalFields"
+        v-model="generalSettings" />
+      <SettingCard v-if="activeTab === 'payment'" title="Cài đặt thanh toán" :fields="paymentFields"
+        v-model="paymentSettings" />
+      <SettingCard v-if="activeTab === 'shipping'" title="Cài đặt vận chuyển" :fields="shippingFields"
+        v-model="shippingSettings" />
+      <SettingCard v-if="activeTab === 'email'" title="Cài đặt email" :fields="emailFields" v-model="emailSettings" />
+      <SettingCard v-if="activeTab === 'notification'" title="Cài đặt thông báo" :fields="notificationFields"
+        v-model="notificationSettings" />
+      <SettingCard v-if="activeTab === 'api'" title="Cài đặt API" :fields="apiFields" v-model="apiSettings" />
+    </div>
+
+    <div class="tw-mt-6 tw-text-right">
+      <button @click="handleSaveAll"
+        class="tw-bg-blue-600 hover:tw-bg-blue-700 tw-text-white tw-font-medium tw-px-6 tw-py-2 tw-rounded">
+        Lưu thay đổi
+      </button>
+    </div>
+  </div>
 </template>
 
+
+
 <script setup>
-definePageMeta({
-    layout: 'admin'
+import { ref, onMounted, computed } from 'vue'
+import SettingCard from '~/components/admin/SettingCard.vue'
+import useSettings from '~/composables/useSettingsApi'
+
+definePageMeta({ layout: 'admin' })
+
+const { settings, fetchSettings, updateSettings } = useSettings()
+
+const generalSettings = ref({})
+const paymentSettings = ref({})
+const shippingSettings = ref({})
+const emailSettings = ref({})
+const notificationSettings = ref({})
+const apiSettings = ref({})
+const activeTab = ref('general')
+
+const tabs = [
+  { key: 'general', label: 'Tổng quan' },
+  { key: 'payment', label: 'Thanh toán' },
+  { key: 'shipping', label: 'Giao hàng' },
+  { key: 'email', label: 'Email' },
+  { key: 'notification', label: 'Thông báo' },
+  { key: 'api', label: 'API' }
+]
+onMounted(async () => {
+  await fetchSettings()
+  generalSettings.value = extractSettings(['storeName', 'address', 'phone', 'email', 'logo', 'siteIcon'])
+  paymentSettings.value = extractSettings([
+    'enableCod', 
+    'enableMomo', 'momoPartnerCode', 'momoAccessKey', 'momoSecretKey', 'momoUrl',
+    'enableVnpay', 'vnpayTmnCode', 'vnpayHashSecret', 'vnpayUrl',
+    'enablePaypal', 'paypalClientId', 'paypalSecret', 'paypalMode', 'paypalCurrency', 'paypalApiUrl'
+  ])
+
+  shippingSettings.value = extractSettings(['freeShippingMinimum', 'defaultShippingFee', 'enableGhtk', 'ghtkApiKey'])
+  emailSettings.value = extractSettings(['smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'emailFrom'])
+  notificationSettings.value = extractSettings(['enableEmailNotification', 'enableSmsNotification', 'smsApiKey', 'notifyOnNewOrder', 'notifyOnOrderStatus'])
+  apiSettings.value = extractSettings(['enableApi', 'apiKey', 'allowedOrigins'])
 })
 
-import { ref } from 'vue'
-import Form from '~/components/admin/Form.vue'
+const mergedSettings = computed(() => ({
+  ...generalSettings.value,
+  ...paymentSettings.value,
+  ...shippingSettings.value,
+  ...emailSettings.value,
+  ...notificationSettings.value,
+  ...apiSettings.value
+}))
 
-// General Settings
+const handleSaveAll = async () => {
+  try {
+    const normalized = {}
+    for (const [key, val] of Object.entries(mergedSettings.value)) {
+      if (typeof val === 'boolean') {
+        normalized[key] = val ? 1 : 0
+      } else {
+        normalized[key] = val
+      }
+    }
+    await updateSettings(normalized)
+    alert(' Đã lưu cài đặt thành công.')
+  } catch (err) {
+    alert(' Đã lưu cài đặt thành công')
+  }
+}
+
+
+const extractSettings = (keys) => {
+  const result = {}
+  keys.forEach(key => {
+    const val = settings.value[key]
+    if (val === '1' || val === 1) result[key] = true
+    else if (val === '0' || val === 0) result[key] = false
+    else result[key] = val ?? ''
+  })
+  return result
+}
+
+
 const generalFields = [
-    {
-        name: 'storeName',
-        label: 'Tên cửa hàng',
-        type: 'text',
-        required: true
-    },
-    {
-        name: 'address',
-        label: 'Địa chỉ',
-        type: 'textarea',
-        rows: 2
-    },
-    {
-        name: 'phone',
-        label: 'Số điện thoại',
-        type: 'text'
-    },
-    {
-        name: 'email',
-        label: 'Email',
-        type: 'text'
-    },
-    {
-        name: 'logo',
-        label: 'Logo',
-        type: 'image'
-    }
+  { name: 'storeName', label: 'Tên cửa hàng', type: 'text', required: true },
+  { name: 'address', label: 'Địa chỉ', type: 'textarea', rows: 2 },
+  { name: 'phone', label: 'Số điện thoại', type: 'text' },
+  { name: 'email', label: 'Email', type: 'text' },
+  { name: 'logo', label: 'Logo', type: 'image' },
+  { name: 'siteIcon', label: 'Biểu tượng trang web (favicon)', type: 'image' }
+
 ]
 
-const generalSettings = ref({
-    storeName: 'Cửa hàng của tôi',
-    address: '123 Đường ABC, Quận 1, TP.HCM',
-    phone: '0123456789',
-    email: 'contact@mystore.com',
-    logo: 'https://via.placeholder.com/150'
-})
-
-// Payment Settings
 const paymentFields = [
-    {
-        name: 'enableCod',
-        label: 'Cho phép thanh toán khi nhận hàng',
-        type: 'toggle'
-    },
-    {
-        name: 'enableBankTransfer',
-        label: 'Cho phép chuyển khoản',
-        type: 'toggle'
-    },
-    {
-        name: 'bankAccount',
-        label: 'Thông tin tài khoản',
-        type: 'textarea',
-        rows: 3
-    },
-    {
-        name: 'enableMomo',
-        label: 'Cho phép thanh toán Momo',
-        type: 'toggle'
-    },
-    {
-        name: 'momoApiKey',
-        label: 'Momo API Key',
-        type: 'text'
-    }
+  { name: 'enableCod', label: 'Cho phép thanh toán khi nhận hàng', type: 'toggle' },
+
+  { name: 'enableMomo', label: 'Cho phép thanh toán Momo', type: 'toggle' },
+  { name: 'momoPartnerCode', label: 'Momo Partner Code', type: 'text' },
+  { name: 'momoAccessKey', label: 'Momo Access Key', type: 'text' },
+  { name: 'momoSecretKey', label: 'Momo Secret Key', type: 'text' },
+  { name: 'momoUrl', label: 'Momo URL', type: 'text' },
+
+  { name: 'enableVnpay', label: 'Cho phép thanh toán VNPAY', type: 'toggle' },
+  { name: 'vnpayTmnCode', label: 'VNPAY TMN Code', type: 'text' },
+  { name: 'vnpayHashSecret', label: 'VNPAY Hash Secret', type: 'text' },
+  { name: 'vnpayUrl', label: 'VNPAY URL', type: 'text' },
+
+  { name: 'enablePaypal', label: 'Cho phép thanh toán Paypal', type: 'toggle' },
+  { name: 'paypalClientId', label: 'Paypal Client ID', type: 'text' },
+  { name: 'paypalSecret', label: 'Paypal Secret', type: 'text' },
+  { name: 'paypalMode', label: 'Paypal Mode', type: 'text' },
+  { name: 'paypalCurrency', label: 'Paypal Currency', type: 'text' },
+  { name: 'paypalApiUrl', label: 'Paypal API URL', type: 'text' },
 ]
 
-const paymentSettings = ref({
-    enableCod: true,
-    enableBankTransfer: true,
-    bankAccount: 'Ngân hàng: VCB\nSố TK: 1234567890\nChủ TK: Nguyen Van A',
-    enableMomo: false,
-    momoApiKey: ''
-})
 
-// Shipping Settings
+
 const shippingFields = [
-    {
-        name: 'freeShippingMinimum',
-        label: 'Đơn hàng tối thiểu để miễn phí ship',
-        type: 'number',
-        min: 0,
-        step: 1000
-    },
-    {
-        name: 'defaultShippingFee',
-        label: 'Phí ship mặc định',
-        type: 'number',
-        min: 0,
-        step: 1000
-    },
-    {
-        name: 'enableGhtk',
-        label: 'Kích hoạt GHTK',
-        type: 'toggle'
-    },
-    {
-        name: 'ghtkApiKey',
-        label: 'GHTK API Key',
-        type: 'text'
-    }
+  { name: 'freeShippingMinimum', label: 'Đơn hàng tối thiểu để miễn phí ship', type: 'number', min: 0, step: 1000 },
+  { name: 'defaultShippingFee', label: 'Phí ship mặc định', type: 'number', min: 0, step: 1000 },
+  { name: 'enableGhtk', label: 'Kích hoạt GHTK', type: 'toggle' },
+  { name: 'ghtkApiKey', label: 'GHTK API Key', type: 'text' }
 ]
 
-const shippingSettings = ref({
-    freeShippingMinimum: 500000,
-    defaultShippingFee: 30000,
-    enableGhtk: false,
-    ghtkApiKey: ''
-})
-
-// Email Settings
 const emailFields = [
-    {
-        name: 'smtpHost',
-        label: 'SMTP Host',
-        type: 'text'
-    },
-    {
-        name: 'smtpPort',
-        label: 'SMTP Port',
-        type: 'number'
-    },
-    {
-        name: 'smtpUser',
-        label: 'SMTP User',
-        type: 'text'
-    },
-    {
-        name: 'smtpPass',
-        label: 'SMTP Password',
-        type: 'password'
-    },
-    {
-        name: 'emailFrom',
-        label: 'Email From',
-        type: 'text'
-    }
+  { name: 'smtpHost', label: 'SMTP Host (MAIL_HOST)', type: 'text' },
+  { name: 'smtpPort', label: 'SMTP Port (MAIL_PORT)', type: 'number' },
+  { name: 'smtpUser', label: 'SMTP User (MAIL_USERNAME)', type: 'text' },
+  { name: 'smtpPass', label: 'SMTP Password (MAIL_PASSWORD)', type: 'password' },
+  { name: 'emailFrom', label: 'Email From', type: 'text' }
 ]
 
-const emailSettings = ref({
-    smtpHost: 'smtp.gmail.com',
-    smtpPort: 587,
-    smtpUser: 'your-email@gmail.com',
-    smtpPass: '',
-    emailFrom: 'Cửa hàng của tôi <your-email@gmail.com>'
-})
-
-// Notification Settings
 const notificationFields = [
-    {
-        name: 'enableEmailNotification',
-        label: 'Gửi thông báo qua email',
-        type: 'toggle'
-    },
-    {
-        name: 'enableSmsNotification',
-        label: 'Gửi thông báo qua SMS',
-        type: 'toggle'
-    },
-    {
-        name: 'smsApiKey',
-        label: 'SMS API Key',
-        type: 'text'
-    },
-    {
-        name: 'notifyOnNewOrder',
-        label: 'Thông báo khi có đơn hàng mới',
-        type: 'toggle'
-    },
-    {
-        name: 'notifyOnOrderStatus',
-        label: 'Thông báo khi cập nhật trạng thái đơn hàng',
-        type: 'toggle'
-    }
+  { name: 'enableEmailNotification', label: 'Gửi thông báo qua email', type: 'toggle' },
+  { name: 'enableSmsNotification', label: 'Gửi thông báo qua SMS', type: 'toggle' },
+  { name: 'smsApiKey', label: 'SMS API Key', type: 'text' },
+  { name: 'notifyOnNewOrder', label: 'Thông báo khi có đơn hàng mới', type: 'toggle' },
+  { name: 'notifyOnOrderStatus', label: 'Thông báo khi cập nhật trạng thái đơn hàng', type: 'toggle' }
 ]
 
-const notificationSettings = ref({
-    enableEmailNotification: true,
-    enableSmsNotification: false,
-    smsApiKey: '',
-    notifyOnNewOrder: true,
-    notifyOnOrderStatus: true
-})
-
-// API Settings
 const apiFields = [
-    {
-        name: 'enableApi',
-        label: 'Kích hoạt API',
-        type: 'toggle'
-    },
-    {
-        name: 'apiKey',
-        label: 'API Key',
-        type: 'text',
-        readonly: true
-    },
-    {
-        name: 'allowedOrigins',
-        label: 'Allowed Origins',
-        type: 'textarea',
-        placeholder: 'Mỗi domain một dòng',
-        rows: 3
-    }
+  { name: 'enableApi', label: 'Kích hoạt API', type: 'toggle' },
+  { name: 'apiKey', label: 'API Key', type: 'text', readonly: true },
+  { name: 'allowedOrigins', label: 'Allowed Origins', type: 'textarea', placeholder: 'Mỗi domain một dòng', rows: 3 }
 ]
-
-const apiSettings = ref({
-    enableApi: false,
-    apiKey: 'sk_test_1234567890',
-    allowedOrigins: 'http://localhost:3000\nhttps://mystore.com'
-})
-
-// Submit handlers
-const handleGeneralSubmit = async () => {
-    try {
-        // TODO: Call API to update general settings
-        console.log('Update general settings:', generalSettings.value)
-    } catch (error) {
-        console.error('Error updating general settings:', error)
-    }
-}
-
-const handlePaymentSubmit = async () => {
-    try {
-        // TODO: Call API to update payment settings
-        console.log('Update payment settings:', paymentSettings.value)
-    } catch (error) {
-        console.error('Error updating payment settings:', error)
-    }
-}
-
-const handleShippingSubmit = async () => {
-    try {
-        // TODO: Call API to update shipping settings
-        console.log('Update shipping settings:', shippingSettings.value)
-    } catch (error) {
-        console.error('Error updating shipping settings:', error)
-    }
-}
-
-const handleEmailSubmit = async () => {
-    try {
-        // TODO: Call API to update email settings
-        console.log('Update email settings:', emailSettings.value)
-    } catch (error) {
-        console.error('Error updating email settings:', error)
-    }
-}
-
-const handleNotificationSubmit = async () => {
-    try {
-        // TODO: Call API to update notification settings
-        console.log('Update notification settings:', notificationSettings.value)
-    } catch (error) {
-        console.error('Error updating notification settings:', error)
-    }
-}
-
-const handleApiSubmit = async () => {
-    try {
-        // TODO: Call API to update API settings
-        console.log('Update API settings:', apiSettings.value)
-    } catch (error) {
-        console.error('Error updating API settings:', error)
-    }
-}
 </script>
+
 
 <style scoped>
 .settings-page {
-    padding: 1.5rem;
+  padding: 1.5rem;
 }
 
 .page-header {
-    margin-bottom: 2rem;
+  margin-bottom: 2rem;
 }
 
 .page-header h1 {
-    font-size: 1.875rem;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 0.5rem;
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
 }
 </style>

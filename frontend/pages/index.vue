@@ -6,8 +6,20 @@
 
     <div class="tw-mt-3">
       <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
-        <h2 class="tw-text-2xl tw-font-bold tw-text-gray-800 tw-mb-6 tw-text-center">Mã Giảm Giá</h2>
         <CouponList />
+      </div>
+    </div>
+    
+    <div class="tw-mt-3" v-if="showFlashSale">
+      <div class="tw-bg-[#e6f0fa] tw-p-8 tw-rounded-[5px] tw-shadow-md tw-relative tw-overflow-hidden">
+        <Snowfall />
+        <FlashSale @has-flash-sale="handleFlashSaleStatus" />
+      </div>
+    </div>
+    
+    <div class="tw-mt-3" v-if="shouldShowRecommend">
+      <div class="tw-bg-white tw-p-8 tw-rounded-[5px]">
+        <Trending />
       </div>
     </div>
 
@@ -90,7 +102,10 @@
 </template>
 
 <script setup>
-import { defineAsyncComponent } from 'vue';
+import { useAuth } from '~/composables/useAuth'
+import { ref, defineAsyncComponent, onMounted, provide } from 'vue';
+import { useHomeData } from '~/composables/useHomeData';
+import Snowfall from '@/components/common/Snowfall.vue'
 
 // Lazy load components để tăng tốc độ load trang chủ
 const SwiperSlider = defineAsyncComponent(() => import('~/components/home/SwiperSlider.vue'))
@@ -103,6 +118,31 @@ const BrandsShowcase = defineAsyncComponent(() => import('~/components/home/Bran
 const LatestReviews = defineAsyncComponent(() => import('~/components/home/LatestReviews.vue'))
 const Banner = defineAsyncComponent(() => import('@/components/home/Banner.vue'))
 const CouponList = defineAsyncComponent(() => import('~/components/home/CouponList.vue'))
+
+const Trending = defineAsyncComponent(() => import('~/components/home/Trending.vue'))
+
+const { user, isAuthenticated } = useAuth()
+const shouldShowRecommend = computed(() => {
+  if (!isAuthenticated.value || !user.value) return false
+  return Boolean(user.value.username && user.value.gender && user.value.dateOfBirth)
+})
+const FlashSale = defineAsyncComponent(() => import('~/components/home/FlashSale.vue'))
+
+const showFlashSale = ref(true); 
+
+function handleFlashSaleStatus(status) {
+  showFlashSale.value = status;
+}
+
+const { loadHomeData } = useHomeData()
+
+onMounted(async () => {
+  try {
+    await loadHomeData()
+  } catch (error) {
+    console.error('Error loading home data:', error)
+  }
+})
 
 useHead({
   title: 'Trang chủ - DEVGANG',

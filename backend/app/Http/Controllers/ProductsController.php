@@ -12,6 +12,8 @@ use App\Models\ProductVariants;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class ProductsController extends Controller
 {
@@ -278,6 +280,12 @@ class ProductsController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            \Log::info('🔥 Update product request', [
+                'id' => $id,
+                'request_data' => $request->all(),
+                'files' => $request->allFiles()
+            ]);
+
             $product = Products::findOrFail($id);
 
             $request->validate([
@@ -285,7 +293,7 @@ class ProductsController extends Controller
                 'description' => 'required|string',
                 'price' => 'required|numeric',
                 'discount_price' => 'required|numeric',
-                'is_active' => 'required|boolean',
+                'is_active' => 'required|in:0,1',
             ]);
 
             $slug = Str::slug($request->name);
@@ -303,12 +311,18 @@ class ProductsController extends Controller
                 "slug" => $slug,
                 "categories_id" => $request->categories_id,
                 "brand_id" => $request->brand_id,
+                "is_active" => $request->is_active,
             ]);
 
+            // Handle main image update
             if ($request->hasFile('is_main')) {
                 $oldMainImage = Images::where('product_id', $product->id)->where('is_main', true)->first();
                 if ($oldMainImage) {
-                    Storage::disk('public')->delete($oldMainImage->image_path);
+                    try {
+                        Storage::disk('public')->delete($oldMainImage->image_path);
+                    } catch (\Exception $e) {
+                        \Log::warning('Failed to delete old main image', ['path' => $oldMainImage->image_path, 'error' => $e->getMessage()]);
+                    }
                     $oldMainImage->delete();
                 }
 
@@ -320,10 +334,20 @@ class ProductsController extends Controller
                 ]);
             }
 
+            // Handle additional images update
             if ($request->hasFile('image_path')) {
-                $oldImages = Images::where('product_id', $product->id)->where('is_main', false)->get();
+                // Delete old additional images (not main image)
+                $oldImages = Images::where('product_id', $product->id)
+                    ->where('is_main', false)
+                    ->whereNull('variant_id')
+                    ->get();
+
                 foreach ($oldImages as $oldImage) {
-                    Storage::disk('public')->delete($oldImage->image_path);
+                    try {
+                        Storage::disk('public')->delete($oldImage->image_path);
+                    } catch (\Exception $e) {
+                        \Log::warning('Failed to delete old additional image', ['path' => $oldImage->image_path, 'error' => $e->getMessage()]);
+                    }
                     $oldImage->delete();
                 }
 
@@ -338,15 +362,48 @@ class ProductsController extends Controller
                 }
             }
 
-            if ($request->has('variants')) {
+            // Handle variants update
+            if ($request->has('variants') && is_array($request->input('variants'))) {
+                \Log::info('🔥 Processing variants', ['variants' => $request->input('variants')]);
+
+                // Delete old variants and their images
+                $oldVariants = Variants::where('product_id', $product->id)->get();
+                foreach ($oldVariants as $oldVariant) {
+                    // Delete variant images
+                    $variantImages = Images::where('variant_id', $oldVariant->id)->get();
+                    foreach ($variantImages as $variantImage) {
+                        try {
+                            Storage::disk('public')->delete($variantImage->image_path);
+                        } catch (\Exception $e) {
+                            \Log::warning('Failed to delete old variant image', ['path' => $variantImage->image_path, 'error' => $e->getMessage()]);
+                        }
+                        $variantImage->delete();
+                    }
+                }
                 Variants::where('product_id', $product->id)->delete();
 
+                // Create new variants
                 foreach ($request->input('variants', []) as $variantIndex => $variant) {
-                    if (!empty($variant['color']) && !empty($variant['sizes']) && is_array($variant['sizes']) && count($variant['sizes']) > 0) {
-                        $firstVariant = null; // Lưu variant đầu tiên để gán ảnh
+                    \Log::info('🔥 Processing variant', ['variant' => $variant]);
 
-                        // Tạo nhiều bản ghi variants cho mỗi size
-                        foreach ($variant['sizes'] as $sizeObj) {
+                    // Validate variant data structure
+                    if (!isset($variant['color']) || !isset($variant['sizes']) || !is_array($variant['sizes'])) {
+                        \Log::warning('🔥 Invalid variant structure', ['variant' => $variant]);
+                        continue;
+                    }
+
+                    if (!empty($variant['color']) && !empty($variant['sizes']) && count($variant['sizes']) > 0) {
+                        $firstVariant = null;
+
+                        // Create variants for each size
+                        foreach ($variant['sizes'] as $sizeIndex => $sizeObj) {
+                            \Log::info('🔥 Creating variant size', ['sizeObj' => $sizeObj]);
+
+                            if (!isset($sizeObj['size']) || !isset($sizeObj['price'])) {
+                                \Log::warning('🔥 Invalid size object', ['sizeObj' => $sizeObj]);
+                                continue;
+                            }
+
                             $createdVariant = Variants::create([
                                 'color' => $variant['color'],
                                 'size' => $sizeObj['size'],
@@ -355,34 +412,45 @@ class ProductsController extends Controller
                                 'product_id' => $product->id,
                             ]);
 
-                            // Lưu variant đầu tiên để gán ảnh
                             if ($firstVariant === null) {
                                 $firstVariant = $createdVariant;
                             }
                         }
 
-                        // Lưu ảnh phụ cho variant (mỗi màu 1 ảnh)
-                        $variantImages = $request->file("variants.$variantIndex.images", []);
-                        if ($variantImages && $firstVariant) {
-                            foreach ($variantImages as $variantImage) {
-                                $imagePath = $variantImage->store('products', 'public');
-                                Images::create([
-                                    'image_path' => $imagePath,
-                                    'is_main' => false,
-                                    'product_id' => $product->id,
-                                    'variant_id' => $firstVariant->id,
-                                ]);
+                        // Handle variant images
+                        if ($request->hasFile("variants.$variantIndex.images")) {
+                            $variantImages = $request->file("variants.$variantIndex.images");
+                            \Log::info('🔥 Processing variant images', ['variantImages' => $variantImages]);
+
+                            if (is_array($variantImages) && $firstVariant) {
+                                foreach ($variantImages as $variantImage) {
+                                    $imagePath = $variantImage->store('products', 'public');
+                                    Images::create([
+                                        'image_path' => $imagePath,
+                                        'is_main' => false,
+                                        'product_id' => $product->id,
+                                        'variant_id' => $firstVariant->id,
+                                    ]);
+                                }
                             }
                         }
                     }
                 }
             }
 
+            \Log::info('🔥 Product updated successfully', ['product_id' => $product->id]);
+
             return response()->json([
                 'message' => 'Product updated successfully',
                 'product' => $product->fresh(),
             ], 200);
         } catch (\Exception $e) {
+            \Log::error('🔥 Product update failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'message' => 'Product update failed',
                 'error' => $e->getMessage(),
@@ -500,5 +568,44 @@ class ProductsController extends Controller
         return response()->json([
             'message' => 'Product favorite successfully',
         ], 200);
+    }
+
+    public function recommend(Request $request)
+    {
+        $gender = $request->get('gender');
+        $dateOfBirth = $request->get('dateOfBirth');
+        $address = $request->get('address');
+
+        $user = auth('api')->user();
+        if (!$gender && $user) $gender = $user->gender;
+        if (!$dateOfBirth && $user) $dateOfBirth = $user->dateOfBirth;
+        if (!$address && $user) $address = $user->address;
+
+        $query = \App\Models\Products::query();
+        $keyword = null;
+        if ($gender) {
+            $keyword = $gender === 'male' ? 'nam' : ($gender === 'female' ? 'nữ' : null);
+        }
+        if ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->whereHas('categories', function ($catQ) use ($keyword) {
+                    $catQ->where('name', 'like', '%' . $keyword . '%');
+                })
+                    ->orWhere('name', 'like', '%' . $keyword . '%');
+            });
+        }
+        // if ($dateOfBirth) {
+        //     $age = \Carbon\Carbon::parse($dateOfBirth)->age;
+        //     if (\Schema::hasColumn('products', 'min_age') && \Schema::hasColumn('products', 'max_age')) {
+        //         $query->where('min_age', '<=', $age)->where('max_age', '>=', $age);
+        //     }
+        // }
+        // if ($address) {
+        //     if (\Schema::hasColumn('products', 'city')) {
+        //         $query->where('city', 'like', '%' . $address . '%');
+        //     }
+        // }
+        $products = $query->with(['images', 'variants'])->orderByDesc('created_at')->limit(10)->get();
+        return response()->json($products);
     }
 }

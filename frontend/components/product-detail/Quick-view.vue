@@ -13,7 +13,7 @@
             <div class="tw-flex-1 tw-pl-8">
                 <h2 class="tw-text-2xl tw-font-bold tw-mb-2">{{ product.name }}</h2>
                 <div class="tw-text-base tw-mb-1">
-                    <span class="tw-font-semibold">SKU:</span> {{ product.sku }}
+                    <span class="tw-font-semibold">SKU:</span> {{ selectedVariant?.sku || product.sku }}
                     <span v-if="product.in_stock"
                         class="tw-bg-green-100 tw-text-green-700 tw-px-2 tw-py-0.5 tw-rounded tw-ml-2 tw-text-xs">Còn
                         hàng</span>
@@ -25,7 +25,7 @@
                 <div v-if="product.variants && product.variants.length > 0" class="tw-mb-2">
                     <div class="tw-font-medium tw-mb-1">Kích cỡ:</div>
                     <div class="tw-flex tw-gap-2 tw-flex-wrap">
-                        <button v-for="variant in product.variants" :key="variant.id"
+                        <button v-for="variant in uniqueVariants" :key="variant.id"
                             @click="selectedVariant = variant; selectedColor = (variant.colors && variant.colors[0]) || null"
                             :class="[
                                 'tw-px-3 tw-py-1 tw-border tw-rounded-md tw-text-base',
@@ -39,12 +39,18 @@
                     class="tw-mb-2">
                     <div class="tw-font-medium tw-mb-1">Màu sắc:</div>
                     <div class="tw-flex tw-gap-2 tw-flex-wrap">
-                        <button v-for="color in selectedVariant.colors" :key="color" @click="selectedColor = color"
-                            :class="[
-                                'tw-px-3 tw-py-1 tw-border tw-rounded-md tw-text-base',
-                                selectedColor === color ? 'tw-bg-[#81AACC] tw-text-white tw-border-[#81AACC]' : 'tw-border-gray-300 hover:tw-border-[#81AACC]'
-                            ]">
-                            {{ color }}
+                        <button
+                          v-for="color in selectedVariant.colors"
+                          :key="color"
+                          @click="selectedColor = color"
+                          :class="[
+                            'tw-w-8 tw-h-8 tw-rounded-full tw-border tw-border-gray-300 tw-flex tw-items-center tw-justify-center',
+                            selectedColor === color ? 'tw-ring-2 tw-ring-[#81AACC] tw-border-[#81AACC]' : ''
+                          ]"
+                          :style="{ backgroundColor: getColorCode(color), cursor: 'pointer' }"
+                          :title="color"
+                        >
+                          <span v-if="!isColorCode(color)" class="tw-text-xs tw-text-gray-700">{{ color }}</span>
                         </button>
                     </div>
                 </div>
@@ -73,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import ProductImages from './ProductImages.vue'
 import { useCarts } from '~/composables/useCarts'
 const notyf = useNuxtApp().$notyf
@@ -91,6 +97,35 @@ const mainImage = ref('')
 const selectedVariant = ref(null)
 const selectedColor = ref(null)
 const quantity = ref(1)
+
+const uniqueVariants = computed(() => {
+  if (!props.product?.variants) return []
+  const seen = new Set()
+  return props.product.variants.filter(variant => {
+    const size = variant.size || variant.title || variant.name
+    if (!size || seen.has(size)) return false
+    seen.add(size)
+    return true
+  })
+})
+
+// Map tên màu sang mã màu hex nếu cần
+const colorMap = {
+  'Đen': '#222',
+  'Xanh': '#2a9d8f',
+  'Trắng': '#fff',
+  'Đỏ': '#e63946',
+  'Vàng': '#f4d35e',
+  'Xanh lá': '#43aa8b',
+  // ... thêm các màu khác nếu cần
+}
+function getColorCode(color) {
+  if (/^#|rgb/.test(color)) return color
+  return colorMap[color] || '#ccc'
+}
+function isColorCode(color) {
+  return /^#|rgb/.test(color)
+}
 
 watch(() => props.product, (newProduct) => {
     if (newProduct?.images?.length) {

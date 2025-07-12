@@ -11,14 +11,22 @@
                     slidesPerView: 3.2,
                 }
             }" class="tw-w-full">
-                <swiper-slide v-for="product in relatedProducts" :key="product.id">
-                    <Card :product="product" />
+                <swiper-slide v-for="product in relatedProducts" :key="product && product.id">
+                    <template v-if="product && product.slug">
+                        <div @click="goToProduct(product.slug)" style="cursor:pointer">
+                            <Card :product="product" />
+                        </div>
+                    </template>
                 </swiper-slide>
             </swiper>
         </div>
         <!-- Desktop Grid -->
         <div class="tw-hidden lg:tw-grid lg:tw-grid-cols-5 tw-gap-6">
-            <Card v-for="product in relatedProducts" :key="product.id" :product="product" @quick-view="openQuickView" />
+            <template v-for="product in relatedProducts" :key="product && product.id">
+                <div v-if="product && product.slug" @click="goToProduct(product.slug)" style="cursor:pointer">
+                    <Card :product="product" />
+                </div>
+            </template>
         </div>
         <QuickView :show="showQuickView" :product="quickViewProduct" @close="closeQuickView" />
     </div>
@@ -41,6 +49,10 @@ function openQuickView(product) {
 function closeQuickView() {
     showQuickView.value = false
     quickViewProduct.value = null
+}
+
+function goToProduct(slug) {
+    window.location.href = `/chi-tiet/${slug}`;
 }
 
 defineProps({

@@ -5,19 +5,25 @@
         <!-- Cột 1: Thông tin liên hệ -->
         <div>
           <div class="tw-mb-4 tw-font-bold tw-text-2xl tw-flex tw-items-center tw-gap-2">
-            <img src="https://i.imgur.com/AOs1h7Z.png" alt="EGA MEN" class="">
+            <img :src="settings.logo || 'https://via.placeholder.com/150x50?text=LOGO'" alt="Logo" class="tw-w-32" />
           </div>
-          <div class=" tw-flex tw-items-start tw-gap-2 tw-mb-2">
+          <div class="tw-flex tw-items-start tw-gap-2 tw-mb-2">
+            <span class="tw-text-2xl tw-font-semibold">
+              {{ settings.storeName || 'Tên cửa hàng' }}
+            </span>
+          </div>
+
+          <div class="tw-flex tw-items-start tw-gap-2 tw-mb-2">
             <i class="bi bi-geo-alt-fill"></i>
-            <span>Địa chỉ: 99/10 Hà Huy Tâp, Phường Tân An, Tp.BMT</span>
+            <span>Địa chỉ: {{ settings.address || 'Chưa cập nhật' }}</span>
           </div>
           <div class="tw-flex tw-items-start tw-gap-2 tw-mb-2">
             <i class="bi bi-telephone-fill"></i>
-            <span>Số điện thoại: 19001393</span>
+            <span>Số điện thoại: {{ settings.phone || 'Chưa có' }}</span>
           </div>
           <div class="tw-flex tw-items-start tw-gap-2 tw-mb-2">
             <i class="bi bi-envelope-fill"></i>
-            <span>Email: support@egany.com</span>
+            <span>Email: {{ settings.email || 'Chưa có' }}</span>
           </div>
           <div class="tw-mt-4 tw-text-xs tw-text-gray-200">
             © Bản quyền thuộc về <span class="tw-font-bold tw-text-white">DEVGANG</span> | Cung cấp bởi <span
@@ -69,9 +75,9 @@
           <div class="tw-font-bold tw-mb-4">ĐĂNG KÝ NHẬN TIN</div>
           <form class="tw-relative tw-mb-4">
             <input type="email" placeholder="Nhập địa chỉ email"
-              class="tw-rounded-full tw-px-3 tw-py-3 tw-w-full tw-border tw-border-[#292929] tw-text-gray-700 focus:tw-outline-none tw-pr-16" />
+              class="tw-rounded-full tw-px-3 tw-py-3 tw-w-full tw-border tw-border-[#5A82AB] tw-text-gray-700 focus:tw-outline-none tw-pr-16" />
             <button type="submit"
-              class="tw-absolute tw-top-1/2 tw-right-[5px] -tw-translate-y-1/2 tw-bg-[#292929] tw-text-white tw-px-4 tw-py-2 tw-rounded-full hover:tw-bg-gray-800 tw-flex tw-items-center tw-gap-1">
+              class="tw-absolute tw-top-1/2 tw-right-[5px] -tw-translate-y-1/2 tw-bg-[#5A82AB] tw-text-white tw-px-4 tw-py-2 tw-rounded-full hover:tw-bg-[#81aacc] tw-flex tw-items-center tw-gap-1">
               Đăng ký
             </button>
           </form>
@@ -89,7 +95,15 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
+import useSettings from '~/composables/useSettingsApi'
 
+const { settings, fetchSettings } = useSettings()
+
+onMounted(() => {
+  fetchSettings()
+})
 </script>
+
 
 <style></style>

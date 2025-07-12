@@ -16,7 +16,8 @@
                 </div>
             </div>
 
-            <div v-else-if="orderError" class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-text-center tw-text-red-600">
+            <div v-else-if="orderError"
+                class="tw-bg-white tw-p-6 tw-rounded-lg tw-shadow-sm tw-text-center tw-text-red-600">
                 <div class="tw-py-12">
                     <i class="fas fa-exclamation-circle tw-text-4xl tw-mb-4"></i>
                     <h3 class="tw-text-lg tw-font-medium tw-mb-2">Lỗi: {{ orderError }}</h3>
@@ -80,21 +81,16 @@ import OrderItems from '~/components/order-tracking/OrderItems.vue'
 import { useOrder } from '~/composables/useOrder'
 import { useNuxtApp } from '#app'
 
-const { getOrderByTrackingCode, currentOrder, loading, error, getOrderStatus, getPaymentStatus, getPaymentMethod, formatPrice } = useOrder()
 const { $config: runtimeConfig } = useNuxtApp()
 
 const orderData = ref(null)
 const orderError = ref(null)
 
-watch(currentOrder, (newVal) => {
-    if (newVal) {
-        orderData.value = mapOrderData(newVal)
-    } else {
-        orderData.value = null
-    }
-}, { immediate: true })
+const loading = ref(false)
 
-watch(error, (newVal) => {
+const { getOrderByTrackingCode } = useOrder()
+
+watch(() => orderError.value, (newVal) => {
     orderError.value = newVal
 })
 
@@ -127,7 +123,7 @@ const mapOrderData = (order) => {
         trackingCode: order.tracking_code,
         orderDate: new Date(order.created_at).toLocaleDateString('vi-VN'),
         status: order.status,
-        statusText: getOrderStatus(order.status),
+        statusText: order.status,
         timeline: [
             {
                 title: 'Đơn hàng đã được xác nhận',
@@ -135,7 +131,6 @@ const mapOrderData = (order) => {
                 icon: 'fas fa-check',
                 completed: true
             },
-
             ...(order.status === 'processing' || order.status === 'shipping' || order.status === 'completed' || order.status === 'cancelled' ? [
                 {
                     title: 'Đơn hàng đang được xử lý',
@@ -176,10 +171,10 @@ const mapOrderData = (order) => {
             note: order.note || 'Không có ghi chú'
         },
         payment: {
-            method: getPaymentMethod(order.payment_method),
+            method: order.payment_method,
             total: order.final_price,
             status: order.payment_status,
-            statusText: getPaymentStatus(order.payment_status)
+            statusText: order.payment_status
         },
         items: (order.order_details || []).map(item => ({
             name: item.variant?.product?.name || 'N/A',
@@ -198,20 +193,15 @@ const mapOrderData = (order) => {
 }
 
 const searchOrder = async (formData) => {
-    if (formData.trackingCode) {
-        try {
-            await getOrderByTrackingCode(formData.trackingCode)
-        } catch (err) {
-            console.error('Search order failed:', err)
-            orderData.value = null
-        }
-    } else {
-        orderData.value = null
+    try {
         orderError.value = null
+        orderData.value = null
+        const order = await getOrderByTrackingCode(formData.trackingCode)
+        orderData.value = mapOrderData(order)
+    } catch (err) {
+        orderError.value = err?.message || 'Không tìm thấy đơn hàng'
     }
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
