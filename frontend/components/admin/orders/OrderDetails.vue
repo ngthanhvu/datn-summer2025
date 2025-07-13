@@ -94,6 +94,55 @@
                     </div>
                 </div>
 
+                <!-- Hủy đơn hàng -->
+                <div v-if="currentOrder.status === 'cancelled' && currentOrder.cancel_reason"
+                    class="tw-mt-4 tw-p-4 tw-bg-red-50 tw-rounded-lg tw-border-l-4 tw-border-red-400">
+                    <div class="tw-flex tw-items-center">
+                        <div
+                            class="tw-w-8 tw-h-8 tw-rounded-full tw-bg-red-100 tw-flex tw-items-center tw-justify-center tw-mr-2 tw-mt-0.5">
+                            <svg class="tw-w-5 tw-h-5 tw-text-red-700" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="tw-font-medium tw-text-red-600 tw-text-sm md:tw-text-base">Lý do hủy đơn hàng:
+                            </span>
+                            <span class="tw-text-red-600 tw-text-sm md:tw-text-base">{{ currentOrder.cancel_reason
+                            }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hoàn đơn hàng -->
+                <div v-if="currentOrder.return_status"
+                    class="tw-mt-4 tw-p-4 tw-rounded-lg tw-border-l-4 tw-flex tw-items-center"
+                    :class="getReturnStatusContainerClass(currentOrder.return_status)">
+                    <div
+                        :class="['tw-w-8', 'tw-h-8', 'tw-rounded-full', 'tw-flex', 'tw-items-center', 'tw-justify-center', 'tw-mr-3', getReturnStatusIconClass(currentOrder.return_status)]">
+                        <svg :class="['tw-w-5', 'tw-h-5', getReturnStatusTextClass(currentOrder.return_status)]"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 15l-6-6 6-6M3 9h9a6 6 0 016 6v3" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="tw-font-medium tw-text-sm md:tw-text-base"
+                            :class="getReturnStatusTextClass(currentOrder.return_status)">
+                            {{ getReturnStatusLabel(currentOrder.return_status) }}
+                        </p>
+                        <p v-if="currentOrder.return_status" class="tw-text-sm tw-mt-1"
+                            :class="getReturnStatusTextClass(currentOrder.return_status)">
+                            {{ getReturnDateLabel(currentOrder.return_status) }}: {{ currentOrder.return_requested_at ?
+                                formatDate(currentOrder.return_requested_at) : formatDate(currentOrder.updated_at) }}
+                        </p>
+                        <p v-if="currentOrder.reject_reason" class="tw-text-sm tw-mt-1 tw-text-red-600">
+                            Lý do từ chối: {{ currentOrder.reject_reason }}
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Thông tin khách hàng và thanh toán -->
                 <div class="tw-grid tw-grid-cols-2 tw-gap-6">
                     <div class="tw-bg-gray-50 tw-p-4 tw-rounded-lg">
@@ -274,33 +323,61 @@
                     </div>
                 </div>
 
-                <!-- Cập nhật trạng thái -->
+                <!-- Cập nhật trạng thái và duyệt/từ chối hoàn hàng -->
                 <div class="order-status">
                     <h3>Cập nhật trạng thái</h3>
-                    <div class="tw-flex tw-items-center tw-gap-4 tw-mb-2">
-                        <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
-                            <option v-for="opt in statusOptions" :value="opt.value" :key="opt.value">{{ opt.label }}
-                            </option>
-                        </select>
-                        <select v-model="selectedPaymentStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
-                            <option v-for="opt in paymentStatusOptions" :value="opt.value" :key="opt.value">{{ opt.label
-                            }}</option>
-                        </select>
-                        <button
-                            @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })"
-                            class="tw-bg-primary tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-primary-dark">
-                            Gửi
-                        </button>
+                    <div class="tw-flex tw-items-center tw-gap-4 tw-mb-2 tw-justify-between">
+                        <div class="tw-flex tw-items-center tw-gap-4">
+                            <select v-model="selectedStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
+                                <option v-for="opt in statusOptions" :value="opt.value" :key="opt.value">{{ opt.label }}
+                                </option>
+                            </select>
+                            <select v-model="selectedPaymentStatus" class="tw-border tw-rounded tw-px-4 tw-py-2">
+                                <option v-for="opt in paymentStatusOptions" :value="opt.value" :key="opt.value">{{
+                                    opt.label }}</option>
+                            </select>
+                            <button
+                                @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })"
+                                class="tw-bg-primary tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-primary-dark">Gửi</button>
+                        </div>
+                        <div v-if="currentOrder.return_status === 'requested'"
+                            class="tw-flex tw-justify-end tw-gap-2 tw-mt-4">
+                            <button @click="handleApproveReturn"
+                                class="tw-bg-green-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-green-700">
+                                Duyệt hoàn hàng
+                            </button>
+                            <button @click="openRejectModal"
+                                class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">
+                                Từ chối hoàn hàng
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </template>
+
+        <!-- Modal nhập lý do từ chối hoàn hàng -->
+        <div v-if="showRejectModal"
+            class="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-50 tw-flex tw-items-center tw-justify-center tw-z-50">
+            <div class="tw-bg-white tw-rounded-lg tw-shadow-lg tw-p-6 tw-w-full tw-max-w-md">
+                <h3 class="tw-text-lg tw-font-bold tw-mb-4">Lý do từ chối hoàn hàng</h3>
+                <textarea v-model="rejectReason" placeholder="Nhập lý do..."
+                    class="tw-w-full tw-h-24 tw-p-2 tw-border tw-rounded tw-mb-4" />
+                <div class="tw-flex tw-justify-end tw-gap-2">
+                    <button @click="showRejectModal = false"
+                        class="tw-bg-gray-200 tw-px-4 tw-py-2 tw-rounded">Hủy</button>
+                    <button @click="handleRejectReturn"
+                        class="tw-bg-red-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-red-700">Xác
+                        nhận</button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useOrderStore } from '~/stores/useOrderStore'
+import { useOrder } from '~/composables/useOrder'
 
 const props = defineProps({
     orderId: {
@@ -309,11 +386,19 @@ const props = defineProps({
     }
 })
 
-const orderStore = useOrderStore()
-
-const currentOrder = computed(() => orderStore.orders.find(o => o.id == props.orderId) || orderStore.currentOrder)
-const loading = computed(() => orderStore.isLoadingOrders)
-const error = computed(() => orderStore.error)
+const {
+    currentOrder,
+    loading,
+    error,
+    getOrder,
+    updateOrderStatus,
+    getOrderStatus,
+    getPaymentStatus,
+    getPaymentMethod,
+    formatPrice,
+    approveReturn,
+    rejectReturn
+} = useOrder()
 
 const statusOptions = [
     { value: 'pending', label: 'Chờ xử lý' },
@@ -342,20 +427,76 @@ watch(() => currentOrder.value?.payment_status, (val) => {
     selectedPaymentStatus.value = val
 })
 
-onMounted(async () => {
-    if (!orderStore.orders.length) {
-        await orderStore.fetchOrders()
+const showRejectModal = ref(false)
+const rejectReason = ref('')
+
+const openRejectModal = () => {
+    rejectReason.value = ''
+    showRejectModal.value = true
+}
+
+const handleRejectReturn = async () => {
+    if (!rejectReason.value.trim()) {
+        const { $notyf } = useNuxtApp()
+        if ($notyf) {
+            $notyf.error('Vui lòng nhập lý do từ chối!')
+        } else {
+            alert('Vui lòng nhập lý do từ chối!')
+        }
+        return
     }
-    // Nếu có action fetchOrderById thì gọi ở đây để lấy chi tiết đơn hàng
-    // await orderStore.fetchOrderById(props.orderId)
+    try {
+        await rejectReturn(currentOrder.value.id, rejectReason.value)
+        showRejectModal.value = false
+        await getOrder(currentOrder.value.id)
+        const { $notyf } = useNuxtApp()
+        if ($notyf) {
+            $notyf.success('Từ chối hoàn hàng thành công!')
+        } else {
+            alert('Từ chối hoàn hàng thành công!')
+        }
+    } catch (err) {
+        const { $notyf } = useNuxtApp()
+        if ($notyf) {
+            $notyf.error(err?.response?.data?.message || err.message || 'Từ chối hoàn hàng thất bại!')
+        } else {
+            alert(err?.response?.data?.message || err.message || 'Từ chối hoàn hàng thất bại!')
+        }
+    }
+}
+
+onMounted(async () => {
+    await getOrder(props.orderId)
+    console.log('Current Order:', currentOrder.value)
+    console.log('Order Details:', currentOrder.value?.orderDetails)
 })
 
 const handleUpdateStatus = async (data) => {
     try {
-        await orderStore.updateOrder(props.orderId, { status: data.status, payment_status: data.payment_status })
-        // await orderStore.fetchOrderById(props.orderId)
+        await updateOrderStatus(props.orderId, data.status, data.payment_status)
+        await getOrder(props.orderId)
     } catch (err) {
         console.error('Failed to update order status:', err)
+    }
+}
+
+const handleApproveReturn = async () => {
+    try {
+        await approveReturn(currentOrder.value.id)
+        await getOrder(currentOrder.value.id)
+        const { $notyf } = useNuxtApp()
+        if ($notyf) {
+            $notyf.success('Duyệt hoàn hàng thành công!')
+        } else {
+            alert('Duyệt hoàn hàng thành công!')
+        }
+    } catch (err) {
+        const { $notyf } = useNuxtApp()
+        if ($notyf) {
+            $notyf.error(err?.response?.data?.message || err.message || 'Duyệt hoàn hàng thất bại!')
+        } else {
+            alert(err?.response?.data?.message || err.message || 'Duyệt hoàn hàng thất bại!')
+        }
     }
 }
 
@@ -417,18 +558,48 @@ const getOrderDetails = () => {
     return currentOrder.value?.orderDetails || currentOrder.value?.order_details || []
 }
 
-const getPaymentMethod = (code) => {
-    switch (code) {
-        case 'cod':
-            return 'Thanh toán khi nhận hàng (COD)'
-        case 'vnpay':
-            return 'VNPay'
-        case 'momo':
-            return 'Momo'
-        case 'paypal':
-            return 'PayPal'
-        default:
-            return code || 'Không xác định'
+const getReturnStatusContainerClass = (status) => {
+    switch (status) {
+        case 'requested': return 'tw-bg-orange-50 tw-border-orange-400'
+        case 'approved': return 'tw-bg-green-50 tw-border-green-400'
+        case 'rejected': return 'tw-bg-red-50 tw-border-red-400'
+        default: return 'tw-bg-gray-50 tw-border-gray-400'
+    }
+}
+
+const getReturnStatusIconClass = (status) => {
+    switch (status) {
+        case 'requested': return 'tw-bg-orange-100'
+        case 'approved': return 'tw-bg-green-100'
+        case 'rejected': return 'tw-bg-red-100'
+        default: return 'tw-bg-gray-100'
+    }
+}
+
+const getReturnStatusTextClass = (status) => {
+    switch (status) {
+        case 'requested': return 'tw-text-orange-600'
+        case 'approved': return 'tw-text-green-600'
+        case 'rejected': return 'tw-text-red-600'
+        default: return 'tw-text-gray-600'
+    }
+}
+
+const getReturnStatusLabel = (status) => {
+    switch (status) {
+        case 'requested': return 'Yêu cầu hoàn hàng'
+        case 'approved': return 'Yêu cầu hoàn hàng đã được duyệt'
+        case 'rejected': return 'Yêu cầu hoàn hàng đã bị từ chối'
+        default: return 'Chưa yêu cầu hoàn hàng'
+    }
+}
+
+const getReturnDateLabel = (status) => {
+    switch (status) {
+        case 'requested': return 'Ngày yêu cầu'
+        case 'approved': return 'Ngày duyệt'
+        case 'rejected': return 'Ngày từ chối'
+        default: return 'Ngày cập nhật'
     }
 }
 </script>
