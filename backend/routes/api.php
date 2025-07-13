@@ -20,6 +20,8 @@ use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessengerController;
 use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\FlashSaleController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -68,6 +70,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/favorites', [FavoriteProductController::class, 'store']);
     Route::get('/favorites/check/{slug}', [FavoriteProductController::class, 'check']);
     Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
+    Route::post('/settings', [SettingController::class, 'update']);
 
     // Chat/Messenger routes
     Route::prefix('chat')->group(function () {
@@ -85,6 +88,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/coupons/{id}/use', [CouponsController::class, 'use']);
     Route::get('/coupons/my-coupons', [CouponsController::class, 'myCoupons']);
 });
+Route::get('/settings', [SettingController::class, 'index']);
 
 // Public blog routes
 Route::get('/blogs', [BlogsController::class, 'index']);
@@ -117,6 +121,7 @@ Route::get('/products/filter-options', [ProductsController::class, 'getFilterOpt
 Route::get('/products', [ProductsController::class, 'index']);
 Route::post('/products', [ProductsController::class, 'store']);
 Route::put('/products/{id}', [ProductsController::class, 'update']);
+Route::get('/products/recommend', [ProductsController::class, 'recommend']);
 Route::get('/products/slug/{slug}', [ProductsController::class, 'getProductBySlug']);
 Route::get('/products/{id}', [ProductsController::class, 'getProductById']);
 Route::delete('/products/{id}', [ProductsController::class, 'destroy']);
@@ -190,3 +195,9 @@ Route::get('/stock-movement', [StockMovementController::class, 'index']);
 Route::get('/stock-movement/{id}', [StockMovementController::class, 'show']);
 Route::post('/stock-movement', [StockMovementController::class, 'store']);
 Route::delete('/stock-movement/{id}', [StockMovementController::class, 'destroy']);
+
+Route::get('flash-sales', [FlashSaleController::class, 'index']);
+Route::post('flash-sales', [FlashSaleController::class, 'store']);
+Route::put('flash-sales/{id}', [FlashSaleController::class, 'update']);
+Route::delete('flash-sales/{id}', [FlashSaleController::class, 'destroy']);
+Route::get('flash-sales/{id}', [FlashSaleController::class, 'show']);

@@ -416,6 +416,21 @@ const getTotalItems = () => {
 const getOrderDetails = () => {
     return currentOrder.value?.orderDetails || currentOrder.value?.order_details || []
 }
+
+const getPaymentMethod = (code) => {
+    switch (code) {
+        case 'cod':
+            return 'Thanh toán khi nhận hàng (COD)'
+        case 'vnpay':
+            return 'VNPay'
+        case 'momo':
+            return 'Momo'
+        case 'paypal':
+            return 'PayPal'
+        default:
+            return code || 'Không xác định'
+    }
+}
 </script>
 
 <style scoped>

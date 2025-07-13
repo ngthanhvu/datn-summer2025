@@ -36,6 +36,10 @@
           <i class="fa-solid fa-ticket"></i>
           <span>Khuyến mãi</span>
         </NuxtLink>
+        <NuxtLink to="/admin/flashsale" class="nav-item">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Flash Sale</span>
+        </NuxtLink>
 
         <!-- Inventory Management -->
         <div class="nav-item dropdown-toggle" @click="showInventoryMenu = !showInventoryMenu">

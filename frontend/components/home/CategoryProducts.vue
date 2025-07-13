@@ -85,14 +85,5 @@ const selectCategory = async (categoryId) => {
 }
 
 // Khởi tạo dữ liệu
-onMounted(async () => {
-    // Load categories if not available
-    if (!homeStore.hasValidData('categories')) {
-        await homeStore.fetchCategories()
-    }
-
-    // Load initial products
-    await homeStore.fetchCategoryProducts(null, 20)
-    selectedCategory.value = null // Mặc định chọn "Tất cả sản phẩm"
-})
+// XÓA toàn bộ onMounted fetch data, chỉ lấy state từ store
 </script>

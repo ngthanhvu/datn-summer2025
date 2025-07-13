@@ -69,7 +69,7 @@ class CartController extends Controller
             ], 422);
         }
 
-        $price = $variant->price;
+        $price = $request->has('price') ? $request->price : $variant->price;
 
         $data = [
             'variant_id' => $variant->id,
@@ -86,6 +86,7 @@ class CartController extends Controller
         }
 
         $item = Cart::where('variant_id', $variant->id)
+            ->where('price', $price)
             ->where(function ($q) use ($data) {
                 if (isset($data['user_id']) && $data['user_id']) $q->where('user_id', $data['user_id']);
                 else $q->where('session_id', $data['session_id']);

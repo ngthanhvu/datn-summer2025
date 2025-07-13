@@ -60,6 +60,16 @@
                     </div>
                 </div>
             </div>
+            <div v-else>
+                <div class="tw-text-center">
+                    <p class="tw-text-sm tw-text-gray-500 tw-text-center tw-mt-5">Không có mã giảm giá nào.</p>
+                    <NuxtLink to="/kho-voucher"
+                        class="tw-text-[12px] tw-text-gray-500 tw-text-center hover:tw-text-[#81aacc]">Ấn vào đây để săn
+                        mã
+                        giảm
+                        giá</NuxtLink>
+                </div>
+            </div>
         </div>
         <div class="tw-space-y-3 tw-border-t tw-pt-4">
             <div class="tw-flex tw-justify-between">
@@ -88,8 +98,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useCouponStore } from '~/stores/useCouponStore'
+import { useCoupon } from '~/composables/useCoupon'
 import { useNuxtApp } from '#app'
 
 const props = defineProps({
@@ -115,8 +124,7 @@ const emit = defineEmits(['apply-coupon', 'place-order'])
 
 const couponCode = ref('')
 const availableCoupons = ref([])
-const couponStore = useCouponStore()
-const { coupons, isLoadingCoupons, error: couponError, myCoupons } = storeToRefs(couponStore)
+const couponService = useCoupon()
 const { $config: runtimeConfig } = useNuxtApp()
 
 const total = computed(() => {
@@ -143,18 +151,24 @@ const selectCoupon = (coupon) => {
 
 const fetchAvailableCoupons = async () => {
     try {
-        // Lấy danh sách coupon đã lưu của user từ store
-        if (!myCoupons.value.length) {
-            await couponStore.fetchMyCoupons()
+        // Lấy danh sách coupon đã lưu của user
+        const myCouponsData = await couponService.getMyCoupons()
+        const myCoupons = myCouponsData?.coupons || []
+
+        if (!myCoupons || !Array.isArray(myCoupons)) {
+            console.error('Invalid my coupons data:', myCoupons)
+            return
         }
+
         const now = new Date()
-        availableCoupons.value = (myCoupons.value || []).filter(coupon => {
+        availableCoupons.value = myCoupons.filter(coupon => {
             // Chỉ hiển thị coupon đang hoạt động và chưa sử dụng
             return coupon.is_active &&
                 coupon.pivot?.status !== 'used' &&
                 new Date(coupon.start_date) <= now &&
                 new Date(coupon.end_date) >= now
         })
+
     } catch (error) {
         console.error('Error fetching my coupons:', error)
     }

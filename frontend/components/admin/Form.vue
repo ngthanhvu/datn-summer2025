@@ -28,6 +28,48 @@
                 <input type="checkbox" :id="field.name" v-model="formData[field.name]" />
                 <label :for="field.name"></label>
             </div>
+            <!-- Image (Single) đẹp -->
+            <div v-else-if="field.type === 'image'" class="tw-mb-4">
+
+                <!-- Có ảnh thì hiển thị preview -->
+                <div v-if="formData[field.name]" class="tw-relative tw-inline-block tw-mb-2">
+                    <img :src="formData[field.name]" :alt="field.label"
+                        class="tw-max-h-32 tw-rounded-md tw-border tw-border-gray-300" />
+                    <button type="button" @click="removeImage(field.name)"
+                        class="tw-absolute tw-top-1 tw-right-1 tw-bg-white tw-text-red-600 tw-text-xs tw-px-2 tw-py-1 tw-rounded hover:tw-bg-red-100">
+                        Xoá ảnh
+                    </button>
+                </div>
+
+                <!-- Nếu chưa có ảnh -->
+                <label v-else :for="field.name"
+                    class="tw-block tw-border-2 tw-border-dashed tw-border-gray-300 tw-rounded-md tw-py-10 tw-text-center tw-cursor-pointer hover:tw-bg-gray-50">
+                    <div class="tw-text-gray-400 tw-mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-8 tw-h-8 tw-mx-auto" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3m6-3V5a2 2 0 00-2-2H6a2 2 0 00-2 2v11" />
+                        </svg>
+                    </div>
+                    <p class="tw-text-gray-600">Click để tải ảnh lên</p>
+                    <p class="tw-text-gray-400 tw-text-sm">PNG, JPG, GIF (tối đa 2MB)</p>
+                </label>
+
+                <!-- File input -->
+                <input type="file" class="tw-hidden" :id="field.name" :name="field.name" accept="image/*"
+                    @change="(e) => handleImageUpload(e, field.name)" />
+            </div>
+<!-- Password Input -->
+<input
+  v-else-if="field.type === 'password'"
+  :id="field.name"
+  v-model="formData[field.name]"
+  type="password"
+  :placeholder="field.placeholder"
+  class="tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-px-3 tw-py-2 tw-text-sm focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500"
+/>
+
+
 
             <!-- Main Image Upload -->
             <div v-else-if="field.type === 'mainImage'" class="image-upload">

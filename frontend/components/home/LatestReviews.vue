@@ -62,9 +62,5 @@ import ReviewCard from './ReviewCard.vue'
 
 const homeStore = useHomeStore()
 
-onMounted(async () => {
-    if (!homeStore.hasValidData('reviews')) {
-        await homeStore.fetchLatestReviews(6)
-    }
-})
+// XÓA toàn bộ onMounted fetch data, chỉ lấy state từ store
 </script>

@@ -3,7 +3,7 @@
   <nav class="navbar navbar-expand-lg navbar-light tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-shadow-sm">
     <div class="container">
       <NuxtLink to="/" class="navbar-brand">
-        <img src="../../assets/logo.png" alt="EGA MEN" class="tw-w-20">
+        <img :src="siteLogo" alt="EGA MEN" class="tw-w-20">
       </NuxtLink>
 
       <!-- Desktop Navigation -->
@@ -122,6 +122,13 @@ const closeMobileMenu = () => {
   isMobileMenuOpen.value = false
   document.body.style.overflow = ''
 }
+defineProps({
+  siteLogo: {
+    type: String,
+    default: '/logo.png'
+  }
+})
+
 </script>
 
 <style scoped>

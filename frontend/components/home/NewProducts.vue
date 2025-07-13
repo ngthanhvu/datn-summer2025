@@ -76,11 +76,7 @@ const fetchNewProducts = async () => {
     }
 }
 
-onMounted(async () => {
-    if (!homeStore.hasValidData('products')) {
-        await fetchNewProducts()
-    }
-})
+// XÓA toàn bộ onMounted fetch data, chỉ lấy state từ store
 </script>
 
 <style scoped>

@@ -1,24 +1,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
 import AddressList from '~/components/checkout/AddressList.vue'
 import AddressForm from '~/components/checkout/AddressForm.vue'
 import PaymentMethods from '~/components/checkout/PaymentMethods.vue'
 import OrderSummary from '~/components/checkout/OrderSummary.vue'
 import { useAddress } from '~/composables/useAddress'
-import { useCartStore } from '~/stores/useCartStore'
-import { useCouponStore } from '~/stores/useCouponStore'
-import { usePayment } from '~/composables/usePayment'
+import { useCart } from '~/composables/useCarts'
 import { useCheckout } from '~/composables/useCheckout'
+import { useCoupon } from '~/composables/useCoupon'
+import { usePayment } from '~/composables/usePayment'
 
 const addressService = useAddress()
-const cartStore = useCartStore()
-const couponStore = useCouponStore()
+const cartService = useCart()
+const checkoutService = useCheckout()
+const couponService = useCoupon()
 const paymentService = usePayment()
-const { createOrder: createOrderApi, applyCoupon: applyCouponApi } = useCheckout()
-
-const { cart, isLoadingCart, error: cartError } = storeToRefs(cartStore)
-const { coupons, isLoadingCoupons, error: couponError } = storeToRefs(couponStore)
 
 const showAddressForm = ref(false)
 const editingAddressIndex = ref(null)
@@ -27,17 +23,7 @@ const addresses = ref([])
 const isLoading = ref(false)
 const error = ref(null)
 
-const cartItems = computed(() => {
-    return cart.value.map(item => ({
-        id: item.id,
-        name: item.variant?.product?.name || 'Sản phẩm',
-        variant: `Size: ${item.variant?.size || 'N/A'} | Số lượng: ${item.quantity}`,
-        price: item.variant?.price || 0,
-        quantity: item.quantity,
-        image: item.variant?.product?.main_image?.image_path || 'https://placehold.co/100x100'
-    }))
-})
-
+const cartItems = ref([])
 const shipping = ref(30000)
 const discount = ref(0)
 const appliedCoupon = ref(null)
@@ -71,7 +57,7 @@ const saveAddress = async (address) => {
     try {
         isLoading.value = true
         if (editingAddressIndex.value === null) {
-            await addressService.createAddress({
+            const newAddress = await addressService.createAddress({
                 full_name: address.fullName,
                 phone: address.phone,
                 province: address.province,
@@ -108,7 +94,9 @@ const deleteAddress = async (index) => {
     try {
         const addressId = addresses.value[index].id
         await addressService.deleteAddress(addressId)
+
         await fetchAddresses()
+
         if (selectedAddress.value === index) {
             selectedAddress.value = 0
         }
@@ -121,6 +109,7 @@ const fetchAddresses = async () => {
     try {
         isLoading.value = true
         const response = await addressService.getAddresses()
+
         if (response && response.data && Array.isArray(response.data)) {
             addresses.value = response.data.map(addr => ({
                 id: addr.id,
@@ -148,7 +137,15 @@ const fetchAddresses = async () => {
 const fetchCart = async () => {
     try {
         isLoading.value = true
-        await cartStore.fetchCart()
+        const cart = await cartService.fetchCart()
+        cartItems.value = cart.map(item => ({
+            id: item.id,
+            name: item.variant?.product?.name || 'Sản phẩm',
+            variant: `Size: ${item.variant?.size || 'N/A'} | Số lượng: ${item.quantity}`,
+            price: item.price || 0, // Lấy giá đã lưu trong DB
+            quantity: item.quantity,
+            image: item.variant?.product?.main_image?.image_path || 'https://placehold.co/100x100'
+        }))
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi lấy giỏ hàng'
     } finally {
@@ -159,7 +156,8 @@ const fetchCart = async () => {
 const applyCoupon = async (code) => {
     try {
         isLoading.value = true
-        const result = await applyCouponApi(code, subtotal.value)
+        const result = await couponService.validateCoupon(code, subtotal.value)
+
         if (result.discount !== undefined) {
             appliedCoupon.value = result.coupon
             discount.value = Math.round(result.discount)
@@ -177,36 +175,43 @@ const applyCoupon = async (code) => {
 }
 
 const selectedPaymentMethod = ref(0)
-const paymentMethods = [
-    {
-        title: 'Thanh toán khi nhận hàng (COD)',
-        description: 'Thanh toán bằng tiền mặt khi nhận hàng',
-        code: 'cod',
-        image: 'https://cdn-icons-png.flaticon.com/512/2897/2897832.png',
-        img: 'https://cdn-icons-png.flaticon.com/512/2897/2897832.png'
-    },
-    {
-        title: 'VNPay',
-        description: 'Thanh toán qua cổng thanh toán VNPay',
-        code: 'vnpay',
-        image: 'https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg',
-        img: 'https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg'
-    },
-    {
-        title: 'Momo',
-        description: 'Thanh toán qua ví điện tử Momo',
-        code: 'momo',
-        image: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png',
-        img: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png'
-    },
-    {
-        title: 'PayPal',
-        description: 'Thanh toán qua PayPal',
-        code: 'paypal',
-        image: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png',
-        img: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png'
-    }
-]
+const paymentMethods = ref([])
+
+const updatePaymentMethods = () => {
+    const s = settings.value || {}
+
+    paymentMethods.value = [
+        {
+            title: 'Thanh toán khi nhận hàng (COD)',
+            description: Number(s.enableCod) ? 'Thanh toán bằng tiền mặt khi nhận hàng' : 'Sắp ra mắt',
+            code: 'cod',
+            image: 'https://cdn-icons-png.flaticon.com/512/2897/2897832.png',
+            enabled: !!Number(s.enableCod)
+        },
+        {
+            title: 'VNPay',
+            description: Number(s.enableVnpay) ? 'Thanh toán qua cổng thanh toán VNPay' : 'Sắp ra mắt',
+            code: 'vnpay',
+            image: 'https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg',
+            enabled: !!Number(s.enableVnpay)
+        },
+        {
+            title: 'Momo',
+            description: Number(s.enableMomo) ? 'Thanh toán qua ví điện tử Momo' : 'Sắp ra mắt',
+            code: 'momo',
+            image: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png',
+            enabled: !!Number(s.enableMomo)
+        },
+        {
+            title: 'PayPal',
+            description: Number(s.enablePaypal) ? 'Thanh toán qua PayPal' : 'Sắp ra mắt',
+            code: 'paypal',
+            image: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png',
+            enabled: !!Number(s.enablePaypal)
+        }
+    ]
+}
+
 
 const placeOrder = async () => {
     try {
@@ -214,16 +219,20 @@ const placeOrder = async () => {
             error.value = 'Vui lòng thêm địa chỉ giao hàng'
             return
         }
+
         isLoading.value = true
-        await cartStore.fetchCart()
-        const items = cart.value.map(item => ({
+
+        const cart = await cartService.fetchCart()
+
+        const items = cart.map(item => ({
             variant_id: item.variant.id,
             quantity: item.quantity,
-            price: item.variant.price || 0
+            price: item.price
         }))
+
         const orderData = {
             address_id: addresses.value[selectedAddress.value].id,
-            payment_method: paymentMethods[selectedPaymentMethod.value].code,
+            payment_method: paymentMethods.value[selectedPaymentMethod.value]?.code || 'cod',
             coupon_id: appliedCoupon.value?.id || null,
             items: items,
             note: '',
@@ -232,17 +241,26 @@ const placeOrder = async () => {
             discount_price: discount.value,
             final_price: total.value
         }
+
         console.log('Creating order with data:', orderData)
-        const result = await createOrderApi(orderData)
+        const result = await checkoutService.createOrder(orderData)
+        console.log('Order creation result:', result)
+
         if (result && result.order) {
-            const paymentMethod = paymentMethods[selectedPaymentMethod.value].code
+            const paymentMethod = paymentMethods.value[selectedPaymentMethod.value]?.code || 'cod'
             const orderId = result.order.id
             const amount = result.order.final_price
+
+            console.log('Payment method:', paymentMethod)
+            console.log('Order ID:', orderId)
+            console.log('Amount:', amount)
+
             if (paymentMethod === 'cod') {
                 navigateTo(`/status?status=success&orderId=${orderId}&amount=${amount}&tracking_code=${result.order.tracking_code}`)
             } else {
                 let paymentUrl
                 let paymentResult
+
                 switch (paymentMethod) {
                     case 'vnpay':
                         paymentResult = await paymentService.generateVnpayUrl(orderId, amount)
@@ -274,13 +292,18 @@ const placeOrder = async () => {
     }
 }
 
+import useSettings from '~/composables/useSettingsApi'
+const { settings, fetchSettings } = useSettings()
+
 onMounted(async () => {
     try {
         isLoading.value = true
         await Promise.all([
+            fetchSettings(),
             fetchAddresses(),
             fetchCart()
         ])
+        updatePaymentMethods()
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi tải dữ liệu'
     } finally {

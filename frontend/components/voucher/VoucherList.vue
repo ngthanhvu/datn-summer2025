@@ -6,38 +6,17 @@
             <p class="tw-text-gray-600">Khám phá và sử dụng các mã giảm giá hấp dẫn</p>
         </div>
 
-        <!-- Search and Filter Section -->
+        <!-- Nhập mã voucher Section -->
         <div class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-mb-6">
-            <div class="tw-flex tw-flex-col md:tw-flex-row tw-gap-4">
-                <!-- Search Input -->
-                <div class="tw-flex-1">
-                    <div class="tw-relative">
-                        <input v-model="searchQuery" type="text" placeholder="Tìm kiếm voucher..."
-                            class="tw-w-full tw-pl-10 tw-pr-4 tw-py-3 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-transparent">
-                        <i
-                            class="fa-solid fa-search tw-absolute tw-left-3 tw-top-1/2 tw-transform -tw-translate-y-1/2 tw-text-gray-400"></i>
-                    </div>
-                </div>
-
-                <!-- Filter Dropdown -->
-                <div class="tw-flex tw-gap-2">
-                    <select v-model="selectedCategory"
-                        class="tw-px-4 tw-py-3 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-transparent">
-                        <option value="">Tất cả danh mục</option>
-                        <option value="percent">Giảm theo %</option>
-                        <option value="fixed">Giảm cố định</option>
-                        <option value="freeship">Miễn phí ship</option>
-                    </select>
-
-                    <select v-model="selectedStatus"
-                        class="tw-px-4 tw-py-3 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-transparent">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="active">Đang hoạt động</option>
-                        <option value="expired">Đã hết hạn</option>
-                        <option value="used">Đã sử dụng</option>
-                    </select>
-                </div>
-            </div>
+            <form class="tw-flex tw-justify-center tw-items-center tw-gap-2" @submit.prevent="onSubmitVoucher">
+                <label class="tw-mr-2 tw-font-medium">Mã Voucher</label>
+                <input v-model="voucherInput" type="text" placeholder="Nhập mã voucher tại đây"
+                    class="tw-w-full tw-max-w-md tw-pl-3 tw-pr-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-transparent" />
+                <button type="submit" :disabled="!voucherInput.trim() || savingVoucher"
+                    class="tw-bg-gray-200 tw-text-white tw-px-5 tw-py-2 tw-rounded hover:tw-bg-blue-600 hover:tw-text-white tw-transition disabled:tw-bg-gray-200 disabled:tw-text-white">
+                    Lưu
+                </button>
+            </form>
         </div>
 
         <!-- Voucher Grid -->
@@ -77,7 +56,7 @@
                         <div v-if="coupon.type === 'percent'">
                             Giảm {{ coupon.value || 0 }}%
                             <span v-if="coupon.max_discount_value">tối đa {{ formatCurrency(coupon.max_discount_value)
-                            }}</span>
+                                }}</span>
                         </div>
                         <div v-else>
                             Giảm {{ formatCurrency(coupon.value || 0) }}
@@ -104,33 +83,10 @@
                         </button>
                         <div class="tw-text-xs tw-text-gray-700 hover:tw-underline tw-cursor-pointer">
                             <div>Hạn sử dụng: {{ formatDate(coupon.end_date) }}</div>
-                            <!-- <div v-if="coupon.usage_limit">
-                                Đã sử dụng: {{ coupon.used_count || 0 }}/{{ coupon.usage_limit }}
-                            </div> -->
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Pagination -->
-        <div class="tw-mt-8 tw-flex tw-justify-center">
-            <nav class="tw-flex tw-items-center tw-space-x-2">
-                <button
-                    class="tw-px-3 tw-py-2 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-300 tw-rounded-md hover:tw-bg-gray-50">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <button
-                    class="tw-px-3 tw-py-2 tw-text-white tw-bg-blue-600 tw-border tw-border-blue-600 tw-rounded-md">1</button>
-                <button
-                    class="tw-px-3 tw-py-2 tw-text-gray-700 tw-bg-white tw-border tw-border-gray-300 tw-rounded-md hover:tw-bg-gray-50">2</button>
-                <button
-                    class="tw-px-3 tw-py-2 tw-text-gray-700 tw-bg-white tw-border tw-border-gray-300 tw-rounded-md hover:tw-bg-gray-50">3</button>
-                <button
-                    class="tw-px-3 tw-py-2 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-300 tw-rounded-md hover:tw-bg-gray-50">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </nav>
         </div>
     </div>
 </template>
@@ -152,9 +108,27 @@ onMounted(async () => {
     }
 })
 
-const searchQuery = ref('')
-const selectedCategory = ref('')
-const selectedStatus = ref('')
+const voucherInput = ref('')
+const savingVoucher = ref(false)
+
+const onSubmitVoucher = async () => {
+    if (!voucherInput.value.trim()) return
+    savingVoucher.value = true
+    try {
+        // Tìm voucher theo code
+        const found = couponStore.coupons.find(c => c.code?.toLowerCase() === voucherInput.value.trim().toLowerCase())
+        if (found) {
+            await claimVoucherCode(found.id)
+        } else {
+            notyf.error('Không tìm thấy mã voucher này!')
+        }
+    } catch (err) {
+        notyf.error('Có lỗi xảy ra khi lưu mã!')
+    } finally {
+        savingVoucher.value = false
+        voucherInput.value = ''
+    }
+}
 
 const claimVoucherCode = async (couponId) => {
     try {
@@ -163,22 +137,13 @@ const claimVoucherCode = async (couponId) => {
         await couponStore.fetchCoupons()
         await couponStore.fetchMyCoupons()
     } catch (err) {
+        notyf.error('Không thể lưu mã voucher này!')
         console.error('Không thể lấy mã voucher:', err)
     }
 }
 
 const filteredCoupons = computed(() => {
-    let filtered = couponStore.coupons || []
-    if (searchQuery.value) {
-        filtered = filtered.filter(coupon => coupon.code?.toLowerCase().includes(searchQuery.value.toLowerCase()) || coupon.description?.toLowerCase().includes(searchQuery.value.toLowerCase()))
-    }
-    if (selectedCategory.value) {
-        filtered = filtered.filter(coupon => coupon.type === selectedCategory.value)
-    }
-    if (selectedStatus.value) {
-        filtered = filtered.filter(coupon => getCouponStatus(coupon) === selectedStatus.value)
-    }
-    return filtered
+    return couponStore.coupons || []
 })
 
 const formatCurrency = (amount) => {
