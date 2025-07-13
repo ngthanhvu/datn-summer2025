@@ -5,7 +5,7 @@
         <!-- Cột 1: Thông tin liên hệ -->
         <div>
           <div class="tw-mb-4 tw-font-bold tw-text-2xl tw-flex tw-items-center tw-gap-2">
-            <img :src="settings.logo || 'https://via.placeholder.com/150x50?text=LOGO'" alt="Logo" class="tw-w-32" />
+            <img :src="settings.logo || 'https://placehold.co/150x50?text=LOGO'" alt="Logo" class="tw-w-32" />
           </div>
           <div class="tw-flex tw-items-start tw-gap-2 tw-mb-2">
             <span class="tw-text-2xl tw-font-semibold">
