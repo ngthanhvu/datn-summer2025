@@ -12,7 +12,9 @@
 
     <div class="tw-mt-3" v-if="showFlashSale">
       <div class="tw-bg-[#e6f0fa] tw-p-8 tw-rounded-[5px] tw-shadow-md tw-relative tw-overflow-hidden">
-        <Snowfall />
+        <client-only>
+          <Snowfall />
+        </client-only>
         <FlashSale @has-flash-sale="handleFlashSaleStatus" />
       </div>
     </div>
@@ -25,7 +27,9 @@
 
     <Suspense>
       <template #default>
-        <NewProducts />
+        <client-only>
+          <NewProducts />
+        </client-only>
       </template>
       <template #fallback>
         <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px] tw-animate-pulse">
@@ -43,7 +47,9 @@
 
     <Suspense>
       <template #default>
-        <CategoryProducts />
+        <client-only>
+          <CategoryProducts />
+        </client-only>
       </template>
       <template #fallback>
         <div class="tw-mt-3 tw-bg-white tw-p-8 tw-rounded-[5px] tw-animate-pulse">

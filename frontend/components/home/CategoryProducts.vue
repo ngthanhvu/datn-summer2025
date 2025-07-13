@@ -65,7 +65,6 @@ const homeStore = useHomeStore()
 
 const selectedCategory = ref(null)
 
-// Quick View State
 const showQuickView = ref(false)
 const quickViewProduct = ref(null)
 
@@ -78,12 +77,12 @@ function closeQuickView() {
     quickViewProduct.value = null
 }
 
-// Chọn danh mục
 const selectCategory = async (categoryId) => {
     selectedCategory.value = categoryId
     await homeStore.fetchCategoryProducts(categoryId, 20)
 }
 
-// Khởi tạo dữ liệu
-// XÓA toàn bộ onMounted fetch data, chỉ lấy state từ store
+onMounted(async () => {
+    await homeStore.fetchCategoryProducts(null, 20)
+})
 </script>

@@ -190,13 +190,37 @@ const closeModal = () => {
 }
 
 const getOrderStatus = (status) => {
-    // Implement the logic to get order status based on the status
-    return status;
+    switch (status) {
+        case 'pending':
+            return 'Chờ xử lý';
+        case 'processing':
+            return 'Đang giao';
+        case 'shipping':
+            return 'Đang vận chuyển';
+        case 'completed':
+            return 'Hoàn thành';
+        case 'cancelled':
+            return 'Đã hủy';
+        default:
+            return status;
+    }
 }
 
 const getPaymentStatus = (status) => {
-    // Implement the logic to get payment status based on the status
-    return status;
+    switch (status) {
+        case 'pending':
+            return 'Chờ thanh toán';
+        case 'paid':
+            return 'Đã thanh toán';
+        case 'failed':
+            return 'Thanh toán thất bại';
+        case 'canceled':
+            return 'Đã hủy thanh toán';
+        case 'refunded':
+            return 'Đã hoàn tiền';
+        default:
+            return status;
+    }
 }
 
 const getPaymentMethod = (method) => {
