@@ -7,7 +7,8 @@
                     <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Danh mục</h6>
                     <ul class="tw-space-y-2">
                         <li v-for="cat in categories.filter(c => !c.parent_id)" :key="cat.id">
-                            <a href="#" @click.prevent="goToCategory(cat)" class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
+                            <a href="#" @click.prevent="goToCategory(cat)"
+                                class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
                         </li>
                     </ul>
                 </div>
@@ -16,7 +17,8 @@
                     <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">Thương hiệu</h6>
                     <ul class="tw-space-y-2">
                         <li v-for="brand in brands" :key="brand.id">
-                            <a href="#" @click.prevent="goToBrand(brand)" class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ brand.name }}</a>
+                            <a href="#" @click.prevent="goToBrand(brand)"
+                                class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ brand.name }}</a>
                         </li>
                     </ul>
                 </div>
@@ -25,7 +27,8 @@
                     <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">{{ randomParentCategories[0].name }}</h6>
                     <ul class="tw-space-y-2">
                         <li v-for="cat in childCategories[0]" :key="cat.id">
-                            <a href="#" @click.prevent="goToCategory(cat)" class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
+                            <a href="#" @click.prevent="goToCategory(cat)"
+                                class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
                         </li>
                     </ul>
                 </div>
@@ -34,7 +37,8 @@
                     <h6 class="tw-font-bold tw-text-gray-800 tw-mb-4">{{ randomParentCategories[1].name }}</h6>
                     <ul class="tw-space-y-2">
                         <li v-for="cat in childCategories[1]" :key="cat.id">
-                            <a href="#" @click.prevent="goToCategory(cat)" class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
+                            <a href="#" @click.prevent="goToCategory(cat)"
+                                class="tw-text-gray-600 hover:tw-text-[#81AACC]">{{ cat.name }}</a>
                         </li>
                     </ul>
                 </div>
@@ -49,47 +53,56 @@ import { useRouter } from 'vue-router'
 
 const categories = ref([])
 const brands = ref([])
-const router = useRouter()
+let router
+if (process.client) {
+    router = useRouter()
+}
 
 const randomParentCategories = ref([])
 const childCategories = ref([[], []])
 
 const fetchCategories = async () => {
-  try {
-    const res = await fetch('/api/categories')
-    const data = await res.json()
-    categories.value = data
-    const parents = data.filter(cat => !cat.parent_id)
-    const shuffled = parents.sort(() => 0.5 - Math.random())
-    randomParentCategories.value = shuffled.slice(0, 2)
-    childCategories.value = randomParentCategories.value.map(parent =>
-      data.filter(cat => cat.parent_id === parent.id)
-    )
-  } catch (e) {
-    categories.value = []
-    randomParentCategories.value = []
-    childCategories.value = [[], []]
-  }
+    try {
+        const res = await fetch('/api/categories')
+        const data = await res.json()
+        categories.value = data
+        const parents = data.filter(cat => !cat.parent_id)
+        const shuffled = parents.sort(() => 0.5 - Math.random())
+        randomParentCategories.value = shuffled.slice(0, 2)
+        childCategories.value = randomParentCategories.value.map(parent =>
+            data.filter(cat => cat.parent_id === parent.id)
+        )
+    } catch (e) {
+        categories.value = []
+        randomParentCategories.value = []
+        childCategories.value = [[], []]
+    }
 }
 const fetchBrands = async () => {
-  try {
-    const res = await fetch('/api/brands')
-    brands.value = await res.json()
-  } catch (e) {
-    brands.value = []
-  }
+    try {
+        const res = await fetch('/api/brands')
+        brands.value = await res.json()
+    } catch (e) {
+        brands.value = []
+    }
 }
 
 const goToCategory = (cat) => {
-  router.push({ path: '/product', query: { category: cat.slug } })
-}
-const goToBrand = (brand) => {
-  router.push({ path: '/product', query: { brand: brand.slug } })
+    if (router) {
+        router.push({ path: '/product', query: { category: cat.slug } })
+    }
 }
 
+const goToBrand = (brand) => {
+    if (router) {
+        router.push({ path: '/product', query: { brand: brand.slug } })
+    }
+}
+
+
 onMounted(() => {
-  fetchCategories()
-  fetchBrands()
+    fetchCategories()
+    fetchBrands()
 })
 </script>
 

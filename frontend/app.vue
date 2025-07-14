@@ -43,7 +43,6 @@ const updateLogo = (url) => {
 
 onMounted(async () => {
   const res = await fetchSettings(false)
-  console.log('SETTINGS FROM API:', res)
   updateFavicon(res.siteIcon || defaultFavicon)
   updateLogo(res.logo || defaultLogo)
 })

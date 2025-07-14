@@ -16,7 +16,7 @@
         </div>
 
         <div class="tw-mb-4">
-            <label class="tw-block tw-font-medium tw-mb-1">Mô tả</label>
+            <label class="tw-block tw-font-medium tw-mb-1">Mô tả <span class="tw-text-red-500">*</span></label>
             <textarea v-model="formData.description"
                 class="tw-w-full tw-border tw-rounded tw-px-3 tw-py-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                 placeholder="Nhập mô tả thương hiệu" rows="4"></textarea>

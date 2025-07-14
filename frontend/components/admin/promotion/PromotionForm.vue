@@ -2,30 +2,30 @@
     <div class="tw-bg-white tw-rounded-lg tw-p-6 tw-w-[50%] mx-auto tw-border tw-border-gray-200">
         <form @submit.prevent="handleSubmit" class="form form-grid">
             <div class="form-group">
-                <label for="name">Tên chương trình</label>
+                <label for="name">Tên chương trình <span class="tw-text-red-500">*</span></label>
                 <input id="name"
                     class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     v-model="formData.name" type="text" required placeholder="Nhập tên chương trình khuyến mãi" />
                 <span v-if="errors.name" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.name }}</span>
             </div>
             <div class="form-group">
-                <label for="code">Mã giảm giá</label>
+                <label for="code">Mã giảm giá <span class="tw-text-red-500">*</span></label>
                 <input id="code"
                     class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     v-model="formData.code" type="text" required placeholder="Nhập mã giảm giá" />
                 <span v-if="errors.code" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.code }}</span>
             </div>
             <div class="form-group">
-                <label for="description">Mô tả</label>
+                <label for="description">Mô tả <span class="tw-text-red-500">*</span></label>
                 <textarea id="description"
                     class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     v-model="formData.description" rows="3"
                     placeholder="Nhập mô tả chi tiết về chương trình khuyến mãi"></textarea>
                 <span v-if="errors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.description
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
-                <label for="type">Loại giảm giá</label>
+                <label for="type">Loại giảm giá <span class="tw-text-red-500">*</span></label>
                 <select id="type"
                     class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     v-model="formData.type" required>
@@ -34,7 +34,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="value">Giá trị giảm</label>
+                <label for="value">Giá trị giảm <span class="tw-text-red-500">*</span></label>
                 <div class="input-with-suffix">
                     <input id="value"
                         class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
@@ -46,7 +46,7 @@
                 <span v-if="errors.value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.value }}</span>
             </div>
             <div class="form-group">
-                <label for="min_order_value">Đơn hàng tối thiểu</label>
+                <label for="min_order_value">Đơn hàng tối thiểu <span class="tw-text-red-500">*</span></label>
                 <div class="input-with-suffix">
                     <input id="min_order_value"
                         class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
@@ -54,10 +54,10 @@
                     <span class="suffix">đ</span>
                 </div>
                 <span v-if="errors.min_order_value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.min_order_value
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
-                <label for="max_discount_value">Giảm tối đa</label>
+                <label for="max_discount_value">Giảm tối đa <span class="tw-text-red-500">*</span></label>
                 <div class="input-with-suffix">
                     <input id="max_discount_value"
                         class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
@@ -67,26 +67,26 @@
                 </div>
                 <span v-if="errors.max_discount_value" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                     errors.max_discount_value
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
-                <label for="usage_limit">Giới hạn sử dụng</label>
+                <label for="usage_limit">Giới hạn sử dụng <span class="tw-text-red-500">*</span></label>
                 <input id="usage_limit"
                     class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     v-model.number="formData.usage_limit" type="number" :min="0" :step="1"
                     placeholder="0 = không giới hạn" />
                 <span v-if="errors.usage_limit" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.usage_limit
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
-                <label for="start_date">Ngày bắt đầu</label>
+                <label for="start_date">Ngày bắt đầu <span class="tw-text-red-500">*</span></label>
                 <input id="start_date"
                     class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     v-model="formData.start_date" type="datetime-local" required />
                 <span v-if="errors.start_date" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ errors.start_date }}</span>
             </div>
             <div class="form-group">
-                <label for="end_date">Ngày kết thúc</label>
+                <label for="end_date">Ngày kết thúc <span class="tw-text-red-500">*</span></label>
                 <input id="end_date"
                     class="focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     v-model="formData.end_date" type="datetime-local" required />

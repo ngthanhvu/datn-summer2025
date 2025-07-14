@@ -69,7 +69,7 @@
                                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-5 tw-gap-4 tw-items-end">
                                     <div class="md:tw-col-span-2">
                                         <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Sản
-                                            phẩm</label>
+                                            phẩm <span class="tw-text-red-500">*</span></label>
                                         <select v-model="item.variant_id"
                                             class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                             required>
@@ -100,14 +100,15 @@
                                     </div>
                                     <div>
                                         <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">Số
-                                            lượng</label>
+                                            lượng <span class="tw-text-red-500">*</span></label>
                                         <input type="number" v-model.number="item.quantity" min="1"
                                             class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                                             placeholder="Số lượng" required>
                                     </div>
                                     <div>
                                         <label class="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">
-                                            {{ formData.type === 'import' ? 'Giá nhập' : 'Giá xuất' }} (VNĐ)
+                                            {{ formData.type === 'import' ? 'Giá nhập' : 'Giá xuất' }} (VNĐ) <span
+                                                class="tw-text-red-500">*</span>
                                         </label>
                                         <input type="number" v-model.number="item.unit_price" min="0" step="1000"
                                             class="tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-lg focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
