@@ -110,7 +110,7 @@
                             <span class="tw-font-medium tw-text-red-600 tw-text-sm md:tw-text-base">Lý do hủy đơn hàng:
                             </span>
                             <span class="tw-text-red-600 tw-text-sm md:tw-text-base">{{ currentOrder.cancel_reason
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                 </div>
@@ -294,8 +294,8 @@
                                     class="tw-bg-blue-100 tw-text-blue-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-sm tw-font-medium tw-mb-2">
                                     Số lượng: {{ item.quantity }}
                                 </div>
-                                <p class="tw-font-medium">{{ formatPrice(item.price) }}đ</p>
-                                <p class="tw-text-gray-600">Tổng: {{ formatPrice(item.total_price) }}đ</p>
+                                <p class="tw-font-medium">{{ formatPrice(item.price) }}</p>
+                                <p class="tw-text-gray-600">Tổng: {{ formatPrice(item.total_price) }}</p>
                             </div>
                         </div>
                     </div>
@@ -306,19 +306,19 @@
                     <div class="tw-space-y-2">
                         <div class="tw-flex tw-justify-between">
                             <span class="tw-text-gray-600">Tổng tiền hàng</span>
-                            <span>{{ formatPrice(currentOrder.total_price) }}đ</span>
+                            <span>{{ formatPrice(currentOrder.total_price) }}</span>
                         </div>
                         <div class="tw-flex tw-justify-between">
                             <span class="tw-text-gray-600">Phí vận chuyển</span>
-                            <span>{{ formatPrice(currentOrder.shipping_fee || 0) }}đ</span>
+                            <span>{{ formatPrice(currentOrder.shipping_fee || 0) }}</span>
                         </div>
                         <div v-if="currentOrder.discount_price > 0" class="tw-flex tw-justify-between">
                             <span class="tw-text-gray-600">Giảm giá</span>
-                            <span>-{{ formatPrice(currentOrder.discount_price) }}đ</span>
+                            <span>-{{ formatPrice(currentOrder.discount_price) }}</span>
                         </div>
                         <div class="tw-flex tw-justify-between tw-font-bold tw-text-lg tw-border-t tw-pt-2">
                             <span>Thành tiền</span>
-                            <span>{{ formatPrice(currentOrder.final_price) }}đ</span>
+                            <span>{{ formatPrice(currentOrder.final_price) }}</span>
                         </div>
                     </div>
                 </div>

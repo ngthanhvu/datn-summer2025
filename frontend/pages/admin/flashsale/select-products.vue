@@ -3,7 +3,8 @@
         <div class="tw-bg-[#3BB77E] tw-text-white tw-p-4 tw-text-xl tw-font-bold tw-rounded-t">Thêm Flash Sale</div>
         <div class="tw-bg-white tw-p-6 tw-rounded-b tw-shadow">
             <div class="tw-mb-4 tw-flex tw-items-center tw-gap-4">
-                <input v-model="search" class="tw-border tw-rounded tw-px-3 tw-py-2 tw-w-80"
+                <input v-model="search"
+                    class="tw-input tw-w-80 tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                     placeholder="Gõ tên sản phẩm để tìm kiếm" />
                 <button class="tw-bg-[#3BB77E] tw-text-white tw-rounded tw-px-4 tw-py-2" @click="showDiscount = true"><i
                         class="fa fa-percent"></i> Áp dụng giảm giá hàng loạt</button>
@@ -22,14 +23,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="item in paginatedProducts" :key="item.id">
+                            <tr v-for="item in paginatedProducts" :key="item.id" class="tw-border-b">
                                 <td class="tw-px-2 tw-py-2"><img :src="getMainImage(item)"
                                         class="tw-w-10 tw-h-10 tw-rounded" /></td>
                                 <td class="tw-px-2 tw-py-2">{{ item.name }}</td>
                                 <td class="tw-px-2 tw-py-2">{{ item.price }}</td>
                                 <td class="tw-px-2 tw-py-2">{{ item.discount_price }}</td>
                                 <td class="tw-px-2 tw-py-2">
-                                    <button class="btn btn-primary" @click="addProduct(item)"
+                                    <button class="tw-bg-[#3BB77E] tw-text-white tw-px-2 tw-py-1 tw-rounded"
+                                        @click="addProduct(item)"
                                         :disabled="selectedProducts.some(p => p.id === item.id)"> <i
                                             class="fas fa-plus"></i> </button>
                                 </td>
@@ -63,7 +65,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(item, idx) in paginatedSelectedProducts" :key="item.id">
+                            <tr v-for="(item, idx) in paginatedSelectedProducts" :key="item.id" class="tw-border-b">
                                 <td class="tw-px-2 tw-py-2"><img :src="getMainImage(item)"
                                         class="tw-w-10 tw-h-10 tw-rounded" /></td>
                                 <td class="tw-px-2 tw-py-2">{{ item.name }}</td>
@@ -75,9 +77,20 @@
                                         placeholder="Đã bán" /></td>
                                 <td class="tw-px-2 tw-py-2"><input v-model="item.quantity" class="input tw-w-16"
                                         placeholder="SL" /></td>
-                                <td class="tw-px-2 tw-py-2"><input type="checkbox" v-model="item.realQty" /></td>
+                                <!-- <td class="tw-px-2 tw-py-2"><input type="checkbox" v-model="item.realQty" /></td> -->
                                 <td class="tw-px-2 tw-py-2">
-                                    <button class="btn btn-danger"
+                                    <label class="tw-relative tw-inline-flex tw-items-center tw-cursor-pointer">
+                                        <input type="checkbox" v-model="item.realQty" class="tw-sr-only tw-peer" />
+                                        <div class="tw-w-11 tw-h-6 tw-bg-gray-200 tw-rounded-full tw-peer-focus:tw-ring-2 tw-peer-focus:tw-ring-[#3BB77E]
+                                                peer-checked:tw-bg-[#3BB77E] tw-transition-colors"></div>
+                                        <div class="tw-absolute tw-left-[2px] tw-top-[2px] tw-bg-white tw-border tw-border-gray-300
+                    tw-rounded-full tw-h-5 tw-w-5 tw-transition-all
+                    peer-checked:tw-translate-x-full peer-checked:tw-border-white"></div>
+                                    </label>
+                                </td>
+
+                                <td class="tw-px-2 tw-py-2">
+                                    <button class="tw-bg-red-500 tw-text-white tw-px-2 tw-py-1 tw-rounded"
                                         @click="remove(idx + (selectedPage - 1) * selectedPageSize)"><i
                                             class="fa fa-minus"></i></button>
                                 </td>
@@ -99,7 +112,8 @@
             </div>
             <div class="tw-flex tw-justify-end tw-mt-4">
                 <button class="tw-bg-[#3BB77E] tw-text-white tw-px-6 tw-py-2 tw-rounded" @click="apply">Áp dụng</button>
-                <button class="tw-bg-gray-400 tw-text-white tw-px-6 tw-py-2 tw-ml-2 tw-rounded" @click="goBack"><i class="fas fa-arrow-left"></i> Quay lại</button>
+                <button class="tw-bg-gray-400 tw-text-white tw-px-6 tw-py-2 tw-ml-2 tw-rounded" @click="goBack"><i
+                        class="fas fa-arrow-left"></i> Quay lại</button>
             </div>
             <!-- Popup giảm giá hàng loạt -->
             <div v-if="showDiscount"
@@ -186,7 +200,7 @@ onMounted(async () => {
                 image: img
             }
         })
-        
+
         // Kiểm tra xem có phải đang edit flash sale không
         const flashSaleId = route.query.flashSaleId
         if (flashSaleId) {
@@ -254,13 +268,13 @@ function remove(idx) {
 function apply() {
     // Lưu danh sách sản phẩm đã chọn vào localStorage
     localStorage.setItem('flashsale_selected_products', JSON.stringify(selectedProducts.value))
-    
+
     // Nếu đang edit, lưu thêm vào localStorage với key riêng
     const flashSaleId = route.query.flashSaleId
     if (flashSaleId) {
         localStorage.setItem(`flashsale_edit_${flashSaleId}`, JSON.stringify(selectedProducts.value))
     }
-    
+
     // Quay lại trang form flash sale
     if (flashSaleId) {
         router.push(`/admin/flashsale/${flashSaleId}/edit`)
@@ -284,7 +298,7 @@ function goBack() {
 }
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .input {
     @apply tw-border tw-rounded tw-px-2 tw-py-1;
 }
@@ -296,4 +310,4 @@ function goBack() {
 .btn-primary {
     @apply tw-bg-[#3BB77E] tw-text-white tw-px-2 tw-py-1 tw-rounded;
 }
-</style>
+</style> -->
