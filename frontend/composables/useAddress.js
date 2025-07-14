@@ -21,7 +21,7 @@ export const useAddress = () => {
     })
 
     const PROVINCE_API = axios.create({
-        baseURL: 'https://provinces.open-api.vn/api/'
+        baseURL: 'http://provinces.open-api.vn/api/'
     })
 
     const form = ref({

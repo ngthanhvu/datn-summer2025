@@ -112,7 +112,7 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
+                        <tr v-if="blogs.length === 0">
                             <td colspan="8" class="tw-px-3 tw-py-2 tw-text-center tw-text-gray-500">
                                 Không có dữ liệu
                             </td>
@@ -148,7 +148,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({

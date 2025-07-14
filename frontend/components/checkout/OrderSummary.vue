@@ -60,6 +60,16 @@
                     </div>
                 </div>
             </div>
+            <div v-else>
+                <div class="tw-text-center">
+                    <p class="tw-text-sm tw-text-gray-500 tw-text-center tw-mt-5">Không có mã giảm giá nào.</p>
+                    <NuxtLink to="/kho-voucher"
+                        class="tw-text-[12px] tw-text-gray-500 tw-text-center hover:tw-text-[#81aacc]">Ấn vào đây để săn
+                        mã
+                        giảm
+                        giá</NuxtLink>
+                </div>
+            </div>
         </div>
         <div class="tw-space-y-3 tw-border-t tw-pt-4">
             <div class="tw-flex tw-justify-between">

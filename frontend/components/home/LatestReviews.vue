@@ -7,7 +7,8 @@
             </NuxtLink>
         </div>
 
-        <div v-if="loading" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-6">
+        <div v-if="homeStore.isLoadingReviews"
+            class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-6">
             <div v-for="i in 3" :key="i" class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-animate-pulse">
                 <div class="tw-flex tw-items-center tw-mb-4">
                     <div class="tw-w-12 tw-h-12 tw-bg-gray-200 tw-rounded-full tw-mr-3"></div>
@@ -23,13 +24,13 @@
         </div>
 
         <div v-else class="tw-mb-10">
-            <Swiper v-if="latestReviews.length > 3" :modules="[Pagination]" :slides-per-view="1" :space-between="16"
-                :breakpoints="{
+            <Swiper v-if="homeStore.latestReviews.length > 3" :modules="[Pagination]" :slides-per-view="1"
+                :space-between="16" :breakpoints="{
                     640: { slidesPerView: 1.2 },
                     768: { slidesPerView: 2 },
                     1024: { slidesPerView: 3 }
                 }" :pagination="{ clickable: true }">
-                <SwiperSlide v-for="review in latestReviews" :key="review.id">
+                <SwiperSlide v-for="review in homeStore.latestReviews" :key="review.id">
                     <div class="tw-bg-white tw-rounded-lg tw-shadow-sm tw-p-6 tw-flex tw-flex-col tw-gap-2">
                         <ReviewCard :review="review" />
                     </div>
@@ -37,60 +38,29 @@
             </Swiper>
 
             <div v-else class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-6">
-                <div v-for="review in latestReviews" :key="review.id"
+                <div v-for="review in homeStore.latestReviews" :key="review.id"
                     class="tw-bg-white tw-rounded-lg tw-p-6 tw-flex tw-flex-col tw-gap-2 tw-border tw-border-gray-100 ">
                     <ReviewCard :review="review" />
                 </div>
             </div>
         </div>
 
-        <div v-if="!loading && latestReviews.length === 0" class="tw-text-center tw-py-8">
+        <div v-if="!homeStore.isLoadingReviews && homeStore.latestReviews.length === 0" class="tw-text-center tw-py-8">
             <p class="tw-text-gray-500">Chưa có đánh giá nào</p>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useHome } from '../../composables/useHome'
+import { onMounted } from 'vue'
+import { useHomeStore } from '~/stores/useHomeStore'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import { Pagination } from 'swiper/modules'
 import ReviewCard from './ReviewCard.vue'
 
-const { getLatestReviews, getReviewStats } = useHome()
-const latestReviews = ref([])
-const reviewStats = ref(null)
-const loading = ref(true)
+const homeStore = useHomeStore()
 
-// Fetch latest reviews
-const fetchLatestReviews = async () => {
-    try {
-        loading.value = true
-        const reviews = await getLatestReviews(6)
-        latestReviews.value = reviews
-    } catch (error) {
-        console.error('Error fetching latest reviews:', error)
-    } finally {
-        loading.value = false
-    }
-}
-
-// Fetch stats (if used)
-const fetchReviewStats = async () => {
-    try {
-        const stats = await getReviewStats()
-        reviewStats.value = stats
-    } catch (error) {
-        console.error('Error fetching review stats:', error)
-    }
-}
-
-onMounted(async () => {
-    await Promise.all([
-        fetchLatestReviews(),
-        fetchReviewStats()
-    ])
-})
+// XÓA toàn bộ onMounted fetch data, chỉ lấy state từ store
 </script>

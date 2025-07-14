@@ -1,6 +1,6 @@
 <template>
   <div class="tw-flex tw-flex-col tw-min-h-screen">
-    <HeaderHome />
+    <HeaderHome :site-logo="siteLogo" />
 
     <div class="tw-flex-grow tw-bg-[#F5F5FA]">
       <slot />
@@ -32,10 +32,20 @@ useHead({
       crossorigin: 'anonymous'
     }
   ]
-});
-import HeaderHome from '~/components/home/HeaderHome.vue';
-import FooterHome from '~/components/home/FooterHome.vue';
-import ChatWidget from '~/components/chat/ChatWidget.vue';
-import { useAuth } from '~/composables/useAuth';
-const { isAuthenticated } = useAuth();
+})
+
+import HeaderHome from '~/components/home/HeaderHome.vue'
+import FooterHome from '~/components/home/FooterHome.vue'
+import ChatWidget from '~/components/chat/ChatWidget.vue'
+import { useAuth } from '~/composables/useAuth'
+
+const { isAuthenticated } = useAuth()
+
+// Nhận siteLogo từ app.vue
+defineProps({
+  siteLogo: {
+    type: String,
+    default: '/logo.png'
+  }
+})
 </script>

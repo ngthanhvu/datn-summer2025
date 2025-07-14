@@ -27,8 +27,8 @@ export const useOrder = () => {
         error.value = null
         try {
             const res = await API.get('/api/orders', { params })
-            orders.value = res.data
-            return res.data
+            orders.value = Array.isArray(res.data.data) ? res.data.data : []
+            return orders.value
         } catch (err) {
             error.value = err.response?.data?.message || err.message
             console.error('Get all orders error:', err.response?.data || err.message)
@@ -43,8 +43,8 @@ export const useOrder = () => {
         error.value = null
         try {
             const res = await API.get('/api/user/orders', { params })
-            orders.value = res.data
-            return res.data
+            orders.value = Array.isArray(res.data.data) ? res.data.data : []
+            return orders.value
         } catch (err) {
             error.value = err.response?.data?.message || err.message
             console.error('Get my orders error:', err.response?.data || err.message)
@@ -94,11 +94,15 @@ export const useOrder = () => {
         }
     }
 
-    const cancelOrder = async (id) => {
+    const cancelOrder = async (id, reason = '') => {
         loading.value = true
         error.value = null
         try {
-            const res = await API.post(`/api/orders/${id}/cancel`)
+            const payload = {}
+            if (reason) {
+                payload.cancel_reason = reason
+            }
+            const res = await API.post(`/api/orders/${id}/cancel`, payload)
             return res.data
         } catch (err) {
             error.value = err.response?.data?.message || err.message
@@ -195,6 +199,58 @@ export const useOrder = () => {
         }
     };
 
+    const requestReturn = async (id) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await API.post(`/api/orders/${id}/return`)
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
+    const canRequestReturn = (order) => {
+        if (!order) return false
+        if (!['cancelled', 'completed'].includes(order.status)) return false
+        if (order.return_requested_at) return false
+        if (order.payment_method === 'cod') return false
+        const completedOrCancelledAt = new Date(order.updated_at);
+        const now = new Date();
+        const diffDays = (now - completedOrCancelledAt) / (1000 * 60 * 60 * 24);
+        return diffDays <= 3;
+    }
+
+    const approveReturn = async (id) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await API.post(`/api/orders/${id}/return/approve`)
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+    const rejectReturn = async (id, reason) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await API.post(`/api/orders/${id}/return/reject`, { reject_reason: reason })
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
     return {
         orders,
         currentOrder,
@@ -211,6 +267,10 @@ export const useOrder = () => {
         getPaymentMethod,
         formatPrice,
         getOrderByTrackingCode,
-        reorderOrder
+        reorderOrder,
+        requestReturn,
+        canRequestReturn,
+        approveReturn,
+        rejectReturn,
     }
 } 

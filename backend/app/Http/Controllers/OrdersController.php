@@ -44,7 +44,10 @@ class OrdersController extends Controller
                 'note',
                 'created_at',
                 'updated_at',
-                'tracking_code'
+                'tracking_code',
+                'cancel_reason',
+                'return_status',
+                'reject_reason'
             ]);
         $orders = $query->orderBy('created_at', 'desc')->paginate(10);
         $orders->getCollection()->transform(function ($order) {
@@ -87,7 +90,10 @@ class OrdersController extends Controller
                 'note',
                 'created_at',
                 'updated_at',
-                'tracking_code'
+                'tracking_code',
+                'cancel_reason',
+                'return_status',
+                'reject_reason'
             ])
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
@@ -149,17 +155,13 @@ class OrdersController extends Controller
                     throw new \Exception("Không tìm thấy biến thể: variant_id = {$item['variant_id']}");
                 }
 
-                $finalPrice = ($variant->discount_price && $variant->discount_price > 0)
-                    ? $variant->discount_price
-                    : $variant->price;
-
                 Orders_detail::create([
                     'order_id' => $order->id,
                     'variant_id' => $item['variant_id'],
                     'quantity' => $item['quantity'],
-                    'price' => $finalPrice,
+                    'price' => $item['price'],
                     'original_price' => $variant->price,
-                    'total_price' => $item['quantity'] * $finalPrice
+                    'total_price' => $item['quantity'] * $item['price']
                 ]);
             }
 
@@ -405,5 +407,92 @@ class OrdersController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+    public function requestReturn(Request $request, $id)
+    {
+        $order = Orders::findOrFail($id);
+
+        if ($order->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Bạn không có quyền yêu cầu hoàn hàng cho đơn này'], 403);
+        }
+
+        if (!in_array($order->status, ['cancelled', 'completed'])) {
+            return response()->json(['message' => 'Chỉ có thể hoàn hàng cho đơn đã hủy hoặc đã hoàn thành'], 400);
+        }
+
+        if ($order->return_status === 'requested') {
+            return response()->json(['message' => 'Bạn đã gửi yêu cầu hoàn hàng cho đơn này rồi'], 400);
+        }
+
+        $completedOrCancelledAt = $order->updated_at;
+        $now = now();
+        if ($now->diffInDays($completedOrCancelledAt) > 3) {
+            return response()->json(['message' => 'Chỉ có thể hoàn hàng trong vòng 3 ngày kể từ khi đơn hoàn thành hoặc bị hủy'], 400);
+        }
+
+        $order->return_status = 'requested';
+        $order->save();
+
+        return response()->json(['message' => 'Yêu cầu hoàn hàng đã được gửi thành công']);
+    }
+
+    public function approveReturn($id)
+    {
+        $order = Orders::findOrFail($id);
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['message' => 'Bạn không có quyền duyệt hoàn hàng'], 403);
+        }
+        if ($order->return_status !== 'requested') {
+            return response()->json(['message' => 'Đơn hàng chưa có yêu cầu hoàn hàng'], 400);
+        }
+        $order->return_status = 'approved';
+        $order->save();
+
+        // Trước khi gửi mail, nạp quan hệ và xử lý đường dẫn ảnh
+        $order->load('orderDetails.variant.product.mainImage');
+        foreach ($order->orderDetails as $orderDetail) {
+            if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
+                $imagePath = $orderDetail->variant->product->mainImage->image_path;
+                $orderDetail->variant->product->mainImage->image_path = url('storage/' . ltrim($imagePath, '/'));
+            }
+        }
+
+        if ($order->user && $order->user->email) {
+            Mail::to($order->user->email)->send(new \App\Mail\ReturnApproved($order));
+        }
+
+        return response()->json(['message' => 'Đã duyệt hoàn hàng']);
+    }
+
+    public function rejectReturn(Request $request, $id)
+    {
+        $order = Orders::findOrFail($id);
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['message' => 'Bạn không có quyền từ chối hoàn hàng'], 403);
+        }
+        if ($order->return_status !== 'requested') {
+            return response()->json(['message' => 'Đơn hàng chưa có yêu cầu hoàn hàng'], 400);
+        }
+        $request->validate([
+            'reject_reason' => 'required|string|max:255'
+        ]);
+        $order->return_status = 'rejected';
+        $order->reject_reason = $request->reject_reason;
+        $order->save();
+
+        // Trước khi gửi mail, nạp quan hệ và xử lý đường dẫn ảnh
+        $order->load('orderDetails.variant.product.mainImage');
+        foreach ($order->orderDetails as $orderDetail) {
+            if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
+                $imagePath = $orderDetail->variant->product->mainImage->image_path;
+                $orderDetail->variant->product->mainImage->image_path = url('storage/' . ltrim($imagePath, '/'));
+            }
+        }
+
+        if ($order->user && $order->user->email) {
+            Mail::to($order->user->email)->send(new \App\Mail\ReturnRejected($order, $request->reject_reason));
+        }
+
+        return response()->json(['message' => 'Đã từ chối hoàn hàng']);
     }
 }

@@ -82,9 +82,11 @@ definePageMeta({
 })
 
 import { ref, onMounted } from 'vue'
+import { useCategoryStore } from '~/stores/useCategoryStore.js'
 const notyf = useNuxtApp().$notyf
 
 const route = useRoute()
+const categoryStore = useCategoryStore()
 const category = ref(null)
 const imageFile = ref(null)
 const formData = ref({
@@ -95,8 +97,6 @@ const formData = ref({
     parent_id: ''
 })
 const parentCategories = ref([])
-
-const { getCategoryById, updateCategory, getCategories } = useCategory()
 
 const handleImageChange = (event) => {
     const file = event.target.files[0]
@@ -109,10 +109,11 @@ const handleImageChange = (event) => {
 
 onMounted(async () => {
     try {
-        const [categoryData, allCategories] = await Promise.all([
-            getCategoryById(route.params.id),
-            getCategories()
-        ])
+        await categoryStore.fetchCategories()
+        const allCategories = categoryStore.categories
+        // fetch 1 category bằng API riêng
+        const res = await categoryStore.fetchCategoryById(route.params.id)
+        const categoryData = res
         if (categoryData) {
             category.value = categoryData
             formData.value = {
@@ -157,7 +158,7 @@ const handleSubmit = async () => {
             console.log(`${key}:`, value)
         }
 
-        const result = await updateCategory(route.params.id, formDataToSend)
+        const result = await categoryStore.updateCategory(route.params.id, formDataToSend)
         console.log('Update result:', result)
 
         if (result) {

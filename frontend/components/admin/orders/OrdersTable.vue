@@ -146,20 +146,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useOrder } from '~/composables/useOrder'
+import { ref, computed, onMounted } from 'vue'
+import { useOrderStore } from '~/stores/useOrderStore'
 import OrderDetails from './OrderDetails.vue'
 
-const {
-    orders,
-    loading,
-    error,
-    getOrders,
-    getOrderStatus,
-    getPaymentStatus,
-    getPaymentMethod,
-    formatPrice
-} = useOrder()
+const orderStore = useOrderStore()
 
 const emit = defineEmits(['view'])
 
@@ -168,19 +159,17 @@ const filterStatus = ref('')
 const showModal = ref(false)
 const selectedOrder = ref(null)
 
-const props = defineProps({
-    orders: {
-        type: [Array, Object],
-        required: true
-    },
-    isLoading: {
-        type: Boolean,
-        default: false
+const isLoading = computed(() => orderStore.isLoadingOrders)
+const error = computed(() => orderStore.error)
+
+onMounted(async () => {
+    if (!orderStore.orders.length) {
+        await orderStore.fetchOrders()
     }
 })
 
 const filteredOrders = computed(() => {
-    const orderList = Array.isArray(props.orders) ? props.orders : (props.orders?.data || [])
+    const orderList = Array.isArray(orderStore.orders) ? orderStore.orders : (orderStore.orders?.data || [])
     return orderList.filter(order => {
         const matchesSearch = order.id.toString().includes(searchQuery.value) ||
             order.user?.username?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
@@ -198,6 +187,50 @@ const handleView = (order) => {
 const closeModal = () => {
     showModal.value = false
     selectedOrder.value = null
+}
+
+const getOrderStatus = (status) => {
+    switch (status) {
+        case 'pending':
+            return 'Chờ xử lý';
+        case 'processing':
+            return 'Đang giao';
+        case 'shipping':
+            return 'Đang vận chuyển';
+        case 'completed':
+            return 'Hoàn thành';
+        case 'cancelled':
+            return 'Đã hủy';
+        default:
+            return status;
+    }
+}
+
+const getPaymentStatus = (status) => {
+    switch (status) {
+        case 'pending':
+            return 'Chờ thanh toán';
+        case 'paid':
+            return 'Đã thanh toán';
+        case 'failed':
+            return 'Thanh toán thất bại';
+        case 'canceled':
+            return 'Đã hủy thanh toán';
+        case 'refunded':
+            return 'Đã hoàn tiền';
+        default:
+            return status;
+    }
+}
+
+const getPaymentMethod = (method) => {
+    // Implement the logic to get payment method based on the method
+    return method;
+}
+
+const formatPrice = (price) => {
+    // Implement the logic to format price
+    return price;
 }
 </script>
 

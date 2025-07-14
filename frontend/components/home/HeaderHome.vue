@@ -3,7 +3,7 @@
   <nav class="navbar navbar-expand-lg navbar-light tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-shadow-sm">
     <div class="container">
       <NuxtLink to="/" class="navbar-brand">
-        <img src="../../assets/logo.png" alt="EGA MEN" class="tw-w-20">
+        <img :src="siteLogo" alt="EGA MEN" class="tw-w-20">
       </NuxtLink>
 
       <!-- Desktop Navigation -->
@@ -54,7 +54,7 @@
             <i class="bi bi-cart tw-text-xl"></i>
             <span
               class="tw-absolute -tw-top-2 -tw-right-2 tw-bg-red-500 tw-text-white tw-rounded-full tw-w-5 tw-h-5 tw-flex tw-items-center tw-justify-center tw-text-xs">{{
-                cart?.length || 0 }}</span>
+                cartStore.cart?.length || 0 }}</span>
           </div>
           <CartPanel :is-open="isCartOpen" @close="toggleCart" />
         </div>
@@ -84,20 +84,20 @@ import CartPanel from './CartPanel.vue'
 import AuthMenu from './AuthMenu.vue'
 import UserMenu from './UserMenu.vue'
 import MobileMenu from './MobileMenu.vue'
-import { useCart } from '~/composables/useCarts'
+import { useCartStore } from '~/stores/useCartStore'
+import { ref, onMounted } from 'vue'
 
-const { cart, fetchCart } = useCart()
+const cartStore = useCartStore()
 const isCartOpen = ref(false)
 const isMobileMenuOpen = ref(false)
 const token = useCookie('token')
 const userInfo = useCookie('user')
 
 onMounted(async () => {
-  await fetchCart()
+  if (!cartStore.cart.length) {
+    await cartStore.fetchCart()
+  }
 })
-
-watch(() => cart.value, (newCart) => {
-}, { deep: true })
 
 const toggleCart = async () => {
   isCartOpen.value = !isCartOpen.value
@@ -105,7 +105,7 @@ const toggleCart = async () => {
     document.body.style.overflow = 'hidden'
   } else {
     document.body.style.overflow = ''
-    await fetchCart()
+    await cartStore.fetchCart()
   }
 }
 
@@ -122,6 +122,13 @@ const closeMobileMenu = () => {
   isMobileMenuOpen.value = false
   document.body.style.overflow = ''
 }
+defineProps({
+  siteLogo: {
+    type: String,
+    default: '/logo.png'
+  }
+})
+
 </script>
 
 <style scoped>
