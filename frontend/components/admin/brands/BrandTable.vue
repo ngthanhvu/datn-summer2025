@@ -50,9 +50,13 @@
                             <td class="tw-px-4 tw-py-3 text-center">{{ getParentBrandName(brand) }}</td>
                             <td class="tw-px-4 tw-py-3 text-center">{{ brand.products_count }}</td>
                             <td class="tw-px-4 tw-py-3 text-center">
-                                <span :class="getStatusClass(brand.is_active)">
-                                    {{ getStatusText(brand.is_active) }}
-                                </span>
+                                <button
+                                    :class="['tw-w-10 tw-h-6 tw-rounded-full tw-relative tw-transition-colors', Number(brand.is_active) === 1 ? 'tw-bg-primary' : 'tw-bg-gray-300']"
+                                    @click="toggleStatus(brand)" :aria-pressed="Number(brand.is_active) === 1"
+                                    style="background-color: #3bb77e">
+                                    <span
+                                        :class="['tw-absolute tw-top-0.5 tw-left-0.5 tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow tw-transition-transform', Number(brand.is_active) === 1 ? 'tw-translate-x-4' : '']"></span>
+                                </button>
                             </td>
                             <td class="tw-px-4 tw-py-3 text-center">
                                 <div class="tw-flex tw-items-center tw-gap-2">
@@ -157,6 +161,23 @@ const handleDelete = async (brand) => {
 }
 
 const emit = defineEmits(['delete', 'bulkDelete'])
+
+const toggleStatus = async (brand) => {
+    const newStatus = Number(brand.is_active) === 1 ? 0 : 1
+    try {
+        await updateBrandStatus(brand.id, newStatus)
+        brand.is_active = newStatus
+        // Nếu có notyf hoặc emit refresh thì gọi ở đây
+    } catch (e) {
+        // Nếu có notyf thì báo lỗi ở đây
+    }
+}
+
+// Hàm giả lập gọi API cập nhật trạng thái
+const updateBrandStatus = async (id, status) => {
+    // TODO: Thay bằng gọi API thực tế
+    return new Promise((resolve) => setTimeout(resolve, 500))
+}
 </script>
 
 <style scoped>

@@ -31,7 +31,7 @@
               <th class="tw-px-4 tw-py-3">Tên chiến dịch</th>
               <th class="tw-px-4 tw-py-3">Sản phẩm</th>
               <th class="tw-px-4 tw-py-3">Thời gian</th>
-              <th class="tw-px-4 tw-py-3">Trạng thái</th>
+              <th class="tw-px-4 tw-py-3 tw-text-center">Trạng thái</th>
               <th class="tw-px-4 tw-py-3">Lặp lại</th>
               <th class="tw-px-4 tw-py-3">Thao tác</th>
             </tr>
@@ -49,11 +49,13 @@
                 <span v-else>Không có sản phẩm</span>
               </td>
               <td class="tw-px-4 tw-py-2">{{ item.start_time }} ~ {{ item.end_time }}</td>
-              <td class="tw-px-4 tw-py-2">
-                <span v-if="item.active"
-                  class="tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs">Hoạt động</span>
-                <span v-else class="tw-bg-gray-200 tw-text-gray-600 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs">Kết
-                  thúc</span>
+              <td class="tw-px-4 tw-py-2 tw-text-center">
+                <button
+                  :class="['tw-w-10 tw-h-6 tw-rounded-full tw-relative tw-transition-colors', item.active ? 'tw-bg-primary' : 'tw-bg-gray-300']"
+                  @click="toggleStatus(item)" :aria-pressed="item.active" style="background-color: #3bb77e">
+                  <span
+                    :class="['tw-absolute tw-top-0.5 tw-left-0.5 tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow tw-transition-transform', item.active ? 'tw-translate-x-4' : '']"></span>
+                </button>
               </td>
               <td class="tw-px-4 tw-py-2">
                 <span v-if="item.repeat"
@@ -144,5 +146,22 @@ async function handleDelete(id) {
       deleteLoading.value = false
     }
   }
+}
+
+const toggleStatus = async (item) => {
+  const newStatus = item.active ? 0 : 1
+  try {
+    await updateFlashSaleStatus(item.id, newStatus)
+    item.active = newStatus
+    // Nếu có notyf hoặc emit refresh thì gọi ở đây
+  } catch (e) {
+    // Nếu có notyf thì báo lỗi ở đây
+  }
+}
+
+// Hàm giả lập gọi API cập nhật trạng thái
+const updateFlashSaleStatus = async (id, status) => {
+  // TODO: Thay bằng gọi API thực tế
+  return new Promise((resolve) => setTimeout(resolve, 500))
 }
 </script>

@@ -6,14 +6,14 @@
     </div>
 
     <!-- Tabs -->
-    <div class="tw-flex tw-gap-2 tw-mb-4 tw-border-b tw-border-gray-200">
+    <div class="tw-flex tw-gap-2 tw-border-gray-200">
       <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
         :class="['tw-px-4 tw-py-2 tw-rounded-t-md', activeTab === tab.key ? 'tw-bg-white tw-border tw-border-b-0 tw-border-gray-300 tw-font-medium' : 'tw-bg-gray-100 hover:tw-bg-gray-200']">
         {{ tab.label }}
       </button>
     </div>
 
-    <div class="tw-border tw-p-4 tw-rounded-b-md tw-bg-white">
+    <div class="tw-rounded-b-md tw-border-r tw-border-l tw-border-b tw-bg-white">
       <SettingCard v-if="activeTab === 'general'" title="Thông tin cửa hàng" :fields="generalFields"
         v-model="generalSettings" />
       <SettingCard v-if="activeTab === 'payment'" title="Cài đặt thanh toán" :fields="paymentFields"
@@ -66,7 +66,7 @@ onMounted(async () => {
   await fetchSettings()
   generalSettings.value = extractSettings(['storeName', 'address', 'phone', 'email', 'logo', 'siteIcon'])
   paymentSettings.value = extractSettings([
-    'enableCod', 
+    'enableCod',
     'enableMomo', 'momoPartnerCode', 'momoAccessKey', 'momoSecretKey', 'momoUrl',
     'enableVnpay', 'vnpayTmnCode', 'vnpayHashSecret', 'vnpayUrl',
     'enablePaypal', 'paypalClientId', 'paypalSecret', 'paypalMode', 'paypalCurrency', 'paypalApiUrl'

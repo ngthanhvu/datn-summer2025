@@ -112,9 +112,13 @@
                             {{ formatDate(item.end_date) }}
                         </td>
                         <td class="tw-px-4 tw-py-3">
-                            <span :class="getStatusBadgeClass(item.is_active)">
-                                {{ getStatusText(item.is_active) }}
-                            </span>
+                            <button
+                                :class="['tw-w-10 tw-h-6 tw-rounded-full tw-relative tw-transition-colors', item.is_active === 1 ? 'tw-bg-primary' : 'tw-bg-gray-300']"
+                                @click="toggleStatus(item)" :aria-pressed="item.is_active === 1"
+                                style="background-color: #3bb77e">
+                                <span
+                                    :class="['tw-absolute tw-top-0.5 tw-left-0.5 tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow tw-transition-transform', item.is_active === 1 ? 'tw-translate-x-4' : '']"></span>
+                            </button>
                         </td>
                         <td class="tw-px-4 tw-py-3">
                             <div class="tw-flex tw-items-center tw-gap-2">
@@ -344,6 +348,23 @@ const formatDate = (date) => {
 onMounted(() => {
     loadPromotions()
 })
+
+const toggleStatus = async (item) => {
+    const newStatus = item.is_active === 1 ? 0 : 1
+    try {
+        await updatePromotionStatus(item.id, newStatus)
+        item.is_active = newStatus
+        // Nếu có notyf hoặc emit refresh thì gọi ở đây
+    } catch (e) {
+        // Nếu có notyf thì báo lỗi ở đây
+    }
+}
+
+// Hàm giả lập gọi API cập nhật trạng thái
+const updatePromotionStatus = async (id, status) => {
+    // TODO: Thay bằng gọi API thực tế
+    return new Promise((resolve) => setTimeout(resolve, 500))
+}
 </script>
 
 <style scoped>
