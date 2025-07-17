@@ -5,7 +5,8 @@
                 <div v-if="isDataLoaded">
                     <!-- Tên sản phẩm -->
                     <div class="tw-mb-4">
-                        <label class="tw-block tw-font-medium">Tên sản phẩm</label>
+                        <label class="tw-block tw-font-medium">Tên sản phẩm <span
+                                class="tw-text-red-500">*</span></label>
                         <input v-model="formData.name" type="text"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                             placeholder="Nhập tên sản phẩm" />
@@ -14,7 +15,7 @@
                     </div>
                     <!-- Giá -->
                     <div class="tw-mb-4">
-                        <label class="tw-block tw-font-medium">Giá bán</label>
+                        <label class="tw-block tw-font-medium">Giá bán <span class="tw-text-red-500">*</span></label>
                         <input v-model="formData.price" type="number" min="0" step="1000"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
                             placeholder="Nhập giá sản phẩm" />
@@ -34,7 +35,7 @@
                     </div>
                     <!-- Danh mục -->
                     <div class="tw-mb-4">
-                        <label class="tw-block tw-font-medium">Danh mục</label>
+                        <label class="tw-block tw-font-medium">Danh mục <span class="tw-text-red-500">*</span></label>
                         <select v-model="formData.category"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
                             <option value="">Chọn danh mục</option>
@@ -46,7 +47,8 @@
                     </div>
                     <!-- Thương hiệu -->
                     <div class="tw-mb-4">
-                        <label class="tw-block tw-font-medium">Thương hiệu</label>
+                        <label class="tw-block tw-font-medium">Thương hiệu <span
+                                class="tw-text-red-500">*</span></label>
                         <select v-model="formData.brand"
                             class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100">
                             <option value="">Chọn thương hiệu</option>
@@ -58,7 +60,7 @@
                     </div>
                     <!-- Mô tả -->
                     <div class="tw-mb-4">
-                        <label class="tw-block tw-font-medium">Mô tả</label>
+                        <label class="tw-block tw-font-medium">Mô tả <span class="tw-text-red-500">*</span></label>
                         <CKEditor v-model="formData.description" />
                         <div v-if="formErrors.description" class="tw-text-red-500 tw-text-sm tw-mt-1">{{
                             formErrors.description }}</div>
@@ -75,7 +77,7 @@
             <div class="tw-col-span-3 tw-space-y-4">
                 <!-- Ảnh chính -->
                 <div class="tw-mb-4 tw-border tw-border-gray-150 tw-p-5 tw-rounded-[10px] tw-bg-white">
-                    <label class="tw-block tw-font-medium">Ảnh chính</label>
+                    <label class="tw-block tw-font-medium">Ảnh chính <span class="tw-text-red-500">*</span></label>
                     <div>
                         <label
                             class="tw-flex tw-flex-col tw-items-center tw-justify-center tw-w-full tw-h-40 tw-border-2 tw-border-gray-300 tw-border-dashed tw-rounded-lg tw-cursor-pointer hover:tw-bg-gray-50">
@@ -101,7 +103,7 @@
                 </div>
                 <!-- Ảnh phụ -->
                 <div class="tw-mb-4 tw-border tw-border-gray-150 tw-p-5 tw-rounded-[10px] tw-bg-white">
-                    <label class="tw-block tw-font-medium">Ảnh phụ</label>
+                    <label class="tw-block tw-font-medium">Ảnh phụ <span class="tw-text-red-500">*</span></label>
                     <div>
                         <label
                             class="tw-flex tw-flex-col tw-items-center tw-justify-center tw-w-full tw-h-40 tw-border-2 tw-border-gray-300 tw-border-dashed tw-rounded-lg tw-cursor-pointer hover:tw-bg-gray-50">

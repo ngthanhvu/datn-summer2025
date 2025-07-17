@@ -105,7 +105,7 @@
         </div>
 
         <div class="tw-overflow-x-auto">
-            <table class="tw-w-full tw-text-left tw-text-sm">
+            <table class="tw-w-full tw-text-center tw-text-sm">
                 <thead>
                     <tr class="tw-border-b tw-bg-gray-50">
                         <th class="tw-px-3 tw-py-2">
@@ -118,7 +118,7 @@
                             <i v-if="sortKey === column.key"
                                 :class="['fas', sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down']"></i>
                         </th>
-                        <th class="tw-px-3 tw-py-2 tw-font-semibold">Thao tác</th>
+                        <th class="tw-px-3 tw-py-2 tw-font-semibold tw-text-left">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -137,7 +137,7 @@
                         <td class="tw-px-3 tw-py-2">
                             {{ (currentPage - 1) * props.itemsPerPage + index + 1 }}
                         </td>
-                        <td v-for="column in columns" :key="column.key" class="tw-px-3 tw-py-2">
+                        <td v-for="column in columns" :key="column.key" class="tw-px-3 tw-py-2 tw-text-center">
                             <template v-if="column.type === 'main_image'">
                                 <img :src="getMainImage(item.images)?.image_path"
                                     :alt="getMainImage(item.images)?.image_path"
@@ -158,9 +158,13 @@
                                 <span class="tw-text-xs">{{ item[column.key] }}</span>
                             </template>
                             <template v-else-if="column.type === 'status'">
-                                <span :class="getStatusBadgeClass(item[column.key])">
-                                    {{ getStatusText(item[column.key]) }}
-                                </span>
+                                <button
+                                    :class="['tw-w-10 tw-h-6 tw-rounded-full tw-relative tw-transition-colors', item[column.key] === 1 ? 'tw-bg-primary' : 'tw-bg-gray-300']"
+                                    @click="toggleStatus(item)" :aria-pressed="item[column.key] === 1"
+                                    style="background-color: #3bb77e">
+                                    <span
+                                        :class="['tw-absolute tw-top-0.5 tw-left-0.5 tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow tw-transition-transform', item[column.key] === 1 ? 'tw-translate-x-4' : '']"></span>
+                                </button>
                             </template>
                             <template v-else-if="column.type === 'price'">
                                 {{ formatPrice(item[column.key]) }}
@@ -466,6 +470,24 @@ const handleBulkDelete = async () => {
     } catch (e) {
         notyf.error('Xoá sản phẩm thất bại')
     }
+}
+
+const toggleStatus = async (item) => {
+    const newStatus = item.is_active === 1 ? 0 : 1
+    try {
+        await updateProductStatus(item.id, newStatus)
+        item.is_active = newStatus
+        notyf.success('Cập nhật trạng thái thành công')
+        emit('refresh')
+    } catch (e) {
+        notyf.error('Cập nhật trạng thái thất bại')
+    }
+}
+
+// Hàm giả lập gọi API cập nhật trạng thái
+const updateProductStatus = async (id, status) => {
+    // TODO: Thay bằng gọi API thực tế
+    return new Promise((resolve) => setTimeout(resolve, 500))
 }
 </script>
 

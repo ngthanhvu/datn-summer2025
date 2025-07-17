@@ -70,14 +70,13 @@
                         <td class="tw-px-4 tw-py-3 tw-text-sm tw-text-gray-900 tw-text-center">{{ customer.phone ?
                             customer.phone : 'Không có' }}</td>
                         <td class="tw-px-4 tw-py-3 tw-text-center">
-                            <span :class="[
-                                'tw-px-2 tw-py-1 tw-rounded-full tw-text-xs',
-                                customer.status
-                                    ? 'tw-bg-green-100 tw-text-green-700'
-                                    : 'tw-bg-red-100 tw-text-red-700'
-                            ]">
-                                {{ customer.status ? 'Đang hoạt động' : 'Đã khóa' }}
-                            </span>
+                            <button
+                                :class="['tw-w-10 tw-h-6 tw-rounded-full tw-relative tw-transition-colors', customer.status ? 'tw-bg-primary' : 'tw-bg-gray-300']"
+                                @click="toggleStatus(customer)" :aria-pressed="customer.status"
+                                style="background-color: #3bb77e">
+                                <span
+                                    :class="['tw-absolute tw-top-0.5 tw-left-0.5 tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow tw-transition-transform', customer.status ? 'tw-translate-x-4' : '']"></span>
+                            </button>
                         </td>
                         <td class="tw-px-4 tw-py-3 tw-text-sm tw-font-medium">
                             <div class="tw-flex tw-items-center tw-justify-center tw-gap-2">
@@ -147,6 +146,23 @@ const handleDelete = (customer) => {
     if (confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
         emit('delete', customer)
     }
+}
+
+const toggleStatus = async (customer) => {
+    const newStatus = customer.status ? 0 : 1
+    try {
+        await updateCustomerStatus(customer.id, newStatus)
+        customer.status = newStatus
+        // Nếu có notyf hoặc emit refresh thì gọi ở đây
+    } catch (e) {
+        // Nếu có notyf thì báo lỗi ở đây
+    }
+}
+
+// Hàm giả lập gọi API cập nhật trạng thái
+const updateCustomerStatus = async (id, status) => {
+    // TODO: Thay bằng gọi API thực tế
+    return new Promise((resolve) => setTimeout(resolve, 500))
 }
 </script>
 

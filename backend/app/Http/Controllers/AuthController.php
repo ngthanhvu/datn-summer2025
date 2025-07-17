@@ -31,8 +31,12 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'role' => 'user'
+            'role' => 'user',
+            'ip_user' => $request->ip(),
         ]);
+
+        Log::info('Request IP: ' . request()->ip());
+        Log::info('X-Forwarded-For: ' . request()->header('X-Forwarded-For'));
 
         Mail::to($user->email)->send(new WelcomeEmail($user));
 
@@ -48,6 +52,13 @@ class AuthController extends Controller
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
+
+        $user = Auth::user();
+        $user->update([
+            'ip_user' => $request->ip()
+        ]);
+        Log::info('Request IP: ' . request()->ip());
+        Log::info('X-Forwarded-For: ' . request()->header('X-Forwarded-For'));
 
         return response()->json(compact('token'));
     }

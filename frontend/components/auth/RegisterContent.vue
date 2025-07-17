@@ -4,21 +4,21 @@
         <h2 class="text-center mb-4 tw-font-semibold tw-text-2xl">Đăng Ký</h2>
         <form @submit.prevent="handleRegister">
             <div class="mb-2">
-                <label for="registerUsername">Tên người dùng</label>
+                <label for="registerUsername">Tên người dùng <span class="tw-text-red-500">*</span></label>
                 <input v-model="form.username" type="text" id="registerUsername" name="username"
                     placeholder="Nhập tên người dùng"
                     class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded tw-text-base focus:tw-outline-none focus:tw-border-[#81aacc] focus:tw-ring-1 focus:tw-ring-[#81aacc]" />
                 <p v-if="error.username" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ error.username }}</p>
             </div>
             <div class="mb-2">
-                <label for="registerEmail">Email</label>
+                <label for="registerEmail">Email <span class="tw-text-red-500">*</span></label>
                 <input v-model="form.email" type="email" id="registerEmail" name="email"
                     placeholder="Nhập email của bạn"
                     class="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded tw-text-base focus:tw-outline-none focus:tw-border-[#81aacc] focus:tw-ring-1 focus:tw-ring-[#81aacc]" />
                 <p v-if="error.email" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ error.email }}</p>
             </div>
             <div class="mb-2">
-                <label for="registerPassword">Mật khẩu</label>
+                <label for="registerPassword">Mật khẩu <span class="tw-text-red-500">*</span></label>
                 <div class="position-relative">
                     <input v-model="form.password" :type="showPassword ? 'text' : 'password'" id="registerPassword"
                         name="password" placeholder="Nhập mật khẩu"
@@ -32,7 +32,7 @@
                 <p v-if="error.password" class="tw-text-red-500 tw-text-sm tw-mt-1">{{ error.password }}</p>
             </div>
             <div class="mb-2">
-                <label for="confirmPassword">Xác nhận mật khẩu</label>
+                <label for="confirmPassword">Xác nhận mật khẩu <span class="tw-text-red-500">*</span></label>
                 <div class="position-relative">
                     <input v-model="form.confirm_password" :type="showConfirmPassword ? 'text' : 'password'"
                         id="confirmPassword" name="confirm_password" placeholder="Xác nhận mật khẩu"

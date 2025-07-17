@@ -31,7 +31,7 @@
               <th class="tw-px-4 tw-py-3">Tên chiến dịch</th>
               <th class="tw-px-4 tw-py-3">Sản phẩm</th>
               <th class="tw-px-4 tw-py-3">Thời gian</th>
-              <th class="tw-px-4 tw-py-3">Trạng thái</th>
+              <th class="tw-px-4 tw-py-3 tw-text-center">Trạng thái</th>
               <th class="tw-px-4 tw-py-3">Lặp lại</th>
               <th class="tw-px-4 tw-py-3">Thao tác</th>
             </tr>
@@ -49,11 +49,13 @@
                 <span v-else>Không có sản phẩm</span>
               </td>
               <td class="tw-px-4 tw-py-2">{{ item.start_time }} ~ {{ item.end_time }}</td>
-              <td class="tw-px-4 tw-py-2">
-                <span v-if="item.active"
-                  class="tw-bg-green-100 tw-text-green-700 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs">Hoạt động</span>
-                <span v-else class="tw-bg-gray-200 tw-text-gray-600 tw-px-3 tw-py-1 tw-rounded-full tw-text-xs">Kết
-                  thúc</span>
+              <td class="tw-px-4 tw-py-2 tw-text-center">
+                <button
+                  :class="['tw-w-10 tw-h-6 tw-rounded-full tw-relative tw-transition-colors', item.active ? 'tw-bg-primary' : 'tw-bg-gray-300']"
+                  @click="toggleStatus(item)" :aria-pressed="item.active" style="background-color: #3bb77e">
+                  <span
+                    :class="['tw-absolute tw-top-0.5 tw-left-0.5 tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow tw-transition-transform', item.active ? 'tw-translate-x-4' : '']"></span>
+                </button>
               </td>
               <td class="tw-px-4 tw-py-2">
                 <span v-if="item.repeat"
@@ -63,14 +65,22 @@
               </td>
               <td class="tw-px-4 tw-py-2 tw-flex tw-gap-2">
                 <NuxtLink :to="`/admin/flashsale/${item.id}/edit`"
-                  class="tw-bg-white tw-text-blue-600 tw-px-2 tw-py-1 tw-rounded tw-border hover:tw-bg-blue-50 flex items-cen"
+                  class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-blue-600 hover:tw-text-blue-900 hover:tw-bg-blue-50 tw-rounded-lg tw-transition-colors tw-duration-150"
                   title="Sửa">
-                  <i class="fa fa-pen-to-square fa-lg"></i>
+                  <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                    </path>
+                  </svg>
                 </NuxtLink>
                 <button
-                  class="tw-bg-white tw-text-red-600 tw-px-2 tw-py-1 tw-rounded tw-border hover:tw-bg-red-50 flex "
+                  class="tw-inline-flex tw-items-center tw-p-1.5 tw-text-red-600 hover:tw-text-red-900 hover:tw-bg-red-50 tw-rounded-lg tw-transition-colors tw-duration-150"
                   @click="handleDelete(item.id)" title="Xóa">
-                  <i class="fa fa-trash fa-lg"></i>
+                  <svg class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                  </svg>
                 </button>
               </td>
             </tr>
@@ -136,5 +146,22 @@ async function handleDelete(id) {
       deleteLoading.value = false
     }
   }
+}
+
+const toggleStatus = async (item) => {
+  const newStatus = item.active ? 0 : 1
+  try {
+    await updateFlashSaleStatus(item.id, newStatus)
+    item.active = newStatus
+    // Nếu có notyf hoặc emit refresh thì gọi ở đây
+  } catch (e) {
+    // Nếu có notyf thì báo lỗi ở đây
+  }
+}
+
+// Hàm giả lập gọi API cập nhật trạng thái
+const updateFlashSaleStatus = async (id, status) => {
+  // TODO: Thay bằng gọi API thực tế
+  return new Promise((resolve) => setTimeout(resolve, 500))
 }
 </script>

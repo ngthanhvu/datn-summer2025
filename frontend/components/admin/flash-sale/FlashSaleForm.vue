@@ -14,60 +14,77 @@
       <div class="tw-bg-white tw-rounded tw-shadow tw-p-6 md:tw-w-2/5 tw-mb-6 md:tw-mb-0 tw-text-sm">
         <div class="tw-space-y-4">
           <div>
-            <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Tên chiến dịch</label>
-            <input v-model="form.name" class="input" placeholder="Nhập tên chiến dịch" />
+            <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Tên chiến dịch <span class="tw-text-red-500">*
+              </span></label>
+            <input v-model="form.name"
+              class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+              placeholder="Nhập tên chiến dịch" />
           </div>
           <div class="tw-flex tw-gap-2">
             <div class="tw-flex-1">
-              <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Thời gian bắt đầu</label>
-              <input type="datetime-local" v-model="form.start" class="input" />
+              <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Thời gian bắt đầu <span
+                  class="tw-text-red-500">*</span></label>
+              <input type="datetime-local" v-model="form.start"
+                class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100" />
             </div>
             <div class="tw-flex-1">
-              <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Thời gian kết thúc</label>
-              <input type="datetime-local" v-model="form.end" class="input" />
+              <label class="tw-block tw-text-sm tw-font-medium tw-mb-1">Thời gian kết thúc <span
+                  class="tw-text-red-500">*</span></label>
+              <input type="datetime-local" v-model="form.end"
+                class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100" />
             </div>
           </div>
           <div class="tw-flex tw-items-center tw-gap-4">
             <div class="tw-flex tw-items-center tw-gap-2">
               <label class="tw-text-sm">Tự động lặp lại</label>
-              <button @click="form.repeat = !form.repeat" :class="form.repeat ? 'tw-bg-pink-500' : 'tw-bg-gray-300'"
+              <!-- <button @click="form.repeat = !form.repeat" :class="form.repeat ? 'tw-bg-pink-500' : 'tw-bg-gray-300'"
                 class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
                 <span :class="form.repeat ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'"
                   class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+              </button> -->
+              <button @click="form.repeat = !form.repeat" :class="form.repeat ? 'tw-bg-[#3bb77e]' : 'tw-bg-gray-300'"
+                class="tw-relative tw-w-12 tw-h-7 tw-rounded-full tw-transition-colors tw-duration-300 tw-outline-none tw-flex tw-items-center tw-cursor-pointer">
+                <span :class="form.repeat ? 'tw-translate-x-6' : 'tw-translate-x-1'"
+                  class="tw-absolute tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow-md tw-transform tw-transition-transform tw-duration-300"></span>
               </button>
+
             </div>
             <div v-if="form.repeat" class="tw-flex tw-items-center tw-gap-2">
               <label class="tw-text-sm">Nhập số phút lặp lại</label>
-              <input v-model="form.repeatMinutes" type="number" min="1" class="input tw-w-24" placeholder="Phút" />
+              <input v-model="form.repeatMinutes" type="number" min="1"
+                class="tw-input tw-w-full tw-border tw-rounded tw-p-2 focus:tw-outline-none focus:tw-border-green-500 focus:tw-ring-2 focus:tw-ring-green-100"
+                placeholder="Phút" />
             </div>
           </div>
           <div class="tw-flex tw-items-center tw-gap-4 tw-mt-2">
             <div class="tw-flex tw-items-center tw-gap-2">
               <label class="tw-text-sm">Tự động tăng số lượng bán</label>
               <button @click="form.autoIncrease = !form.autoIncrease"
-                :class="form.autoIncrease ? 'tw-bg-gray-400' : 'tw-bg-gray-300'"
-                class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
-                <span :class="form.autoIncrease ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'"
-                  class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+                :class="form.autoIncrease ? 'tw-bg-[#3bb77e]' : 'tw-bg-gray-300'"
+                class="tw-relative tw-w-12 tw-h-7 tw-rounded-full tw-transition-colors tw-duration-300 tw-outline-none tw-flex tw-items-center tw-cursor-pointer">
+                <span :class="form.autoIncrease ? 'tw-translate-x-6' : 'tw-translate-x-1'"
+                  class="tw-absolute tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow-md tw-transform tw-transition-transform tw-duration-300"></span>
               </button>
             </div>
             <div class="tw-flex tw-items-center tw-gap-2">
               <label class="tw-text-sm">Active</label>
-              <button @click="form.active = !form.active" :class="form.active ? 'tw-bg-blue-600' : 'tw-bg-gray-300'"
-                class="tw-relative tw-w-10 tw-h-6 tw-rounded-full tw-transition-colors tw-outline-none">
-                <span :class="form.active ? 'tw-translate-x-4 tw-bg-white' : 'tw-translate-x-0 tw-bg-white'"
-                  class="tw-absolute tw-left-0 tw-top-0 tw-w-6 tw-h-6 tw-rounded-full tw-shadow tw-transition-transform"></span>
+              <button @click="form.active = !form.active" :class="form.active ? 'tw-bg-[#3bb77e]' : 'tw-bg-gray-300'"
+                class="tw-relative tw-w-12 tw-h-7 tw-rounded-full tw-transition-colors tw-duration-300 tw-outline-none tw-flex tw-items-center tw-cursor-pointer">
+                <span :class="form.active ? 'tw-translate-x-6' : 'tw-translate-x-1'"
+                  class="tw-absolute tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow-md tw-transform tw-transition-transform tw-duration-300"></span>
               </button>
             </div>
           </div>
           <div class="tw-flex tw-gap-2 tw-mt-6">
-            <button class="btn btn-primary tw-border-[#3BB77E] tw-border-none hover:tw-bg-[#74c09d]" :disabled="loading"
-              @click="submit">{{
+            <button class="tw-px-3 tw-py-2 tw-bg-[#3BB77E] tw-text-white tw-rounded hover:tw-bg-[#74c09d]"
+              :disabled="loading" @click="submit">{{
 
                 loading ?
                   'Đang lưu...' :
                   (props.editData ? 'Cập nhật' : 'Hoàn tất') }}</button>
-            <button class="btn btn-warning tw-bg-orange-500 hover:tw-bg-orange-600" @click="goToSelectProducts">Thêm sản
+            <button class="tw-px-3 tw-py-2 tw-bg-[#81aacc] tw-text-white tw-rounded hover:tw-bg-[#498dc4]"
+              @click="goToSelectProducts">Thêm sản
+
               phẩm</button>
           </div>
         </div>
@@ -113,6 +130,9 @@
                     </svg>
                   </button>
                 </td>
+              </tr>
+              <tr v-if="paginatedProducts.length === 0">
+                <td colspan="9" class="tw-text-center tw-py-4">Không có sản phẩm</td>
               </tr>
             </tbody>
           </table>
@@ -290,7 +310,7 @@ async function submit() {
 }
 </script>
 
-<style>
+<!-- <style>
 .input {
   @apply tw-border tw-rounded tw-px-2 tw-py-1 tw-w-full;
 }
@@ -314,4 +334,4 @@ async function submit() {
 .btn-danger {
   @apply tw-bg-red-500 tw-text-white;
 }
-</style>
+</style> -->

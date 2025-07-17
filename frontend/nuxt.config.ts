@@ -1,34 +1,61 @@
 export default defineNuxtConfig({
+  ssr: true,
   compatibilityDate: '2024-11-01',
-  devtools: {
-    enabled: true,
-    timeline: {
-      enabled: true
+
+  app: {
+    head: {
+      link: [
+        {
+          rel: 'stylesheet',
+          href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+        },
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'
+        }
+      ]
     }
   },
+
   css: [
     'bootstrap/dist/css/bootstrap.min.css',
     '~/assets/css/tailwind.css',
     '~/assets/css/notyf.css',
   ],
+
   postcss: {
     plugins: {
       tailwindcss: {},
       autoprefixer: {},
     },
   },
+
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@pinia/nuxt'
+  ],
+
+  runtimeConfig: {
+    public: {
+      turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY,
+      apiBaseUrl: process.env.NUXT_API_BASE_URL,
+    },
+  },
+
+  build: {
+    transpile: ['apexcharts']
+  },
+
   vite: {
     server: {
       watch: {
         usePolling: true,
         interval: 100
       },
-      allowedHosts: [
-        '6e6b-14-236-154-186.ngrok-free.app'
-      ],
       proxy: {
         '/api': {
-          target: 'http://localhost:8000',
+          target: process.env.NUXT_API_BASE_URL,
           changeOrigin: true,
         }
       }
@@ -48,31 +75,18 @@ export default defineNuxtConfig({
       }
     }
   },
-  build: {
-    transpile: ['apexcharts']
-  },
-  app: {
-    head: {
-      link: [
-        {
-          rel: 'stylesheet',
-          href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
-        },
-        {
-          rel: 'icon',
-          type: 'image/x-icon',
-          href: 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'
-        }
-      ]
+
+  devtools: {
+    enabled: true,
+    timeline: {
+      enabled: true
     }
   },
-  runtimeConfig: {
-    public: {
-      turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY,
-      apiBaseUrl: process.env.NUXT_API_BASE_URL,
-    },
+
+  experimental: {
+    payloadExtraction: false
   },
-  ssr: true,
+
   nitro: {
     experimental: {
       wasm: true
@@ -80,15 +94,7 @@ export default defineNuxtConfig({
     storage: {
       redis: {
         driver: 'redis',
-        /* redis connection options */
       }
     }
-  },
-  experimental: {
-    payloadExtraction: false
-  },
-  modules: [
-    '@nuxtjs/tailwindcss',
-    '@pinia/nuxt'
-  ]
+  }
 })

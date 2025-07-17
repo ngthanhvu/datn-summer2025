@@ -75,10 +75,6 @@
       <!-- System Section -->
       <div class="nav-section">
         <div class="section-title text-muted tw-font-bold tw-text-[14px]">Hệ thống</div>
-        <NuxtLink to="/admin/log" class="nav-item">
-          <i class="fas fa-history"></i>
-          <span>Nhật ký hoạt động</span>
-        </NuxtLink>
         <NuxtLink to="/admin/settings" class="nav-item">
           <i class="fas fa-cog"></i>
           <span>Cài đặt</span>

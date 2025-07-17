@@ -80,9 +80,13 @@
                                 {{ blog.author?.username || 'Unknown' }}
                             </td>
                             <td class="tw-px-2 tw-py-1">
-                                <span :class="getStatusBadgeClass(blog.status)">
-                                    {{ getStatusLabel(blog.status) }}
-                                </span>
+                                <button
+                                    :class="['tw-w-10 tw-h-6 tw-rounded-full tw-relative tw-transition-colors', blog.status === 1 ? 'tw-bg-primary' : 'tw-bg-gray-300']"
+                                    @click="toggleStatus(blog)" :aria-pressed="blog.status === 1"
+                                    style="background-color: #3bb77e">
+                                    <span
+                                        :class="['tw-absolute tw-top-0.5 tw-left-0.5 tw-w-5 tw-h-5 tw-bg-white tw-rounded-full tw-shadow tw-transition-transform', blog.status === 1 ? 'tw-translate-x-4' : '']"></span>
+                                </button>
                             </td>
                             <td class="tw-px-2 tw-py-1">
                                 {{ formatDate(blog.created_at) }}
@@ -205,5 +209,22 @@ function formatDate(dateString) {
 function getImageUrl(path) {
     if (!path) return ''
     return path.startsWith('/storage/') ? `http://localhost:8000${path}` : path
+}
+
+const toggleStatus = async (blog) => {
+    const newStatus = blog.status === 1 ? 0 : 1
+    try {
+        await updateBlogStatus(blog.id, newStatus)
+        blog.status = newStatus
+        // Nếu có notyf hoặc emit refresh thì gọi ở đây
+    } catch (e) {
+        // Nếu có notyf thì báo lỗi ở đây
+    }
+}
+
+// Hàm giả lập gọi API cập nhật trạng thái
+const updateBlogStatus = async (id, status) => {
+    // TODO: Thay bằng gọi API thực tế
+    return new Promise((resolve) => setTimeout(resolve, 500))
 }
 </script>
