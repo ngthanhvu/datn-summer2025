@@ -1,5 +1,5 @@
 <template>
-  <NuxtLayout :site-logo="siteLogo">
+  <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
 </template>
@@ -7,8 +7,10 @@
 <script setup>
 import { useHead } from '#app'
 import { useSettings } from '~/composables/useSettingsApi'
-import { ref, onMounted, watch } from 'vue'
+import { onMounted, watch } from 'vue'
+import { useSiteStore } from '~/stores/useSiteStore'
 
+const siteStore = useSiteStore()
 const { settings, fetchSettings } = useSettings()
 
 useHead({
@@ -24,8 +26,6 @@ useHead({
 const defaultFavicon = 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'
 const defaultLogo = '/logo.png'
 
-const siteLogo = ref(defaultLogo)
-
 const updateFavicon = (url) => {
   if (!url) return
   let link = document.querySelector("link[rel~='icon']")
@@ -37,18 +37,19 @@ const updateFavicon = (url) => {
   link.href = url
 }
 
-const updateLogo = (url) => {
-  if (url) siteLogo.value = url
-}
-
 onMounted(async () => {
-  const res = await fetchSettings(false)
-  updateFavicon(res.siteIcon || defaultFavicon)
-  updateLogo(res.logo || defaultLogo)
+  try {
+    const res = await fetchSettings(false)
+    updateFavicon(res?.siteIcon || defaultFavicon)
+    siteStore.setSiteLogo(res?.logo || defaultLogo)
+  } catch (err) {
+    console.error('Fetch settings failed:', err)
+    updateFavicon(defaultFavicon)
+    siteStore.setSiteLogo(defaultLogo)
+  }
 })
 
-
-
+// Tự động cập nhật favicon nếu settings thay đổi
 watch(() => settings.value.siteIcon, updateFavicon)
-watch(() => settings.value.logo, updateLogo)
+watch(() => settings.value.logo, siteStore.setSiteLogo)
 </script>

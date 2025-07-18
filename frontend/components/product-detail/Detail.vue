@@ -11,10 +11,10 @@
                 <!-- Product Info -->
                 <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"
                     :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
-                    :show-original-price="showOriginalPrice"
-                    :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
-                    :flash-sale-percent="flashSalePercent"
-                    @update:selected-size="$emit('update:selectedSize', $event)"
+                    :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName"
+                    :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime"
+                    :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
+                    :flash-sale-percent="flashSalePercent" @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
             </div>
@@ -22,10 +22,10 @@
 
         <!-- Description & Reviews -->
         <div class="tw-max-w-7xl tw-mx-auto tw-mb-5">
-            <div class="tw-pt-3 tw-bg-white tw-p-8 tw-rounded-[10px] tw-border tw-border-bg-gray-200">
-                <div class="tw-flex tw-gap-8 tw-mb-8">
+            <div class="tw-pt-2 tw-bg-white tw-p-3 sm:tw-p-8 tw-rounded-[10px] tw-border tw-border-bg-gray-200">
+                <div class="tw-flex tw-flex-wrap tw-gap-2 sm:tw-gap-8 tw-mb-4 sm:tw-mb-8 tw-justify-start">
                     <button v-for="tab in tabs" :key="tab.id" @click="$emit('update:activeTab', tab.id)" :class="[
-                        'tw-px-4 tw-py-2 tw-font-medium tw-border-b-2 tw-transition-colors',
+                        'tw-px-2 tw-py-1 tw-text-sm sm:tw-px-4 sm:tw-py-2 sm:tw-text-base tw-font-medium tw-border-b-2 tw-transition-colors',
                         activeTab === tab.id
                             ? 'tw-border-[#81AACC] tw-text-[#81AACC]'
                             : 'tw-border-transparent hover:tw-border-gray-300'
@@ -52,6 +52,13 @@
                     @edit-review="$emit('editReview', $event)" @remove-review="$emit('removeReview', $event)"
                     @open-image-modal="$emit('openImageModal', $event)"
                     @handle-review-page-change="$emit('handleReviewPageChange', $event)" />
+
+                <!-- Preservation Information -->
+                <PreservationInformation v-if="activeTab === 'preservation-information'" />
+
+                <!-- Shipping Return -->
+                <ShippingReturn v-if="activeTab === 'shipping-return'" />
+
             </div>
         </div>
 
@@ -68,7 +75,9 @@ import ProductInfo from './ProductInfo.vue'
 import ProductDescription from './ProductDescription.vue'
 import ProductReviews from './ProductReviews.vue'
 import RelatedProducts from './RelatedProducts.vue'
-import { ref, computed, watch, toRef } from 'vue'
+import PreservationInformation from './Preservation-information.vue'
+import ShippingReturn from './Shipping-return.vue'
+import { toRef } from 'vue'
 
 const props = defineProps({
     product: {
@@ -225,6 +234,8 @@ const emit = defineEmits([
 const tabs = [
     { id: 'description', name: 'Mô tả' },
     { id: 'reviews', name: 'Đánh giá' },
+    { id: 'preservation-information', name: 'Thông tin bảo quản' },
+    { id: 'shipping-return', name: 'Giao hàng & Đổi trả' }
 ]
 
 const selectedSize = toRef(props, 'selectedSize')
