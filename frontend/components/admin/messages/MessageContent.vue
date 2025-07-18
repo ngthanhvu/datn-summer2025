@@ -82,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick, defineExpose } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 
 const runtimeConfig = useRuntimeConfig()
 
