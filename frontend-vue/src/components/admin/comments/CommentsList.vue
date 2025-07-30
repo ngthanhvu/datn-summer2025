@@ -1,0 +1,331 @@
+<template>
+    <div class="bg-white rounded-lg shadow p-4">
+        <!-- Filter Row -->
+        <div class="p-4">
+            <div class="flex gap-2 items-center">
+                <select v-model="filterStatus" class="border border-gray-300 rounded px-3 py-1 text-sm">
+                    <option value="">Trạng thái</option>
+                    <option value="pending">Chờ duyệt</option>
+                    <option value="approved">Hiển thị</option>
+                    <option value="rejected">Vi phạm</option>
+                </select>
+                <select v-model="filterRating" class="border border-gray-300 rounded px-3 py-1 text-sm">
+                    <option value="">Điểm đánh giá</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }} sao</option>
+                </select>
+                <select v-model="filterHasImage" class="border border-gray-300 rounded px-3 py-1 text-sm">
+                    <option value="">Có hình ảnh</option>
+                    <option value="yes">Có</option>
+                    <option value="no">Không</option>
+                </select>
+                <select v-model="filterUnread" class="border border-gray-300 rounded px-3 py-1 text-sm">
+                    <option value="">Chưa đọc</option>
+                    <option value="yes">Chưa đọc</option>
+                </select>
+                <select v-model="filterBadwords" class="border border-gray-300 rounded px-3 py-1 text-sm">
+                    <option value="">Tiêu cực</option>
+                    <option value="1">Chỉ tiêu cực</option>
+                </select>
+                <input v-model="searchQuery" type="text" placeholder="Nhập từ khóa tìm kiếm ..."
+                    class="border border-gray-300 rounded px-3 py-1 text-sm w-64 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100" />
+            </div>
+        </div>
+        <!-- Table -->
+        <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <!-- Empty State -->
+            <div v-if="!loading && filteredComments.length === 0" class="p-8 text-center">
+                <i class="fas fa-comments text-4xl text-gray-300 mb-4"></i>
+                <p class="text-gray-600">Không có đánh giá nào</p>
+            </div>
+            <!-- Table Content + Skeleton -->
+            <table v-else class="w-full text-sm border-collapse">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2 text-left w-12"><input type="checkbox" /></th>
+                        <th class="px-4 py-2 text-left">Điểm đánh giá</th>
+                        <th class="px-4 py-2 text-left">Nội dung đánh giá</th>
+                        <th class="px-4 py-2 text-center">Thời gian</th>
+                        <th class="px-4 py-2 text-center">Trạng thái</th>
+                        <th class="px-4 py-2 text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template v-if="loading">
+                        <tr v-for="n in 5" :key="n">
+                            <td class="px-4 py-2">
+                                <div class="bg-gray-200 rounded w-6 h-6 animate-pulse mx-auto"></div>
+                            </td>
+                            <td class="px-4 py-2">
+                                <div class="bg-gray-200 h-4 rounded w-16 animate-pulse"></div>
+                            </td>
+                            <td class="px-4 py-2">
+                                <div class="bg-gray-200 h-4 rounded w-2/3 mb-2 animate-pulse"></div>
+                                <div class="bg-gray-200 h-3 rounded w-1/3 animate-pulse"></div>
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <div class="bg-gray-200 h-4 rounded w-12 animate-pulse mx-auto"></div>
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <div class="bg-gray-200 h-4 rounded w-16 animate-pulse mx-auto"></div>
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <div class="bg-gray-200 h-4 rounded w-16 animate-pulse mx-auto"></div>
+                            </td>
+                        </tr>
+                    </template>
+                    <template v-else>
+                        <tr v-for="comment in filteredComments" :key="comment.id"
+                            :class="['border-b border-gray-300', comment.status === 'rejected' ? 'bg-red-50' : comment.status === 'approved' ? 'bg-blue-50' : '']">
+                            <td class="px-4 py-2"><input type="checkbox" /></td>
+                            <td class="px-4 py-2">
+                                <span v-html="renderStars(comment.rating)"></span>
+                            </td>
+                            <td class="px-4 py-2">
+                                <div class="mb-1">{{ comment.content }}</div>
+                                <div v-if="comment.images && comment.images.length" class="mt-2">
+                                    <div class="text-xs mb-1 font-semibold">Hình ảnh đánh giá:</div>
+                                    <div class="flex gap-2">
+                                        <img v-for="img in comment.images" :key="img.id"
+                                            :src="getImageUrl(img.image_path)" class="w-16 h-16 object-cover rounded"
+                                            alt="review image" />
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    - <span class="font-semibold">{{ comment.userEmail || comment.userName }}</span>
+                                    đánh giá sản phẩm <span class="text-blue-600 hover:underline">{{
+                                        comment.productInfo?.name }}</span>
+                                </div>
+                                <!-- Admin reply -->
+                                <div v-if="comment.reply" class="mt-2 ml-4 p-2 bg-gray-100 rounded">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-primary">Phản hồi admin:</span>
+                                        <span v-if="!comment.isEditingReply">{{ comment.reply.content }}</span>
+                                        <input v-else v-model="comment.editReplyText"
+                                            class="border rounded px-2 py-1 text-xs flex-1" />
+                                        <span class="text-xs text-gray-400">({{ comment.reply.date }})</span>
+                                        <button v-if="!comment.isEditingReply" @click="startEditReply(comment)"
+                                            class="bg-blue-500 text-white rounded px-2 py-1 text-xs ml-2">Sửa</button>
+                                        <template v-else>
+                                            <button @click="saveEditReply(comment)"
+                                                class="bg-primary text-white rounded px-2 py-1 text-xs ml-2">Lưu</button>
+                                            <button @click="cancelEditReply(comment)"
+                                                class="bg-gray-400 text-white rounded px-2 py-1 text-xs ml-1">Hủy</button>
+                                        </template>
+                                    </div>
+                                </div>
+                                <!-- Reply form -->
+                                <div v-else class="mt-2 ml-4">
+                                    <div class="flex gap-2">
+                                        <input type="text" v-model="comment.replyText" placeholder="Nhập phản hồi ..."
+                                            class="flex-1 border border-gray-300 rounded px-3 py-1 text-xs focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100">
+                                        <button @click="addReply(comment)"
+                                            class="bg-primary text-white rounded px-3 py-1 text-xs cursor-pointer">Gửi</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <div class="flex flex-col items-center">
+                                    <span class="font-medium">{{ comment.date }}</span>
+                                    <span v-if="comment.time" class="text-xs text-gray-500">{{ comment.time
+                                        }}</span>
+                                    <span v-if="isRecentReview(comment.date)"
+                                        class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full mt-1">Mới</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <span :class="[
+                                    'px-2 py-1 rounded-full text-xs',
+                                    {
+                                        'bg-yellow-100 text-yellow-700': comment.status === 'pending',
+                                        'bg-green-100 text-green-700': comment.status === 'approved',
+                                        'bg-red-100 text-red-700': comment.status === 'rejected'
+                                    }
+                                ]">
+                                    {{ getStatusText(comment.status) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <button v-if="comment.status === 'pending'"
+                                    @click="updateStatus(comment.id, 'approved')"
+                                    class="bg-green-100 text-green-700 rounded px-2 py-1 mr-1 text-xs">Duyệt</button>
+                                <button v-if="comment.status === 'approved'"
+                                    @click="updateStatus(comment.id, 'pending')"
+                                    class="bg-yellow-100 text-yellow-700 rounded px-2 py-1 mr-1 text-xs">Bỏ
+                                    duyệt</button>
+                                <button v-if="comment.status !== 'rejected'"
+                                    @click="updateStatus(comment.id, 'rejected')"
+                                    class="bg-red-100 text-red-700 rounded px-2 py-1 mr-1 text-xs">Ẩn</button>
+                                <button v-if="comment.status === 'rejected'"
+                                    @click="updateStatus(comment.id, 'pending')"
+                                    class="bg-blue-100 text-blue-700 rounded px-2 py-1 mr-1 text-xs">Bỏ
+                                    ẩn</button>
+                                <button @click="deleteComment(comment.id)"
+                                    class="bg-red-100 text-red-700 rounded px-2 py-1 text-xs"><i
+                                        class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, computed, watch } from "vue";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // ✅ Thay useRuntimeConfig
+const adminAvatar = ref("https://randomuser.me/api/portraits/men/1.jpg");
+
+const props = defineProps({
+    comments: { type: Array, required: true },
+    pagination: { type: Object, default: null },
+    loading: { type: Boolean, default: false },
+});
+
+const emit = defineEmits([
+    "update-status",
+    "delete",
+    "add-reply",
+    "update-reply",
+    "page-change",
+]);
+
+const searchQuery = ref("");
+const filterStatus = ref("");
+const filterRating = ref("");
+const filterHasImage = ref("");
+const filterUnread = ref("");
+const filterBadwords = ref("");
+
+const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/150";
+    if (url.startsWith("http")) return url;
+    if (url.startsWith("review_images/")) {
+        return `${API_BASE_URL}/storage/${url}`;
+    }
+    if (url.startsWith("storage/")) {
+        return `${API_BASE_URL}/${url}`;
+    }
+    return `${API_BASE_URL}/storage/${url.replace(/^\/storage\//, "")}`;
+};
+
+const filteredComments = computed(() => {
+    let filtered = props.comments;
+
+    if (searchQuery.value) {
+        filtered = filtered.filter(
+            (comment) =>
+                comment.content
+                    .toLowerCase()
+                    .includes(searchQuery.value.toLowerCase()) ||
+                comment.userName
+                    .toLowerCase()
+                    .includes(searchQuery.value.toLowerCase())
+        );
+    }
+
+    if (filterStatus.value) {
+        filtered = filtered.filter((comment) => comment.status === filterStatus.value);
+    }
+
+    if (filterRating.value) {
+        filtered = filtered.filter(
+            (comment) => comment.rating === parseInt(filterRating.value)
+        );
+    }
+
+    if (filterHasImage.value) {
+        if (filterHasImage.value === "yes") {
+            filtered = filtered.filter(
+                (comment) => comment.images && comment.images.length > 0
+            );
+        } else if (filterHasImage.value === "no") {
+            filtered = filtered.filter(
+                (comment) => !comment.images || comment.images.length === 0
+            );
+        }
+    }
+
+    if (filterUnread.value) {
+        filtered = filtered.filter(
+            (comment) => comment.status === "pending" && !comment.isRead
+        );
+    }
+
+    return filtered;
+});
+
+const getStatusText = (status) => {
+    switch (status) {
+        case "pending":
+            return "Chờ duyệt";
+        case "approved":
+            return "Đã duyệt";
+        case "rejected":
+            return "Vi phạm (ẩn)";
+        default:
+            return status;
+    }
+};
+
+const updateStatus = (id, newStatus) => {
+    emit("update-status", { id, status: newStatus });
+};
+
+const deleteComment = (id) => {
+    if (confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
+        emit("delete", id);
+    }
+};
+
+const addReply = (comment) => {
+    if (!comment.replyText.trim()) return;
+    emit("add-reply", { id: comment.id, content: comment.replyText });
+};
+
+const renderStars = (rating) => {
+    return Array.from({ length: 5 }, (_, index) =>
+        `<i class="fas fa-star" style="color: ${index < rating ? "#ffd700" : "#ccc"
+        };"></i>`
+    ).join("");
+};
+
+const startEditReply = (comment) => {
+    comment.isEditingReply = true;
+    comment.editReplyText = comment.reply.content;
+};
+
+const cancelEditReply = (comment) => {
+    comment.isEditingReply = false;
+    comment.editReplyText = "";
+};
+
+const saveEditReply = (comment) => {
+    if (!comment.editReplyText.trim()) return;
+    emit("update-reply", { id: comment.id, content: comment.editReplyText });
+    comment.isEditingReply = false;
+};
+
+const isRecentReview = (date) => {
+    const reviewDate = new Date(date);
+    const now = new Date();
+    const diffTime = Math.abs(now - reviewDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= 7;
+};
+
+watch(filterBadwords, (val) => {
+    if (val === "1") {
+        emit("page-change", { badwords: 1 });
+    } else {
+        emit("page-change", {});
+    }
+});
+</script>
+
+<style scoped>
+.bg-primary {
+    background-color: #3bb77e;
+}
+</style>
