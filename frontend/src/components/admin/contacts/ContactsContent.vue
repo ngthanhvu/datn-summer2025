@@ -141,7 +141,7 @@
 
         <!-- Modal xem/trả lời -->
         <div v-if="selectedContact"
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            class="fixed inset-0 bg-gray-900/75 bg-opacity-50 flex items-center justify-center z-50 p-4"
             @click.self="closeDetail">
             <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
                 <!-- Modal Header -->
@@ -269,6 +269,7 @@
 import { ref, onMounted } from 'vue'
 import { useContact } from '../../../composable/useContact'
 import Swal from 'sweetalert2'
+import { push } from 'notivue'
 
 const { fetchContacts, fetchContactDetail, replyContact, deleteContact } = useContact()
 const contacts = ref([])
@@ -318,7 +319,8 @@ const cancelEdit = () => {
 
 const sendReply = async () => {
     if (!reply.value.trim()) {
-        Swal.fire('Lỗi', 'Vui lòng nhập nội dung phản hồi', 'warning')
+        // Swal.fire('Lỗi', 'Vui lòng nhập nội dung phản hồi', 'warning')
+        push.error('Vui lòng nhập nội dung phản hồi')
         return
     }
 
@@ -327,7 +329,8 @@ const sendReply = async () => {
         await replyContact(selectedContact.value.id, reply.value)
 
         const message = isEditing.value ? 'Đã cập nhật phản hồi!' : 'Đã gửi phản hồi!'
-        await Swal.fire('Thành công', message, 'success')
+        // await Swal.fire('Thành công', message, 'success')
+        push.success(message)
 
         closeDetail()
         await loadContacts()

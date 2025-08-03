@@ -4,25 +4,25 @@
             <!-- Left Column - Contact Form -->
             <div class="bg-white p-8 rounded-[5px]">
                 <h1 class="text-2xl font-normal mb-6">
-                    Công ty TNHH DEVGANG
+                    {{ settings.storeName || "Tên cửa hàng" }}
                 </h1>
                 <ul class="text-sm text-gray-900 space-y-2 mb-6">
                     <li class="flex items-center gap-2">
                         <i class="fas fa-map-marker-alt text-[14px]"></i>
                         <span>
-                            Địa chỉ: 150/8 Nguyễn Duy Cung, Phường 12, Tp.HCM
+                            Địa chỉ: {{ settings.address || "chưa cập nhật" }}
                         </span>
                     </li>
                     <li class="flex items-center gap-2">
                         <i class="fas fa-mobile-alt text-[14px]"></i>
                         <span>
-                            Số điện thoại: 19001393
+                            Số điện thoại: {{ settings.phone || "chưa cập nhật" }}
                         </span>
                     </li>
                     <li class="flex items-center gap-2">
                         <i class="fas fa-envelope text-[14px]"></i>
                         <span>
-                            Email: support@devgang.com
+                            Email: {{ settings.email || "chưa cập nhật" }}
                         </span>
                     </li>
                 </ul>
@@ -32,16 +32,16 @@
                         LIÊN HỆ VỚI CHÚNG TÔI
                     </h2>
                     <input v-model="form.name"
-                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-black"
+                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
                         placeholder="Họ tên*" required type="text" />
                     <input v-model="form.email"
-                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-black"
+                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
                         placeholder="Email*" required type="email" />
                     <input v-model="form.phone"
-                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-black"
+                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
                         placeholder="Số điện thoại*" required type="tel" />
                     <textarea v-model="form.message"
-                        class="w-full mb-1 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 resize-y focus:outline-none focus:ring-1 focus:ring-black"
+                        class="w-full mb-1 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 resize-y focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
                         placeholder="Nhập nội dung*" required rows="5"></textarea>
                     <div id="cf-turnstile" data-theme="light"></div>
                     <button :disabled="loading"
@@ -67,9 +67,13 @@
             <div class="bg-white p-8 rounded-[5px]">
                 <h2 class="text-xl font-semibold mb-4">Vị trí của chúng tôi</h2>
                 <div class="aspect-w-16 aspect-h-9">
-                    <img alt="Google map showing location of DEVGANG Tech at 150/8 Nguyễn Duy Cung, Phường 12, Gò Vấp, Hồ Chí Minh with map details and markers"
-                        class="w-full h-full object-cover rounded-lg"
-                        src="https://storage.googleapis.com/a1aa/image/4abda26d-a90e-4460-3cca-f64c03d08a06.jpg" />
+                    <iframe width="100%" height="400" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+                        src="https://www.openstreetmap.org/export/embed.html?bbox=108.064902%2C12.700145%2C108.084902%2C12.720145&layer=mapnik&marker=12.710145%2C108.074902"
+                        style="border: 1px solid black">
+                    </iframe>
+                    <small><a class="underline text-[#81aacc] hover:no-underline" target="_blank"
+                            href="https://www.openstreetmap.org/?mlat=12.710145&mlon=108.074902#map=15/12.710145/108.074902">Xem
+                            bản đồ lớn</a></small>
                 </div>
             </div>
         </div>
@@ -77,11 +81,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useContact } from '../../composable/useContact'
-import Swal from 'sweetalert2'
+import { useSettings } from '../../composable/useSettingsApi'
+import { push } from 'notivue'
 
 const { sendContact } = useContact()
+const { settings, fetchSettings } = useSettings()
 
 const form = ref({
     name: '',
@@ -96,26 +102,18 @@ const handleSubmit = async () => {
     loading.value = true
     try {
         await sendContact(form.value)
-        await Swal.fire({
-            title: 'Thành công!',
-            text: 'Liên hệ của bạn đã được gửi thành công. Chúng tôi sẽ phản hồi sớm nhất có thể!',
-            icon: 'success',
-            confirmButtonText: 'Đóng',
-            confirmButtonColor: '#81AACC'
-        })
+        push.success('Liên hệ của bạn được gửi thông. Chúng tôi sẽ phản hồi sớm nhất có thể!')
         form.value = { name: '', email: '', phone: '', message: '' }
     } catch (error) {
-        Swal.fire({
-            title: 'Lỗi!',
-            text: error.response?.data?.message || 'Gửi liên hệ thất bại. Vui lòng thử lại sau!',
-            icon: 'error',
-            confirmButtonText: 'Đóng',
-            confirmButtonColor: '#dc2626'
-        })
+        console.error(error)
     } finally {
         loading.value = false
     }
 }
+
+onMounted(() => {
+    fetchSettings()
+})
 </script>
 
 <style scoped>

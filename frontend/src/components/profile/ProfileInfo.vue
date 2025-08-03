@@ -225,3 +225,10 @@ const updateProfile = async () => {
     }
 }
 </script>
+
+<style>
+input[type="radio"]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+</style>
