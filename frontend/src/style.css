@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+/* Global CSS cho CKEditor headings */
+.ck-editor__editable .ck-heading_heading1 {
+    font-size: 2em !important;
+    font-weight: bold !important;
+    margin: 0.67em 0 !important;
+    color: #333 !important;
+    display: block !important;
+}
+
+.ck-editor__editable .ck-heading_heading2 {
+    font-size: 1.5em !important;
+    font-weight: bold !important;
+    margin: 0.83em 0 !important;
+    color: #333 !important;
+    display: block !important;
+}
+
+.ck-editor__editable .ck-heading_heading3 {
+    font-size: 1.17em !important;
+    font-weight: bold !important;
+    margin: 1em 0 !important;
+    color: #333 !important;
+    display: block !important;
+}
+
+.ck-editor__editable .ck-heading_heading4 {
+    font-size: 1em !important;
+    font-weight: bold !important;
+    margin: 1.33em 0 !important;
+    color: #333 !important;
+    display: block !important;
+}
+
+.ck-editor__editable .ck-heading_heading5 {
+    font-size: 0.83em !important;
+    font-weight: bold !important;
+    margin: 1.67em 0 !important;
+    color: #333 !important;
+    display: block !important;
+}
+
+.ck-editor__editable .ck-heading_heading6 {
+    font-size: 0.67em !important;
+    font-weight: bold !important;
+    margin: 2.33em 0 !important;
+    color: #333 !important;
+    display: block !important;
+}
+
+.ck-editor__editable h1 {
+    font-size: 2em !important;
+    font-weight: bold !important;
+    margin: 0.67em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable h2 {
+    font-size: 1.5em !important;
+    font-weight: bold !important;
+    margin: 0.83em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable h3 {
+    font-size: 1.17em !important;
+    font-weight: bold !important;
+    margin: 1em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable h4 {
+    font-size: 1em !important;
+    font-weight: bold !important;
+    margin: 1.33em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable h5 {
+    font-size: 0.83em !important;
+    font-weight: bold !important;
+    margin: 1.67em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable h6 {
+    font-size: 0.67em !important;
+    font-weight: bold !important;
+    margin: 2.33em 0 !important;
+    color: #333 !important;
+}
+
+/* Thêm CSS cho các element có data-cke-heading-level */
+.ck-editor__editable [data-cke-heading-level="1"] {
+    font-size: 2em !important;
+    font-weight: bold !important;
+    margin: 0.67em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable [data-cke-heading-level="2"] {
+    font-size: 1.5em !important;
+    font-weight: bold !important;
+    margin: 0.83em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable [data-cke-heading-level="3"] {
+    font-size: 1.17em !important;
+    font-weight: bold !important;
+    margin: 1em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable [data-cke-heading-level="4"] {
+    font-size: 1em !important;
+    font-weight: bold !important;
+    margin: 1.33em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable [data-cke-heading-level="5"] {
+    font-size: 0.83em !important;
+    font-weight: bold !important;
+    margin: 1.67em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable [data-cke-heading-level="6"] {
+    font-size: 0.67em !important;
+    font-weight: bold !important;
+    margin: 2.33em 0 !important;
+    color: #333 !important;
+}
+
+/* CSS cho các element có class heading */
+.ck-editor__editable .heading {
+    font-weight: bold !important;
+}
+
+.ck-editor__editable .heading-1 {
+    font-size: 2em !important;
+    font-weight: bold !important;
+    margin: 0.67em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable .heading-2 {
+    font-size: 1.5em !important;
+    font-weight: bold !important;
+    margin: 0.83em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable .heading-3 {
+    font-size: 1.17em !important;
+    font-weight: bold !important;
+    margin: 1em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable .heading-4 {
+    font-size: 1em !important;
+    font-weight: bold !important;
+    margin: 1.33em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable .heading-5 {
+    font-size: 0.83em !important;
+    font-weight: bold !important;
+    margin: 1.67em 0 !important;
+    color: #333 !important;
+}
+
+.ck-editor__editable .heading-6 {
+    font-size: 0.67em !important;
+    font-weight: bold !important;
+    margin: 2.33em 0 !important;
+    color: #333 !important;
+}
