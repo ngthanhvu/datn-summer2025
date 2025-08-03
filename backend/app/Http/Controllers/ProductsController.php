@@ -143,6 +143,14 @@ class ProductsController extends Controller
             )
             ->findOrFail($id);
 
+        // Thêm url đầy đủ cho image_path
+        if ($product && $product->images) {
+            $product->images->transform(function ($image) {
+                $image->image_path = url('storage/' . $image->image_path);
+                return $image;
+            });
+        }
+
         return response()->json($product);
     }
 
