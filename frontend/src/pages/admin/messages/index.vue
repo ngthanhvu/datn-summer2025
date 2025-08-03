@@ -61,7 +61,7 @@
                                     {{ conversation.user.username || conversation.user.username }}
                                 </div>
                                 <div class="text-xs text-gray-500 ml-2">
-                                    {{ formatTime(conversation.latest_message.sent_at) }}
+                                    <!-- {{ formatTime(conversation.latest_message.sent_at) }} -->
                                 </div>
                             </div>
                             <div class="text-sm text-gray-600 truncate mt-1">

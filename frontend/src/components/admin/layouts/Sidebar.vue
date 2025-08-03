@@ -82,6 +82,11 @@
                     <span>Đánh giá</span>
                     <span v-if="unapprovedReviews > 0" class="badge">{{ unapprovedReviews }}</span>
                 </RouterLink>
+                <RouterLink to="/admin/contacts" class="nav-item">
+                    <i class="fas fa-address-book"></i>
+                    <span>Liên hệ</span>
+                    <span v-if="unreadContacts > 0" class="badge">{{ unreadContacts }}</span>
+                </RouterLink>
             </div>
 
             <!-- Hệ thống -->

@@ -44,6 +44,7 @@ import FlashSalePageAdmin from '../pages/admin/flashsale/index.vue';
 import FlashSaleForm from '../pages/admin/flashsale/create.vue';
 import FlashSaleSelect from '../pages/admin/flashsale/select.vue';
 import SettingPageAdmin from '../pages/admin/settings/index.vue';
+import ContactsPageAdmin from '../pages/admin/contacts/index.vue';
 
 import StatusPage from '../pages/status.vue';
 import NotFound from '../components/404.vue'
@@ -234,6 +235,10 @@ const routes = [
             {
                 path: '/admin/settings',
                 component: SettingPageAdmin
+            },
+            {
+                path: '/admin/contacts',
+                component: ContactsPageAdmin
             }
         ]
         // meta: { requiresAuth: true, requiresAdmin: true }
