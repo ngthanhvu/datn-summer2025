@@ -7,6 +7,8 @@ import ProductsPage from '../pages/products.vue';
 import ProducDetail from '../pages/detail.vue';
 import LoginPage from '../pages/auth/login.vue';
 import RegisterPage from '../pages/auth/register.vue';
+import ForgotPasswordPage from '../pages/forgotPassword.vue'
+import ResetPasswordPage from '../pages/resetPassword.vue'
 import ProfilePage from '../pages/profile.vue';
 import VoucherPage from '../pages/voucher.vue';
 import AboutPage from '../pages/about.vue';
@@ -124,6 +126,14 @@ const routes = [
             {
                 path: '/status',
                 component: StatusPage
+            },
+            {
+                path: '/forgot-password',
+                component: ForgotPasswordPage
+            },
+            {
+                path: '/reset',
+                component: ResetPasswordPage
             }
         ]
     },

@@ -111,24 +111,8 @@ onMounted(async () => {
         myCoupons.value = Array.isArray(myCouponsData) ? myCouponsData : (myCouponsData?.data || myCouponsData?.coupons || [])
     } catch (error) {
         console.error('Error loading coupons:', error)
-        push.error('Có lỗi xảy ra khi tải mã giảm giá')
     }
 })
-
-// const latestCoupons = computed(() => {
-//     const allCoupons = couponStore.coupons || []
-//     const latest = allCoupons
-//         .filter(coupon => coupon.is_active)
-//         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-//         .slice(0, 4)
-
-//     const claimedIds = myCoupons.value.map(c => c.coupon_id || c.id)
-//     latest.forEach(coupon => {
-//         coupon.is_claimed = claimedIds.includes(coupon.id)
-//     })
-
-//     return latest
-// })
 
 const latestCoupons = computed(() => {
     const allCoupons = couponStore.coupons || []
@@ -143,7 +127,6 @@ const latestCoupons = computed(() => {
             is_claimed: claimedIds.includes(coupon.id)
         }))
 })
-
 
 const formatCurrency = (amount) => {
     if (!amount || isNaN(amount)) return '0 ₫'

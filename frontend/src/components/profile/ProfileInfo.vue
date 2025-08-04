@@ -30,21 +30,21 @@
                             class="flex items-center justify-center gap-2 px-4 py-3 cursor-pointer flex-1 transition-colors"
                             :class="formData.gender === 'male' ? 'border-[#81aacc] border-2 bg-[#eaf3fa]' : 'hover:bg-gray-50'">
                             <input type="radio" value="male" v-model="formData.gender"
-                                class="form-radio h-4 w-4 accent-[#81aacc] focus:ring-0" />
+                                class="form-radio h-4 w-4 focus:ring-0" />
                             <span class="text-sm font-medium">Nam</span>
                         </label>
                         <label
                             class="flex items-center justify-center gap-2 px-4 py-3 cursor-pointer flex-1 transition-colors"
                             :class="formData.gender === 'female' ? 'border-[#81aacc] border-2 bg-[#eaf3fa]' : 'hover:bg-gray-50'">
                             <input type="radio" value="female" v-model="formData.gender"
-                                class="form-radio h-4 w-4 accent-[#81aacc] focus:ring-0" />
+                                class="form-radio h-4 w-4 focus:ring-0" />
                             <span class="text-sm font-medium">Nữ</span>
                         </label>
                         <label
                             class="flex items-center justify-center gap-2 px-4 py-3 cursor-pointer flex-1 transition-colors"
                             :class="formData.gender === 'other' ? 'border-[#81aacc] border-2 bg-[#eaf3fa]' : 'hover:bg-gray-50'">
                             <input type="radio" value="other" v-model="formData.gender"
-                                class="form-radio h-4 w-4 accent-[#81aacc] focus:ring-0" />
+                                class="form-radio h-4 w-4 focus:ring-0" />
                             <span class="text-sm font-medium">Khác</span>
                         </label>
                     </div>
@@ -225,10 +225,3 @@ const updateProfile = async () => {
     }
 }
 </script>
-
-<style>
-input[type="radio"]:focus {
-    outline: none !important;
-    box-shadow: none !important;
-}
-</style>
