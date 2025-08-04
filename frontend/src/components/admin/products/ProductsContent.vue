@@ -38,6 +38,9 @@ const productStore = useProductStore()
 const categoryStore = useCategoryStore()
 const brandStore = useBrandStore()
 
+const categories = ref([])
+const brands = ref([])
+
 const columns = [
     { key: 'main_image', label: 'Ảnh chính', type: 'main_image' },
     { key: 'sub_images', label: 'Ảnh phụ', type: 'sub_images' },

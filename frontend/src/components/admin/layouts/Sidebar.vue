@@ -109,6 +109,7 @@ const showInventoryMenu = ref(false)
 const unreadMessages = ref(0)
 const unapprovedReviews = ref(0)
 
+const unreadContacts = ref(0)
 // Gắn dữ liệu thực tế sau nếu cần
 unreadMessages.value = 3
 unapprovedReviews.value = 2

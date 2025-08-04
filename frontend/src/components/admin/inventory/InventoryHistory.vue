@@ -121,7 +121,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Người tạo</label>
                             <p class="mt-1 text-sm text-gray-900">{{ selectedMovement.user?.username || 'N/A'
-                            }}
+                                }}
                             </p>
                         </div>
                         <div>
@@ -248,7 +248,7 @@
                             <tbody>
                                 <tr v-for="(item, index) in selectedMovement?.items" :key="item.id">
                                     <td class="border border-gray-300 px-4 py-2 text-center">{{ index + 1
-                                        }}</td>
+                                    }}</td>
                                     <td class="border border-gray-300 px-4 py-2">{{
                                         item.variant.product.name }}
                                     </td>
@@ -381,28 +381,63 @@ onMounted(() => {
         display: none !important;
     }
 
-    body * {
-        visibility: hidden;
-    }
-
-    .receipt-content,
-    .receipt-content * {
-        visibility: visible;
-    }
-
-    .receipt-content {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
+    /* Reset body styles for printing */
+    body {
+        margin: 0;
+        padding: 0;
         background: white !important;
     }
 
-    .fixed {
-        position: static !important;
+    /* Hide all content except the receipt */
+    body * {
+        display: none !important;
     }
 
-    .bg-gray-600 {
+    /* Show only the receipt content */
+    .receipt-content,
+    .receipt-content * {
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    /* Ensure receipt content is properly positioned */
+    .receipt-content {
+        position: relative !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        page-break-inside: avoid;
+    }
+
+    /* Reset modal positioning for print */
+    .fixed {
+        position: static !important;
+        inset: auto !important;
+    }
+
+    /* Ensure table doesn't break across pages */
+    .receipt-content table {
+        page-break-inside: avoid;
+        width: 100% !important;
+    }
+
+    /* Ensure text is visible */
+    .receipt-content h1,
+    .receipt-content h3,
+    .receipt-content p,
+    .receipt-content span,
+    .receipt-content td,
+    .receipt-content th {
+        color: #000 !important;
+        visibility: visible !important;
+    }
+
+    /* Remove any background colors that might interfere */
+    .bg-gray-50,
+    .bg-white {
         background: transparent !important;
     }
 }

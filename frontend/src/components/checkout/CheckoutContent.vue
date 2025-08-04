@@ -10,6 +10,7 @@ import { useCheckout } from '../../composable/useCheckout'
 import { useCoupon } from '../../composable/useCoupon'
 import { usePayment } from '../../composable/usePayment'
 import { useRouter } from 'vue-router'
+import { useAuth } from '../../composable/useAuth'
 
 const router = useRouter()
 
@@ -18,6 +19,7 @@ const cartService = useCart()
 const checkoutService = useCheckout()
 const couponService = useCoupon()
 const paymentService = usePayment()
+const authService = useAuth()
 
 const showAddressForm = ref(false)
 const editingAddressIndex = ref(null)
@@ -223,6 +225,22 @@ const placeOrder = async () => {
             return
         }
 
+        // Kiểm tra user authentication
+        if (!authService.isAuthenticated.value) {
+            error.value = 'Vui lòng đăng nhập để đặt hàng'
+            return
+        }
+
+        // Đảm bảo user đã được load
+        if (!authService.user.value) {
+            await authService.getUser()
+        }
+
+        if (!authService.user.value?.id) {
+            error.value = 'Không thể xác định thông tin người dùng'
+            return
+        }
+
         isLoading.value = true
 
         const cart = await cartService.fetchCart()
@@ -242,7 +260,8 @@ const placeOrder = async () => {
             total_price: subtotal.value,
             shipping_fee: shipping.value,
             discount_price: discount.value,
-            final_price: total.value
+            final_price: total.value,
+            user_id: authService.user.value.id // Thêm user_id vào orderData
         }
 
         console.log('Creating order with data:', orderData)
@@ -294,6 +313,14 @@ const { settings, fetchSettings } = useSettings()
 onMounted(async () => {
     try {
         isLoading.value = true
+
+        // Kiểm tra authentication trước
+        const isAuthenticated = await authService.checkAuth()
+        if (!isAuthenticated) {
+            router.push('/login?redirect=' + encodeURIComponent(router.currentRoute.value.fullPath))
+            return
+        }
+
         await Promise.all([
             fetchSettings(),
             fetchAddresses(),
@@ -374,6 +401,23 @@ onMounted(async () => {
         <!-- Error -->
         <div v-else-if="error" class="bg-red-50 p-4 rounded-md text-red-600 mb-6">
             {{ error }}
+        </div>
+
+        <!-- Authentication Error -->
+        <div v-else-if="!authService.isAuthenticated.value" class="bg-yellow-50 p-4 rounded-md text-yellow-600 mb-6">
+            <p>Vui lòng <router-link to="/login" class="underline font-medium">đăng nhập</router-link> để tiếp tục thanh
+                toán.</p>
+        </div>
+
+        <!-- Empty Cart -->
+        <div v-else-if="cartItems.length === 0" class="bg-blue-50 p-4 rounded-md text-blue-600 mb-6">
+            <p>Giỏ hàng trống. <router-link to="/products" class="underline font-medium">Tiếp tục mua sắm</router-link>
+            </p>
+        </div>
+
+        <!-- No Address -->
+        <div v-else-if="addresses.length === 0" class="bg-orange-50 p-4 rounded-md text-orange-600 mb-6">
+            <p>Vui lòng thêm địa chỉ giao hàng để tiếp tục thanh toán.</p>
         </div>
 
         <!-- Nội dung thực -->

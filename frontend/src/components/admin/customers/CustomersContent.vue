@@ -16,7 +16,9 @@
             </button>
         </div>
 
-        <CustomersTable :customers="customers" :isLoading="isLoading" @delete="handleDelete" />
+        <CustomersTable :customers="customers" :isLoading="isLoading" :currentPage="currentPage"
+            :itemsPerPage="itemsPerPage" :totalItems="totalItems" @delete="handleDelete"
+            @page-change="handlePageChange" />
     </div>
 </template>
 
@@ -29,11 +31,17 @@ const { getListUser } = useAuth()
 const customers = ref([])
 const isLoading = ref(true)
 
+// Pagination state
+const currentPage = ref(1)
+const itemsPerPage = ref(2)
+const totalItems = ref(0)
+
 onMounted(async () => {
     isLoading.value = true
     try {
         const res = await getListUser()
         customers.value = res.users
+        totalItems.value = res.users.length
     } catch (err) {
         console.error('Get list user error:', err.response?.data || err.message)
         throw err
@@ -46,14 +54,21 @@ const handleDelete = (customer) => {
     const index = customers.value.findIndex(c => c.id === customer.id)
     if (index !== -1) {
         customers.value.splice(index, 1)
+        totalItems.value = customers.value.length
     }
+}
+
+const handlePageChange = (page) => {
+    currentPage.value = page
 }
 
 const handleRefresh = async () => {
     isLoading.value = true
+    currentPage.value = 1 // Reset to first page
     try {
         const res = await getListUser()
         customers.value = res.users
+        totalItems.value = res.users.length
     } catch (err) {
         console.error('Get list user error:', err.response?.data || err.message)
         throw err

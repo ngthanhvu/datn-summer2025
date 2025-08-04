@@ -4,7 +4,7 @@
         <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
             <!-- Logo -->
             <router-link to="/" class="flex items-center">
-                <img src="/logo.png" alt="EGA MEN" class="w-20" />
+                <img src="/logo1.png" alt="EGA MEN" class="w-20" />
             </router-link>
 
             <!-- Desktop Navigation -->
