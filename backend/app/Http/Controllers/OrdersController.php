@@ -116,116 +116,81 @@ class OrdersController extends Controller
 
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'address_id' => 'required|exists:addresses,id',
-                'payment_method' => 'required|in:cod,vnpay,momo,paypal',
-                'coupon_id' => 'nullable|exists:coupons,id',
-                'items' => 'required|array',
-                'items.*.variant_id' => 'required|exists:variants,id',
-                'items.*.quantity' => 'required|integer|min:1',
-                'items.*.price' => 'required|integer|min:0',
-                'note' => 'nullable|string',
-                'total_price' => 'required|integer|min:0',
-                'shipping_fee' => 'required|integer|min:0',
-                'discount_price' => 'required|integer|min:0',
-                'final_price' => 'required|integer|min:0',
-            ]);
+        $validated = $request->validate([
+            'address_id' => 'required|exists:addresses,id',
+            'payment_method' => 'required|in:cod,vnpay,momo,paypal',
+            'coupon_id' => 'nullable|exists:coupons,id',
+            'items' => 'required|array',
+            'items.*.variant_id' => 'required|exists:variants,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|integer|min:0',
+            'note' => 'nullable|string',
+            'total_price' => 'required|integer|min:0',
+            'shipping_fee' => 'required|integer|min:0',
+            'discount_price' => 'required|integer|min:0',
+            'final_price' => 'required|integer|min:0',
+        ]);
 
+        if ($validated['payment_method'] === 'cod') {
             DB::beginTransaction();
-
-            $order = Orders::create([
-                'user_id' => Auth::user()->id,
-                'address_id' => $validated['address_id'],
-                'payment_method' => $validated['payment_method'],
-                'coupon_id' => $validated['coupon_id'],
-                'note' => $validated['note'] ?? '',
-                'total_price' => $validated['total_price'],
-                'shipping_fee' => $validated['shipping_fee'],
-                'discount_price' => $validated['discount_price'],
-                'final_price' => $validated['final_price'],
-                'status' => 'pending',
-                'payment_status' => $validated['payment_method'] === 'cod' ? 'pending' : 'paid',
-                'tracking_code' => $this->generateUniqueTrackingCode(),
-            ]);
-
-            foreach ($validated['items'] as $item) {
-                $variant = Variants::find($item['variant_id']);
-                if (!$variant) {
-                    throw new \Exception("Không tìm thấy biến thể: variant_id = {$item['variant_id']}");
-                }
-
-                Orders_detail::create([
-                    'order_id' => $order->id,
-                    'variant_id' => $item['variant_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'original_price' => $variant->price,
-                    'total_price' => $item['quantity'] * $item['price']
+            try {
+                $order = self::createOrderFromData($validated, Auth::user()->id);
+                // Trừ kho, tạo phiếu xuất kho, xóa giỏ hàng, gửi mail... (copy logic từ cũ vào đây)
+                // Tạo phiếu xuất kho cho đơn hàng
+                $stockMovement = StockMovement::create([
+                    'type' => 'export',
+                    'user_id' => Auth::id(),
+                    'note' => 'Xuất kho khi đặt hàng #' . $order->id,
                 ]);
-            }
-
-            // Tạo phiếu xuất kho cho đơn hàng
-            $stockMovement = StockMovement::create([
-                'type' => 'export',
-                'user_id' => Auth::id(),
-                'note' => 'Xuất kho khi đặt hàng #' . $order->id,
-            ]);
-
-            foreach ($validated['items'] as $item) {
-                $variant = Variants::find($item['variant_id']);
-                $finalPrice = ($variant && $variant->discount_price && $variant->discount_price > 0)
-                    ? $variant->discount_price
-                    : ($variant ? $variant->price : $item['price']);
-                $stockMovementItem = StockMovementItem::create([
-                    'stock_movement_id' => $stockMovement->id,
-                    'variant_id' => $item['variant_id'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $finalPrice,
-                ]);
-
-                // Trừ kho
-                $inventory = Inventory::where('variant_id', $item['variant_id'])->first();
-                if ($inventory) {
-                    if ($inventory->quantity < $item['quantity']) {
-                        throw new \Exception("Số lượng tồn kho không đủ cho biến thể: {$item['variant_id']}");
+                foreach ($validated['items'] as $item) {
+                    $variant = Variants::find($item['variant_id']);
+                    $finalPrice = ($variant && $variant->discount_price && $variant->discount_price > 0)
+                        ? $variant->discount_price
+                        : ($variant ? $variant->price : $item['price']);
+                    $stockMovementItem = StockMovementItem::create([
+                        'stock_movement_id' => $stockMovement->id,
+                        'variant_id' => $item['variant_id'],
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $finalPrice,
+                    ]);
+                    // Trừ kho
+                    $inventory = Inventory::where('variant_id', $item['variant_id'])->first();
+                    if ($inventory) {
+                        if ($inventory->quantity < $item['quantity']) {
+                            throw new \Exception("Số lượng tồn kho không đủ cho biến thể: {$item['variant_id']}");
+                        }
+                        $inventory->quantity -= $item['quantity'];
+                        $inventory->save();
+                    } else {
+                        throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                     }
-                    $inventory->quantity -= $item['quantity'];
-                    $inventory->save();
-                } else {
-                    throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                 }
-            }
-
-            if ($validated['payment_method'] === 'cod') {
                 DB::table('carts')
                     ->where('user_id', Auth::user()->id)
                     ->delete();
-
                 $user = Auth::user();
                 if ($user && !empty($user->email)) {
                     Mail::to($user->email)->send(new PaymentConfirmation($order));
                 }
+                DB::commit();
+                return response()->json([
+                    'message' => 'Đặt hàng thành công',
+                    'order' => $order->load('orderDetails.variant.product')
+                ], 201);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Có lỗi xảy ra khi đặt hàng',
+                    'error' => $e->getMessage()
+                ], 500);
             }
-
-            DB::commit();
-
+        } else {
+            // Không tạo order, chỉ trả về dữ liệu cho frontend gọi payment
             return response()->json([
-                'message' => 'Đặt hàng thành công',
-                'order' => $order->load('orderDetails.variant.product')
-            ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Dữ liệu không hợp lệ',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Có lỗi xảy ra khi đặt hàng',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => 'Redirect to payment gateway',
+                'payment_method' => $validated['payment_method'],
+                'data' => $validated
+            ]);
         }
     }
 
@@ -363,6 +328,37 @@ class OrdersController extends Controller
 
         return $trackingCode;
     }
+
+    public static function createOrderFromData($data, $userId)
+    {
+        $order = Orders::create([
+            'user_id' => $userId,
+            'address_id' => $data['address_id'],
+            'payment_method' => $data['payment_method'],
+            'coupon_id' => $data['coupon_id'] ?? null,
+            'note' => $data['note'] ?? '',
+            'total_price' => $data['total_price'],
+            'shipping_fee' => $data['shipping_fee'],
+            'discount_price' => $data['discount_price'],
+            'final_price' => $data['final_price'],
+            'status' => 'pending',
+            'payment_status' => 'pending',
+            'tracking_code' => (new self)->generateUniqueTrackingCode(),
+        ]);
+        foreach ($data['items'] as $item) {
+            $variant = Variants::find($item['variant_id']);
+            Orders_detail::create([
+                'order_id' => $order->id,
+                'variant_id' => $item['variant_id'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'original_price' => $variant ? $variant->price : $item['price'],
+                'total_price' => $item['quantity'] * $item['price']
+            ]);
+        }
+        return $order;
+    }
+
     public function reorder($id)
     {
         try {

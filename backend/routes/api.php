@@ -22,6 +22,7 @@ use App\Http\Controllers\MessengerController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\FlashSaleController;
+use App\Http\Controllers\ContactController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -204,3 +205,10 @@ Route::post('flash-sales', [FlashSaleController::class, 'store']);
 Route::put('flash-sales/{id}', [FlashSaleController::class, 'update']);
 Route::delete('flash-sales/{id}', [FlashSaleController::class, 'destroy']);
 Route::get('flash-sales/{id}', [FlashSaleController::class, 'show']);
+
+// Contact
+Route::get('/contacts', [ContactController::class, 'index']);
+Route::get('/contacts/{id}', [ContactController::class, 'show']);
+Route::post('/contacts', [ContactController::class, 'store']);
+Route::post('/contacts/{id}/reply', [ContactController::class, 'reply']);
+Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);

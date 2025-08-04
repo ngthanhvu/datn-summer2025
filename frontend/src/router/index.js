@@ -7,6 +7,8 @@ import ProductsPage from '../pages/products.vue';
 import ProducDetail from '../pages/detail.vue';
 import LoginPage from '../pages/auth/login.vue';
 import RegisterPage from '../pages/auth/register.vue';
+import ForgotPasswordPage from '../pages/forgotPassword.vue'
+import ResetPasswordPage from '../pages/resetPassword.vue'
 import ProfilePage from '../pages/profile.vue';
 import VoucherPage from '../pages/voucher.vue';
 import AboutPage from '../pages/about.vue';
@@ -44,6 +46,7 @@ import FlashSalePageAdmin from '../pages/admin/flashsale/index.vue';
 import FlashSaleForm from '../pages/admin/flashsale/create.vue';
 import FlashSaleSelect from '../pages/admin/flashsale/select.vue';
 import SettingPageAdmin from '../pages/admin/settings/index.vue';
+import ContactsPageAdmin from '../pages/admin/contacts/index.vue';
 
 import StatusPage from '../pages/status.vue';
 import NotFound from '../components/404.vue'
@@ -123,6 +126,14 @@ const routes = [
             {
                 path: '/status',
                 component: StatusPage
+            },
+            {
+                path: '/forgot-password',
+                component: ForgotPasswordPage
+            },
+            {
+                path: '/reset',
+                component: ResetPasswordPage
             }
         ]
     },
@@ -234,6 +245,10 @@ const routes = [
             {
                 path: '/admin/settings',
                 component: SettingPageAdmin
+            },
+            {
+                path: '/admin/contacts',
+                component: ContactsPageAdmin
             }
         ]
         // meta: { requiresAuth: true, requiresAdmin: true }

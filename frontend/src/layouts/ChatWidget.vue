@@ -52,8 +52,7 @@
           <div v-else-if="admins.length > 0" class="space-y-3">
             <div v-for="admin in admins" :key="admin.id" @click="selectAdmin(admin)"
               class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary cursor-pointer transition-all hover:shadow-sm">
-              <img
-                :src="admin.avatar ? (admin.avatar.startsWith('http') ? admin.avatar : runtimeConfig.public.apiBaseUrl + admin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
+              <img src="https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg"
                 :alt="admin.name" class="w-12 h-12 rounded-full object-cover border-2 border-primary">
               <div class="flex-1">
                 <div class="font-medium text-gray-800">{{ admin.name || admin.username }}</div>
@@ -84,8 +83,7 @@
           <button @click="backToAdminList" class="text-gray-600 hover:text-gray-800 transition-colors">
             <i class="fas fa-arrow-left"></i>
           </button>
-          <img
-            :src="currentAdmin.avatar ? (currentAdmin.avatar.startsWith('http') ? currentAdmin.avatar : runtimeConfig.public.apiBaseUrl + currentAdmin.avatar) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
+          <img src="https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg"
             :alt="currentAdmin.name" class="w-8 h-8 rounded-full object-cover">
           <div class="flex-1">
             <div class="font-medium text-sm">{{ currentAdmin.name || currentAdmin.username }}</div>

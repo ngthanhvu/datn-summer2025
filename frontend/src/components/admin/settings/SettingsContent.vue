@@ -5,33 +5,40 @@
             <p class="text-gray-600">Quản lý cài đặt của cửa hàng</p>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex gap-2 border-gray-200">
-            <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
-                :class="['px-4 py-2 rounded-t-md cursor-pointer', activeTab === tab.key ? 'bg-white border border-b-0 border-gray-300 font-medium' : 'bg-gray-100 hover:bg-gray-200']">
-                {{ tab.label }}
-            </button>
-        </div>
-
-        <div class="rounded-b-md border-r border-l border-b border-gray-300 bg-white">
-            <SettingCard v-if="activeTab === 'general'" title="Thông tin cửa hàng" :fields="generalFields"
-                v-model="generalSettings" />
-            <SettingCard v-if="activeTab === 'payment'" title="Cài đặt thanh toán" :fields="paymentFields"
-                v-model="paymentSettings" />
-            <SettingCard v-if="activeTab === 'shipping'" title="Cài đặt vận chuyển" :fields="shippingFields"
-                v-model="shippingSettings" />
-            <SettingCard v-if="activeTab === 'email'" title="Cài đặt email" :fields="emailFields"
-                v-model="emailSettings" />
-            <SettingCard v-if="activeTab === 'notification'" title="Cài đặt thông báo" :fields="notificationFields"
-                v-model="notificationSettings" />
-            <SettingCard v-if="activeTab === 'api'" title="Cài đặt API" :fields="apiFields" v-model="apiSettings" />
-        </div>
-
-        <div class="mt-6 text-right">
-            <button @click="handleSaveAll"
-                class="bg-[#3BB77E] hover:bg-green-700 text-white font-medium px-6 py-2 rounded cursor-pointer">
-                Lưu thay đổi
-            </button>
+        <!-- Layout 2 cột -->
+        <div class="settings-layout flex">
+            <!-- Sidebar trái -->
+            <div class="settings-sidebar w-1/4 pr-4 border-r border-gray-200">
+                <div class="flex flex-col gap-2">
+                    <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
+                        :class="['px-4 py-2 rounded-l-md text-left cursor-pointer', activeTab === tab.key ? 'bg-white border-l-4 border-[#3BB77E] font-medium' : 'bg-gray-100 hover:bg-gray-200']">
+                        {{ tab.label }}
+                    </button>
+                </div>
+            </div>
+            <!-- Nội dung phải -->
+            <div class="settings-content w-3/4 pl-4">
+                <div class="rounded-md border border-gray-300 bg-white">
+                    <SettingCard v-if="activeTab === 'general'" title="Thông tin cửa hàng" :fields="generalFields"
+                        v-model="generalSettings" />
+                    <SettingCard v-if="activeTab === 'payment'" title="Cài đặt thanh toán" :fields="paymentFields"
+                        v-model="paymentSettings" />
+                    <SettingCard v-if="activeTab === 'shipping'" title="Cài đặt vận chuyển" :fields="shippingFields"
+                        v-model="shippingSettings" />
+                    <SettingCard v-if="activeTab === 'email'" title="Cài đặt email" :fields="emailFields"
+                        v-model="emailSettings" />
+                    <SettingCard v-if="activeTab === 'notification'" title="Cài đặt thông báo"
+                        :fields="notificationFields" v-model="notificationSettings" />
+                    <SettingCard v-if="activeTab === 'api'" title="Cài đặt API" :fields="apiFields"
+                        v-model="apiSettings" />
+                </div>
+                <div class="mt-6 text-right">
+                    <button @click="handleSaveAll"
+                        class="bg-[#3BB77E] hover:bg-green-700 text-white font-medium px-6 py-2 rounded cursor-pointer">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </template>

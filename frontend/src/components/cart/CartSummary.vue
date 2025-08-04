@@ -1,5 +1,5 @@
 <template>
-    <aside class="w-full md:w-80 bg-[#f3f4f6] p-5 flex flex-col gap-8">
+    <div class="w-full md:w-80 bg-[#f3f4f6] p-5 flex flex-col gap-8">
         <h3 class="font-semibold text-base text-black">Tóm tắt đơn hàng</h3>
         <hr class="border-t border-gray-300" />
 
@@ -7,16 +7,6 @@
             <span>{{ itemCount }} sản phẩm</span>
             <span>{{ formatPrice(subtotal) }}</span>
         </div>
-
-        <!-- <div>
-            <p class="text-sm font-semibold text-black uppercase mb-2">Phương thức giao hàng</p>
-            <select class="w-full text-sm border border-gray-300 rounded px-3 py-2" aria-label="Shipping options"
-                v-model="selectedShipping" @change="$emit('update:shipping', selectedShipping)">
-                <option v-for="option in shippingOptions" :key="option.value" :value="option.value">
-                    {{ option.label }} - {{ formatPrice(option.price) }}
-                </option>
-            </select>
-        </div> -->
 
         <div class="flex justify-between text-sm font-semibold text-black uppercase border-t border-gray-300">
             <span class="mt-5">Tổng cộng</span>
@@ -28,7 +18,7 @@
             @click="handleCheckout">
             Thanh toán
         </button>
-    </aside>
+    </div>
 </template>
 
 <script setup>

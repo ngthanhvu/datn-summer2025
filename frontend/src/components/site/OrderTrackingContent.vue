@@ -19,7 +19,7 @@
             <div v-else-if="orderError" class="bg-white p-6 rounded-lg shadow-sm text-center text-red-600">
                 <div class="py-12">
                     <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
-                    <h3 class="text-lg font-medium mb-2">Lỗi: {{ orderError }}</h3>
+                    <h3 class="text-lg font-medium mb-2">Lỗi: Đơn hàng không tồn tại hoặc nhập sai mã</h3>
                     <p class="text-gray-500">Vui lòng thử lại hoặc kiểm tra mã vận đơn.</p>
                 </div>
             </div>

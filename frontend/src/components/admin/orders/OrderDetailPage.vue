@@ -255,16 +255,9 @@
                         </div>
                         <div class="space-y-2">
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Đơn vị vận chuyển:</span>
-                                <span class="font-medium">DHL</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Tốc độ:</span>
-                                <span class="font-medium">Tiêu chuẩn</span>
-                            </div>
-                            <div class="flex justify-between">
                                 <span class="text-gray-600">Mã theo dõi:</span>
-                                <a href="#" class="text-blue-600 underline font-medium">{{ currentOrder?.tracking_code
+                                <a href="#" class="text-blue-600 underline font-medium bg-gray-300 px-2 py-1 rounded">{{
+                                    currentOrder?.tracking_code
                                     ||
                                     'SPX037739199373' }}</a>
                             </div>
@@ -278,8 +271,10 @@
 
                         </div>
                         <div class="space-y-2">
-                            <p class="text-gray-900">{{ getFullAddress(currentOrder?.address) }}</p>
-                            <p class="text-gray-600">{{ currentOrder?.address?.phone }}</p>
+                            <p class="text-gray-600"><span class=" font-medium text-gray-700">Địa chỉ:</span> {{
+                                getFullAddress(currentOrder?.address) }}</p>
+                            <p class="text-gray-600"><span class=" font-medium text-gray-700">Số điện thoại:</span> {{
+                                currentOrder?.address?.phone }}</p>
                         </div>
                     </div>
 
@@ -292,7 +287,7 @@
                         <div class="flex items-center space-x-3">
                             <div class="flex-1">
                                 <p class="font-medium text-gray-900">{{ getPaymentMethod(currentOrder?.payment_method)
-                                }}</p>
+                                    }}</p>
                             </div>
                             <div class="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
                                 <i class="fab fa-cc-mastercard text-blue-600"></i>

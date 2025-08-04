@@ -111,10 +111,10 @@ const deleteAddress = async (index) => {
 const fetchAddresses = async () => {
     try {
         isLoading.value = true
-        const response = await addressService.getAddresses()
+        const response = await addressService.getMyAddress()
 
-        if (response && response.data && Array.isArray(response.data)) {
-            addresses.value = response.data.map(addr => ({
+        if (Array.isArray(response)) {
+            addresses.value = response.map(addr => ({
                 id: addr.id,
                 fullName: addr.full_name,
                 phone: addr.phone,
@@ -249,41 +249,34 @@ const placeOrder = async () => {
         const result = await checkoutService.createOrder(orderData)
         console.log('Order creation result:', result)
 
-        if (result && result.order) {
-            const paymentMethod = paymentMethods.value[selectedPaymentMethod.value]?.code || 'cod'
-            const orderId = result.order.id
-            const amount = result.order.final_price
-
-            console.log('Payment method:', paymentMethod)
-            console.log('Order ID:', orderId)
-            console.log('Amount:', amount)
-
-            if (paymentMethod === 'cod') {
-                router.push(`/status?status=success&orderId=${orderId}&amount=${amount}&tracking_code=${result.order.tracking_code}`)
-            } else {
-                let paymentUrl
-                let paymentResult
-
-                switch (paymentMethod) {
-                    case 'vnpay':
-                        paymentResult = await paymentService.generateVnpayUrl(orderId, amount)
-                        paymentUrl = paymentResult.payment_url
-                        break
-                    case 'momo':
-                        paymentResult = await paymentService.generateMomoUrl(orderId, amount)
-                        paymentUrl = paymentResult.payment_url
-                        break
-                    case 'paypal':
-                        paymentResult = await paymentService.generatePaypalUrl(orderId, amount)
-                        paymentUrl = paymentResult.payment_url
-                        break
-                }
-                if (paymentUrl) {
-                    window.location.href = paymentUrl
-                } else {
-                    throw new Error('Không thể tạo URL thanh toán')
-                }
+        // Handle new backend logic for online payment
+        if (result && result.message === 'Redirect to payment gateway') {
+            const paymentMethod = result.payment_method
+            let paymentUrl
+            let paymentResult
+            if (paymentMethod === 'vnpay') {
+                paymentResult = await paymentService.generateVnpayUrl(result.data)
+                paymentUrl = paymentResult.payment_url
+            } else if (paymentMethod === 'momo') {
+                paymentResult = await paymentService.generateMomoUrl(result.data)
+                paymentUrl = paymentResult.payment_url
+            } else if (paymentMethod === 'paypal') {
+                paymentResult = await paymentService.generatePaypalUrl(result.data)
+                paymentUrl = paymentResult.payment_url
             }
+            if (paymentUrl) {
+                window.location.href = paymentUrl
+                return
+            } else {
+                throw new Error('Không thể tạo URL thanh toán')
+            }
+        }
+
+        // COD logic (order created immediately)
+        if (result && result.order) {
+            // Redirect sang trang trạng thái đơn hàng
+            router.push(`/status?status=success&orderId=${result.order.id}&amount=${result.order.final_price}&tracking_code=${result.order.tracking_code || ''}`)
+            return
         } else {
             throw new Error('Không thể tạo đơn hàng')
         }

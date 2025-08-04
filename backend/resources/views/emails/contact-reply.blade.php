@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yêu cầu hoàn hàng bị từ chối - DEVGANG</title>
+    <title>Phản hồi liên hệ từ DEVGANG</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
         
@@ -79,40 +79,81 @@
             margin-bottom: 10px;
         }
         
+        .customer-name-highlight {
+            color: #1e293b;
+            font-weight: 700;
+        }
+        
         .greeting-description {
             color: #64748b;
             font-size: 16px;
             margin-bottom: 15px;
         }
         
-        .rejection-section {
-            background: #fef2f2;
+        .message-section {
+            background: white;
             border-radius: 12px;
-            padding: 25px;
+            padding: 20px;
             margin: 20px 0;
-            border: 1px solid #fecaca;
-            text-align: center;
+            border: 1px solid #e6f0f8;
         }
         
-        .rejection-title {
+        .message-title {
             font-size: 18px;
             font-weight: 600;
-            color: #dc2626;
+            color: #2a6a98;
             margin-bottom: 15px;
         }
         
-        .rejection-message {
-            color: #991b1b;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-        
-        .order-info {
-            background: white;
+        .customer-message {
+            background: #f8fafc;
             border-radius: 8px;
             padding: 15px;
             margin: 15px 0;
-            border: 1px solid #fecaca;
+            border-left: 4px solid #81aacc;
+        }
+        
+        .admin-reply {
+            background: #f0f8ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #5a8bb8;
+        }
+        
+        .message-content {
+            color: #374151;
+            font-size: 15px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .customer-message strong,
+        .admin-reply strong {
+            color: #000000;
+        }
+        
+        .contact-details {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .contact-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 15px;
+        }
+        
+        .simple-contact-info {
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
         }
         
         .info-row {
@@ -139,66 +180,9 @@
             font-weight: 500;
         }
         
-        .reason-section {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            border: 1px solid #fecaca;
-        }
-        
-        .reason-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #dc2626;
-            margin-bottom: 10px;
-        }
-        
-        .reason-text {
-            color: #991b1b;
-            font-size: 14px;
-        }
-        
-        .order-section {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 20px 0;
-            border: 1px solid #e6f0f8;
-        }
-        
-        .order-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2a6a98;
-            margin-bottom: 20px;
-        }
-        
-        .order-item {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            border: 1px solid #e9ecef;
-        }
-        
-        .product-image {
-            max-width: 120px;
-            margin-top: 8px;
-            border-radius: 4px;
-        }
-        
-        .product-name {
-            font-weight: 600;
-            color: #2a6a98;
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        
-        .product-details {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 6px;
+        .email-link {
+            color: #0066cc !important;
+            text-decoration: underline;
         }
         
         .action-section {
@@ -265,7 +249,7 @@
             .brand-logo { font-size: 28px; }
             .header-title { font-size: 20px; }
             .greeting-title, .action-title { font-size: 18px; }
-            .rejection-title, .order-title { font-size: 16px; }
+            .message-title, .contact-title { font-size: 16px; }
             .info-row {
                 flex-direction: column;
                 align-items: flex-start;
@@ -278,61 +262,60 @@
     <div class="email-wrapper">
         <div class="header-area">
             <div class="brand-logo">DEVGANG</div>
-            <div class="header-title">Yêu cầu hoàn hàng bị từ chối</div>
-            <div class="header-subtitle">Đơn hàng của bạn đã được xử lý</div>
+            <div class="header-title">Phản hồi liên hệ</div>
+            <div class="header-subtitle">Chúng tôi đã phản hồi yêu cầu của bạn</div>
         </div>
         
         <div class="main-content">
             <div class="greeting-section">
                 <div class="greeting-title">
-                    Xin chào <span style="font-weight: bold;">{{ $order->user->username ?? $order->user->name ?? $order->user->email }}</span>!
+                    Xin chào <span class="customer-name-highlight">{{ $contact->name }}</span>!
                 </div>
                 <div class="greeting-description">
-                    Yêu cầu hoàn hàng của bạn đã được xử lý.
+                    Cảm ơn bạn đã liên hệ với chúng tôi. Dưới đây là phản hồi chi tiết từ đội ngũ hỗ trợ của DEVGANG.
                 </div>
             </div>
             
-            <div class="rejection-section">
-                <div class="rejection-title">❌ Yêu cầu hoàn hàng bị từ chối</div>
-                <div class="rejection-message">
-                    Rất tiếc, yêu cầu hoàn hàng cho đơn hàng <strong>#{{ $order->id }}</strong> của bạn đã bị từ chối bởi quản trị viên.
+            <div class="message-section">
+                <div class="message-title">Nội dung trao đổi</div>
+                
+                <div class="customer-message">
+                    <strong>Tin nhắn của bạn:</strong><br>
+                    <div class="message-content">{{ $contact->message }}</div>
                 </div>
                 
-                <div class="order-info">
-                    <div class="info-row">
-                        <span class="info-label">Mã đơn hàng:</span>
-                        <span class="info-value">#{{ $order->id }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Trạng thái mới:</span>
-                        <span class="info-value">Đã bị từ chối hoàn hàng</span>
-                    </div>
-                </div>
-                
-                <div class="reason-section">
-                    <div class="reason-title">Lý do từ chối:</div>
-                    <div class="reason-text">{{ $reason }}</div>
+                <div class="admin-reply">
+                    <strong>Phản hồi từ DEVGANG:</strong><br>
+                    <div class="message-content">{{ $adminReply }}</div>
                 </div>
             </div>
             
-            <div class="order-section">
-                <div class="order-title">Chi tiết sản phẩm yêu cầu hoàn:</div>
-                @foreach($order->orderDetails as $item)
-                <div class="order-item">
-                    @if(isset($item->variant->product->mainImage) && isset($item->variant->product->mainImage->image_path))
-                    <img src="{{ $item->variant->product->mainImage->image_path }}" alt="Ảnh sản phẩm" class="product-image">
-                    @endif
-                    <div class="product-name">{{ $item->variant->product->name }}</div>
-                    <div class="product-details">Phân loại: {{ $item->variant->color }} - {{ $item->variant->size }}</div>
-                    <div class="product-details">Số lượng: {{ $item->quantity }}</div>
+            <div class="contact-details">
+                <div class="contact-title">Thông tin liên hệ của bạn</div>
+                <div class="simple-contact-info">
+                    <div class="info-row">
+                        <span class="info-label">Họ tên:</span>
+                        <span class="info-value">{{ $contact->name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value email-link">{{ $contact->email }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Số điện thoại:</span>
+                        <span class="info-value">{{ $contact->phone }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ngày gửi:</span>
+                        <span class="info-value">{{ \Carbon\Carbon::parse($contact->created_at)->format('d/m/Y H:i') }}</span>
+                    </div>
                 </div>
-                @endforeach
             </div>
             
             <div class="action-section">
                 <div class="action-title">Bạn cần hỗ trợ thêm?</div>
                 <div class="action-description">
-                    Nếu bạn cần thêm thông tin hoặc hỗ trợ, vui lòng liên hệ với chúng tôi.
+                    Nếu bạn cần hỗ trợ thêm hoặc có câu hỏi khác, đừng ngần ngại liên hệ với chúng tôi.
                 </div>
             </div>
         </div>
