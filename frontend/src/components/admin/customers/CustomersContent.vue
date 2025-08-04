@@ -33,7 +33,7 @@ const isLoading = ref(true)
 
 // Pagination state
 const currentPage = ref(1)
-const itemsPerPage = ref(2)
+const itemsPerPage = ref(10)
 const totalItems = ref(0)
 
 onMounted(async () => {

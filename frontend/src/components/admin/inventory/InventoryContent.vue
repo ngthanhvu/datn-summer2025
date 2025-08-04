@@ -122,7 +122,7 @@
                                     </tr>
                                 </template>
                                 <template v-else>
-                                    <tr v-for="item in filteredInventories" :key="item.variant.id">
+                                    <tr v-for="item in paginatedInventories" :key="item.variant.id">
                                         <td class="px-6 py-4">{{ item.variant.product.name }}</td>
                                         <td class="px-6 py-4">{{ item.variant.color }}</td>
                                         <td class="px-6 py-4">{{ item.variant.size }}</td>
@@ -140,7 +140,7 @@
                                             </span>
                                         </td>
                                     </tr>
-                                    <tr v-if="filteredInventories.length === 0">
+                                    <tr v-if="paginatedInventories.length === 0">
                                         <td colspan="7" class="px-4 py-3 text-center text-gray-500">Không có
                                             dữ liệu</td>
                                     </tr>
@@ -148,6 +148,26 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="!loading && totalPages > 1" class="flex justify-between items-center mt-6">
+                <div class="text-sm text-gray-600">
+                    Hiển thị {{ paginatedInventories.length }} trên tổng số {{ filteredInventories.length }} bản ghi
+                </div>
+                <div class="flex gap-2">
+                    <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
+                        class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="px-3 py-1">
+                        Trang {{ currentPage }} / {{ totalPages }}
+                    </span>
+                    <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)"
+                        class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -167,6 +187,8 @@ const filters = ref({
 })
 
 const loading = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = 10
 
 const fetchInventories = async () => {
     try {
@@ -241,6 +263,20 @@ const filteredInventories = computed(() => {
 
     return result
 })
+
+const paginatedInventories = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    const end = start + itemsPerPage
+    return filteredInventories.value.slice(start, end)
+})
+
+const totalPages = computed(() => Math.ceil(filteredInventories.value.length / itemsPerPage))
+
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+    }
+}
 
 watch(filters, () => {
 }, { deep: true })

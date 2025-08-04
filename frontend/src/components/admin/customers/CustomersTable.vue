@@ -107,14 +107,14 @@
             </div>
             <div class="flex gap-2">
                 <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
-                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <span class="px-3 py-1">
                     Trang {{ currentPage }} / {{ totalPages }}
                 </span>
                 <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)"
-                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>

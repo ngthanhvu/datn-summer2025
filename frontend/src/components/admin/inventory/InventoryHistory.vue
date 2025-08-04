@@ -37,9 +37,10 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="(movement, index) in stockMovements" :key="movement.id" class="hover:bg-gray-50">
+                <tr v-for="(movement, index) in paginatedMovements" :key="movement.id" class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="text-sm font-medium text-gray-900">#{{ index + 1 }}</span>
+                        <span class="text-sm font-medium text-gray-900">#{{ (currentPage - 1) * itemsPerPage + index + 1
+                        }}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span :class="[
@@ -79,8 +80,8 @@
                         </button>
                     </td>
                 </tr>
-                <tr v-if="stockMovements.length === 0">
-                    <td colspan="8" class="text-center px-6 py-4 whitespace-nowrap">
+                <tr v-if="paginatedMovements.length === 0">
+                    <td colspan="7" class="text-center px-6 py-4 whitespace-nowrap">
                         <div class="flex justify-center text-center">
                             <span class="text-sm font-medium text-gray-500">Không có dữ liệu</span>
                         </div>
@@ -88,6 +89,26 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="!loading && totalPages > 1" class="flex justify-between items-center mt-6">
+        <div class="text-sm text-gray-600">
+            Hiển thị {{ paginatedMovements.length }} trên tổng số {{ stockMovements.length }} bản ghi
+        </div>
+        <div class="flex gap-2">
+            <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
+                class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="px-3 py-1">
+                Trang {{ currentPage }} / {{ totalPages }}
+            </span>
+            <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)"
+                class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Movement Details Modal -->
@@ -310,6 +331,8 @@ const { getStockMovement } = useInventories()
 
 const loading = ref(false)
 const stockMovements = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 10
 
 const fetchStockMovements = async () => {
     loading.value = true
@@ -334,6 +357,20 @@ const totalQuantity = computed(() => {
 const totalAmount = computed(() => {
     return selectedMovement.value?.items?.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) || 0
 })
+
+const paginatedMovements = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    const end = start + itemsPerPage
+    return stockMovements.value.slice(start, end)
+})
+
+const totalPages = computed(() => Math.ceil(stockMovements.value.length / itemsPerPage))
+
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+    }
+}
 
 const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('vi-VN')

@@ -23,16 +23,22 @@
             </div>
         </div>
 
-        <BrandsTable :brands="brands" :isLoading="isLoading" @delete="handleDelete" @bulk-delete="handleBulkDelete" />
+        <!-- <BrandsTable :brands="brands" :isLoading="isLoading" @delete="handleDelete" @bulk-delete="handleBulkDelete" /> -->
+        <BrandsTable :brands="brands" :is-loading="isLoading" :current-page="currentPage" :items-per-page="itemsPerPage"
+            @update:currentPage="currentPage = $event" @delete="handleDelete" @bulk-delete="handleBulkDelete" />
+
     </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBrandStore } from '../../../stores/brands'
 import BrandsTable from './BrandsTable.vue'
 
 const brandStore = useBrandStore()
+
+const currentPage = ref(1)
+const itemsPerPage = 10
 
 const brands = computed(() => brandStore.brands)
 const isLoading = computed(() => brandStore.loading)
