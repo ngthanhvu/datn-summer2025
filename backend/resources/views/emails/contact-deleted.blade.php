@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thông báo về liên hệ của bạn - DEVGANG</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
@@ -22,6 +23,7 @@
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
         }
         
         .email-wrapper::before {
@@ -31,12 +33,12 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #84cc16);
+            background: linear-gradient(90deg, #81aacc, #5a8bb8, #3a7aa8, #2a6a98);
         }
         
         .header-area {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            padding: 40px;
+            background: linear-gradient(135deg, #81aacc 0%, #5a8bb8 100%);
+            padding: 40px 20px;
             text-align: center;
             color: white;
         }
@@ -55,25 +57,25 @@
         
         .header-subtitle {
             font-size: 16px;
-            color: #fecaca;
+            color: #e6f0f8;
         }
         
         .main-content {
-            padding: 40px;
+            padding: 40px 20px;
         }
         
         .notification-section {
-            background: #fef2f2;
+            background: #f0f8ff;
             border-radius: 12px;
             padding: 25px;
             margin-bottom: 30px;
-            border: 1px solid #fecaca;
+            border: 1px solid #cce5ff;
         }
         
         .notification-title {
             font-size: 20px;
             font-weight: 600;
-            color: #dc2626;
+            color: #2a6a98;
             margin-bottom: 10px;
         }
         
@@ -93,13 +95,13 @@
             border-radius: 12px;
             padding: 20px;
             margin: 20px 0;
-            border: 1px solid #fecaca;
+            border: 1px solid #e6f0f8;
         }
         
         .reason-title {
             font-size: 18px;
             font-weight: 600;
-            color: #dc2626;
+            color: #2a6a98;
             margin-bottom: 15px;
         }
         
@@ -116,7 +118,7 @@
         
         .reason-list li::before {
             content: '•';
-            color: #dc2626;
+            color: #81aacc;
             position: absolute;
             left: 0;
             font-weight: bold;
@@ -164,7 +166,7 @@
         
         .info-value {
             font-size: 14px;
-            color: #7c3aed;
+            color: #81aacc;
             font-weight: 500;
         }
         
@@ -185,31 +187,31 @@
         }
         
         .action-section {
-            background: #f0fdf4;
+            background: #f0f8ff;
             border-radius: 12px;
             padding: 25px;
             margin: 30px 0;
-            border: 1px solid #bbf7d0;
+            border: 1px solid #cce5ff;
             text-align: center;
         }
         
         .action-title {
             font-size: 20px;
             font-weight: 600;
-            color: #059669;
+            color: #2a6a98;
             margin-bottom: 10px;
         }
         
         .action-description {
-            color: #047857;
+            color: #5a8bb8;
             font-size: 16px;
             margin-bottom: 20px;
         }
         
         .footer-area {
-            background: #1e293b;
+            background: #2a6a98;
             color: white;
-            padding: 40px;
+            padding: 40px 20px;
             text-align: center;
         }
         
@@ -228,7 +230,7 @@
         
         .footer-divider {
             height: 1px;
-            background: #475569;
+            background: #5a8bb8;
             margin: 20px 0;
         }
         
@@ -238,10 +240,22 @@
         }
         
         @media (max-width: 768px) {
-            .email-wrapper { margin: 10px; }
-            .header-area, .main-content, .footer-area { padding: 20px; }
+            .email-wrapper { 
+                margin: 10px; 
+                border-radius: 12px;
+            }
+            .header-area, .main-content, .footer-area { 
+                padding: 20px 15px; 
+            }
             .brand-logo { font-size: 28px; }
             .header-title { font-size: 20px; }
+            .notification-title, .action-title { font-size: 18px; }
+            .reason-title, .contact-title { font-size: 16px; }
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
         }
     </style>
 </head>

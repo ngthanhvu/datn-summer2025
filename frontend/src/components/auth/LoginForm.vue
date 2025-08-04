@@ -3,7 +3,7 @@
         <h2 class="text-center mb-4 mt-3 font-semibold text-2xl">Đăng Nhập</h2>
         <form @submit.prevent="handleLogin">
             <div class="mb-3">
-                <label for="loginEmail" class="block font-medium mb-1">Email</label>
+                <label for="loginEmail" class="block font-medium mb-1">Email <span class="text-red-500">*</span></label>
                 <input v-model="form.email" type="email"
                     class="form-input w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#81aacc]"
                     id="loginEmail" placeholder="Nhập email của bạn" />
@@ -11,7 +11,8 @@
             </div>
 
             <div class="mb-3">
-                <label for="loginPassword" class="block font-medium mb-1">Mật khẩu</label>
+                <label for="loginPassword" class="block font-medium mb-1">Mật khẩu <span
+                        class="text-red-500">*</span></label>
                 <div class="relative">
                     <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
                         class="form-input w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#81aacc]"

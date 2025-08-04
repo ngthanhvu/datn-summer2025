@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phản hồi liên hệ từ DEVGANG</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
@@ -22,6 +23,7 @@
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
         }
         
         .email-wrapper::before {
@@ -31,12 +33,12 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4, #10b981);
+            background: linear-gradient(90deg, #81aacc, #5a8bb8, #3a7aa8, #2a6a98);
         }
         
         .header-area {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            padding: 40px;
+            background: linear-gradient(135deg, #81aacc 0%, #5a8bb8 100%);
+            padding: 40px 20px;
             text-align: center;
             color: white;
         }
@@ -55,25 +57,25 @@
         
         .header-subtitle {
             font-size: 16px;
-            color: #bfdbfe;
+            color: #e6f0f8;
         }
         
         .main-content {
-            padding: 40px;
+            padding: 40px 20px;
         }
         
         .greeting-section {
-            background: #eff6ff;
+            background: #f0f8ff;
             border-radius: 12px;
             padding: 25px;
             margin-bottom: 30px;
-            border: 1px solid #bfdbfe;
+            border: 1px solid #cce5ff;
         }
         
         .greeting-title {
             font-size: 20px;
             font-weight: 600;
-            color: #1d4ed8;
+            color: #2a6a98;
             margin-bottom: 10px;
         }
         
@@ -93,13 +95,13 @@
             border-radius: 12px;
             padding: 20px;
             margin: 20px 0;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #e6f0f8;
         }
         
         .message-title {
             font-size: 18px;
             font-weight: 600;
-            color: #1d4ed8;
+            color: #2a6a98;
             margin-bottom: 15px;
         }
         
@@ -108,15 +110,15 @@
             border-radius: 8px;
             padding: 15px;
             margin: 15px 0;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid #81aacc;
         }
         
         .admin-reply {
-            background: #f0fdf4;
+            background: #f0f8ff;
             border-radius: 8px;
             padding: 15px;
             margin: 15px 0;
-            border-left: 4px solid #10b981;
+            border-left: 4px solid #5a8bb8;
         }
         
         .message-content {
@@ -174,7 +176,7 @@
         
         .info-value {
             font-size: 14px;
-            color: #7c3aed;
+            color: #81aacc;
             font-weight: 500;
         }
         
@@ -184,31 +186,31 @@
         }
         
         .action-section {
-            background: #f0fdf4;
+            background: #f0f8ff;
             border-radius: 12px;
             padding: 25px;
             margin: 30px 0;
-            border: 1px solid #bbf7d0;
+            border: 1px solid #cce5ff;
             text-align: center;
         }
         
         .action-title {
             font-size: 20px;
             font-weight: 600;
-            color: #059669;
+            color: #2a6a98;
             margin-bottom: 10px;
         }
         
         .action-description {
-            color: #047857;
+            color: #5a8bb8;
             font-size: 16px;
             margin-bottom: 20px;
         }
         
         .footer-area {
-            background: #1e293b;
+            background: #2a6a98;
             color: white;
-            padding: 40px;
+            padding: 40px 20px;
             text-align: center;
         }
         
@@ -227,7 +229,7 @@
         
         .footer-divider {
             height: 1px;
-            background: #475569;
+            background: #5a8bb8;
             margin: 20px 0;
         }
         
@@ -237,10 +239,22 @@
         }
         
         @media (max-width: 768px) {
-            .email-wrapper { margin: 10px; }
-            .header-area, .main-content, .footer-area { padding: 20px; }
+            .email-wrapper { 
+                margin: 10px; 
+                border-radius: 12px;
+            }
+            .header-area, .main-content, .footer-area { 
+                padding: 20px 15px; 
+            }
             .brand-logo { font-size: 28px; }
             .header-title { font-size: 20px; }
+            .greeting-title, .action-title { font-size: 18px; }
+            .message-title, .contact-title { font-size: 16px; }
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
         }
     </style>
 </head>

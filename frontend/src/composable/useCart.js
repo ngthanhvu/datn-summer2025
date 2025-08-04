@@ -14,7 +14,11 @@ const isLoading = ref(false)
 const error = ref(null)
 
 // Private helpers
-const getToken = () => Cookies.get('token') || localStorage.getItem('token')
+const getToken = () => {
+    const token = Cookies.get('token') || localStorage.getItem('token');
+    if (!token || token === 'null' || token === 'undefined' || token === '') return null;
+    return token;
+}
 
 const getHeaders = () => {
     const headers = {}
@@ -47,7 +51,6 @@ const fetchCart = async () => {
         return cart.value
     } catch (err) {
         error.value = err.response?.data?.error || 'Lỗi khi tải giỏ hàng'
-        throw err
     } finally {
         isLoading.value = false
     }

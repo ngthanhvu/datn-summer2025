@@ -28,6 +28,13 @@
                 <p class="text-gray-700">
                     <span class="font-medium">Ngày:</span> {{ formatDate(date) }}
                 </p>
+                <p class="text-gray-700 flex items-center gap-2">
+                    <span class="font-medium">Mã tra cứu:</span> {{ trackingCode }}
+                    <button @click="copyTrackingCode"
+                        class="text-[#81AACC] hover:text-[#377db6] transition cursor-pointer" title="Copy mã">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </p>
             </div>
             <button @click="goToHome"
                 class="w-full bg-[#81AACC] hover:bg-[#377db6] text-white font-medium py-2 px-4 rounded-lg transition duration-200">
@@ -68,11 +75,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
+import { push } from 'notivue'
 
 const router = useRouter()
 const isPending = ref(true) // trạng thái mới
 const isSuccess = ref(false)
 const orderId = ref('')
+const trackingCode = ref('')
 const amount = ref(0)
 const date = ref(new Date())
 const errorMessage = ref('')
@@ -109,6 +118,7 @@ onMounted(async () => {
         const id = urlParams.get('orderId')
         const total = urlParams.get('amount')
         const message = urlParams.get('message')
+        trackingCode.value = urlParams.get('tracking_code') || ''
 
         orderId.value = id || 'N/A'
         amount.value = total ? parseFloat(total) : 0
@@ -125,5 +135,16 @@ onMounted(async () => {
     } finally {
         isPending.value = false
     }
-})
+});
+
+const copyTrackingCode = async () => {
+    if (!trackingCode.value) return;
+    try {
+        await navigator.clipboard.writeText(trackingCode.value);
+        push.success('Đã copy mã tra cứu!');
+    } catch (err) {
+        console.error('Copy thất bại', err);
+    }
+};
+
 </script>

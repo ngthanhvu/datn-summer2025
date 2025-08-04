@@ -9,33 +9,26 @@ export function usePayment() {
         throw new Error('API configuration error')
     }
 
-    const generateVnpayUrl = async (orderId, amount) => {
-        console.log('Calling VNPay API with:', { orderId, amount })
+    // Với backend mới, truyền toàn bộ orderData (chưa có orderId)
+    const generateVnpayUrl = async (orderData) => {
+        // orderData là object chứa toàn bộ thông tin đơn hàng
         const response = await axios.post(`${baseUrl}/api/payment/vnpay`, {
-            order_id: orderId,
-            amount: amount
+            order_data: orderData
         })
-        console.log('VNPay API response:', response.data)
         return response.data
     }
 
-    const generateMomoUrl = async (orderId, amount) => {
-        console.log('Calling MoMo API with:', { orderId, amount })
+    const generateMomoUrl = async (orderData) => {
         const response = await axios.post(`${baseUrl}/api/payment/momo`, {
-            order_id: orderId,
-            amount: amount
+            order_data: orderData
         })
-        console.log('MoMo API response:', response.data)
         return response.data
     }
 
-    const generatePaypalUrl = async (orderId, amount) => {
-        console.log('Calling PayPal API with:', { orderId, amount })
+    const generatePaypalUrl = async (orderData) => {
         const response = await axios.post(`${baseUrl}/api/payment/paypal`, {
-            order_id: orderId,
-            amount: amount
+            order_data: orderData
         })
-        console.log('PayPal API response:', response.data)
         return response.data
     }
 

@@ -2,11 +2,22 @@
     <div class="bg-white rounded-lg shadow p-4">
         <div class="pb-4">
             <div class="flex justify-between items-center">
-                <div class="relative">
-                    <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..."
-                        class="border border-gray-300 rounded px-4 py-2 pl-10 w-64" />
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <!-- Bên trái: Tìm kiếm + Số item / trang -->
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..."
+                            class="border border-gray-300 rounded px-4 py-2 pl-10 w-64" />
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+
+                    <select v-model.number="itemsPerPage" class="border border-gray-300 rounded px-2 py-2">
+                        <option :value="5">5 / trang</option>
+                        <option :value="10">10 / trang</option>
+                        <option :value="20">20 / trang</option>
+                    </select>
                 </div>
+
+                <!-- Bên phải: Bộ lọc trạng thái -->
                 <select v-model="filterStatus" class="border border-gray-300 rounded px-4 py-2">
                     <option value="">Tất cả trạng thái</option>
                     <option value="pending">Chờ xử lý</option>
@@ -42,7 +53,7 @@
                         </td>
                     </tr>
 
-                    <tr v-else v-for="order in filteredOrders" :key="order.id" class="hover:bg-gray-50">
+                    <tr v-else v-for="order in paginatedOrders" :key="order.id" class="hover:bg-gray-50">
                         <td class="px-4 py-3 text-sm text-gray-900">#{{ order.id }}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">
                             <div>{{ order.user?.username }}</div>
@@ -101,6 +112,25 @@
                 </tbody>
             </table>
         </div>
+        <div class="flex justify-end items-center mt-4 gap-2">
+            <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1"
+                class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 cursor-pointer">
+                Trước
+            </button>
+
+            <button v-for="page in totalPages" :key="page" @click="changePage(page)" :class="[
+                'px-3 py-1 border border-gray-300 rounded cursor-pointer',
+                currentPage === page ? 'bg-blue-500 text-white' : 'bg-white'
+            ]">
+                {{ page }}
+            </button>
+
+            <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages"
+                class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 cursor-pointer">
+                Sau
+            </button>
+        </div>
+
     </div>
 </template>
 
@@ -116,6 +146,8 @@ const { orders, loading, error } = storeToRefs(orderStore)
 
 const searchQuery = ref('')
 const filterStatus = ref('')
+const currentPage = ref(1)
+const itemsPerPage = ref(5)
 
 const handleView = (order) => {
     router.push(`/admin/orders/${order.id}`)
@@ -167,6 +199,20 @@ const getPaymentMethod = (method) => {
 
 const formatPrice = (price) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)
+
+const paginatedOrders = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value
+    const end = start + itemsPerPage.value
+    return filteredOrders.value.slice(start, end)
+})
+
+const totalPages = computed(() => Math.ceil(filteredOrders.value.length / itemsPerPage.value))
+
+const changePage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+    }
+}
 </script>
 
 <style scoped>
