@@ -167,12 +167,9 @@ Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedPr
 Route::prefix('payment')->group(function () {
     Route::post('vnpay', [PaymentController::class, 'generateVnpayUrl']);
     Route::post('momo', [PaymentController::class, 'generateMomoUrl']);
-    Route::post('paypal', [PaymentController::class, 'generatePaypalUrl']);
 
     Route::get('vnpay-callback', [PaymentController::class, 'vnpayCallback']);
     Route::get('momo-callback', [PaymentController::class, 'momoCallback']);
-    Route::get('paypal-callback', [PaymentController::class, 'paypalCallback']);
-    Route::get('paypal-cancel', [PaymentController::class, 'paypalCancel']);
 });
 
 // Product import routes

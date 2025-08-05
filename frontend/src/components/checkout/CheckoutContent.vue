@@ -207,13 +207,6 @@ const updatePaymentMethods = () => {
             image: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png',
             enabled: !!Number(s.enableMomo)
         },
-        {
-            title: 'PayPal',
-            description: Number(s.enablePaypal) ? 'Thanh toán qua PayPal' : 'Sắp ra mắt',
-            code: 'paypal',
-            image: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png',
-            enabled: !!Number(s.enablePaypal)
-        }
     ]
 }
 
@@ -278,9 +271,6 @@ const placeOrder = async () => {
                 paymentUrl = paymentResult.payment_url
             } else if (paymentMethod === 'momo') {
                 paymentResult = await paymentService.generateMomoUrl(result.data)
-                paymentUrl = paymentResult.payment_url
-            } else if (paymentMethod === 'paypal') {
-                paymentResult = await paymentService.generatePaypalUrl(result.data)
                 paymentUrl = paymentResult.payment_url
             }
             if (paymentUrl) {

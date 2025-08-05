@@ -3,10 +3,13 @@
     <h2 class="text-lg font-semibold mb-4">Phương thức thanh toán</h2>
     <div class="space-y-4">
       <div v-for="(method, index) in methods" :key="index"
-        class="flex items-center p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50" :class="[
-          selectedMethod === index ? 'border-[#81AACC]' : '',
+        class="flex items-center p-3 border rounded-md cursor-pointer hover:bg-gray-50" :class="[
           !method.enabled ? 'opacity-50 cursor-not-allowed' : ''
-        ]" @click="method.enabled && $emit('select', index)">
+        ]" :style="{
+          borderColor: selectedMethod === index ? '#81AACC' : '#D1D5DB',
+          borderWidth: '1px',
+          backgroundColor: selectedMethod === index ? '#EFF6FF' : 'transparent'
+        }" @click="method.enabled && $emit('select', index)">
         <input v-if="method.enabled" type="radio" :name="name" class="mr-3" :checked="selectedMethod === index">
         <img v-if="method.image" :src="method.image" :alt="method.title"
           class="w-[25px] h-[25px] object-contain mr-3" />
