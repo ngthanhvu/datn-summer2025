@@ -428,29 +428,20 @@ onMounted(async () => {
                     <AddressList :addresses="addresses" :selected-address="selectedAddress"
                         @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
                         @add="openAddressModal" />
-                    <<<<<<< HEAD <ShippingSection :cart-items="cartItems"
-                        :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
-                        @shipping-calculated="handleShippingCalculated" />
-
-                    =======
-                    <!-- ĐÃ DI CHUYỂN ShippingSection SANG CỘT PHẢI -->
-                    >>>>>>> bf2fe15bedbdd5369a5f5e4c6dd377e71da7b6a8
                     <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
                         @select="selectedPaymentMethod = $event" />
                 </div>
             </div>
 
             <div class="space-y-8">
-                <<<<<<< HEAD <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping"
-                    :discount="discount" :shipping-zone="shippingZone" @place-order="placeOrder"
-                    @apply-coupon="applyCoupon" />
-                =======
+                <ShippingSection :cart-items="cartItems"
+                    :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
+                    @shipping-calculated="handleShippingCalculated" />
                 <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
                     :shipping-zone="shippingZone"
                     :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
                     :cart-items="cartItems" @place-order="placeOrder" @apply-coupon="applyCoupon"
                     @shipping-calculated="handleShippingCalculated" />
-                >>>>>>> bf2fe15bedbdd5369a5f5e4c6dd377e71da7b6a8
             </div>
         </div>
 
