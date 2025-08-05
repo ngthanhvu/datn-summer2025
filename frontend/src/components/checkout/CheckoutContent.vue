@@ -4,7 +4,7 @@ import AddressList from './AddressList.vue'
 import AddressForm from './AddressForm.vue'
 import PaymentMethods from './PaymentMethods.vue'
 import OrderSummary from './OrderSummary.vue'
-import ShippingSection from './ShippingSection.vue'
+
 import { useAddress } from '../../composable/useAddress'
 import { useCart } from '../../composable/useCart'
 import { useCheckout } from '../../composable/useCheckout'
@@ -274,7 +274,7 @@ const placeOrder = async () => {
             shipping_fee: shipping.value,
             discount_price: discount.value,
             final_price: total.value,
-            user_id: authService.user.value.id // Thêm user_id vào orderData
+            user_id: authService.user.value.id, 
             shipping_zone: shippingZone.value
         }
 
@@ -438,21 +438,25 @@ onMounted(async () => {
                     <AddressList :addresses="addresses" :selected-address="selectedAddress"
                         @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
                         @add="openAddressModal" />
-
-                    <ShippingSection 
-                        :cart-items="cartItems" 
-                        :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
-                        @shipping-calculated="handleShippingCalculated" 
-                    />
-
+                    <!-- ĐÃ DI CHUYỂN ShippingSection SANG CỘT PHẢI -->
                     <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
                         @select="selectedPaymentMethod = $event" />
                 </div>
             </div>
 
             <div class="space-y-8">
-                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount" :shipping-zone="shippingZone"
-                    @place-order="placeOrder" @apply-coupon="applyCoupon" />
+                <OrderSummary 
+                    :items="cartItems" 
+                    :subtotal="subtotal" 
+                    :shipping="shipping" 
+                    :discount="discount" 
+                    :shipping-zone="shippingZone"
+                    :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
+                    :cart-items="cartItems"
+                    @place-order="placeOrder" 
+                    @apply-coupon="applyCoupon"
+                    @shipping-calculated="handleShippingCalculated" 
+                />
             </div>
         </div>
 
