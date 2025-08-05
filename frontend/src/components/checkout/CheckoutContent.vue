@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import AddressList from './AddressList.vue'
 import AddressForm from './AddressForm.vue'
 import PaymentMethods from './PaymentMethods.vue'
 import OrderSummary from './OrderSummary.vue'
+import ShippingSection from './ShippingSection.vue'
 import { useAddress } from '../../composable/useAddress'
 import { useCart } from '../../composable/useCart'
 import { useCheckout } from '../../composable/useCheckout'
@@ -29,9 +30,10 @@ const isLoading = ref(false)
 const error = ref(null)
 
 const cartItems = ref([])
-const shipping = ref(30000)
+const shipping = ref(0)
 const discount = ref(0)
 const appliedCoupon = ref(null)
+const shippingZone = ref('')
 
 const subtotal = computed(() => {
     return cartItems.value.reduce((total, item) => {
@@ -130,7 +132,6 @@ const fetchAddresses = async () => {
             }))
         } else {
             addresses.value = []
-            console.error('API không trả về mảng địa chỉ:', response)
         }
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi lấy danh sách địa chỉ'
@@ -218,6 +219,18 @@ const updatePaymentMethods = () => {
 }
 
 
+const handleShippingCalculated = (shippingData) => {
+    shipping.value = shippingData.shippingFee?.total || 0;
+    shippingZone.value = shippingData.zone || '';
+};
+
+watch(() => selectedAddress.value, (newValue) => {
+    if (newValue === null || newValue >= addresses.value.length) {
+        shipping.value = 0;
+        shippingZone.value = '';
+    }
+});
+
 const placeOrder = async () => {
     try {
         if (addresses.value.length === 0) {
@@ -262,11 +275,10 @@ const placeOrder = async () => {
             discount_price: discount.value,
             final_price: total.value,
             user_id: authService.user.value.id // Thêm user_id vào orderData
+            shipping_zone: shippingZone.value
         }
 
-        console.log('Creating order with data:', orderData)
         const result = await checkoutService.createOrder(orderData)
-        console.log('Order creation result:', result)
 
         // Handle new backend logic for online payment
         if (result && result.message === 'Redirect to payment gateway') {
@@ -300,7 +312,6 @@ const placeOrder = async () => {
             throw new Error('Không thể tạo đơn hàng')
         }
     } catch (err) {
-        console.error('Error in placeOrder:', err)
         error.value = err.message || 'Có lỗi xảy ra khi đặt hàng'
     } finally {
         isLoading.value = false
@@ -428,13 +439,19 @@ onMounted(async () => {
                         @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
                         @add="openAddressModal" />
 
+                    <ShippingSection 
+                        :cart-items="cartItems" 
+                        :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
+                        @shipping-calculated="handleShippingCalculated" 
+                    />
+
                     <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
                         @select="selectedPaymentMethod = $event" />
                 </div>
             </div>
 
             <div class="space-y-8">
-                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
+                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount" :shipping-zone="shippingZone"
                     @place-order="placeOrder" @apply-coupon="applyCoupon" />
             </div>
         </div>

@@ -19,6 +19,7 @@ import BlogPage from '../pages/blogs.vue';
 import BlogDetailPage from '../pages/blogs_detail.vue';
 import CheckOutPage from '../pages/checkout.vue';
 import FavoriteProductPage from '../pages/favorite.vue';
+import ShippingCalculatorPage from '../pages/shipping-calculator.vue';
 
 import Admin from '../pages/admin/index.vue';
 import ProductsPageAdmin from '../pages/admin/products/index.vue';
@@ -118,6 +119,10 @@ const routes = [
             {
                 path: '/san-pham-yeu-thich',
                 component: FavoriteProductPage
+            },
+            {
+                path: '/tinh-phi-van-chuyen',
+                component: ShippingCalculatorPage
             },
             {
                 path: '/:pathMatch(.*)*',

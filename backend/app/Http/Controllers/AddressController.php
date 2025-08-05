@@ -11,29 +11,30 @@ class AddressController extends Controller
 {
     public function getProvinces()
     {
-        $response = Http::get('http://provinces.open-api.vn/api/p/');
+        $response = Http::get('https://online-gateway.ghn.vn/shiip/public-api/master-data/province');
         if ($response->successful()) {
-            return response()->json($response->json());
+            $data = $response->json();
+            return response()->json($data['data'] ?? []);
         }
         return response()->json([], 500);
     }
 
     public function getDistricts($provinceCode)
     {
-        $response = Http::get("http://provinces.open-api.vn/api/p/{$provinceCode}?depth=2");
+        $response = Http::get("https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id={$provinceCode}");
         if ($response->successful()) {
             $data = $response->json();
-            return response()->json($data['districts'] ?? []);
+            return response()->json($data['data'] ?? []);
         }
         return response()->json([], 500);
     }
 
     public function getWards($districtCode)
     {
-        $response = Http::get("http://provinces.open-api.vn/api/d/{$districtCode}?depth=2");
+        $response = Http::get("https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id={$districtCode}");
         if ($response->successful()) {
             $data = $response->json();
-            return response()->json($data['wards'] ?? []);
+            return response()->json($data['data'] ?? []);
         }
         return response()->json([], 500);
     }
@@ -50,7 +51,15 @@ class AddressController extends Controller
         // $address = Address::where('user_id', $user->id)->get();
 
         $user_id = Auth::id();    // int
+        \Log::info("getMyAddress called, user_id: " . $user_id);
+        
+        if (!$user_id) {
+            \Log::error("User not authenticated");
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
         $address = Address::where('user_id', $user_id)->get();
+        \Log::info("Found " . $address->count() . " addresses for user " . $user_id);
 
         return response()->json($address);
     }

@@ -23,6 +23,7 @@ use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ShippingController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -212,3 +213,12 @@ Route::get('/contacts/{id}', [ContactController::class, 'show']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::post('/contacts/{id}/reply', [ContactController::class, 'reply']);
 Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
+
+// Shipping routes
+Route::prefix('shipping')->group(function () {
+    Route::get('/config', [ShippingController::class, 'getConfig']);
+    Route::get('/provinces', [ShippingController::class, 'getProvinces']);
+    Route::get('/districts', [ShippingController::class, 'getDistricts']);
+    Route::get('/wards', [ShippingController::class, 'getWards']);
+    Route::post('/calculate-fee', [ShippingController::class, 'calculateShippingFee']);
+});
