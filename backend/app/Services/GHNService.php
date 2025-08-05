@@ -19,12 +19,7 @@ class GHNService
         $this->shopId = config('services.ghn.shop_id'); // Lấy từ .env
     }
 
-    /**
-     * Tính phí vận chuyển
-     *
-     * @param array $data
-     * @return array
-     */
+  
     public function calculateShippingFee(array $data)
     {
         try {
@@ -65,15 +60,10 @@ class GHNService
         }
     }
 
-    /**
-     * Lấy thông tin shop từ GHN API
-     *
-     * @return array
-     */
+   
     public function getShopInfo()
     {
         try {
-            // Thử API shop với query parameter
             $response = Http::withHeaders([
                 'Token' => $this->apiToken,
             ])->get($this->baseUrl . '/shop', [
@@ -90,7 +80,6 @@ class GHNService
                 }
             }
 
-            // Nếu không được, thử API shop/detail
             $response2 = Http::withHeaders([
                 'Token' => $this->apiToken,
                 'ShopId' => $this->shopId,
@@ -106,7 +95,6 @@ class GHNService
                 }
             }
 
-            // Nếu không lấy được từ API, trả về lỗi
             return [
                 'success' => false,
                 'message' => 'Không thể lấy thông tin shop từ GHN API'
@@ -121,12 +109,7 @@ class GHNService
         }
     }
 
-    /**
-     * Tính phí vận chuyển với dữ liệu đơn hàng
-     *
-     * @param array $orderData
-     * @return array
-     */
+ 
     public function calculateOrderShippingFee(array $orderData)
     {
         // Lấy thông tin shop từ GHN API
@@ -139,9 +122,9 @@ class GHNService
         $shopData = $shopInfo['data'];
         
         $params = [
-            'service_type_id' => $orderData['service_type_id'] ?? 2, // Mặc định hàng nhẹ
-            'from_district_id' => $shopData['district_id'] ?? 1820, // Lấy từ shop info
-            'from_ward_code' => $shopData['ward_code'] ?? '030712', // Lấy từ shop info
+            'service_type_id' => $orderData['service_type_id'] ?? 2, 
+            'from_district_id' => $shopData['district_id'] ?? 1820, 
+            'from_ward_code' => $shopData['ward_code'] ?? '030712', 
             'to_district_id' => $orderData['to_district_id'],
             'to_ward_code' => $orderData['to_ward_code'],
             'weight' => $orderData['weight'],
@@ -170,7 +153,6 @@ class GHNService
             $params['cod_failed_amount'] = $orderData['cod_failed_amount'];
         }
 
-        // Nếu là hàng nặng (service_type_id = 5), bắt buộc phải có items
         if (($orderData['service_type_id'] ?? 2) === 5) {
             if (!isset($orderData['items']) || empty($orderData['items'])) {
                 return [

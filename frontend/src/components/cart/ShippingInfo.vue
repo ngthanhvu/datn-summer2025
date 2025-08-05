@@ -144,7 +144,6 @@ const selectedAddress = ref({
 const shippingError = ref('');
 const estimatedDelivery = ref(null);
 
-// Computed
 const isAddressComplete = computed(() => {
   return selectedAddress.value.province_id && 
          selectedAddress.value.district_id && 
@@ -184,7 +183,7 @@ const calculateShipping = async () => {
     const data = {
       to_district_id: parseInt(selectedAddress.value.district_id),
       to_ward_code: selectedAddress.value.ward_code,
-      service_type_id: 2, // Mặc định hàng nhẹ
+      service_type_id: 2, 
       cart_items: props.cartItems.map(item => ({
         product_id: item.product_id,
         quantity: item.quantity
@@ -214,7 +213,6 @@ const calculateShipping = async () => {
       };
     }
 
-    // Emit kết quả
     emit('shipping-calculated', {
       shippingFee: result.shipping_fee,
       estimatedDelivery: estimatedDelivery.value,
@@ -227,14 +225,12 @@ const calculateShipping = async () => {
   }
 };
 
-// Watch for cart items changes
 watch(() => props.cartItems, () => {
   if (isAddressComplete.value) {
     calculateShipping();
   }
 }, { deep: true });
 
-// Lifecycle
 onMounted(async () => {
   await getProvinces();
 });
