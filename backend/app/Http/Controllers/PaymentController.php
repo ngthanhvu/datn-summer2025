@@ -3,11 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Orders;
-use App\Mail\PaymentConfirmation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\OrdersController;
 
 class PaymentController extends Controller
@@ -129,86 +125,6 @@ class PaymentController extends Controller
         }
     }
 
-    public function generatePaypalUrl(Request $request)
-    {
-        $request->validate([
-            'order_data' => 'required|array',
-        ]);
-        $orderData = $request->input('order_data');
-        $amount = $orderData['final_price'] ?? null;
-        if (!$amount) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Thiếu amount trong order_data'
-            ], 400);
-        }
-        $apiUrl = env('PAYPAL_API_URL', 'https://api-m.sandbox.paypal.com');
-        $clientId = env('PAYPAL_CLIENT_ID');
-        $clientSecret = env('PAYPAL_SECRET');
-        $returnUrl = env('APP_URL') . "/api/payment/paypal-callback";
-        $cancelUrl = env('APP_URL') . "/api/payment/paypal-cancel";
-
-        session(['paypal_order_data' => $orderData]);
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "$apiUrl/v1/oauth2/token");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERPWD, "$clientId:$clientSecret");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Accept-Language: en_US']);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $tokenData = json_decode($response, true);
-        if (empty($tokenData['access_token'])) {
-            return response()->json(['success' => false, 'message' => 'Không lấy được access token'], 500);
-        }
-        $accessToken = $tokenData['access_token'];
-        $orderId = 'TMP' . time();
-        $payload = [
-            'intent' => 'CAPTURE',
-            'purchase_units' => [[
-                'reference_id' => $orderId,
-                'amount' => [
-                    'currency_code' => env('PAYPAL_CURRENCY', 'USD'),
-                    'value' => number_format($amount / 24000, 2, '.', '')
-                ],
-                'custom_id' => $orderId,
-            ]],
-            'application_context' => [
-                'return_url' => $returnUrl,
-                'cancel_url' => $cancelUrl,
-                'brand_name' => 'My Store',
-                'locale' => 'en-US',
-                'landing_page' => 'BILLING',
-                'user_action' => 'PAY_NOW'
-            ]
-        ];
-        $ch = curl_init("$apiUrl/v2/checkout/orders");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $accessToken
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $result = json_decode($response, true);
-        $approveUrl = collect($result['links'] ?? [])->firstWhere('rel', 'approve')['href'] ?? null;
-        if ($approveUrl) {
-            return response()->json([
-                'success' => true,
-                'payment_url' => $approveUrl
-            ]);
-        }
-        return response()->json([
-            'success' => false,
-            'message' => 'Không tìm thấy approve URL từ PayPal',
-            'response' => $result
-        ], 500);
-    }
-
     public function vnpayCallback(Request $request)
     {
         $vnp_HashSecret = env('VNPAY_HASH_SECRET');
@@ -292,73 +208,6 @@ class PaymentController extends Controller
             }
         }
         return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Xác thực thanh toán thất bại'));
-    }
-
-    public function paypalCallback(Request $request)
-    {
-        $orderData = session('paypal_order_data');
-        if (!$orderData) {
-            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thiếu dữ liệu đơn hàng'));
-        }
-
-        $paymentId = $request->input('PayerID');
-        $token = $request->input('token');
-
-        if (!$paymentId || !$token) {
-            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Dữ liệu thanh toán không hợp lệ'));
-        }
-
-        $apiUrl = env('PAYPAL_API_URL', 'https://api-m.sandbox.paypal.com');
-        $clientId = env('PAYPAL_CLIENT_ID');
-        $clientSecret = env('PAYPAL_SECRET');
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "$apiUrl/v1/oauth2/token");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERPWD, "$clientId:$clientSecret");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Accept-Language: en_US']);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $tokenData = json_decode($response, true);
-
-        if (empty($tokenData['access_token'])) {
-            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Không lấy được access token'));
-        }
-
-        $accessToken = $tokenData['access_token'];
-
-        $ch = curl_init("$apiUrl/v2/checkout/orders/$token/capture");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $accessToken
-        ]);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $result = json_decode($response, true);
-
-        if ($result['status'] === 'COMPLETED') {
-            $userId = $orderData['user_id'] ?? null;
-            if (!$userId) {
-                return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thiếu user_id'));
-            }
-
-            $order = OrdersController::createOrderFromDataWithProcessing($orderData, $userId);
-
-            session()->forget('paypal_order_data');
-
-            $redirectUrl = env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price;
-            if ($order->tracking_code) {
-                $redirectUrl .= '&tracking_code=' . urlencode($order->tracking_code);
-            }
-            return redirect()->to($redirectUrl);
-        } else {
-            session()->forget('paypal_order_data');
-            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thanh toán PayPal thất bại'));
-        }
     }
 
     public function paypalCancel(Request $request)

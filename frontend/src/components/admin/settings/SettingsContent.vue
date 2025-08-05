@@ -76,7 +76,6 @@ onMounted(async () => {
         'enableCod',
         'enableMomo', 'momoPartnerCode', 'momoAccessKey', 'momoSecretKey', 'momoUrl',
         'enableVnpay', 'vnpayTmnCode', 'vnpayHashSecret', 'vnpayUrl',
-        'enablePaypal', 'paypalClientId', 'paypalSecret', 'paypalMode', 'paypalCurrency', 'paypalApiUrl'
     ])
 
     shippingSettings.value = extractSettings(['freeShippingMinimum', 'defaultShippingFee', 'enableGhtk', 'ghtkApiKey'])
@@ -147,13 +146,6 @@ const paymentFields = [
     { name: 'vnpayTmnCode', label: 'VNPAY TMN Code', type: 'text' },
     { name: 'vnpayHashSecret', label: 'VNPAY Hash Secret', type: 'text' },
     { name: 'vnpayUrl', label: 'VNPAY URL', type: 'text' },
-
-    { name: 'enablePaypal', label: 'Cho phép thanh toán Paypal', type: 'toggle' },
-    { name: 'paypalClientId', label: 'Paypal Client ID', type: 'text' },
-    { name: 'paypalSecret', label: 'Paypal Secret', type: 'text' },
-    { name: 'paypalMode', label: 'Paypal Mode', type: 'text' },
-    { name: 'paypalCurrency', label: 'Paypal Currency', type: 'text' },
-    { name: 'paypalApiUrl', label: 'Paypal API URL', type: 'text' },
 ]
 
 
