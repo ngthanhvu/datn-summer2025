@@ -76,7 +76,7 @@
                 <span>{{ formatPrice(subtotal) }}</span>
             </div>
             <div class="flex justify-between">
-                <span>Phí vận chuyển</span>
+                <span>Phí vận chuyển <span v-if="shippingZone" class="text-xs text-gray-500">({{ shippingZone }})</span></span>
                 <span>{{ formatPrice(shipping) }}</span>
             </div>
             <div class="flex justify-between">
@@ -115,6 +115,10 @@ const props = defineProps({
     discount: {
         type: Number,
         default: 0
+    },
+    shippingZone: {
+        type: String,
+        default: ''
     }
 })
 
@@ -153,7 +157,6 @@ const fetchAvailableCoupons = async () => {
         const myCoupons = myCouponsData?.coupons || []
 
         if (!Array.isArray(myCoupons)) {
-            console.error('Invalid my coupons data:', myCoupons)
             return
         }
 
@@ -167,7 +170,7 @@ const fetchAvailableCoupons = async () => {
             )
         })
     } catch (error) {
-        console.error('Error fetching my coupons:', error)
+        // Handle error silently
     }
 }
 

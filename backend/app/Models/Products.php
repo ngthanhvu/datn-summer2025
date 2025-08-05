@@ -18,6 +18,10 @@ class Products extends Model
         'categories_id',
         'brand_id',
         'is_active',
+        'weight',
+        'length',
+        'width',
+        'height',
     ];
 
     public function categories()

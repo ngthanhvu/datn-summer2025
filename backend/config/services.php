@@ -40,4 +40,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URL'),
     ],
 
+    'ghn' => [
+        'base_url' => env('GHN_BASE_URL', 'https://online-gateway.ghn.vn/shiip/public-api/v2'),
+        'api_token' => env('GHN_API_TOKEN'),
+        'shop_id' => env('GHN_SHOP_ID'),
+    ],
+
 ];
