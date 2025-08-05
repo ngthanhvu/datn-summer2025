@@ -1,4 +1,3 @@
-// src/composables/useShipping.js
 import axios from "axios";
 import { ref } from "vue";
 import Swal from "sweetalert2";
@@ -9,7 +8,6 @@ export const useShipping = () => {
         baseURL: import.meta.env.VITE_API_BASE_URL,
     });
 
-    // ✅ Interceptor: tự động thêm token từ cookie vào mọi request
     API.interceptors.request.use((req) => {
         const token = Cookies.get("token");
         if (token) {
@@ -25,7 +23,6 @@ export const useShipping = () => {
     const loading = ref(false);
     const errors = ref({});
 
-    // Lấy danh sách tỉnh/thành phố từ GHN
     const getProvinces = async () => {
         try {
             loading.value = true;
@@ -49,7 +46,6 @@ export const useShipping = () => {
         }
     };
 
-    // Lấy danh sách quận/huyện theo tỉnh/thành phố
     const getDistricts = async (provinceId) => {
         try {
             loading.value = true;
@@ -73,7 +69,6 @@ export const useShipping = () => {
         }
     };
 
-    // Lấy danh sách phường/xã theo quận/huyện
     const getWards = async (districtId) => {
         try {
             loading.value = true;
@@ -97,7 +92,6 @@ export const useShipping = () => {
         }
     };
 
-    // Tính phí vận chuyển cơ bản
     const calculateShippingFee = async (data) => {
         try {
             loading.value = true;
@@ -121,7 +115,6 @@ export const useShipping = () => {
         }
     };
 
-    // Tính phí vận chuyển từ giỏ hàng
     const calculateCartShippingFee = async (data) => {
         try {
             loading.value = true;
@@ -145,13 +138,12 @@ export const useShipping = () => {
         }
     };
 
-    // Tính phí vận chuyển từ giỏ hàng với địa chỉ
     const calculateShippingFromCart = async (cartItems, address) => {
         try {
             const data = {
                 to_district_id: address.district_id,
                 to_ward_code: address.ward_code,
-                service_type_id: 2, // Mặc định hàng nhẹ
+                service_type_id: 2,
                 cart_items: cartItems.map(item => ({
                     product_id: item.product_id,
                     quantity: item.quantity
@@ -165,7 +157,6 @@ export const useShipping = () => {
         }
     };
 
-    // Format phí vận chuyển
     const formatShippingFee = (fee) => {
         if (!fee) return "0 VNĐ";
         return new Intl.NumberFormat('vi-VN', {
@@ -174,13 +165,11 @@ export const useShipping = () => {
         }).format(fee.total || fee);
     };
 
-    // Format thời gian giao hàng
     const formatDeliveryTime = (estimatedDelivery) => {
         if (!estimatedDelivery) return "";
         return estimatedDelivery.description || `Giao hàng trong ${estimatedDelivery.min_days}-${estimatedDelivery.max_days} ngày`;
     };
 
-    // Reset dữ liệu
     const resetShippingData = () => {
         shippingFee.value = null;
         provinces.value = [];
@@ -189,7 +178,6 @@ export const useShipping = () => {
         errors.value = {};
     };
 
-    // Validate địa chỉ
     const validateAddress = (address) => {
         const errors = {};
         
@@ -208,7 +196,6 @@ export const useShipping = () => {
     };
 
     return {
-        // Reactive data
         shippingFee,
         provinces,
         districts,
@@ -216,7 +203,6 @@ export const useShipping = () => {
         loading,
         errors,
 
-        // Methods
         getProvinces,
         getDistricts,
         getWards,
