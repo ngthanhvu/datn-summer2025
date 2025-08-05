@@ -79,7 +79,7 @@ onMounted(async () => {
         'enablePaypal', 'paypalClientId', 'paypalSecret', 'paypalMode', 'paypalCurrency', 'paypalApiUrl'
     ])
 
-    shippingSettings.value = extractSettings(['freeShippingMinimum', 'defaultShippingFee', 'enableGhtk', 'ghtkApiKey'])
+    shippingSettings.value = extractSettings(['GHN_BASE_URL', 'GHN_API_TOKEN', 'GHN_SHOP_ID'])
     emailSettings.value = extractSettings(['smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'emailFrom'])
     notificationSettings.value = extractSettings(['enableEmailNotification', 'enableSmsNotification', 'smsApiKey', 'notifyOnNewOrder', 'notifyOnOrderStatus'])
     apiSettings.value = extractSettings(['enableApi', 'apiKey', 'allowedOrigins'])
@@ -159,11 +159,12 @@ const paymentFields = [
 
 
 const shippingFields = [
-    { name: 'freeShippingMinimum', label: 'Đơn hàng tối thiểu để miễn phí ship', type: 'number', min: 0, step: 1000 },
-    { name: 'defaultShippingFee', label: 'Phí ship mặc định', type: 'number', min: 0, step: 1000 },
-    { name: 'enableGhtk', label: 'Kích hoạt GHTK', type: 'toggle' },
-    { name: 'ghtkApiKey', label: 'GHTK API Key', type: 'text' }
+    { name: 'GHN_BASE_URL', label: 'GHN Base URL', type: 'text' },
+    { name: 'GHN_API_TOKEN', label: 'GHN API Token', type: 'text' },
+    { name: 'GHN_SHOP_ID', label: 'GHN Shop ID', type: 'text' }
 ]
+
+
 
 const emailFields = [
     { name: 'smtpHost', label: 'SMTP Host (MAIL_HOST)', type: 'text' },
