@@ -23,7 +23,8 @@
             </div>
         </div>
 
-        <CategoriesTable :categories="categories" :isLoading="isLoading" @delete="handleDelete"
+        <CategoriesTable :categories="categories" :is-loading="isLoading" :current-page="currentPage"
+            :items-per-page="itemsPerPage" @update:currentPage="currentPage = $event" @delete="handleDelete"
             @bulk-delete="handleBulkDelete" />
     </div>
 </template>
@@ -35,6 +36,8 @@ import { useCategoryStore } from '../../../stores/categories'
 
 const categoryStore = useCategoryStore()
 const isLoading = ref(true)
+const currentPage = ref(10)
+const itemsPerPage = 1
 
 const handleDelete = async (category) => {
 }

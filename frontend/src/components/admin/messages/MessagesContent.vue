@@ -2,7 +2,7 @@
     <div class="messages-content flex-1 bg-gray-50 flex flex-col h-full">
         <div v-if="message" class="h-full flex flex-col">
             <!-- Message Header (sticky) -->
-            <div class="bg-white px-6 py-4 border-b sticky top-0 z-10">
+            <div class="bg-white px-6 py-4 border-b border-gray-300 sticky top-0 z-10">
                 <div class="flex items-center gap-4">
                     <img :src="getAvatarUrl(message.avatar)" :alt="message.name"
                         class="w-12 h-12 rounded-full object-cover">
@@ -44,11 +44,11 @@
             </div>
 
             <!-- Message Input (sticky) -->
-            <div class="bg-white px-6 py-4 border-t sticky bottom-0 z-10">
+            <div class="bg-white px-6 py-4 border-t border-gray-300 sticky bottom-0 z-10">
                 <div class="max-w-3xl mx-auto">
                     <div class="flex gap-4">
                         <input type="text" v-model="newMessage" @keyup.enter="handleSend" placeholder="Nhập tin nhắn..."
-                            class="flex-1 border rounded-full px-6 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            class="flex-1 border border-gray-300 rounded-full px-6 py-3 focus:ring-1 focus:ring-[#3BB77E] focus:border-[#3BB77E]">
                         <label
                             class="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-200">
                             <i class="fas fa-paperclip text-lg"></i>

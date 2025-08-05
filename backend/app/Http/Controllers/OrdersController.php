@@ -13,10 +13,11 @@ use App\Models\Inventory;
 use App\Models\Variants;
 use App\Models\StockMovement;
 use App\Models\StockMovementItem;
+use App\Models\User;
+use App\Mail\ReturnRejected;
 
 class OrdersController extends Controller
 {
-
     public function index()
     {
         if (Auth::user()->role !== 'admin') {
@@ -129,14 +130,13 @@ class OrdersController extends Controller
             'shipping_fee' => 'required|integer|min:0',
             'discount_price' => 'required|integer|min:0',
             'final_price' => 'required|integer|min:0',
+            'user_id' => 'nullable|exists:users,id',
         ]);
 
         if ($validated['payment_method'] === 'cod') {
             DB::beginTransaction();
             try {
-                $order = self::createOrderFromData($validated, Auth::user()->id);
-                // Trừ kho, tạo phiếu xuất kho, xóa giỏ hàng, gửi mail... (copy logic từ cũ vào đây)
-                // Tạo phiếu xuất kho cho đơn hàng
+                $order = self::createOrderFromData($validated, Auth::user()->id, 'pending'); // COD: pending
                 $stockMovement = StockMovement::create([
                     'type' => 'export',
                     'user_id' => Auth::id(),
@@ -147,13 +147,12 @@ class OrdersController extends Controller
                     $finalPrice = ($variant && $variant->discount_price && $variant->discount_price > 0)
                         ? $variant->discount_price
                         : ($variant ? $variant->price : $item['price']);
-                    $stockMovementItem = StockMovementItem::create([
+                    StockMovementItem::create([
                         'stock_movement_id' => $stockMovement->id,
                         'variant_id' => $item['variant_id'],
                         'quantity' => $item['quantity'],
                         'unit_price' => $finalPrice,
                     ]);
-                    // Trừ kho
                     $inventory = Inventory::where('variant_id', $item['variant_id'])->first();
                     if ($inventory) {
                         if ($inventory->quantity < $item['quantity']) {
@@ -185,7 +184,7 @@ class OrdersController extends Controller
                 ], 500);
             }
         } else {
-            // Không tạo order, chỉ trả về dữ liệu cho frontend gọi payment
+            $validated['user_id'] = Auth::user()->id;
             return response()->json([
                 'message' => 'Redirect to payment gateway',
                 'payment_method' => $validated['payment_method'],
@@ -329,7 +328,7 @@ class OrdersController extends Controller
         return $trackingCode;
     }
 
-    public static function createOrderFromData($data, $userId)
+    public static function createOrderFromData($data, $userId, $paymentStatus = 'pending')
     {
         $order = Orders::create([
             'user_id' => $userId,
@@ -342,7 +341,7 @@ class OrdersController extends Controller
             'discount_price' => $data['discount_price'],
             'final_price' => $data['final_price'],
             'status' => 'pending',
-            'payment_status' => 'pending',
+            'payment_status' => $paymentStatus,
             'tracking_code' => (new self)->generateUniqueTrackingCode(),
         ]);
         foreach ($data['items'] as $item) {
@@ -357,6 +356,88 @@ class OrdersController extends Controller
             ]);
         }
         return $order;
+    }
+
+    public static function createOrderFromDataWithProcessing($data, $userId)
+    {
+        DB::beginTransaction();
+        try {
+            $paymentStatus = 'pending';
+            if (in_array($data['payment_method'], ['vnpay', 'momo', 'paypal'])) {
+                $paymentStatus = 'paid';
+            }
+
+            $order = Orders::create([
+                'user_id' => $userId,
+                'address_id' => $data['address_id'],
+                'payment_method' => $data['payment_method'],
+                'coupon_id' => $data['coupon_id'] ?? null,
+                'note' => $data['note'] ?? '',
+                'total_price' => $data['total_price'],
+                'shipping_fee' => $data['shipping_fee'],
+                'discount_price' => $data['discount_price'],
+                'final_price' => $data['final_price'],
+                'status' => 'pending',
+                'payment_status' => $paymentStatus,
+                'tracking_code' => (new self)->generateUniqueTrackingCode(),
+            ]);
+
+            foreach ($data['items'] as $item) {
+                $variant = Variants::find($item['variant_id']);
+                Orders_detail::create([
+                    'order_id' => $order->id,
+                    'variant_id' => $item['variant_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'original_price' => $variant ? $variant->price : $item['price'],
+                    'total_price' => $item['quantity'] * $item['price']
+                ]);
+            }
+
+            $stockMovement = StockMovement::create([
+                'type' => 'export',
+                'user_id' => $userId,
+                'note' => 'Xuất kho khi đặt hàng #' . $order->id,
+            ]);
+
+            foreach ($data['items'] as $item) {
+                $variant = Variants::find($item['variant_id']);
+                $finalPrice = ($variant && $variant->discount_price && $variant->discount_price > 0)
+                    ? $variant->discount_price
+                    : ($variant ? $variant->price : $item['price']);
+
+                StockMovementItem::create([
+                    'stock_movement_id' => $stockMovement->id,
+                    'variant_id' => $item['variant_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $finalPrice,
+                ]);
+
+                $inventory = Inventory::where('variant_id', $item['variant_id'])->first();
+                if ($inventory) {
+                    if ($inventory->quantity < $item['quantity']) {
+                        throw new \Exception("Số lượng tồn kho không đủ cho biến thể: {$item['variant_id']}");
+                    }
+                    $inventory->quantity -= $item['quantity'];
+                    $inventory->save();
+                } else {
+                    throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
+                }
+            }
+
+            DB::table('carts')->where('user_id', $userId)->delete();
+
+            $user = User::find($userId);
+            if ($user && !empty($user->email)) {
+                Mail::to($user->email)->send(new PaymentConfirmation($order));
+            }
+
+            DB::commit();
+            return $order;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     public function reorder($id)
@@ -444,7 +525,6 @@ class OrdersController extends Controller
         $order->return_status = 'approved';
         $order->save();
 
-        // Trước khi gửi mail, nạp quan hệ và xử lý đường dẫn ảnh
         $order->load('orderDetails.variant.product.mainImage');
         foreach ($order->orderDetails as $orderDetail) {
             if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
@@ -476,7 +556,6 @@ class OrdersController extends Controller
         $order->reject_reason = $request->reject_reason;
         $order->save();
 
-        // Trước khi gửi mail, nạp quan hệ và xử lý đường dẫn ảnh
         $order->load('orderDetails.variant.product.mainImage');
         foreach ($order->orderDetails as $orderDetail) {
             if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
@@ -486,7 +565,8 @@ class OrdersController extends Controller
         }
 
         if ($order->user && $order->user->email) {
-            Mail::to($order->user->email)->send(new \App\Mail\ReturnRejected($order, $request->reject_reason));
+            // Mail::to($order->user->email)->send(new \App\Mail\ReturnRejected($order, $request->reject_reason));
+            Mail::to($order->user->email)->send(new ReturnRejected($order, $request->reject_reason));
         }
 
         return response()->json(['message' => 'Đã từ chối hoàn hàng']);

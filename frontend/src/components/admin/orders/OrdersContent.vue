@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOrderStore } from '../../../stores/orders'
 
@@ -29,6 +29,8 @@ import OrdersTable from './OrdersTable.vue'
 
 const orderStore = useOrderStore()
 const { orders, loading } = storeToRefs(orderStore)
+
+const isLoading = ref(false)
 
 const handleReload = async () => {
     loading.value = true
