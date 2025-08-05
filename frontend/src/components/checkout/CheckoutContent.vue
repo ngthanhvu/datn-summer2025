@@ -267,7 +267,7 @@ const placeOrder = async () => {
             shipping_fee: shipping.value,
             discount_price: discount.value,
             final_price: total.value,
-            user_id: authService.user.value.id // Thêm user_id vào orderData
+            user_id: authService.user.value.id, // Thêm user_id vào orderData
             shipping_zone: shippingZone.value
         }
 
@@ -429,11 +429,9 @@ onMounted(async () => {
                         @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
                         @add="openAddressModal" />
 
-                    <ShippingSection 
-                        :cart-items="cartItems" 
+                    <ShippingSection :cart-items="cartItems"
                         :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
-                        @shipping-calculated="handleShippingCalculated" 
-                    />
+                        @shipping-calculated="handleShippingCalculated" />
 
                     <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
                         @select="selectedPaymentMethod = $event" />
@@ -441,8 +439,8 @@ onMounted(async () => {
             </div>
 
             <div class="space-y-8">
-                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount" :shipping-zone="shippingZone"
-                    @place-order="placeOrder" @apply-coupon="applyCoupon" />
+                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
+                    :shipping-zone="shippingZone" @place-order="placeOrder" @apply-coupon="applyCoupon" />
             </div>
         </div>
 
