@@ -16,17 +16,10 @@ class ShippingController extends Controller
         $this->ghnService = $ghnService;
     }
 
-    /**
-     * Tính phí vận chuyển
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function calculateShippingFee(Request $request): JsonResponse
     {
         $data = $request->all();
 
-        // Validate dữ liệu đầu vào
         $validation = $this->ghnService->validateShippingData($data);
         if (!$validation['valid']) {
             return response()->json([
@@ -36,7 +29,6 @@ class ShippingController extends Controller
             ], 400);
         }
 
-        // Tính phí vận chuyển
         $result = $this->ghnService->calculateOrderShippingFee($data);
 
         if ($result['success']) {
@@ -53,12 +45,7 @@ class ShippingController extends Controller
         }
     }
 
-    /**
-     * Tính phí vận chuyển từ giỏ hàng
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
+    
     public function calculateCartShippingFee(Request $request): JsonResponse
     {
         $request->validate([
@@ -70,7 +57,6 @@ class ShippingController extends Controller
             'service_type_id' => 'nullable|in:2,5',
         ]);
 
-        // Tính tổng cân nặng và giá trị từ giỏ hàng
         $totalWeight = 0;
         $totalValue = 0;
         $items = [];
@@ -78,13 +64,12 @@ class ShippingController extends Controller
         foreach ($request->cart_items as $item) {
             $product = \App\Models\Products::find($item['product_id']);
             if ($product) {
-                $weight = $product->weight ?? 500; // Mặc định 500g nếu không có
+                $weight = $product->weight ?? 500; 
                 $quantity = $item['quantity'];
                 
                 $totalWeight += $weight * $quantity;
                 $totalValue += $product->price * $quantity;
 
-                // Nếu là hàng nặng, thêm thông tin items
                 if (($request->service_type_id ?? 2) === 5) {
                     $items[] = [
                         'name' => $product->name,
@@ -98,7 +83,6 @@ class ShippingController extends Controller
             }
         }
 
-        // Chuẩn bị dữ liệu cho API
         $shippingData = [
             'service_type_id' => $request->service_type_id ?? 2,
             'to_district_id' => $request->to_district_id,
@@ -107,19 +91,16 @@ class ShippingController extends Controller
             'insurance_value' => $totalValue,
         ];
 
-        // Thêm kích thước cho hàng nhẹ
         if (($request->service_type_id ?? 2) === 2) {
             $shippingData['length'] = $request->length ?? 30;
             $shippingData['width'] = $request->width ?? 40;
             $shippingData['height'] = $request->height ?? 20;
         }
 
-        // Thêm items cho hàng nặng
         if (($request->service_type_id ?? 2) === 5) {
             $shippingData['items'] = $items;
         }
 
-        // Tính phí vận chuyển bằng GHN API thực tế
         $result = $this->ghnService->calculateOrderShippingFee($shippingData);
 
         if ($result['success']) {
@@ -141,17 +122,11 @@ class ShippingController extends Controller
         }
     }
 
-    /**
-     * Lấy thông tin ước tính thời gian giao hàng
-     *
-     * @param array $shippingData
-     * @return array
-     */
+ 
     private function getEstimatedDelivery(array $shippingData): array
     {
         $total = $shippingData['total'] ?? 0;
         
-        // Ước tính thời gian dựa trên phí vận chuyển
         if ($total <= 20000) {
             return [
                 'min_days' => 1,
@@ -173,15 +148,11 @@ class ShippingController extends Controller
         }
     }
 
-    /**
-     * Lấy thông tin shop từ GHN API
-     *
-     * @return JsonResponse
-     */
+  
     public function getShopInfo(): JsonResponse
     {
         try {
-            $shopId = config('services.ghn.shop_id'); // Lấy từ .env
+            $shopId = config('services.ghn.shop_id');
             
             if (!$shopId) {
                 return response()->json([
@@ -190,7 +161,6 @@ class ShippingController extends Controller
                 ], 400);
             }
 
-            // Gọi API lấy thông tin shop
             $response = Http::withHeaders([
                 'Token' => config('services.ghn.api_token'),
                 'ShopId' => $shopId,
@@ -206,7 +176,6 @@ class ShippingController extends Controller
                 }
             }
 
-            // Nếu API shop/detail không hoạt động, thử API khác
             $response2 = Http::withHeaders([
                 'Token' => config('services.ghn.api_token'),
             ])->get(config('services.ghn.base_url') . '/shop', [
@@ -236,15 +205,10 @@ class ShippingController extends Controller
         }
     }
 
-    /**
-     * Lấy cấu hình GHN và thông tin shop
-     *
-     * @return JsonResponse
-     */
+
     public function getConfig(): JsonResponse
     {
         try {
-            // Lấy thông tin shop từ GHN API
             $shopInfo = $this->getShopInfoFromGHN();
             
             return response()->json([
@@ -252,7 +216,7 @@ class ShippingController extends Controller
                 'data' => [
                     'base_url' => config('services.ghn.base_url'),
                     'token' => config('services.ghn.api_token'),
-                    'shop_id' => config('services.ghn.shop_id'), // Lấy từ .env
+                    'shop_id' => config('services.ghn.shop_id'),
                     'shop_info' => $shopInfo
                 ]
             ]);
@@ -264,17 +228,12 @@ class ShippingController extends Controller
         }
     }
 
-    /**
-     * Lấy thông tin shop từ GHN API (private method)
-     *
-     * @return array|null
-     */
+  
     private function getShopInfoFromGHN(): ?array
     {
         try {
-            $shopId = config('services.ghn.shop_id'); // Lấy từ .env
+            $shopId = config('services.ghn.shop_id'); 
             
-            // Thử API shop/detail trước
             $response = Http::withHeaders([
                 'Token' => config('services.ghn.api_token'),
                 'ShopId' => $shopId,
@@ -287,7 +246,6 @@ class ShippingController extends Controller
                 }
             }
 
-            // Thử API shop với query parameter
             $response2 = Http::withHeaders([
                 'Token' => config('services.ghn.api_token'),
             ])->get(config('services.ghn.base_url') . '/shop', [
@@ -301,7 +259,6 @@ class ShippingController extends Controller
                 }
             }
 
-            // Nếu không lấy được từ API, trả về null
             return null;
 
         } catch (\Exception $e) {
@@ -309,11 +266,7 @@ class ShippingController extends Controller
         }
     }
 
-    /**
-     * Lấy danh sách tỉnh từ GHN API
-     *
-     * @return JsonResponse
-     */
+ 
     public function getProvinces(): JsonResponse
     {
         try {
@@ -344,12 +297,7 @@ class ShippingController extends Controller
         }
     }
 
-    /**
-     * Lấy danh sách huyện từ GHN API
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
+  
     public function getDistricts(Request $request): JsonResponse
     {
         try {
@@ -391,12 +339,7 @@ class ShippingController extends Controller
         }
     }
 
-    /**
-     * Lấy danh sách xã từ GHN API
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
+
     public function getWards(Request $request): JsonResponse
     {
         try {
