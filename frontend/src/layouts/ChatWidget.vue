@@ -114,10 +114,10 @@
               <!-- Attachment -->
               <div v-if="message.attachment" class="mb-2">
                 <img v-if="isImage(message.attachment)"
-                  :src="runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment"
+                  :src="apiBaseUrl + '/storage/' + message.attachment"
                   class="max-w-full rounded cursor-pointer"
-                  @click="openImage(runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment)">
-                <a v-else :href="runtimeConfig.public.apiBaseUrl + '/storage/' + message.attachment" target="_blank"
+                  @click="openImage(apiBaseUrl + '/storage/' + message.attachment)">
+                <a v-else :href="apiBaseUrl + '/storage/' + message.attachment" target="_blank"
                   class="flex items-center gap-2 p-2 bg-white bg-opacity-20 rounded">
                   <i class="fas fa-file"></i>
                   <span class="text-sm">{{ getFileName(message.attachment) }}</span>
@@ -191,6 +191,13 @@
 import { ref, nextTick, watch, onUnmounted } from 'vue'
 import { useChat } from '../composable/useChat'
 
+// Khai báo API base URL
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+
+const props = defineProps({
+  isAuthenticated: { type: Boolean, default: false }
+})
+
 const {
   getMessages,
   sendMessage: sendChatMessage,
@@ -200,7 +207,7 @@ const {
 } = useChat()
 
 const user = JSON.parse(localStorage.getItem('user') || 'null')
-const isAuthenticated = !!localStorage.getItem('token')
+// const isAuthenticated = !!localStorage.getItem('token') // Đã bỏ, dùng props
 
 const isOpen = ref(false)
 const admins = ref([])
@@ -213,12 +220,13 @@ const selectedFile = ref(null)
 const showImageModal = ref(false)
 const modalImage = ref('')
 const messagesContainer = ref(null)
+const fileInput = ref(null)
 const loadingAdmins = ref(false)
 const pollingInterval = ref(null)
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value
-  if (isOpen.value && isAuthenticated) {
+  if (isOpen.value && props.isAuthenticated) {
     loadAdmins()
     loadUnreadCount()
   }
@@ -295,6 +303,10 @@ const sendMessage = async () => {
     await nextTick()
     scrollToBottom()
     await loadMessages()
+    // PHÁT SỰ KIỆN realtime cho admin
+    const chatChannel = new BroadcastChannel('chat_channel')
+    chatChannel.postMessage({ type: 'new_message', userId: currentAdmin.value.id })
+    console.log('[User] Phát sự kiện:', { type: 'new_message', userId: currentAdmin.value.id })
   } catch (error) {
     console.error('Lỗi khi gửi tin nhắn:', error)
   } finally {
@@ -363,6 +375,16 @@ watch([isOpen, currentAdmin], ([open, admin]) => {
 })
 
 onUnmounted(() => stopPolling())
+
+// Lắng nghe BroadcastChannel để nhận tin nhắn mới từ admin
+const chatChannel = new BroadcastChannel('chat_channel')
+chatChannel.onmessage = (event) => {
+  console.log('[User] Nhận sự kiện:', event.data, 'user:', user)
+  if (event.data.type === 'new_message' && user && String(event.data.userId) === String(user.id)) {
+    console.log('[User] Gọi loadMessages')
+    loadMessages()
+  }
+}
 </script>
 
 <style scoped>
