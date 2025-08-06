@@ -1,14 +1,25 @@
 <template>
-    <div class="mt-3 bg-white p-8 rounded-[10px]">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-semibold text-gray-800">Đánh giá gần nhất</h2>
-            <router-link to="/reviews" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+    <div class="mt-3 bg-white p-4 md:p-8 rounded-[10px]">
+        <div class="flex justify-between items-center mb-4 md:mb-6">
+            <h2 class="text-lg md:text-2xl font-semibold text-gray-800">Đánh giá gần nhất</h2>
+            <router-link to="/reviews"
+                class="text-blue-600 hover:text-blue-800 font-medium transition-colors text-sm md:text-base">
                 Xem tất cả →
             </router-link>
         </div>
 
-        <div class="mb-10">
-            <Swiper v-if="reviews.length > 3" class="custom-swiper-pagination" :modules="[Pagination]"
+        <div class="mb-6 md:mb-10">
+            <!-- Mobile: Horizontal scroll -->
+            <div class="flex gap-4 overflow-x-auto scroll-smooth md:hidden">
+                <div v-for="review in reviews" :key="review.id" class="flex-shrink-0 w-80">
+                    <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 flex flex-col gap-2">
+                        <ReviewCard :review="review" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop: Swiper for more than 3 reviews -->
+            <Swiper v-if="reviews.length > 3" class="custom-swiper-pagination hidden md:block" :modules="[Pagination]"
                 :slides-per-view="1" :space-between="16" :breakpoints="{
                     640: { slidesPerView: 1.2 },
                     768: { slidesPerView: 2 },
@@ -21,7 +32,9 @@
                 </SwiperSlide>
             </Swiper>
 
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Desktop: Grid for 3 or fewer reviews -->
+            <div v-else-if="reviews.length <= 3"
+                class="hidden md:grid md:grid-cols-1 md:md:grid-cols-2 md:lg:grid-cols-3 md:gap-6">
                 <div v-for="review in reviews" :key="review.id"
                     class="bg-white rounded-lg p-6 flex flex-col gap-2 border border-gray-100">
                     <ReviewCard :review="review" />

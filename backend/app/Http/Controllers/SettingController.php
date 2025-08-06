@@ -23,7 +23,7 @@ class SettingController extends Controller
             foreach ($data as $key => $value) {
                 Setting::setValue($key, is_array($value) ? json_encode($value) : $value);
             }
-
+          
             // Cập nhật .env sau
             $envFields = [
                 'smtpHost'        => 'MAIL_HOST',
@@ -37,15 +37,9 @@ class SettingController extends Controller
                 'momoPartnerCode' => 'MOMO_PARTNER_CODE',
                 'momoAccessKey'   => 'MOMO_ACCESS_KEY',
                 'momoSecretKey'   => 'MOMO_SECRET_KEY',
-                'paypalClientId'  => 'PAYPAL_CLIENT_ID',
-                'paypalSecret'    => 'PAYPAL_SECRET',
-                'paypalMode'      => 'PAYPAL_MODE',
-                'paypalCurrency'  => 'PAYPAL_CURRENCY',
-                'paypalApiUrl'    => 'PAYPAL_API_URL',
                 'GHN_BASE_URL'   => 'GHN_BASE_URL',
                 'GHN_API_TOKEN'  => 'GHN_API_TOKEN',
                 'GHN_SHOP_ID'    => 'GHN_SHOP_ID',
-
             ];
 
             $envData = [];
@@ -58,7 +52,7 @@ class SettingController extends Controller
             if ($envData) {
                 EnvHelper::setEnvValue($envData);
             }
-
+          
             return response()->json(['message' => 'Cập nhật cài đặt thành công']);
         } catch (\Exception $e) {
             \Log::error('Error updating settings: ' . $e->getMessage());

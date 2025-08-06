@@ -1,10 +1,10 @@
 <template>
     <router-link :to="`/san-pham/${productProp.slug}`" class="block">
-        <div class="w-full overflow-hidden group pb-2 sm:pb-3 relative rounded-[5px] bg-white">
+        <div class="w-full md:w-auto overflow-hidden group pb-2 sm:pb-3 relative rounded-[5px] bg-white">
             <!-- Image -->
-            <div class="relative overflow-hidden">
+            <div class="relative overflow-hidden mobile-image-container">
                 <img :src="getMainImage" :alt="productProp.name"
-                    class="w-full object-cover h-48 sm:h-80 transition-transform group-hover:scale-105 duration-300" />
+                    class="w-full object-cover h-64 sm:h-96 transition-transform group-hover:scale-105 duration-300" />
                 <div
                     class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <!-- Hover buttons -->
@@ -129,5 +129,20 @@ const onQuickView = () => {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    .mobile-image-container {
+        width: 236px;
+        height: 320px;
+        margin: 5px auto;
+    }
+
+    .mobile-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 }
 </style>

@@ -8,32 +8,34 @@
             </div>
 
             <!-- Mobile Filter Overlay -->
-            <div v-if="showFilter" class="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
-                @click="showFilter = false">
-                <div class="fixed top-0 left-0 h-full w-80 bg-white shadow-lg overflow-y-auto" @click.stop>
-                    <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-                        <h3 class="text-lg font-semibold">Bộ lọc</h3>
-                        <button @click="showFilter = false" class="text-gray-500 hover:text-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="p-4">
-                        <ProductFilter @filter="handleFilter" />
+            <Transition name="filter-overlay">
+                <div v-if="showFilter" class="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
+                    @click="showFilter = false">
+                    <div class="fixed top-0 left-0 h-full w-80 bg-white shadow-lg overflow-y-auto" @click.stop>
+                        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                            <h3 class="text-lg font-semibold">Bộ lọc</h3>
+                            <button @click="showFilter = false" class="text-gray-500 hover:text-gray-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <ProductFilter @filter="handleFilter" />
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Transition>
 
             <main class="flex-1 min-w-0">
                 <!-- Top controls -->
                 <div
-                    class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3 bg-white p-3 rounded-[5px]">
+                    class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 bg-white p-3 rounded-lg shadow-sm">
                     <div class="flex items-center gap-4 w-full md:w-auto">
                         <button @click="showFilter = !showFilter"
-                            class="flex items-center gap-2 text-sm text-gray-600 lg:hidden">
+                            class="flex items-center gap-2 text-sm text-gray-600 lg:hidden bg-gray-100 px-3 py-2 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -44,7 +46,7 @@
                         <div class="relative w-full md:w-64">
                             <input type="text" v-model="searchQuery" @input="handleSearch"
                                 placeholder="Tìm kiếm sản phẩm..."
-                                class="w-full px-4 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 class="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,7 +60,7 @@
                     <div class="flex items-center gap-2">
                         <span class="text-sm md:text-md">Sắp xếp:</span>
                         <select v-model="sortOption" @change="handleSort"
-                            class="border border-gray-300 rounded px-2 py-1 text-sm md:text-md">
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm md:text-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="name_asc">Tên A → Z</option>
                             <option value="name_desc">Tên Z → A</option>
                             <option value="price_asc">Giá tăng dần</option>
@@ -69,13 +71,13 @@
 
                 <!-- Products Grid -->
                 <div v-if="filteredProducts.length > 0"
-                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 bg-white p-4 md:p-8 rounded-[5px]">
+                    class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 bg-white p-4 md:p-6 rounded-lg shadow-sm">
                     <Card v-for="product in paginatedProducts" :key="product.id" :product="product"
                         @quick-view="openQuickView" />
                 </div>
 
                 <!-- No products found message -->
-                <div v-if="filteredProducts.length === 0" class="bg-white p-4 md:p-8 rounded-[5px] text-center">
+                <div v-if="filteredProducts.length === 0" class="bg-white p-8 rounded-lg shadow-sm text-center">
                     <div class="flex flex-col items-center gap-4">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -94,14 +96,14 @@
                 <div v-if="totalPages > 1 && filteredProducts.length > 0"
                     class="flex justify-center items-center space-x-1 sm:space-x-2 mt-8">
                     <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
-                        class="px-2 sm:px-3 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50">‹</button>
+                        class="px-3 py-2 bg-white border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">‹</button>
 
                     <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
-                        :class="page === currentPage ? 'bg-[#81aacc] text-white' : 'bg-white'"
-                        class="px-2 sm:px-3 py-2 border rounded hover:bg-gray-50 text-sm">{{ page }}</button>
+                        :class="page === currentPage ? 'bg-[#81aacc] text-white' : 'bg-white hover:bg-gray-50'"
+                        class="px-3 py-2 border rounded-lg text-sm font-medium">{{ page }}</button>
 
                     <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
-                        class="px-2 sm:px-3 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50">›</button>
+                        class="px-3 py-2 bg-white border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">›</button>
                 </div>
             </main>
         </div>
@@ -214,3 +216,21 @@ const goToPage = (page) => {
     }
 }
 </script>
+
+<style scoped>
+/* Filter Overlay Transition */
+.filter-overlay-enter-active,
+.filter-overlay-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.filter-overlay-enter-from,
+.filter-overlay-leave-to {
+    opacity: 0;
+}
+
+.filter-overlay-enter-to,
+.filter-overlay-leave-from {
+    opacity: 1;
+}
+</style>
