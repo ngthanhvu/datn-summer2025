@@ -87,6 +87,10 @@
                     <span>Liên hệ</span>
                     <span v-if="unreadContacts > 0" class="badge">{{ unreadContacts }}</span>
                 </RouterLink>
+                <RouterLink to="/admin/pages" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Quản lý trang</span>
+                </RouterLink>
             </div>
 
             <!-- Hệ thống -->

@@ -118,6 +118,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useFlashsale } from '../../../composable/useFlashsale'
+import { push } from 'notivue'
+
 const { getFlashSales, deleteFlashSale } = useFlashsale()
 const flashSales = ref([])
 const loading = ref(false)
@@ -150,6 +152,7 @@ async function fetchFlashSales() {
     } catch (e) {
         error.value = e.message || 'Lỗi tải dữ liệu flash sale'
         flashSales.value = []
+        push.error('Có lỗi xảy ra khi tải danh sách flash sale!')
     } finally {
         loading.value = false
     }
@@ -164,10 +167,10 @@ async function handleDelete(id) {
         try {
             await deleteFlashSale(id)
             await fetchFlashSales()
-            alert('Đã xóa thành công!')
+            push.success('Xóa flash sale thành công!')
         } catch (e) {
             error.value = e.message || 'Xóa thất bại!'
-            alert(error.value)
+            push.error('Có lỗi xảy ra khi xóa flash sale!')
         } finally {
             deleteLoading.value = false
         }
@@ -179,9 +182,9 @@ const toggleStatus = async (item) => {
     try {
         await updateFlashSaleStatus(item.id, newStatus)
         item.active = newStatus
-        // Nếu có notyf hoặc emit refresh thì gọi ở đây
+        push.success('Cập nhật trạng thái flash sale thành công!')
     } catch (e) {
-        // Nếu có notyf thì báo lỗi ở đây
+        push.error('Có lỗi xảy ra khi cập nhật trạng thái flash sale!')
     }
 }
 

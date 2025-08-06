@@ -8,7 +8,7 @@
                     Flash Sale</div>
             </div>
         </div>
-        <div v-if="error" class="text-red-500 mb-2">{{ error }}</div>
+        <!-- <div v-if="error" class="text-red-500 mb-2">{{ error }}</div> -->
         <div v-if="success" class="text-green-600 mb-2">{{ success }}</div>
         <div class="flex flex-col md:flex-row gap-8">
             <div class="bg-white rounded shadow p-6 md:w-2/5 mb-6 md:mb-0 text-sm">
@@ -37,25 +37,23 @@
                     <div class="flex items-center gap-4">
                         <div class="flex items-center gap-2">
                             <label class="text-sm">Tự động lặp lại</label>
-                            <!-- <button @click="form.repeat = !form.repeat" :class="form.repeat ? 'bg-pink-500' : 'bg-gray-300'"
-                class="relative w-10 h-6 rounded-full transition-colors outline-none">
-                <span :class="form.repeat ? 'translate-x-4 bg-white' : 'translate-x-0 bg-white'"
-                  class="absolute left-0 top-0 w-6 h-6 rounded-full shadow transition-transform"></span>
-              </button> -->
                             <button @click="form.repeat = !form.repeat"
                                 :class="form.repeat ? 'bg-[#3bb77e]' : 'bg-gray-300'"
                                 class="relative w-12 h-7 rounded-full transition-colors duration-300 outline-none flex items-center cursor-pointer">
                                 <span :class="form.repeat ? 'translate-x-6' : 'translate-x-1'"
                                     class="absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300"></span>
                             </button>
-
                         </div>
                         <div v-if="form.repeat" class="flex items-center gap-2">
-                            <label class="text-sm">Nhập số phút lặp lại</label>
+                            <label class="text-sm">Số phút lặp lại</label>
                             <input v-model="form.repeatMinutes" type="number" min="1"
-                                class="input w-full border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                                class="input w-20 border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
                                 placeholder="Phút" />
                         </div>
+                    </div>
+                    <div v-if="form.repeat" class="bg-blue-50 border border-blue-200 rounded p-3 text-xs text-blue-700">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Khi chương trình kết thúc, hệ thống sẽ tự động tạo lại chương trình mới sau {{ form.repeatMinutes || 60 }} phút
                     </div>
                     <div class="flex items-center gap-4 mt-2">
                         <div class="flex items-center gap-2">
@@ -67,6 +65,12 @@
                                     class="absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300"></span>
                             </button>
                         </div>
+                        <div v-if="form.autoIncrease" class="flex items-center gap-2">
+                            <label class="text-sm">Tăng mỗi 1 giờ</label>
+                            <input v-model="form.increaseAmount" type="number" min="1"
+                                class="input w-20 border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                                placeholder="SL" />
+                        </div>
                         <div class="flex items-center gap-2">
                             <label class="text-sm">Active</label>
                             <button @click="form.active = !form.active"
@@ -76,6 +80,10 @@
                                     class="absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300"></span>
                             </button>
                         </div>
+                    </div>
+                    <div v-if="form.autoIncrease" class="bg-green-50 border border-green-200 rounded p-3 text-xs text-green-700">
+                        <i class="fas fa-clock mr-1"></i>
+                        Hệ thống sẽ tự động tăng số lượng đã bán thêm {{ form.increaseAmount || 1 }} mỗi 1 giờ, không vượt quá số lượng tổng
                     </div>
                     <div class="flex gap-2 mt-6">
                         <button class="px-3 py-2 bg-[#3BB77E] text-white cursor-pointer rounded hover:bg-[#74c09d]"
@@ -115,12 +123,13 @@
                                 <td class="px-3 py-2">{{ item.product?.discount_price ?
                                     formatPrice(item.product.discount_price) :
                                     (item.discount_price ? formatPrice(item.discount_price) : 'N/A') }}</td>
-                                <td class="px-3 py-2"><input v-model="item.flashPrice" class="input w-24"
+                                <td class="px-3 py-2"><input v-model="item.flashPrice" class="input w-24 border border-gray-300 rounded p-1"
                                         placeholder="Giá FS" /></td>
-                                <td class="px-3 py-2"><input v-model="item.sold" class="input w-16"
+                                <td class="px-3 py-2">
+                                    <input v-model="item.sold" class="input w-12 border border-gray-300 rounded p-1"
                                         placeholder="Đã bán" />
                                 </td>
-                                <td class="px-3 py-2"><input v-model="item.quantity" class="input w-16"
+                                <td class="px-3 py-2"><input v-model="item.quantity" class="input w-16 border border-gray-300 rounded p-1"
                                         placeholder="SL" />
                                 </td>
                                 <td class="px-3 py-2"><input type="checkbox" v-model="item.realQty" /></td>
@@ -158,6 +167,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { useFlashsale } from '../../../composable/useFlashsale'
 import { useProducts } from '../../../composable/useProducts'
 import { useRouter } from 'vue-router'
+import { push } from 'notivue'
 function formatPrice(price) {
     if (price === null || price === undefined || price === '') return 'N/A'
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(price))
@@ -169,6 +179,9 @@ function truncate(str, n = 30) {
 const props = defineProps({
     editData: Object
 })
+
+// Debug: Log editData prop
+console.log('FlashSaleForm editData prop:', props.editData)
 const products = ref([])
 const productPage = ref(1)
 const productPageSize = 5
@@ -184,6 +197,7 @@ const form = ref({
     repeat: false,
     repeatMinutes: 60,
     autoIncrease: false,
+    increaseAmount: 1,
     active: true
 })
 const loading = ref(false)
@@ -195,9 +209,14 @@ const allProducts = ref([])
 const router = useRouter()
 function goToSelectProducts() {
     localStorage.setItem('flashsale_form_data', JSON.stringify(form.value));
+    
+    // Lưu sản phẩm hiện tại vào localStorage nếu đang edit
     if (props.editData && props.editData.id) {
+        console.log('Saving current products to localStorage:', products.value)
+        localStorage.setItem(`flashsale_edit_${props.editData.id}`, JSON.stringify(products.value))
         router.push(`/admin/flashsale/select?flashSaleId=${props.editData.id}`)
     } else {
+        localStorage.setItem('flashsale_selected_products', JSON.stringify(products.value))
         router.push('/admin/flashsale/select')
     }
 }
@@ -235,6 +254,7 @@ watch(() => props.editData, (val) => {
             repeat: val.repeat || false,
             repeatMinutes: val.repeat_minutes || val.repeatMinutes || 60,
             autoIncrease: val.auto_increase || val.autoIncrease || false,
+            increaseAmount: val.increase_amount || val.increaseAmount || 1,
             active: val.active !== undefined ? val.active : true
         }
         if (val.products && val.products.length > 0 && products.value.length === 0) {
@@ -273,6 +293,15 @@ function addProduct(product) {
 function removeProduct(idx) {
     products.value.splice(idx, 1)
 }
+
+function increaseSold(item) {
+    const currentSold = Number(item.sold) || 0
+    const increaseAmount = Number(form.value.increaseAmount) || 1
+    const maxQuantity = Number(item.quantity) || 0
+    
+    const newSold = Math.min(currentSold + increaseAmount, maxQuantity)
+    item.sold = newSold.toString()
+}
 async function submit() {
     error.value = ''
     success.value = ''
@@ -285,6 +314,7 @@ async function submit() {
             repeat: form.value.repeat,
             repeat_minutes: form.value.repeatMinutes,
             auto_increase: form.value.autoIncrease,
+            increase_amount: form.value.increaseAmount,
             active: form.value.active,
             products: products.value.map(p => ({
                 product_id: p.product_id ? p.product_id : p.id,
@@ -297,16 +327,17 @@ async function submit() {
         let res
         if (props.editData && props.editData.id) {
             res = await updateFlashSale(props.editData.id, payload)
-            success.value = 'Cập nhật flash sale thành công!'
+            push.success('Cập nhật flash sale thành công!')
         } else {
             res = await createFlashSale(payload)
-            success.value = 'Tạo flash sale thành công!'
+            push.success('Tạo flash sale thành công!')
             setTimeout(() => router.push('/admin/flashsale'), 1000)
         }
         // Xóa dữ liệu form tạm sau khi submit thành công
         localStorage.removeItem('flashsale_form_data');
     } catch (e) {
         error.value = e.message || 'Có lỗi xảy ra khi lưu flash sale'
+        push.error('Có lỗi xảy ra khi lưu flash sale!')
     } finally {
         loading.value = false
     }

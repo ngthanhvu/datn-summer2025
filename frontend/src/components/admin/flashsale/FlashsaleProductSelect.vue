@@ -31,10 +31,10 @@
                                 <td class="px-2 py-2">{{ item.price }}</td>
                                 <td class="px-2 py-2">{{ item.discount_price }}</td>
                                 <td class="px-2 py-2">
-                                    <button class="bg-[#3BB77E] text-white px-2 py-1 rounded cursor-pointer"
-                                        @click="addProduct(item)"
-                                        :disabled="selectedProducts.some(p => p.id === item.id)"> <i
-                                            class="fas fa-plus"></i> </button>
+                                    <span v-if="selectedProducts.some(p => p.id === item.id)"
+                                        class="text-green-600 font-semibold">Đã chọn</span>
+                                    <button v-else class="bg-[#3BB77E] text-white px-2 py-1 rounded cursor-pointer"
+                                        @click="addProduct(item)"> <i class="fas fa-plus"></i> </button>
                                 </td>
                             </tr>
                         </tbody>
@@ -83,14 +83,18 @@
 
                                 <!-- Input -->
                                 <td class="px-2 py-2">
-                                    <input v-model="item.flashPrice" class="input w-20 text-center"
+                                    <input v-model="item.flashPrice" class="input w-20 text-center border border-gray-300 rounded"
                                         placeholder="Giá FS" />
                                 </td>
                                 <td class="px-2 py-2">
-                                    <input v-model="item.sold" class="input w-16 text-center" placeholder="Đã bán" />
+                                    <input v-model="item.sold"
+                                        class="input w-16 text-center border border-gray-300 rounded"
+                                        placeholder="Đã bán" />
                                 </td>
                                 <td class="px-2 py-2">
-                                    <input v-model="item.quantity" class="input w-16 text-center" placeholder="SL" />
+                                    <input v-model="item.quantity"
+                                        class="input w-16 text-center border border-gray-300 rounded"
+                                        placeholder="SL" />
                                 </td>
 
                                 <!-- Checkbox -->
@@ -166,7 +170,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useProducts } from '../../../composable/useProducts'
 import { useFlashsale } from '../../../composable/useFlashsale'
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 const search = ref('')
 const page = ref(1)
 const pageSize = 5
@@ -182,6 +186,7 @@ const loading = ref(false)
 const error = ref('')
 const { getMainImage } = useFlashsale()
 const router = useRouter()
+const route = useRoute()
 const { getFlashSaleById } = useFlashsale()
 
 const selectedProducts = ref([])
@@ -215,19 +220,24 @@ onMounted(async () => {
 
         // Kiểm tra xem có phải đang edit flash sale không
         const flashSaleId = route.query.flashSaleId
+        console.log('FlashSaleId from query:', flashSaleId)
         if (flashSaleId) {
             // Nếu có flashSaleId trong query, load sản phẩm từ localStorage hoặc API
             const savedProducts = localStorage.getItem(`flashsale_edit_${flashSaleId}`)
+            console.log('Saved products from localStorage:', savedProducts)
             if (savedProducts) {
                 try {
                     selectedProducts.value = JSON.parse(savedProducts)
+                    console.log('Loaded products from localStorage:', selectedProducts.value)
                 } catch (e) {
                     console.error('Lỗi parse saved products:', e)
                 }
             } else {
                 // Nếu chưa có localStorage, gọi API lấy flash sale
                 try {
+                    console.log('Calling API to get flash sale:', flashSaleId)
                     const flashSale = await getFlashSaleById(flashSaleId)
+                    console.log('Flash sale data from API:', flashSale)
                     if (flashSale && flashSale.products) {
                         selectedProducts.value = flashSale.products.map(p => {
                             const productData = p.product || {}
@@ -245,6 +255,7 @@ onMounted(async () => {
                                 product: productData
                             }
                         })
+                        console.log('Mapped products:', selectedProducts.value)
                     }
                 } catch (e) {
                     console.error('Lỗi lấy flash sale:', e)
