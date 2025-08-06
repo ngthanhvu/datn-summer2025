@@ -191,6 +191,7 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/customers', [DashboardController::class, 'getCustomersStats']);
     Route::get('/products', [DashboardController::class, 'getProductsStats']);
     Route::get('/recent-orders', [DashboardController::class, 'getRecentOrders']);
+    Route::get('/top-selling', [DashboardController::class, 'getTopSelling']);
 });
 
 Route::get('/stock-movement', [StockMovementController::class, 'index']);

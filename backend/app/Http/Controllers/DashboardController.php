@@ -515,6 +515,43 @@ class DashboardController extends Controller
     }
 
     /**
+     * Lấy top sản phẩm bán chạy
+     */
+    public function getTopSelling(Request $request): JsonResponse
+    {
+        try {
+            $limit = $request->get('limit', 10);
+            $topProducts = Products::where('is_active', true)
+                ->with(['mainImage', 'variants'])
+                ->orderByDesc('sold_count')
+                ->limit($limit)
+                ->get()
+                ->map(function ($product) {
+                    $variant = $product->variants->first();
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'sold_count' => $product->sold_count,
+                        'image' => $product->mainImage ? asset('storage/' . $product->mainImage->image_path) : null,
+                        'color' => $variant ? $variant->color : null,
+                        'price' => $variant ? $variant->price : $product->price,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $topProducts
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi lấy sản phẩm bán chạy',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Lấy tên trạng thái đơn hàng
      */
     private function getStatusName($status)
