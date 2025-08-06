@@ -5,7 +5,7 @@
             <router-view />
         </main>
         <FooterHome />
-        <ChatWidget v-if="isAuthenticated" />
+        <ChatWidget :is-authenticated="isAuthenticated" />
         <CookieConsent />
     </div>
 </template>

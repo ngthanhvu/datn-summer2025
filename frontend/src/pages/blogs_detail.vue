@@ -1,9 +1,9 @@
 <template>
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto px-4 py-4 sm:py-8">
         <!-- Skeleton Loading -->
-        <div v-if="loading" class="flex flex-col lg:flex-row gap-8 animate-pulse">
+        <div v-if="loading" class="flex flex-col lg:flex-row gap-6 lg:gap-8 animate-pulse">
             <!-- Skeleton cho phần nội dung chính -->
-            <div class="flex-1 min-w-0 bg-white p-8">
+            <div class="flex-1 min-w-0 bg-white p-4 sm:p-8 rounded-lg">
                 <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
                 <div class="h-8 bg-gray-300 rounded w-2/3 mb-6"></div>
                 <div class="flex gap-4 mb-4">
@@ -11,7 +11,7 @@
                     <div class="h-4 bg-gray-200 rounded w-24"></div>
                     <div class="h-4 bg-gray-200 rounded w-16"></div>
                 </div>
-                <div class="h-64 bg-gray-200 rounded mb-6"></div>
+                <div class="h-48 sm:h-64 bg-gray-200 rounded mb-6"></div>
                 <div class="space-y-3">
                     <div class="h-4 bg-gray-200 rounded w-full"></div>
                     <div class="h-4 bg-gray-200 rounded w-5/6"></div>
@@ -20,8 +20,8 @@
             </div>
 
             <!-- Skeleton cho Sidebar -->
-            <aside class="w-full lg:w-80 flex-shrink-0 space-y-6">
-                <div class="bg-white rounded-xl p-6 shadow-sm">
+            <aside class="w-full lg:w-80 flex-shrink-0 space-y-4 lg:space-y-6">
+                <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                     <div class="h-5 bg-gray-200 rounded w-1/2 mb-4"></div>
                     <div class="space-y-2">
                         <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -29,7 +29,7 @@
                         <div class="h-4 bg-gray-200 rounded w-5/6"></div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm">
+                <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                     <div class="h-5 bg-gray-200 rounded w-1/2 mb-4"></div>
                     <div class="space-y-2">
                         <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -40,74 +40,78 @@
             </aside>
         </div>
 
-        <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+        <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
             {{ error }}
         </div>
         <div v-else-if="blog">
-            <div class="flex flex-col lg:flex-row gap-8">
+            <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
                 <!-- Main Content -->
-                <div class="flex-1 min-w-0 bg-white p-8">
-                    <nav class="flex items-center flex-wrap gap-2 text-sm text-gray-600">
+                <div class="flex-1 min-w-0 bg-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-sm">
+                    <nav class="flex items-center flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 mb-4">
                         <router-link to="/" class="hover:text-primary hover:underline">Trang chủ</router-link>
                         <span>/</span>
                         <router-link to="/tin-tuc" class="hover:text-primary hover:underline">Bài viết</router-link>
                         <span>/</span>
-                        <span class="font-medium text-gray-800">{{ blog.title }}</span>
+                        <span class="font-medium text-gray-800 truncate">{{ blog.title }}</span>
                     </nav>
-                    <div class="space-y-4">
-                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">{{ blog.title }}</h1>
-                        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                            <div class="flex items-center gap-2">
+                    <div class="space-y-3 sm:space-y-4">
+                        <h1 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight">{{
+                            blog.title }}</h1>
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
+                            <div class="flex items-center gap-1 sm:gap-2">
                                 <i class="fas fa-user text-primary"></i>
-                                <span>{{ blog.author?.username || blog.author?.name || 'Unknown' }}</span>
+                                <span class="truncate">{{ blog.author?.username || blog.author?.name || 'Unknown'
+                                }}</span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1 sm:gap-2">
                                 <i class="fas fa-calendar text-primary"></i>
                                 <span>{{ formatDate(blog.published_at || blog.created_at) }}</span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1 sm:gap-2">
                                 <i class="fas fa-eye text-primary"></i>
                                 <span>{{ blog.view_count || 0 }} lượt xem</span>
                             </div>
                         </div>
                     </div>
-                    <div v-if="blog.image" class="flex justify-center my-6">
+                    <div v-if="blog.image" class="flex justify-center my-4 sm:my-6">
                         <img :src="blog.image" :alt="blog.title" class="blog-image" />
                     </div>
-                    <div v-if="blog.categories?.length || blog.tags?.length" class="flex flex-wrap gap-2">
+                    <div v-if="blog.categories?.length || blog.tags?.length" class="flex flex-wrap gap-2 my-4">
                         <router-link v-for="category in blog.categories" :key="category.id"
                             :to="`/blogs/category/${category.slug}`"
-                            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm">
+                            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                             {{ category.name }}
                         </router-link>
                         <span v-for="tag in blog.tags" :key="tag"
-                            class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm">
+                            class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                             #{{ tag }}
                         </span>
                     </div>
                     <article class="prose max-w-none w-full">
                         <div class="editor-content" v-html="blog.content"></div>
                     </article>
-                    <div class="flex items-center gap-4 pt-4 border-t border-gray-300">
-                        <span class="text-gray-600">Chia sẻ:</span>
+                    <div class="flex items-center gap-3 sm:gap-4 pt-4 border-t border-gray-300 mt-6">
+                        <span class="text-gray-600 text-sm">Chia sẻ:</span>
                         <a v-for="social in socialPlatforms" :key="social.name" :href="getShareUrl(social)"
-                            target="_blank" class="text-gray-500 hover:text-primary text-xl"
+                            target="_blank" class="text-gray-500 hover:text-primary text-lg sm:text-xl"
                             :title="'Share on ' + social.name">
                             <i :class="social.icon"></i>
                         </a>
                     </div>
-                    <div v-if="blog.author" class="bg-gray-50 rounded-xl p-6 flex flex-col md:flex-row gap-2 mt-8">
+                    <div v-if="blog.author"
+                        class="bg-gray-50 rounded-lg p-4 sm:p-6 flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
                         <div class="flex-shrink-0">
                             <img :src="blog.author.avatar || '/https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
                                 :alt="blog.author.username || blog.author.name"
-                                class="w-10 h-10 rounded-full object-cover" />
+                                class="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover" />
                         </div>
-                        <div>
-                            <h3 class="text-sm font-semibold">{{ blog.author.username || blog.author.name }}</h3>
-                            <p v-if="blog.author.bio" class="text-gray-600 mt-2">{{ blog.author.bio }}</p>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm sm:text-base font-semibold">{{ blog.author.username || blog.author.name
+                            }}</h3>
+                            <p v-if="blog.author.bio" class="text-gray-600 mt-2 text-sm">{{ blog.author.bio }}</p>
                             <div v-if="blog.author.social_links" class="flex gap-3 mt-3">
                                 <a v-for="(link, platform) in blog.author.social_links" :key="platform" :href="link"
-                                    target="_blank" class="text-gray-500 hover:text-primary">
+                                    target="_blank" class="text-gray-500 hover:text-primary text-lg">
                                     <i :class="getSocialIcon(platform)"></i>
                                 </a>
                             </div>
@@ -116,12 +120,12 @@
                 </div>
                 <!-- Sidebar -->
                 <aside class="w-full lg:w-80 flex-shrink-0">
-                    <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
-                        <h2 class="text-lg font-semibold mb-4">Bài viết liên quan</h2>
+                    <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm mb-4 lg:mb-6">
+                        <h2 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Bài viết liên quan</h2>
                         <div class="text-gray-500 text-sm">(Đang cập nhật...)</div>
                     </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h2 class="text-lg font-semibold mb-4">Danh mục</h2>
+                    <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                        <h2 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Danh mục</h2>
                         <div class="text-gray-500 text-sm">(Đang cập nhật...)</div>
                     </div>
                 </aside>
@@ -229,29 +233,30 @@ const getSocialIcon = (platform) => {
 <style>
 .blog-image {
     max-width: 100%;
-    max-height: 350px;
+    max-height: 300px;
     width: auto;
     height: auto;
     object-fit: cover;
-    border-radius: 1rem;
-    /* Bỏ shadow */
+    border-radius: 0.75rem;
     box-shadow: none;
     background: #f8f8f8;
 }
 
 @media (max-width: 1023px) {
     aside {
-        margin-top: 2rem;
+        margin-top: 1.5rem;
         width: 100% !important;
         position: static !important;
     }
 }
 
-aside {
-    position: sticky;
-    top: 2rem;
-    align-self: flex-start;
-    height: fit-content;
+@media (min-width: 1024px) {
+    aside {
+        position: sticky;
+        top: 2rem;
+        align-self: flex-start;
+        height: fit-content;
+    }
 }
 
 /* Phong cách cơ bản cho nội dung CKEditor */
@@ -259,43 +264,76 @@ aside {
     font-family: Arial, Helvetica, sans-serif;
     color: #333;
     line-height: 1.6;
+    font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+    .editor-content {
+        font-size: 1rem;
+    }
 }
 
 /* Tiêu đề */
 .editor-content h1 {
-    font-size: 2.25rem;
+    font-size: 1.5rem;
     font-weight: bold;
     margin: 1.2em 0 0.6em;
 }
 
 .editor-content h2 {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: bold;
     margin: 1.1em 0 0.55em;
 }
 
 .editor-content h3 {
-    font-size: 1.5rem;
+    font-size: 1.125rem;
     font-weight: bold;
     margin: 1em 0 0.5em;
 }
 
 .editor-content h4 {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: bold;
     margin: 0.9em 0 0.45em;
 }
 
 .editor-content h5 {
-    font-size: 1.125rem;
+    font-size: 0.875rem;
     font-weight: bold;
     margin: 0.8em 0 0.4em;
 }
 
 .editor-content h6 {
-    font-size: 1rem;
+    font-size: 0.75rem;
     font-weight: bold;
     margin: 0.7em 0 0.35em;
+}
+
+@media (min-width: 640px) {
+    .editor-content h1 {
+        font-size: 2.25rem;
+    }
+
+    .editor-content h2 {
+        font-size: 1.75rem;
+    }
+
+    .editor-content h3 {
+        font-size: 1.5rem;
+    }
+
+    .editor-content h4 {
+        font-size: 1.25rem;
+    }
+
+    .editor-content h5 {
+        font-size: 1.125rem;
+    }
+
+    .editor-content h6 {
+        font-size: 1rem;
+    }
 }
 
 /* Đoạn văn */
@@ -345,6 +383,50 @@ aside {
     overflow: hidden !important;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
     background-color: #ffffff !important;
+    min-width: 100% !important;
+    max-width: none !important;
+}
+
+/* Container cho table để đảm bảo scroll */
+.editor-content table,
+.editor-content figure.table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e0 #f7fafc !important;
+}
+
+/* Custom scrollbar cho webkit browsers */
+.editor-content table::-webkit-scrollbar,
+.editor-content figure.table::-webkit-scrollbar {
+    height: 6px !important;
+}
+
+.editor-content table::-webkit-scrollbar-track,
+.editor-content figure.table::-webkit-scrollbar-track {
+    background: #f7fafc !important;
+    border-radius: 3px !important;
+}
+
+.editor-content table::-webkit-scrollbar-thumb,
+.editor-content figure.table::-webkit-scrollbar-thumb {
+    background: #cbd5e0 !important;
+    border-radius: 3px !important;
+}
+
+.editor-content table::-webkit-scrollbar-thumb:hover,
+.editor-content figure.table::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0 !important;
+}
+
+/* Đảm bảo table content không bị wrap */
+.editor-content table,
+.editor-content figure.table table {
+    white-space: nowrap !important;
+    min-width: max-content !important;
 }
 
 .editor-content th,
@@ -352,10 +434,27 @@ aside {
 .editor-content figure.table th,
 .editor-content figure.table td {
     border: 1px solid #e5e7eb !important;
-    padding: 0.75em !important;
+    padding: 0.5em !important;
     text-align: left !important;
     vertical-align: top !important;
-    min-width: 100px !important;
+    min-width: 80px !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+@media (min-width: 640px) {
+
+    .editor-content th,
+    .editor-content td,
+    .editor-content figure.table th,
+    .editor-content figure.table td {
+        padding: 0.75em !important;
+        min-width: 100px !important;
+        font-size: 0.875rem !important;
+    }
 }
 
 .editor-content th,
@@ -385,24 +484,6 @@ aside {
     background-color: #f3f4f6 !important;
 }
 
-/* Responsive table */
-.editor-content table,
-.editor-content figure.table table {
-    display: block !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-    max-width: 100% !important;
-}
-
-@media (min-width: 768px) {
-
-    .editor-content table,
-    .editor-content figure.table table {
-        display: table !important;
-        white-space: normal !important;
-    }
-}
-
 /* Đảm bảo tất cả table elements đều có border */
 .editor-content table,
 .editor-content table tr,
@@ -421,6 +502,27 @@ aside {
     padding: 0 !important;
     border: none !important;
     background: none !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+/* Responsive table - chỉ áp dụng trên desktop lớn */
+@media (min-width: 1024px) {
+
+    .editor-content table,
+    .editor-content figure.table table {
+        white-space: normal !important;
+        min-width: 100% !important;
+    }
+
+    .editor-content th,
+    .editor-content td,
+    .editor-content figure.table th,
+    .editor-content figure.table td {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+    }
 }
 
 /* Hình ảnh */
@@ -429,6 +531,7 @@ aside {
     height: auto;
     display: block;
     margin: 1em 0;
+    border-radius: 0.5rem;
 }
 
 /* Link */
@@ -452,6 +555,7 @@ aside {
     height: auto;
     aspect-ratio: 16 / 9;
     border: none;
+    border-radius: 0.5rem;
 }
 
 .editor-content figure.image {
@@ -469,8 +573,14 @@ aside {
 .editor-content figure.image figcaption {
     margin-top: 0.5em;
     color: #777;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-style: italic;
     text-align: center;
+}
+
+@media (min-width: 640px) {
+    .editor-content figure.image figcaption {
+        font-size: 0.875rem;
+    }
 }
 </style>

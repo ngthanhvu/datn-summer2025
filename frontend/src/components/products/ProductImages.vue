@@ -1,21 +1,20 @@
 <template>
     <div class="flex w-full lg:w-auto flex-col gap-4 justify-center p-5 h-full">
         <!-- Main Image -->
-        <div class="relative bg-white rounded-xl border border-gray-100 p-10 flex items-center justify-center max-w-[650px] max-h-[750px] h-full"
+        <div class="relative bg-white rounded-xl border border-gray-100 p-4 sm:p-6 lg:p-10 flex items-center justify-center w-full aspect-square max-w-[500px] sm:max-w-[500px] lg:max-w-[600px] mx-auto"
             @click="openModal">
-            <img :src="getImgSrc(mainImage)" :alt="productName"
-                class="w-full h-full max-w-[600px] max-h-[700px] object-contain rounded-lg" />
+            <img :src="getImgSrc(mainImage)" :alt="productName" class="w-full h-full object-contain rounded-lg" />
 
             <button v-if="productImages && productImages.length > 1" @click="previousImage"
-                class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </button>
 
             <button v-if="productImages && productImages.length > 1" @click="nextImage"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
             </button>
@@ -23,12 +22,14 @@
 
         <!-- Thumbnails -->
         <div class="flex flex-row gap-2 items-center justify-center flex-wrap">
-            <img v-for="(img, idx) in productImages || []" :key="idx" :src="getImgSrc(img)" :alt="productName"
-                class="w-16 h-16 object-contain rounded cursor-pointer border-2 bg-white transition-all hover:scale-105"
+            <div v-for="(img, idx) in productImages || []" :key="idx"
+                class="w-12 h-12 sm:w-16 sm:h-16 rounded border-2 bg-white cursor-pointer transition-all hover:scale-105 flex items-center justify-center"
                 :class="{
                     'ring-2 ring-blue-400 border-blue-400': getImgSrc(img) === getImgSrc(mainImage),
                     'border-gray-200 hover:border-gray-300': getImgSrc(img) !== getImgSrc(mainImage)
-                }" @click="selectImage(getImgSrc(img))" />
+                }" @click="selectImage(getImgSrc(img))">
+                <img :src="getImgSrc(img)" :alt="productName" class="w-full h-full object-contain rounded" />
+            </div>
         </div>
 
         <!-- Modal -->

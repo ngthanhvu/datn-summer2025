@@ -1,20 +1,24 @@
 <template>
-  <div v-if="flashSaleProducts.length > 0" class="bg-white rounded p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold text-blue-700">{{ campaignName }}</h1>
+  <div v-if="flashSaleProducts.length > 0" class="bg-white rounded p-4 md:p-6 mb-6">
+    <div class="flex items-center justify-between mb-3 md:mb-4">
+      <div class="flex items-center gap-2 md:gap-3">
+        <h1 class="text-lg md:text-2xl font-bold text-blue-700">{{ campaignName }}</h1>
         <img src="https://theme.hstatic.net/200000696635/1001373943/14/flashsale-hot.png?v=6" alt="Flash Sale"
-          class="h-10 w-auto" />
+          class="h-6 md:h-10 w-auto" />
       </div>
-      <div class="flex items-center gap-2">
-        <span>Kết thúc sau</span>
-        <div class="bg-black text-white px-2 py-1 rounded">{{ countdown.days }}</div>
-        <span>Ngày</span>
-        <div class="bg-black text-white px-2 py-1 rounded">{{ countdown.hours }}</div>
-        <span>:</span>
-        <div class="bg-black text-white px-2 py-1 rounded">{{ countdown.minutes }}</div>
-        <span>:</span>
-        <div class="bg-black text-white px-2 py-1 rounded">{{ countdown.seconds }}</div>
+      <div class="flex items-center gap-1 md:gap-2">
+        <span class="text-sm md:text-base text-blue-700 md:text-black">Kết thúc sau</span>
+        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.days }}
+        </div>
+        <span class="text-xs md:text-sm">Ngày</span>
+        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.hours }}
+        </div>
+        <span class="text-xs md:text-sm">:</span>
+        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.minutes }}
+        </div>
+        <span class="text-xs md:text-sm">:</span>
+        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.seconds }}
+        </div>
       </div>
     </div>
     <!-- Tab menu -->
@@ -34,7 +38,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
-      <div ref="sliderRef" class="flex gap-4 overflow-x-auto scroll-smooth px-12" style="scrollbar-width:none;">
+      <div ref="sliderRef" class="flex gap-4 overflow-x-auto scroll-smooth" style="scrollbar-width:none;">
         <router-link v-for="product in flashSaleProducts" :key="product.id"
           :to="{ path: `/san-pham/${product.slug}`, query: { flashsale: campaignName, flash_price: product.flash_price, end_time: product.product?.end_time || product.end_time, sold: product.sold, quantity: product.flash_sale_quantity } }"
           class="relative w-64 flex-shrink-0" style="text-decoration: none; color: inherit;">
@@ -126,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useFlashsale } from '../../composable/useFlashsale'
 import productSaleBg from '../../assets/product_sale.jpg'
 
@@ -160,9 +164,22 @@ function getFirstActiveFlashSale(flashSales) {
 }
 
 function updateCountdown(endTime) {
+  if (!endTime) {
+    console.warn('endTime is null or undefined')
+    countdown.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
+    return
+  }
+
   const now = new Date()
   const end = new Date(endTime)
+
   let diff = Math.max(0, end - now)
+
+  if (diff <= 0) {
+    countdown.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
+    return
+  }
+
   const days = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0')
   diff %= 1000 * 60 * 60 * 24
   const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0')
@@ -170,6 +187,7 @@ function updateCountdown(endTime) {
   const minutes = String(Math.floor(diff / (1000 * 60))).padStart(2, '0')
   diff %= 1000 * 60
   const seconds = String(Math.floor(diff / 1000)).padStart(2, '0')
+
   countdown.value = { days, hours, minutes, seconds }
 }
 
@@ -210,8 +228,14 @@ function selectTab(idx) {
 }
 
 function updateTabData() {
-  if (countdownInterval) clearInterval(countdownInterval)
+  // Clear existing interval
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+
   const fs = flashSales.value[selectedIndex.value]
+
   if (fs && fs.products) {
     campaignName.value = fs.name || 'Flash Sale'
     flashSaleProducts.value = fs.products.map(p => ({
@@ -222,10 +246,19 @@ function updateTabData() {
       end_time: fs.end_time,
       flash_sale_quantity: p.quantity
     }))
-    updateCountdown(fs.end_time)
-    countdownInterval = setInterval(() => updateCountdown(fs.end_time), 1000)
+
+    // Start countdown if end_time exists
+    if (fs.end_time) {
+      updateCountdown(fs.end_time)
+      countdownInterval = setInterval(() => {
+        updateCountdown(fs.end_time)
+      }, 1000)
+    } else {
+      console.warn('No end_time found for flash sale:', fs)
+    }
   } else {
     flashSaleProducts.value = []
+    countdown.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
   }
   emit('has-flash-sale', flashSaleProducts.value.length > 0)
 }
@@ -237,30 +270,49 @@ function truncate(text, maxLength) {
 
 function scrollLeft() {
   const el = sliderRef.value
-  if (el) el.scrollBy({ left: -300, behavior: 'smooth' })
+  if (el) {
+    const scrollAmount = window.innerWidth < 768 ? -200 : -300
+    el.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+  }
 }
 function scrollRight() {
   const el = sliderRef.value
-  if (el) el.scrollBy({ left: 300, behavior: 'smooth' })
+  if (el) {
+    const scrollAmount = window.innerWidth < 768 ? 200 : 300
+    el.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+  }
 }
 
 onMounted(async () => {
-  const data = await getFlashSales()
-  flashSales.value = Array.isArray(data) ? data : []
-  // Chọn tab đầu tiên là flash sale đang active, nếu không có thì lấy đầu tiên
-  let idx = 0
-  if (flashSales.value.length > 0) {
-    const activeIdx = flashSales.value.findIndex(fs => {
-      const now = new Date()
-      const start = new Date(fs.start_time)
-      const end = new Date(fs.end_time)
-      return fs.active && start <= now && end >= now
-    })
-    idx = activeIdx !== -1 ? activeIdx : 0
+  try {
+    const data = await getFlashSales()
+    flashSales.value = Array.isArray(data) ? data : []
+
+    // Chọn tab đầu tiên là flash sale đang active, nếu không có thì lấy đầu tiên
+    let idx = 0
+    if (flashSales.value.length > 0) {
+      const activeIdx = flashSales.value.findIndex(fs => {
+        const now = new Date()
+        const start = new Date(fs.start_time)
+        const end = new Date(fs.end_time)
+        return fs.active && start <= now && end >= now
+      })
+      idx = activeIdx !== -1 ? activeIdx : 0
+    }
+    selectedIndex.value = idx
+    updateTabData()
+    emit('has-flash-sale', flashSaleProducts.value.length > 0)
+  } catch (error) {
+    console.error('Error loading flash sales:', error)
   }
-  selectedIndex.value = idx
-  updateTabData()
-  emit('has-flash-sale', flashSaleProducts.value.length > 0)
+})
+
+// Cleanup interval when component unmounts
+onUnmounted(() => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
 })
 
 watch(selectedIndex, updateTabData)

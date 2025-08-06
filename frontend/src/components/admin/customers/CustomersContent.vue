@@ -17,8 +17,8 @@
         </div>
 
         <CustomersTable :customers="customers" :isLoading="isLoading" :currentPage="currentPage"
-            :itemsPerPage="itemsPerPage" :totalItems="totalItems" @delete="handleDelete"
-            @page-change="handlePageChange" />
+            :itemsPerPage="itemsPerPage" :totalItems="totalItems" @delete="handleDelete" @page-change="handlePageChange"
+            @update-customer="handleUpdateCustomer" />
     </div>
 </template>
 
@@ -27,7 +27,7 @@ import { ref, onMounted } from 'vue'
 import CustomersTable from './CustomersTable.vue'
 import { useAuth } from '../../../composable/useAuth'
 
-const { getListUser } = useAuth()
+const { getListUser, updateUser } = useAuth()
 const customers = ref([])
 const isLoading = ref(true)
 
@@ -55,6 +55,30 @@ const handleDelete = (customer) => {
     if (index !== -1) {
         customers.value.splice(index, 1)
         totalItems.value = customers.value.length
+    }
+}
+
+const handleUpdateCustomer = async (customerData) => {
+    try {
+        // Gọi API để cập nhật thông tin khách hàng
+        await updateUser(customerData)
+
+        // Cập nhật dữ liệu local
+        const index = customers.value.findIndex(c => c.id === customerData.id)
+        if (index !== -1) {
+            customers.value[index] = {
+                ...customers.value[index],
+                ...customerData
+            }
+        }
+
+        // Hiển thị thông báo thành công
+        console.log('Cập nhật khách hàng thành công:', customerData)
+        // Có thể thêm toast notification ở đây
+
+    } catch (error) {
+        console.error('Lỗi khi cập nhật khách hàng:', error)
+        // Có thể thêm toast notification lỗi ở đây
     }
 }
 

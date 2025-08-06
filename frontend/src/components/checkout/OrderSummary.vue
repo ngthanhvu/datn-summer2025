@@ -70,6 +70,15 @@
                 </div>
             </div>
         </div>
+
+        <!-- Thông tin vận chuyển -->
+        <div class="mb-6">
+            <ShippingSection 
+                :cart-items="cartItems" 
+                :selected-address="selectedAddress"
+                @shipping-calculated="handleShippingCalculated" 
+            />
+        </div>
         <div class="space-y-3 border-t border-gray-300 pt-4">
             <div class="flex justify-between">
                 <span>Tạm tính</span>
@@ -98,6 +107,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useCoupon } from '../../composable/useCoupon' // thay '~/composables' bằng relative path
+import ShippingSection from './ShippingSection.vue'
 
 const props = defineProps({
     items: {
@@ -119,10 +129,18 @@ const props = defineProps({
     shippingZone: {
         type: String,
         default: ''
+    },
+    selectedAddress: {
+        type: Object,
+        default: null
+    },
+    cartItems: {
+        type: Array,
+        required: true
     }
 })
 
-const emit = defineEmits(['apply-coupon', 'place-order'])
+const emit = defineEmits(['apply-coupon', 'place-order', 'shipping-calculated'])
 
 const couponCode = ref('')
 const availableCoupons = ref([])
@@ -149,6 +167,10 @@ const applyCoupon = () => {
 const selectCoupon = (coupon) => {
     couponCode.value = coupon.code
     applyCoupon()
+}
+
+const handleShippingCalculated = (shippingData) => {
+    emit('shipping-calculated', shippingData)
 }
 
 const fetchAvailableCoupons = async () => {

@@ -72,15 +72,15 @@
                         </td>
                         <td class="px-4 py-3 text-sm font-medium">
                             <div class="flex items-center justify-center gap-2">
-                                <router-link :to="`/admin/customers/${customer.id}`"
-                                    class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
-                                    title="Xem/Chỉnh sửa khách hàng">
+                                <button @click="openEditModal(customer)"
+                                    class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150 cursor-pointer"
+                                    title="Chỉnh sửa khách hàng">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                         </path>
                                     </svg>
-                                </router-link>
+                                </button>
                                 <button @click="handleDelete(customer)"
                                     class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150"
                                     title="Xóa khách hàng">
@@ -119,11 +119,16 @@
                 </button>
             </div>
         </div>
+
+        <!-- Customer Edit Modal -->
+        <CustomerEditModal :is-visible="isEditModalVisible" :customer="selectedCustomer" @close="closeEditModal"
+            @save="handleSaveCustomer" />
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import CustomerEditModal from './CustomerEditModal.vue'
 
 const props = defineProps({
     customers: {
@@ -149,10 +154,14 @@ const props = defineProps({
 })
 
 const defaultAvatar = ref('https://img.freepik.com/premium-vector/error-404-found-glitch-effect_8024-4.jpg')
-const emit = defineEmits(['delete', 'page-change'])
+const emit = defineEmits(['delete', 'page-change', 'update-customer'])
 
 const searchQuery = ref('')
 const filterStatus = ref('')
+
+// Modal state
+const isEditModalVisible = ref(false)
+const selectedCustomer = ref({})
 
 const filteredCustomers = computed(() => {
     return props.customers.filter(customer => {
@@ -200,6 +209,33 @@ const toggleStatus = async (customer) => {
         // Nếu có notyf hoặc emit refresh thì gọi ở đây
     } catch (e) {
         // Nếu có notyf thì báo lỗi ở đây
+    }
+}
+
+// Modal functions
+const openEditModal = (customer) => {
+    selectedCustomer.value = { ...customer }
+    isEditModalVisible.value = true
+}
+
+const closeEditModal = () => {
+    isEditModalVisible.value = false
+    selectedCustomer.value = {}
+}
+
+const handleSaveCustomer = async (customerData) => {
+    try {
+        // Emit event to parent component to handle API call
+        emit('update-customer', customerData)
+
+        // Close modal after successful save
+        closeEditModal()
+
+        // You can add success notification here
+        console.log('Customer updated successfully:', customerData)
+    } catch (error) {
+        console.error('Error updating customer:', error)
+        // You can add error notification here
     }
 }
 

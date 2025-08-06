@@ -1,7 +1,7 @@
 <template>
     <div class="mt-6">
         <!-- Breadcrumb -->
-        <div class="flex items-center gap-2 text-sm text-gray-500 mb-6 max-w-7xl mx-auto">
+        <div class="flex items-center gap-2 text-sm text-gray-500 mb-6 max-w-7xl mx-auto px-3">
             <a href="/" class="hover:text-[#81AACC]">Trang chủ</a>
             <span>/</span>
             <a href="/san-pham" class="hover:text-[#81AACC]">Sản phẩm</a>
@@ -14,10 +14,12 @@
         <!-- Product Section -->
         <div class="max-w-7xl mx-auto mb-5">
             <div
-                class="flex flex-col lg:flex-row items-stretch justify-start p-5 bg-white rounded-[10px] border border-gray-200">
+                class="flex flex-col lg:flex-row items-stretch justify-start p-3 sm:p-5 bg-white rounded-[10px] border border-gray-200">
                 <!-- Product Images Section -->
-                <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product?.name"
-                    @update:main-image="$emit('update:mainImage', $event)" />
+                <div class="w-full lg:w-auto lg:flex-shrink-0">
+                    <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product?.name"
+                        @update:main-image="$emit('update:mainImage', $event)" />
+                </div>
 
                 <!-- Product Info -->
                 <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"

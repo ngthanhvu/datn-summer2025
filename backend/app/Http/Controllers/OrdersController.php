@@ -15,6 +15,7 @@ use App\Models\StockMovement;
 use App\Models\StockMovementItem;
 use App\Models\User;
 use App\Mail\ReturnRejected;
+use App\Models\Products;
 
 class OrdersController extends Controller
 {
@@ -160,6 +161,10 @@ class OrdersController extends Controller
                         }
                         $inventory->quantity -= $item['quantity'];
                         $inventory->save();
+                        // Tăng sold_count cho sản phẩm
+                        if ($variant && $variant->product_id) {
+                            Products::where('id', $variant->product_id)->increment('sold_count', $item['quantity']);
+                        }
                     } else {
                         throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                     }
@@ -420,6 +425,10 @@ class OrdersController extends Controller
                     }
                     $inventory->quantity -= $item['quantity'];
                     $inventory->save();
+                    // Tăng sold_count cho sản phẩm
+                    if ($variant && $variant->product_id) {
+                        Products::where('id', $variant->product_id)->increment('sold_count', $item['quantity']);
+                    }
                 } else {
                     throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                 }

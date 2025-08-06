@@ -35,6 +35,7 @@ import OrdersPageAdmin from '../pages/admin/orders/index.vue';
 import OrderDetailPageAdmin from '../pages/admin/orders/detail.vue';
 import CouponsPageAdmin from '../pages/admin/coupons/index.vue';
 import CouponsCreate from '../pages/admin/coupons/create.vue';
+import CouponsEdit from '../pages/admin/coupons/edit.vue';
 import CustomerPageAdmin from '../pages/admin/customers/index.vue';
 import InventoryPageAdmin from '../pages/admin/inventory/index.vue';
 import InventoryImportPageAdmin from '../pages/admin/inventory/import.vue';
@@ -202,6 +203,10 @@ const routes = [
             {
                 path: '/admin/coupons/create',
                 component: CouponsCreate
+            },
+            {
+                path: '/admin/coupons/edit/:id',
+                component: CouponsEdit
             },
             {
                 path: '/admin/customers',

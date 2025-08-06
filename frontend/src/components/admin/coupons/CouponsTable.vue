@@ -120,7 +120,7 @@
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
-                                <router-link :to="'/admin/promotions/' + item.id"
+                                <router-link :to="'/admin/coupons/edit/' + item.id"
                                     class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
                                     title="Xem/Chỉnh sửa khuyến mãi">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

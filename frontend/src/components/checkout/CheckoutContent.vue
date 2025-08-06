@@ -4,7 +4,7 @@ import AddressList from './AddressList.vue'
 import AddressForm from './AddressForm.vue'
 import PaymentMethods from './PaymentMethods.vue'
 import OrderSummary from './OrderSummary.vue'
-import ShippingSection from './ShippingSection.vue'
+
 import { useAddress } from '../../composable/useAddress'
 import { useCart } from '../../composable/useCart'
 import { useCheckout } from '../../composable/useCheckout'
@@ -208,13 +208,6 @@ const updatePaymentMethods = () => {
             image: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png',
             enabled: !!Number(s.enableMomo)
         },
-        {
-            title: 'PayPal',
-            description: Number(s.enablePaypal) ? 'Thanh toán qua PayPal' : 'Sắp ra mắt',
-            code: 'paypal',
-            image: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png',
-            enabled: !!Number(s.enablePaypal)
-        }
     ]
 }
 
@@ -274,7 +267,7 @@ const placeOrder = async () => {
             shipping_fee: shipping.value,
             discount_price: discount.value,
             final_price: total.value,
-            user_id: authService.user.value.id // Thêm user_id vào orderData
+            user_id: authService.user.value.id,
             shipping_zone: shippingZone.value
         }
 
@@ -290,9 +283,6 @@ const placeOrder = async () => {
                 paymentUrl = paymentResult.payment_url
             } else if (paymentMethod === 'momo') {
                 paymentResult = await paymentService.generateMomoUrl(result.data)
-                paymentUrl = paymentResult.payment_url
-            } else if (paymentMethod === 'paypal') {
-                paymentResult = await paymentService.generatePaypalUrl(result.data)
                 paymentUrl = paymentResult.payment_url
             }
             if (paymentUrl) {
@@ -438,21 +428,20 @@ onMounted(async () => {
                     <AddressList :addresses="addresses" :selected-address="selectedAddress"
                         @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
                         @add="openAddressModal" />
-
-                    <ShippingSection 
-                        :cart-items="cartItems" 
-                        :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
-                        @shipping-calculated="handleShippingCalculated" 
-                    />
-
                     <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
                         @select="selectedPaymentMethod = $event" />
                 </div>
             </div>
 
             <div class="space-y-8">
-                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount" :shipping-zone="shippingZone"
-                    @place-order="placeOrder" @apply-coupon="applyCoupon" />
+                <ShippingSection :cart-items="cartItems"
+                    :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
+                    @shipping-calculated="handleShippingCalculated" />
+                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
+                    :shipping-zone="shippingZone"
+                    :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
+                    :cart-items="cartItems" @place-order="placeOrder" @apply-coupon="applyCoupon"
+                    @shipping-calculated="handleShippingCalculated" />
             </div>
         </div>
 
