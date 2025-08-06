@@ -20,6 +20,7 @@ import BlogDetailPage from '../pages/blogs_detail.vue';
 import CheckOutPage from '../pages/checkout.vue';
 import FavoriteProductPage from '../pages/favorite.vue';
 import ShippingCalculatorPage from '../pages/shipping-calculator.vue';
+import FlashSalePage from '../pages/flash-sale.vue';
 import PageView from '../pages/page.vue';
 
 import Admin from '../pages/admin/index.vue';
@@ -46,6 +47,7 @@ import MessagePageAdmin from '../pages/admin/messages/index.vue';
 import CommentPageAdmin from '../pages/admin/comments/index.vue';
 import FlashSalePageAdmin from '../pages/admin/flashsale/index.vue';
 import FlashSaleForm from '../pages/admin/flashsale/create.vue';
+import FlashSaleEdit from '../pages/admin/flashsale/edit.vue';
 import FlashSaleSelect from '../pages/admin/flashsale/select.vue';
 import SettingPageAdmin from '../pages/admin/settings/index.vue';
 import ContactsPageAdmin from '../pages/admin/contacts/index.vue';
@@ -129,6 +131,10 @@ const routes = [
                 component: ShippingCalculatorPage
             },
             {
+                path: '/flash-sale',
+                component: FlashSalePage
+            },
+            {
                 path: '/trang/:slug',
                 component: PageView
             },
@@ -151,7 +157,8 @@ const routes = [
             {
                 path: '/test-pages',
                 component: () => import('../components/admin/newpage/PagesContent.vue')
-            }
+            },
+    
         ]
     },
     {
@@ -254,6 +261,10 @@ const routes = [
             {
                 path: '/admin/flashsale/create',
                 component: FlashSaleForm
+            },
+            {
+                path: '/admin/flashsale/:id/edit',
+                component: FlashSaleEdit
             },
             {
                 path: '/admin/flashsale/select',

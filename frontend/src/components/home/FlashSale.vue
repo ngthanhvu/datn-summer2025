@@ -18,7 +18,7 @@
       </div>
     </div>
     <!-- Tab menu -->
-    <div v-if="flashSales.length > 1" class="flex gap-6 border-b mb-4 ml-2">
+    <div v-if="flashSales.length > 1" class="flex gap-6 shadow-sm mb-4 ml-2 bg-white">
       <button v-for="(fs, idx) in flashSales" :key="fs.id" @click="selectTab(idx)"
         class="pb-2 font-medium transition relative"
         :class="selectedIndex === idx ? 'text-black border-b-2 border-black' : 'text-gray-400'"
@@ -224,8 +224,12 @@ function updateTabData() {
     }))
     updateCountdown(fs.end_time)
     countdownInterval = setInterval(() => updateCountdown(fs.end_time), 1000)
+    
+    // Restart auto increase cho flash sale mới
+    startAutoIncrease()
   } else {
     flashSaleProducts.value = []
+    stopAutoIncrease()
   }
   emit('has-flash-sale', flashSaleProducts.value.length > 0)
 }
@@ -242,6 +246,40 @@ function scrollLeft() {
 function scrollRight() {
   const el = sliderRef.value
   if (el) el.scrollBy({ left: 300, behavior: 'smooth' })
+}
+
+// Auto increase sold quantity
+let autoIncreaseInterval = null
+
+function startAutoIncrease() {
+  // Dừng interval cũ nếu có
+  if (autoIncreaseInterval) {
+    clearInterval(autoIncreaseInterval)
+  }
+  
+  // Bắt đầu interval mới
+  autoIncreaseInterval = setInterval(() => {
+    const currentFlashSale = flashSales.value[selectedIndex.value]
+    if (currentFlashSale && currentFlashSale.auto_increase) {
+      flashSaleProducts.value.forEach(product => {
+        const currentSold = Number(product.sold) || 0
+        const increaseAmount = Number(currentFlashSale.increase_amount) || 1
+        const maxQuantity = Number(product.flash_sale_quantity) || 0
+        
+        if (currentSold < maxQuantity) {
+          const newSold = Math.min(currentSold + increaseAmount, maxQuantity)
+          product.sold = newSold
+        }
+      })
+    }
+  }, 3600000) // 1 giờ (3600000 ms)
+}
+
+function stopAutoIncrease() {
+  if (autoIncreaseInterval) {
+    clearInterval(autoIncreaseInterval)
+    autoIncreaseInterval = null
+  }
 }
 
 onMounted(async () => {
@@ -261,9 +299,20 @@ onMounted(async () => {
   selectedIndex.value = idx
   updateTabData()
   emit('has-flash-sale', flashSaleProducts.value.length > 0)
+  
+  // Bắt đầu auto increase cho flash sale đang active
+  startAutoIncrease()
 })
 
 watch(selectedIndex, updateTabData)
+
+// Cleanup khi component unmount
+import { onUnmounted } from 'vue'
+
+onUnmounted(() => {
+  if (countdownInterval) clearInterval(countdownInterval)
+  stopAutoIncrease()
+})
 </script>
 
 <style scoped>
