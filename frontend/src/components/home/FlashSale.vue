@@ -130,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useFlashsale } from '../../composable/useFlashsale'
 import productSaleBg from '../../assets/product_sale.jpg'
 
@@ -164,9 +164,22 @@ function getFirstActiveFlashSale(flashSales) {
 }
 
 function updateCountdown(endTime) {
+  if (!endTime) {
+    console.warn('endTime is null or undefined')
+    countdown.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
+    return
+  }
+
   const now = new Date()
   const end = new Date(endTime)
+
   let diff = Math.max(0, end - now)
+
+  if (diff <= 0) {
+    countdown.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
+    return
+  }
+
   const days = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0')
   diff %= 1000 * 60 * 60 * 24
   const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0')
@@ -174,6 +187,7 @@ function updateCountdown(endTime) {
   const minutes = String(Math.floor(diff / (1000 * 60))).padStart(2, '0')
   diff %= 1000 * 60
   const seconds = String(Math.floor(diff / 1000)).padStart(2, '0')
+
   countdown.value = { days, hours, minutes, seconds }
 }
 
@@ -214,8 +228,14 @@ function selectTab(idx) {
 }
 
 function updateTabData() {
-  if (countdownInterval) clearInterval(countdownInterval)
+  // Clear existing interval
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+
   const fs = flashSales.value[selectedIndex.value]
+
   if (fs && fs.products) {
     campaignName.value = fs.name || 'Flash Sale'
     flashSaleProducts.value = fs.products.map(p => ({
@@ -226,10 +246,19 @@ function updateTabData() {
       end_time: fs.end_time,
       flash_sale_quantity: p.quantity
     }))
-    updateCountdown(fs.end_time)
-    countdownInterval = setInterval(() => updateCountdown(fs.end_time), 1000)
+
+    // Start countdown if end_time exists
+    if (fs.end_time) {
+      updateCountdown(fs.end_time)
+      countdownInterval = setInterval(() => {
+        updateCountdown(fs.end_time)
+      }, 1000)
+    } else {
+      console.warn('No end_time found for flash sale:', fs)
+    }
   } else {
     flashSaleProducts.value = []
+    countdown.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
   }
   emit('has-flash-sale', flashSaleProducts.value.length > 0)
 }
@@ -255,22 +284,35 @@ function scrollRight() {
 }
 
 onMounted(async () => {
-  const data = await getFlashSales()
-  flashSales.value = Array.isArray(data) ? data : []
-  // Chọn tab đầu tiên là flash sale đang active, nếu không có thì lấy đầu tiên
-  let idx = 0
-  if (flashSales.value.length > 0) {
-    const activeIdx = flashSales.value.findIndex(fs => {
-      const now = new Date()
-      const start = new Date(fs.start_time)
-      const end = new Date(fs.end_time)
-      return fs.active && start <= now && end >= now
-    })
-    idx = activeIdx !== -1 ? activeIdx : 0
+  try {
+    const data = await getFlashSales()
+    flashSales.value = Array.isArray(data) ? data : []
+
+    // Chọn tab đầu tiên là flash sale đang active, nếu không có thì lấy đầu tiên
+    let idx = 0
+    if (flashSales.value.length > 0) {
+      const activeIdx = flashSales.value.findIndex(fs => {
+        const now = new Date()
+        const start = new Date(fs.start_time)
+        const end = new Date(fs.end_time)
+        return fs.active && start <= now && end >= now
+      })
+      idx = activeIdx !== -1 ? activeIdx : 0
+    }
+    selectedIndex.value = idx
+    updateTabData()
+    emit('has-flash-sale', flashSaleProducts.value.length > 0)
+  } catch (error) {
+    console.error('Error loading flash sales:', error)
   }
-  selectedIndex.value = idx
-  updateTabData()
-  emit('has-flash-sale', flashSaleProducts.value.length > 0)
+})
+
+// Cleanup interval when component unmounts
+onUnmounted(() => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
 })
 
 watch(selectedIndex, updateTabData)
