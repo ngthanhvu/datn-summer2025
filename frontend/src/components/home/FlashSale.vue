@@ -1,20 +1,24 @@
 <template>
-  <div v-if="flashSaleProducts.length > 0" class="bg-white rounded p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold text-blue-700">{{ campaignName }}</h1>
+  <div v-if="flashSaleProducts.length > 0" class="bg-white rounded p-4 md:p-6 mb-6">
+    <div class="flex items-center justify-between mb-3 md:mb-4">
+      <div class="flex items-center gap-2 md:gap-3">
+        <h1 class="text-lg md:text-2xl font-bold text-blue-700">{{ campaignName }}</h1>
         <img src="https://theme.hstatic.net/200000696635/1001373943/14/flashsale-hot.png?v=6" alt="Flash Sale"
-          class="h-10 w-auto" />
+          class="h-6 md:h-10 w-auto" />
       </div>
-      <div class="flex items-center gap-2">
-        <span>Kết thúc sau</span>
-        <div class="bg-black text-white px-2 py-1 rounded">{{ countdown.days }}</div>
-        <span>Ngày</span>
-        <div class="bg-black text-white px-2 py-1 rounded">{{ countdown.hours }}</div>
-        <span>:</span>
-        <div class="bg-black text-white px-2 py-1 rounded">{{ countdown.minutes }}</div>
-        <span>:</span>
-        <div class="bg-black text-white px-2 py-1 rounded">{{ countdown.seconds }}</div>
+      <div class="flex items-center gap-1 md:gap-2">
+        <span class="text-sm md:text-base text-blue-700 md:text-black">Kết thúc sau</span>
+        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.days }}
+        </div>
+        <span class="text-xs md:text-sm">Ngày</span>
+        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.hours }}
+        </div>
+        <span class="text-xs md:text-sm">:</span>
+        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.minutes }}
+        </div>
+        <span class="text-xs md:text-sm">:</span>
+        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.seconds }}
+        </div>
       </div>
     </div>
     <!-- Tab menu -->
@@ -34,7 +38,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
-      <div ref="sliderRef" class="flex gap-4 overflow-x-auto scroll-smooth px-12" style="scrollbar-width:none;">
+      <div ref="sliderRef" class="flex gap-4 overflow-x-auto scroll-smooth" style="scrollbar-width:none;">
         <router-link v-for="product in flashSaleProducts" :key="product.id"
           :to="{ path: `/san-pham/${product.slug}`, query: { flashsale: campaignName, flash_price: product.flash_price, end_time: product.product?.end_time || product.end_time, sold: product.sold, quantity: product.flash_sale_quantity } }"
           class="relative w-64 flex-shrink-0" style="text-decoration: none; color: inherit;">
@@ -237,11 +241,17 @@ function truncate(text, maxLength) {
 
 function scrollLeft() {
   const el = sliderRef.value
-  if (el) el.scrollBy({ left: -300, behavior: 'smooth' })
+  if (el) {
+    const scrollAmount = window.innerWidth < 768 ? -200 : -300
+    el.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+  }
 }
 function scrollRight() {
   const el = sliderRef.value
-  if (el) el.scrollBy({ left: 300, behavior: 'smooth' })
+  if (el) {
+    const scrollAmount = window.innerWidth < 768 ? 200 : 300
+    el.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+  }
 }
 
 onMounted(async () => {

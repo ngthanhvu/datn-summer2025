@@ -153,6 +153,8 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import Swal from 'sweetalert2'
+import { push } from 'notivue'
 
 const props = defineProps({
     blogs: { type: Array, default: () => [] },
@@ -168,10 +170,20 @@ const handleEdit = (blog) => {
 }
 
 const handleDelete = async (blog) => {
-    if (confirm(`Bạn có chắc chắn muốn xóa bài viết "${blog.title}"?`)) {
-        emit('delete', blog.id)
-        emit('refresh')
-    }
+    Swal.fire({
+        title: 'Bạn có chắc chắn muốn xóa bài viết?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Xóa',
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            emit('delete', blog.id)
+            emit('refresh')
+            push.success('Đã xoá bài viết.')
+        }
+    })
 }
 
 const changePage = (page) => {

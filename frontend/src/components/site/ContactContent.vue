@@ -33,19 +33,19 @@
                     </h2>
                     <input v-model="form.name"
                         class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
-                        placeholder="Họ tên*" required type="text" />
+                        placeholder="Họ tên" required type="text" />
                     <input v-model="form.email"
                         class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
-                        placeholder="Email*" required type="email" />
+                        placeholder="Email" required type="email" />
                     <input v-model="form.phone"
                         class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
-                        placeholder="Số điện thoại*" required type="tel" />
+                        placeholder="Số điện thoại" required type="tel" />
                     <textarea v-model="form.message"
                         class="w-full mb-1 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 resize-y focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
-                        placeholder="Nhập nội dung*" required rows="5"></textarea>
+                        placeholder="Nhập nội dung" required rows="5"></textarea>
                     <div id="cf-turnstile" data-theme="light"></div>
                     <button :disabled="loading"
-                        class="w-full bg-[#81AACC] text-white py-3 rounded transition-all duration-300 hover:bg-[#478ac0] disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="w-full bg-[#81AACC] text-white py-3 rounded transition-all duration-300 hover:bg-[#478ac0] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                         type="submit">
                         <span v-if="loading" class="flex items-center justify-center">
                             <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +69,7 @@
                 <div class="aspect-w-16 aspect-h-9">
                     <iframe width="100%" height="400" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
                         src="https://www.openstreetmap.org/export/embed.html?bbox=108.064902%2C12.700145%2C108.084902%2C12.720145&layer=mapnik&marker=12.710145%2C108.074902"
-                        style="border: 1px solid black">
+                        style="border: 1px solid #D1D5DC">
                     </iframe>
                     <small><a class="underline text-[#81aacc] hover:no-underline" target="_blank"
                             href="https://www.openstreetmap.org/?mlat=12.710145&mlon=108.074902#map=15/12.710145/108.074902">Xem
