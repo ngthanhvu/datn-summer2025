@@ -105,12 +105,12 @@
                         </label>
                         <div class="flex items-center space-x-4">
                             <label class="flex items-center">
-                                <input type="radio" v-model="formData.status" :value="true"
+                                <input type="radio" v-model="formData.status" :value="1"
                                     class="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer" />
                                 <span class="ml-2 text-sm text-gray-700">Đang hoạt động</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="radio" v-model="formData.status" :value="false"
+                                <input type="radio" v-model="formData.status" :value="0"
                                     class="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer" />
                                 <span class="ml-2 text-sm text-gray-700">Đã khóa</span>
                             </label>
@@ -160,7 +160,7 @@ const formData = reactive({
     email: '',
     phone: '',
     password: '',
-    status: true,
+    status: 1, // 1 = active, 0 = inactive
     avatar: ''
 })
 
@@ -177,7 +177,7 @@ watch(() => props.customer, (newCustomer) => {
         formData.username = newCustomer.username || ''
         formData.email = newCustomer.email || ''
         formData.phone = newCustomer.phone || ''
-        formData.status = newCustomer.status !== undefined ? newCustomer.status : true
+        formData.status = newCustomer.status !== undefined ? newCustomer.status : 1
         formData.avatar = newCustomer.avatar || ''
         formData.password = '' // Reset password field
     }
@@ -194,7 +194,7 @@ const resetForm = () => {
             formData[key] = ''
         }
     })
-    formData.status = true
+    formData.status = 1
     Object.keys(errors).forEach(key => {
         errors[key] = ''
     })

@@ -145,7 +145,11 @@ const handleLogin = async () => {
             isLoading.value = false
         }
     } catch (err) {
-        error.email = 'Đăng nhập thất bại'
+        if (err.response?.data?.error === 'Tài khoản đã bị khóa') {
+            error.email = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.'
+        } else {
+            error.email = 'Đăng nhập thất bại'
+        }
         console.log(err)
         isLoading.value = false
     }

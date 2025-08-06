@@ -194,11 +194,12 @@ unapprovedReviews.value = 2
     padding: 1.5rem 1rem;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .sidebar-logo {

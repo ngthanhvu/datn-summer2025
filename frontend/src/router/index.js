@@ -57,7 +57,9 @@ import PagesCreate from '../pages/admin/page/create.vue';
 import PagesEdit from '../pages/admin/page/edit.vue';
 
 import StatusPage from '../pages/status.vue';
+import CookieRule from '../components/CookieRule.vue';
 import NotFound from '../components/404.vue'
+import PagesContent from '../components/admin/newpage/PagesContent.vue'
 import { authGuard } from './middleware/auth';
 
 const routes = [
@@ -157,9 +159,13 @@ const routes = [
             },
             {
                 path: '/test-pages',
-                component: () => import('../components/admin/newpage/PagesContent.vue')
+                component: PagesContent
             },
-    
+            {
+                path: '/chinh-sach-cookie',
+                component: CookieRule
+            }
+
         ]
     },
     {

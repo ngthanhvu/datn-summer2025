@@ -187,6 +187,26 @@ const updateUser = async (userData) => {
     }
 }
 
+const updateCustomerStatus = async (id, status) => {
+    try {
+        const res = await API.put(`/api/admin/user/${id}`, { status })
+        return res.data
+    } catch (err) {
+        console.error('Update customer status error:', err.response?.data || err.message)
+        throw err
+    }
+}
+
+const updateUserByAdmin = async (data) => {
+    try {
+        const res = await API.put(`/api/admin/user/${data.id}`, data)
+        return res.data
+    } catch (err) {
+        console.error('Update user by admin error:', err.response?.data || err.message)
+        throw err
+    }
+}
+
 const getToken = () => token.value
 
 export const useAuth = () => {
@@ -207,6 +227,8 @@ export const useAuth = () => {
         updateUserProfile,
         resetPasswordProfile,
         updateUser,
-        getToken
+        getToken,
+        updateUserByAdmin,
+        updateCustomerStatus
     }
 }

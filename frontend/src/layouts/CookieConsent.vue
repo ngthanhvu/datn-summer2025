@@ -12,12 +12,13 @@
                 </span>
                 <p>
                     Chúng tôi sử dụng cookie để cải thiện trải nghiệm của bạn.
-                    <a href="#" class="underline font-semibold hover:text-gray-300">Tìm hiểu thêm</a>.
+                    <router-link to="chinh-sach-cookie" class="underline font-semibold hover:text-gray-300">Tìm hiểu
+                        thêm</router-link>.
                 </p>
             </div>
 
             <div class="flex flex-wrap gap-2 shrink-0">
-                <button class="text-xs text-white underline hover:text-gray-100 whitespace-nowrap cursor-pointer">
+                <button class="text-xs text-white underline hover:text-gray-100 whitespace-nowrap cursor-not-allowed">
                     Tuỳ chọn cookie
                 </button>
                 <button @click="acceptCookies"

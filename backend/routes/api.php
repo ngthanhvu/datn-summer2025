@@ -101,6 +101,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/coupons/{id}/claim', [CouponsController::class, 'claim']);
     Route::post('/coupons/{id}/use', [CouponsController::class, 'use']);
     Route::get('/coupons/my-coupons', [CouponsController::class, 'myCoupons']);
+
+    //update infomation by admin
+    Route::put('/admin/user/{id}', [AuthController::class, 'updateUserByAdmin']);
 });
 Route::get('/settings', [SettingController::class, 'index']);
 

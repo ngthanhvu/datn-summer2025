@@ -9,8 +9,8 @@
                 </div>
                 <select v-model="filterStatus" class="border border-gray-300 rounded px-4 py-2">
                     <option value="">Tất cả trạng thái</option>
-                    <option value="true">Đang hoạt động</option>
-                    <option value="false">Đã khóa</option>
+                    <option value="1">Đang hoạt động</option>
+                    <option value="0">Đã khóa</option>
                 </select>
             </div>
         </div>
@@ -62,13 +62,12 @@
                         <td class="px-4 py-3 text-sm text-gray-900 text-center">{{ customer.phone ?
                             customer.phone : 'Không có' }}</td>
                         <td class="px-4 py-3 text-center">
-                            <button
-                                :class="['w-10 h-6 rounded-full relative transition-colors', customer.status ? 'bg-primary' : 'bg-gray-300']"
-                                @click="toggleStatus(customer)" :aria-pressed="customer.status"
-                                style="background-color: #3bb77e">
-                                <span
-                                    :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', customer.status ? 'translate-x-4' : '']"></span>
-                            </button>
+                            <span v-if="customer.status == 1"
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Hoạt
+                                động</span>
+                            <span v-else
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">Đã
+                                khoá</span>
                         </td>
                         <td class="px-4 py-3 text-sm font-medium">
                             <div class="flex items-center justify-center gap-2">
@@ -129,6 +128,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import CustomerEditModal from './CustomerEditModal.vue'
+import { useAuth } from '../../../composable/useAuth'
+
+const { updateCustomerStatus } = useAuth()
 
 const props = defineProps({
     customers: {
@@ -154,7 +156,7 @@ const props = defineProps({
 })
 
 const defaultAvatar = ref('https://img.freepik.com/premium-vector/error-404-found-glitch-effect_8024-4.jpg')
-const emit = defineEmits(['delete', 'page-change', 'update-customer'])
+const emit = defineEmits(['delete', 'page-change', 'update-customer', 'toggle-status'])
 
 const searchQuery = ref('')
 const filterStatus = ref('')
@@ -202,10 +204,9 @@ const handleDelete = (customer) => {
 }
 
 const toggleStatus = async (customer) => {
-    const newStatus = customer.status ? 0 : 1
+    const newStatus = customer.status === 1 ? 0 : 1
     try {
-        await updateCustomerStatus(customer.id, newStatus)
-        customer.status = newStatus
+        emit('toggle-status', customer)
         // Nếu có notyf hoặc emit refresh thì gọi ở đây
     } catch (e) {
         // Nếu có notyf thì báo lỗi ở đây
@@ -237,12 +238,6 @@ const handleSaveCustomer = async (customerData) => {
         console.error('Error updating customer:', error)
         // You can add error notification here
     }
-}
-
-// Hàm giả lập gọi API cập nhật trạng thái
-const updateCustomerStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
 }
 </script>
 

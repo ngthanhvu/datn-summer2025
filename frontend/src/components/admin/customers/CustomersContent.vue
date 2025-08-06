@@ -18,7 +18,7 @@
 
         <CustomersTable :customers="customers" :isLoading="isLoading" :currentPage="currentPage"
             :itemsPerPage="itemsPerPage" :totalItems="totalItems" @delete="handleDelete" @page-change="handlePageChange"
-            @update-customer="handleUpdateCustomer" />
+            @update-customer="handleUpdateCustomer" @toggle-status="handleToggleStatus" />
     </div>
 </template>
 
@@ -26,8 +26,9 @@
 import { ref, onMounted } from 'vue'
 import CustomersTable from './CustomersTable.vue'
 import { useAuth } from '../../../composable/useAuth'
+import { push } from 'notivue'
 
-const { getListUser, updateUser } = useAuth()
+const { getListUser, updateUserByAdmin, updateCustomerStatus } = useAuth()
 const customers = ref([])
 const isLoading = ref(true)
 
@@ -60,10 +61,8 @@ const handleDelete = (customer) => {
 
 const handleUpdateCustomer = async (customerData) => {
     try {
-        // Gọi API để cập nhật thông tin khách hàng
-        await updateUser(customerData)
+        await updateUserByAdmin(customerData)
 
-        // Cập nhật dữ liệu local
         const index = customers.value.findIndex(c => c.id === customerData.id)
         if (index !== -1) {
             customers.value[index] = {
@@ -71,14 +70,28 @@ const handleUpdateCustomer = async (customerData) => {
                 ...customerData
             }
         }
-
-        // Hiển thị thông báo thành công
-        console.log('Cập nhật khách hàng thành công:', customerData)
-        // Có thể thêm toast notification ở đây
+        push.success('Cập nhật khách hàng thành công')
+        // console.log('Cập nhật khách hàng thành công:', customerData)
 
     } catch (error) {
         console.error('Lỗi khi cập nhật khách hàng:', error)
-        // Có thể thêm toast notification lỗi ở đây
+    }
+}
+
+const handleToggleStatus = async (customer) => {
+    try {
+        const newStatus = customer.status === 1 ? 0 : 1
+        await updateCustomerStatus(customer.id, newStatus)
+
+        // Cập nhật dữ liệu local
+        const index = customers.value.findIndex(c => c.id === customer.id)
+        if (index !== -1) {
+            customers.value[index].status = newStatus
+        }
+
+        console.log('Cập nhật trạng thái khách hàng thành công')
+    } catch (error) {
+        console.error('Lỗi khi cập nhật trạng thái khách hàng:', error)
     }
 }
 
