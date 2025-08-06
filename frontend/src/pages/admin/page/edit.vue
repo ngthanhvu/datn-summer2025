@@ -83,17 +83,7 @@
       <div class="bg-white rounded-2xl shadow p-8">
         <h3 class="text-lg font-semibold mb-4">Nội dung trang *</h3>
         <div>
-          <div class="flex flex-wrap gap-2 mb-4 items-center">
-            <button type="button" @click="formatText('bold')" class="toolbar-btn px-3 py-1.5 border border-gray-300 rounded-lg font-bold hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-500">B</button>
-            <button type="button" @click="formatText('italic')" class="toolbar-btn px-3 py-1.5 border border-gray-300 rounded-lg italic hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-500">I</button>
-            <button type="button" @click="formatText('underline')" class="toolbar-btn px-3 py-1.5 border border-gray-300 rounded-lg underline hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-500">U</button>
-            <span class="border-l mx-2 h-6"></span>
-            <button type="button" @click="insertList('ul')" class="toolbar-btn px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-500">• List</button>
-            <button type="button" @click="insertList('ol')" class="toolbar-btn px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-500">1. List</button>
-            <span class="border-l mx-2 h-6"></span>
-            <button type="button" @click="insertLink" class="toolbar-btn px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-500">🔗 Link</button>
-          </div>
-          <textarea ref="contentEditor" id="content" v-model="formData.content" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-100 focus:border-green-500" rows="15" placeholder="Nhập nội dung trang..." required></textarea>
+          <CKEditor v-model="formData.content" />
           <span v-if="errors.content" class="text-red-500 text-xs mt-1">{{ errors.content }}</span>
         </div>
       </div>
@@ -114,6 +104,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePages } from '../../../composable/usePages'
 import { useHead } from '@vueuse/head';
+import CKEditor from '../../../components/CKEditor.vue'
 useHead({
     title: "Sửa trang page | DEVGANG",
     meta: [
