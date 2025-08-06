@@ -33,8 +33,8 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc]"
                                 :class="{ 'border-red-500': errors.province }">
                                 <option value="">Chọn tỉnh/thành</option>
-                                <option v-for="province in provinces" :key="province.code" :value="province.name">
-                                    {{ province.name }}
+                                <option v-for="province in provinces" :key="province.ProvinceID" :value="province.ProvinceName">
+                                    {{ province.ProvinceName }}
                                 </option>
                             </select>
                             <p v-if="errors.province" class="text-red-500 text-sm mt-1">{{ errors.province }}
@@ -46,9 +46,9 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc]"
                                 :class="{ 'border-red-500': errors.district }">
                                 <option value="">Chọn quận/huyện</option>
-                                <option v-for="district in districts" :key="district.code" :value="district.name"
-                                    :data-code="district.code">
-                                    {{ district.name }}
+                                <option v-for="district in districts" :key="district.DistrictID" :value="district.DistrictName"
+                                    :data-code="district.DistrictID">
+                                    {{ district.DistrictName }}
                                 </option>
                             </select>
                             <p v-if="errors.district" class="text-red-500 text-sm mt-1">{{ errors.district }}
@@ -62,8 +62,8 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc]"
                                 :class="{ 'border-red-500': errors.ward }">
                                 <option value="">Chọn phường/xã</option>
-                                <option v-for="ward in wards" :key="ward.code" :value="ward.name">
-                                    {{ ward.name }}
+                                <option v-for="ward in wards" :key="ward.WardCode" :value="ward.WardName">
+                                    {{ ward.WardName }}
                                 </option>
                             </select>
                             <p v-if="errors.ward" class="text-red-500 text-sm mt-1">{{ errors.ward }}</p>
@@ -151,7 +151,7 @@ const fetchProvinces = async () => {
         isLoading.value = true
         provinces.value = await addressService.getProvinces()
     } catch (error) {
-        console.error('Error fetching provinces:', error)
+        // Handle error silently
     } finally {
         isLoading.value = false
     }
@@ -163,15 +163,16 @@ const onProvinceChange = async () => {
     districts.value = []
     wards.value = []
 
-    const selectedProvince = provinces.value.find(p => p.name === form.value.province)
-    selectedProvinceCode.value = selectedProvince?.code
+    // GHN API trả về ProvinceName, không phải name
+    const selectedProvince = provinces.value.find(p => p.ProvinceName === form.value.province)
+    selectedProvinceCode.value = selectedProvince?.ProvinceID
 
     if (selectedProvinceCode.value) {
         try {
             isLoading.value = true
             districts.value = await addressService.getDistricts(selectedProvinceCode.value)
         } catch (error) {
-            console.error('Error fetching districts:', error)
+            // Handle error silently
         } finally {
             isLoading.value = false
         }
@@ -182,15 +183,16 @@ const onDistrictChange = async () => {
     form.value.ward = ''
     wards.value = []
 
-    const selectedDistrict = districts.value.find(d => d.name === form.value.district)
-    selectedDistrictCode.value = selectedDistrict?.code
+    // GHN API trả về DistrictName, không phải name
+    const selectedDistrict = districts.value.find(d => d.DistrictName === form.value.district)
+    selectedDistrictCode.value = selectedDistrict?.DistrictID
 
     if (selectedDistrictCode.value) {
         try {
             isLoading.value = true
             wards.value = await addressService.getWards(selectedDistrictCode.value)
         } catch (error) {
-            console.error('Error fetching wards:', error)
+            // Handle error silently
         } finally {
             isLoading.value = false
         }

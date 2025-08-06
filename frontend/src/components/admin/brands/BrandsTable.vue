@@ -13,7 +13,7 @@
                     <tr class="border-b border-gray-200">
                         <th class="px-3 py-2 text-center">
                             <div class="flex items-center">
-                                <input type="checkbox" :checked="selectedBrands.size === brands.length"
+                                <input type="checkbox" :checked="selectedBrands.size === paginatedBrands.length"
                                     @change="toggleSelectAll" class="rounded">
                             </div>
                         </th>
@@ -35,13 +35,13 @@
                         </td>
                     </tr>
                     <template v-else-if="brands.length > 0">
-                        <tr v-for="(brand, index) in brands" :key="brand.id"
+                        <tr v-for="(brand, index) in paginatedBrands" :key="brand.id"
                             class="border-b border-gray-200 hover:bg-gray-50">
                             <td class="px-3 py-2">
                                 <input type="checkbox" :checked="selectedBrands.has(brand.id)"
                                     @change="toggleSelect(brand.id)" class="rounded">
                             </td>
-                            <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
+                            <td class="px-4 py-3 text-center">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
                             <td class="px-4 py-3 text-center">
                                 <img :src="brand.image" :alt="brand.name" class="w-10 h-10 object-cover rounded">
                             </td>
@@ -83,18 +83,38 @@
                         </tr>
                     </template>
                     <tr v-else>
-                        <td colspan="8" class="px-3 text-center py-2 text-gray-500">
+                        <td colspan="9" class="px-3 text-center py-2 text-gray-500">
                             Không có dữ liệu
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        <div v-if="!props.isLoading && totalPages > 1" class="flex justify-between items-center mt-6">
+            <div class="text-sm text-gray-600">
+                Hiển thị {{ paginatedBrands.length }} trên tổng số {{ brands.length }} bản ghi
+            </div>
+            <div class="flex gap-2">
+                <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
+                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="px-3 py-1">
+                    Trang {{ currentPage }} / {{ totalPages }}
+                </span>
+                <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)"
+                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 const props = defineProps({
     brands: {
         type: Array,
@@ -103,9 +123,16 @@ const props = defineProps({
     isLoading: {
         type: Boolean,
         default: false
+    },
+    currentPage: {
+        type: Number,
+        default: 1
+    },
+    itemsPerPage: {
+        type: Number,
+        default: 10
     }
 })
-
 
 const selectedBrands = ref(new Set())
 
@@ -158,7 +185,21 @@ const handleDelete = async (brand) => {
     })
 }
 
-const emit = defineEmits(['delete', 'bulkDelete'])
+const paginatedBrands = computed(() => {
+    const start = (props.currentPage - 1) * props.itemsPerPage
+    const end = start + props.itemsPerPage
+    return props.brands.slice(start, end)
+})
+
+const totalPages = computed(() => Math.ceil(props.brands.length / props.itemsPerPage))
+
+const emit = defineEmits(['update:currentPage', 'delete', 'bulkDelete'])
+
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        emit('update:currentPage', page)
+    }
+}
 
 const toggleStatus = async (brand) => {
     const newStatus = Number(brand.is_active) === 1 ? 0 : 1

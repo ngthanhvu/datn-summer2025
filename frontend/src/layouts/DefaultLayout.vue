@@ -5,13 +5,15 @@
             <router-view />
         </main>
         <FooterHome />
-        <ChatWidget v-if="isAuthenticated" />
+        <ChatWidget :is-authenticated="isAuthenticated" />
+        <CookieConsent />
     </div>
 </template>
 <script setup>
 import HeaderHome from './HeaderHome.vue'
 import FooterHome from './FooterHome.vue'
 import ChatWidget from './ChatWidget.vue'
+import CookieConsent from './CookieConsent.vue';
 
 import { useAuth } from '../composable/useAuth';
 

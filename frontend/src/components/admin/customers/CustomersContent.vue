@@ -16,7 +16,9 @@
             </button>
         </div>
 
-        <CustomersTable :customers="customers" :isLoading="isLoading" @delete="handleDelete" />
+        <CustomersTable :customers="customers" :isLoading="isLoading" :currentPage="currentPage"
+            :itemsPerPage="itemsPerPage" :totalItems="totalItems" @delete="handleDelete" @page-change="handlePageChange"
+            @update-customer="handleUpdateCustomer" @toggle-status="handleToggleStatus" />
     </div>
 </template>
 
@@ -24,16 +26,23 @@
 import { ref, onMounted } from 'vue'
 import CustomersTable from './CustomersTable.vue'
 import { useAuth } from '../../../composable/useAuth'
+import { push } from 'notivue'
 
-const { getListUser } = useAuth()
+const { getListUser, updateUserByAdmin, updateCustomerStatus } = useAuth()
 const customers = ref([])
 const isLoading = ref(true)
+
+// Pagination state
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalItems = ref(0)
 
 onMounted(async () => {
     isLoading.value = true
     try {
         const res = await getListUser()
         customers.value = res.users
+        totalItems.value = res.users.length
     } catch (err) {
         console.error('Get list user error:', err.response?.data || err.message)
         throw err
@@ -46,14 +55,57 @@ const handleDelete = (customer) => {
     const index = customers.value.findIndex(c => c.id === customer.id)
     if (index !== -1) {
         customers.value.splice(index, 1)
+        totalItems.value = customers.value.length
     }
+}
+
+const handleUpdateCustomer = async (customerData) => {
+    try {
+        await updateUserByAdmin(customerData)
+
+        const index = customers.value.findIndex(c => c.id === customerData.id)
+        if (index !== -1) {
+            customers.value[index] = {
+                ...customers.value[index],
+                ...customerData
+            }
+        }
+        push.success('Cập nhật khách hàng thành công')
+        // console.log('Cập nhật khách hàng thành công:', customerData)
+
+    } catch (error) {
+        console.error('Lỗi khi cập nhật khách hàng:', error)
+    }
+}
+
+const handleToggleStatus = async (customer) => {
+    try {
+        const newStatus = customer.status === 1 ? 0 : 1
+        await updateCustomerStatus(customer.id, newStatus)
+
+        // Cập nhật dữ liệu local
+        const index = customers.value.findIndex(c => c.id === customer.id)
+        if (index !== -1) {
+            customers.value[index].status = newStatus
+        }
+
+        console.log('Cập nhật trạng thái khách hàng thành công')
+    } catch (error) {
+        console.error('Lỗi khi cập nhật trạng thái khách hàng:', error)
+    }
+}
+
+const handlePageChange = (page) => {
+    currentPage.value = page
 }
 
 const handleRefresh = async () => {
     isLoading.value = true
+    currentPage.value = 1 // Reset to first page
     try {
         const res = await getListUser()
         customers.value = res.users
+        totalItems.value = res.users.length
     } catch (err) {
         console.error('Get list user error:', err.response?.data || err.message)
         throw err

@@ -1,7 +1,7 @@
 <template>
-    <div class="w-full lg:flex-1 flex flex-col justify-start max-w-[480px] space-y-6 pt-5 h-full">
+    <div class="w-full lg:flex-1 flex flex-col justify-start max-w-[480px] space-y-4 sm:space-y-6 pt-3 sm:pt-5 h-full">
         <div>
-            <h1 class="text-[22px] font-semibold leading-[28px] mb-2">
+            <h1 class="text-lg sm:text-[22px] font-semibold leading-tight sm:leading-[28px] mb-2">
                 {{ product?.name }}
             </h1>
             <div v-if="flashSalePrice" class="mb-2">
@@ -24,7 +24,7 @@
                     </div>
                 </div>
             </div>
-            <div class="text-[15px] text-gray-600 mb-4">
+            <div class="text-sm sm:text-[15px] text-gray-600 mb-4">
                 Thương hiệu:
                 <a class="text-[#2f6ad8] hover:underline" href="#">
                     {{ product?.brand?.name || 'DEVGANG' }}
@@ -38,21 +38,23 @@
             <div class="flex items-center justify-between text-[13px] font-semibold mb-2">
             </div>
             <div class="flex items-center gap-3 mb-3">
-                <span class="text-[22px] font-bold">
+                <span class="text-lg sm:text-[22px] font-bold">
                     {{
                         selectedVariant
                             ? formatPrice(selectedVariantSalePrice)
                             : (flashSalePrice ? formatPrice(flashSalePrice) : formatPrice(displayPrice))
                     }}
                 </span>
-                <span v-if="selectedVariant && flashSalePercent > 0" class="line-through text-gray-400 text-[15px]">
+                <span v-if="selectedVariant && flashSalePercent > 0"
+                    class="line-through text-gray-400 text-sm sm:text-[15px]">
                     {{ formatPrice(selectedVariant.price) }}
                 </span>
-                <span v-else-if="!selectedVariant && flashSalePrice" class="line-through text-gray-400 text-[15px]">
+                <span v-else-if="!selectedVariant && flashSalePrice"
+                    class="line-through text-gray-400 text-sm sm:text-[15px]">
                     {{ formatPrice(displayPrice) }}
                 </span>
                 <span v-if="(selectedVariant && flashSalePercent > 0) || (!selectedVariant && flashSalePercent > 0)"
-                    class="text-[#d43f3f] text-[15px] font-semibold">
+                    class="text-[#d43f3f] text-sm sm:text-[15px] font-semibold">
                     -{{ flashSalePercent }}%
                 </span>
             </div>
@@ -63,7 +65,7 @@
 
             <!-- Khuyến mãi - Ưu đãi -->
             <div
-                class="border border-dashed border-blue-400 rounded-md px-4 py-4 mb-4 text-[15px] text-gray-700 leading-5">
+                class="border border-dashed border-blue-400 rounded-md px-3 sm:px-4 py-3 sm:py-4 mb-4 text-sm sm:text-[15px] text-gray-700 leading-5">
                 <div class="flex items-center gap-1 mb-1 font-semibold text-blue-600">
                     <i class="fas fa-gift"></i>
                     <span>KHUYẾN MÃI - ƯU ĐÃI</span>
@@ -79,13 +81,16 @@
                 </ul>
             </div>
             <div class="mb-3 text-[11px]">
-                <div class="mb-1 font-semibold text-[16px]">Mã giảm giá</div>
+                <div class="mb-1 font-semibold text-sm sm:text-[16px]">Mã giảm giá</div>
                 <div class="flex flex-wrap gap-2">
                     <button
-                        class="border border-blue-400 rounded px-3 py-1 text-blue-600 text-[13px]">DEVGAMGREESHIP</button>
-                    <button class="border border-blue-400 rounded px-3 py-1 text-blue-600 text-[13px]">GIAM50K</button>
-                    <button class="border border-blue-400 rounded px-3 py-1 text-blue-600 text-[13px]">GIAM30</button>
-                    <button class="border border-blue-400 rounded px-3 py-1 text-blue-600 text-[13px]">GIAM40</button>
+                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px]">DEVGAMGREESHIP</button>
+                    <button
+                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px]">GIAM50K</button>
+                    <button
+                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px]">GIAM30</button>
+                    <button
+                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px]">GIAM40</button>
                 </div>
             </div>
         </div>
@@ -94,11 +99,11 @@
         <div class="space-y-4" v-if="product.variants && product.variants.length > 0">
             <!-- Size -->
             <div v-if="sizes.length > 0">
-                <h3 class="font-medium mb-2 text-[17px]">Kích thước</h3>
+                <h3 class="font-medium mb-2 text-base sm:text-[17px]">Kích thước</h3>
                 <div class="flex gap-2">
                     <button v-for="size in sizes" :key="size" @click="$emit('update:selectedSize', size)"
                         @mouseenter="hoveredSize = size" @mouseleave="hoveredSize = ''" :class="[
-                            'px-4 py-2 border rounded-md transition-colors',
+                            'px-3 sm:px-4 py-2 border rounded-md transition-colors text-sm sm:text-base',
                             hoveredSize === size
                                 ? 'bg-[#e0f2fe] border-[#81AACC] text-[#0369a1]'
                                 : selectedSize === size
@@ -112,11 +117,11 @@
 
             <!-- Color -->
             <div v-if="colors.length > 0">
-                <h3 class="font-medium mb-2 text-[17px]">Màu sắc</h3>
+                <h3 class="font-medium mb-2 text-base sm:text-[17px]">Màu sắc</h3>
                 <div class="flex gap-2">
                     <button v-for="color in colors" :key="color.name" @click="$emit('update:selectedColor', color)"
                         @mouseenter="hoveredColor = color" @mouseleave="hoveredColor = null" :class="[
-                            'w-10 h-10 rounded-full border-2 transition-colors',
+                            'w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-colors',
                             hoveredColor && hoveredColor.name === color.name
                                 ? 'border-[#38bdf8] ring-2 ring-[#38bdf8]'
                                 : selectedColor && selectedColor.name === color.name
@@ -130,37 +135,37 @@
 
         <!-- Quantity -->
         <div>
-            <h3 class="font-medium mb-1 text-[17px]">Số lượng</h3>
+            <h3 class="font-medium mb-1 text-base sm:text-[17px]">Số lượng</h3>
             <div class="flex items-center gap-4">
                 <div class="flex items-center border border-gray-300 rounded-md">
                     <button @click="$emit('update:quantity', Math.max(1, quantity - 1))"
-                        class="px-3 py-2 hover:bg-gray-100">-</button>
+                        class="px-2 sm:px-3 py-2 hover:bg-gray-100">-</button>
                     <input type="number" :value="quantity"
                         @input="$emit('update:quantity', Math.max(1, parseInt($event.target.value) || 1))" min="1"
-                        class="w-20 text-center border-x border-gray-300 py-3 text-[16px]" />
+                        class="w-16 sm:w-20 text-center border-x border-gray-300 py-3 text-sm sm:text-[16px]" />
                     <button @click="$emit('update:quantity', quantity + 1)"
-                        class="px-3 py-2 hover:bg-gray-100">+</button>
+                        class="px-2 sm:px-3 py-2 hover:bg-gray-100">+</button>
                 </div>
-                <span class="text-sm text-gray-500">
+                <span class="text-xs sm:text-sm text-gray-500">
                     Còn lại: {{ flashSalePrice ? flashSaleQuantity : selectedVariantInventory }} sản phẩm
                 </span>
             </div>
         </div>
-        <div v-if="productInventory && productInventory.length > 0" class="mb-3 text-sm text-gray-600">
+        <div v-if="productInventory && productInventory.length > 0" class="mb-3 text-xs sm:text-sm text-gray-600">
             Số lượng tồn kho: <b>{{productInventory.reduce((sum, inv) => sum + (inv.quantity || 0), 0)}}</b>
         </div>
 
         <!-- Actions -->
         <div class="flex gap-4">
             <button
-                class="flex-1 bg-[#81AACC] text-white py-2 text-[18px] rounded-md hover:bg-[#6B8BA3] transition-colors"
+                class="flex-1 bg-[#81AACC] text-white py-2 text-base sm:text-[18px] rounded-md hover:bg-[#6B8BA3] transition-colors"
                 @click="$emit('addToCart')">
                 Thêm vào giỏ hàng
             </button>
         </div>
 
         <!-- Status -->
-        <div class="flex items-center gap-2 text-[16px]">
+        <div class="flex items-center gap-2 text-sm sm:text-[16px]">
             <span :class="[
                 'font-medium',
                 productInventory.length > 0 ? 'text-green-600' : 'text-red-600'

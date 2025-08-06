@@ -3,11 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Orders;
-use App\Mail\PaymentConfirmation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\OrdersController;
 
 class PaymentController extends Controller
 {
@@ -21,7 +18,7 @@ class PaymentController extends Controller
         if (!$amount) {
             return response()->json(['success' => false, 'message' => 'Thiếu amount'], 400);
         }
-        $orderId = 'TMP' . time(); // Sinh mã tạm thời, không dùng order_id thật
+        $orderId = 'TMP' . time();
 
         $vnp_TmnCode = env('VNPAY_TMN_CODE');
         $vnp_HashSecret = env('VNPAY_HASH_SECRET');
@@ -29,7 +26,6 @@ class PaymentController extends Controller
         $vnp_Returnurl = env('APP_URL') . "/api/payment/vnpay-callback";
 
         $vnp_TxnRef = $orderId;
-        // Truyền toàn bộ orderData vào vnp_OrderInfo (json_encode)
         $vnp_OrderInfo = json_encode($orderData);
         $vnp_Amount = $amount * 100;
         $vnp_Locale = 'vn';
@@ -84,7 +80,7 @@ class PaymentController extends Controller
         $orderInfo = "Thanh toán đơn hàng tạm thời";
         $requestId = $partnerCode . time();
         $requestType = "payWithATM";
-        $extraData = json_encode($orderData); // Truyền orderData vào extraData
+        $extraData = json_encode($orderData);
         $rawSignature = "accessKey=$accessKey&amount=$amount&extraData=$extraData"
             . "&ipnUrl=$returnUrl&orderId=$orderId&orderInfo=$orderInfo"
             . "&partnerCode=$partnerCode&redirectUrl=$returnUrl&requestId=$requestId"
@@ -129,85 +125,6 @@ class PaymentController extends Controller
         }
     }
 
-    public function generatePaypalUrl(Request $request)
-    {
-        $request->validate([
-            'order_data' => 'required|array',
-        ]);
-        $orderData = $request->input('order_data');
-        $amount = $orderData['final_price'] ?? null;
-        if (!$amount) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Thiếu amount trong order_data'
-            ], 400);
-        }
-        $apiUrl = env('PAYPAL_API_URL', 'https://api-m.sandbox.paypal.com');
-        $clientId = env('PAYPAL_CLIENT_ID');
-        $clientSecret = env('PAYPAL_SECRET');
-        $returnUrl = env('APP_URL') . "/api/payment/paypal-callback";
-        $cancelUrl = env('APP_URL') . "/api/payment/paypal-cancel";
-        // Lấy access token
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "$apiUrl/v1/oauth2/token");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERPWD, "$clientId:$clientSecret");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Accept-Language: en_US']);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $tokenData = json_decode($response, true);
-        if (empty($tokenData['access_token'])) {
-            return response()->json(['success' => false, 'message' => 'Không lấy được access token'], 500);
-        }
-        $accessToken = $tokenData['access_token'];
-        $orderId = 'TMP' . time(); // Sinh mã tạm thời
-        $payload = [
-            'intent' => 'CAPTURE',
-            'purchase_units' => [[
-                'reference_id' => $orderId,
-                'amount' => [
-                    'currency_code' => env('PAYPAL_CURRENCY', 'USD'),
-                    'value' => number_format($amount / 24000, 2, '.', '')
-                ],
-                // Truyền orderData vào custom_id hoặc description nếu cần
-                'custom_id' => base64_encode(json_encode($orderData)),
-            ]],
-            'application_context' => [
-                'return_url' => $returnUrl,
-                'cancel_url' => $cancelUrl,
-                'brand_name' => 'My Store',
-                'locale' => 'en-US',
-                'landing_page' => 'BILLING',
-                'user_action' => 'PAY_NOW'
-            ]
-        ];
-        $ch = curl_init("$apiUrl/v2/checkout/orders");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $accessToken
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $result = json_decode($response, true);
-        $approveUrl = collect($result['links'] ?? [])->firstWhere('rel', 'approve')['href'] ?? null;
-        if ($approveUrl) {
-            return response()->json([
-                'success' => true,
-                'payment_url' => $approveUrl
-            ]);
-        }
-        return response()->json([
-            'success' => false,
-            'message' => 'Không tìm thấy approve URL từ PayPal',
-            'response' => $result
-        ], 500);
-    }
-
     public function vnpayCallback(Request $request)
     {
         $vnp_HashSecret = env('VNPAY_HASH_SECRET');
@@ -224,7 +141,6 @@ class PaymentController extends Controller
         if ($secureHash === $vnp_SecureHash) {
             $responseCode = $inputData['vnp_ResponseCode'];
             if ($responseCode === "00") {
-                // Lấy dữ liệu order từ session hoặc frontend truyền vào (ví dụ: vnp_OrderInfo chứa json encode)
                 $orderData = json_decode($inputData['vnp_OrderInfo'] ?? '', true);
                 if (!$orderData) {
                     return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thiếu dữ liệu đơn hàng'));
@@ -233,8 +149,7 @@ class PaymentController extends Controller
                 if (!$userId) {
                     return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thiếu user_id'));
                 }
-                $order = \App\Http\Controllers\OrdersController::createOrderFromData($orderData, $userId);
-                // Trừ kho, xóa cart, gửi mail... (nếu cần, hoặc để OrdersController xử lý)
+                $order = OrdersController::createOrderFromDataWithProcessing($orderData, $userId);
                 $redirectUrl = env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price;
                 if ($order->tracking_code) {
                     $redirectUrl .= '&tracking_code=' . urlencode($order->tracking_code);
@@ -274,7 +189,6 @@ class PaymentController extends Controller
         $calculatedSignature = hash_hmac('sha256', $rawSignature, $secretKey);
         if ($calculatedSignature === $data['signature']) {
             if ($resultCode == '0') {
-                // Lấy dữ liệu order từ extraData
                 $orderData = json_decode($data['extraData'] ?? '', true);
                 if (!$orderData) {
                     return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thiếu dữ liệu đơn hàng'));
@@ -283,7 +197,7 @@ class PaymentController extends Controller
                 if (!$userId) {
                     return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thiếu user_id'));
                 }
-                $order = \App\Http\Controllers\OrdersController::createOrderFromData($orderData, $userId);
+                $order = OrdersController::createOrderFromDataWithProcessing($orderData, $userId);
                 $redirectUrl = env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price;
                 if ($order->tracking_code) {
                     $redirectUrl .= '&tracking_code=' . urlencode($order->tracking_code);
@@ -296,35 +210,10 @@ class PaymentController extends Controller
         return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Xác thực thanh toán thất bại'));
     }
 
-    public function paypalCallback(Request $request)
-    {
-        // Giả sử bạn truyền dữ liệu order qua session hoặc custom field
-        $orderData = session('paypal_order_data'); // hoặc lấy từ $request nếu frontend truyền lại
-        if (!$orderData) {
-            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thiếu dữ liệu đơn hàng'));
-        }
-        // ... xác thực thanh toán như cũ ...
-        // Nếu thanh toán thành công:
-        $userId = $orderData['user_id'] ?? null;
-        if (!$userId) {
-            return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thiếu user_id'));
-        }
-        $order = \App\Http\Controllers\OrdersController::createOrderFromData($orderData, $userId);
-        $redirectUrl = env('FRONTEND_URL') . '/status?status=success&orderId=' . $order->id . '&amount=' . $order->final_price;
-        if ($order->tracking_code) {
-            $redirectUrl .= '&tracking_code=' . urlencode($order->tracking_code);
-        }
-        return redirect()->to($redirectUrl);
-        // Nếu thất bại thì redirect về checkout như các cổng khác
-    }
-
     public function paypalCancel(Request $request)
     {
-        $order = Orders::where('id', $request->input('token'))->first();
-        if ($order) {
-            $order->status = 'canceled';
-            $order->save();
-        }
+        session()->forget('paypal_order_data');
+
         return redirect()->to(env('FRONTEND_URL') . '/status?status=failure&message=' . urlencode('Thanh toán PayPal đã bị hủy'));
     }
 

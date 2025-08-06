@@ -9,8 +9,8 @@
                 </div>
                 <select v-model="filterStatus" class="border border-gray-300 rounded px-4 py-2">
                     <option value="">Tất cả trạng thái</option>
-                    <option value="true">Đang hoạt động</option>
-                    <option value="false">Đã khóa</option>
+                    <option value="1">Đang hoạt động</option>
+                    <option value="0">Đã khóa</option>
                 </select>
             </div>
         </div>
@@ -49,9 +49,9 @@
                             <div class="skeleton-loader"></div>
                         </td>
                     </tr>
-                    <tr v-else v-for="(customer, index) in filteredCustomers" :key="customer.id"
+                    <tr v-else v-for="(customer, index) in paginatedCustomers" :key="customer.id"
                         class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm text-gray-900 text-center">{{ index + 1 }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 text-center">{{ getDisplayIndex(index) }}</td>
                         <td class="px-4 py-3 text-center">
                             <img :src="customer.avatar || defaultAvatar" :alt="customer.username"
                                 class="w-10 h-10 rounded-full object-cover mx-auto" />
@@ -62,25 +62,24 @@
                         <td class="px-4 py-3 text-sm text-gray-900 text-center">{{ customer.phone ?
                             customer.phone : 'Không có' }}</td>
                         <td class="px-4 py-3 text-center">
-                            <button
-                                :class="['w-10 h-6 rounded-full relative transition-colors', customer.status ? 'bg-primary' : 'bg-gray-300']"
-                                @click="toggleStatus(customer)" :aria-pressed="customer.status"
-                                style="background-color: #3bb77e">
-                                <span
-                                    :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', customer.status ? 'translate-x-4' : '']"></span>
-                            </button>
+                            <span v-if="customer.status == 1"
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Hoạt
+                                động</span>
+                            <span v-else
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">Đã
+                                khoá</span>
                         </td>
                         <td class="px-4 py-3 text-sm font-medium">
                             <div class="flex items-center justify-center gap-2">
-                                <NuxtLink :to="`/admin/customers/${customer.id}`"
-                                    class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
-                                    title="Xem/Chỉnh sửa khách hàng">
+                                <button @click="openEditModal(customer)"
+                                    class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150 cursor-pointer"
+                                    title="Chỉnh sửa khách hàng">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                         </path>
                                     </svg>
-                                </NuxtLink>
+                                </button>
                                 <button @click="handleDelete(customer)"
                                     class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150"
                                     title="Xóa khách hàng">
@@ -93,17 +92,45 @@
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="!props.isLoading && filteredCustomers.length === 0">
+                    <tr v-if="!props.isLoading && paginatedCustomers.length === 0">
                         <td colspan="8" class="text-center text-gray-500">Không có dữ liệu</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <!-- Simple Pagination -->
+        <div v-if="!props.isLoading && totalPages > 1" class="flex justify-between items-center mt-6">
+            <div class="text-sm text-gray-600">
+                Hiển thị {{ paginatedCustomers.length }} trên tổng số {{ filteredCustomers.length }} bản ghi
+            </div>
+            <div class="flex gap-2">
+                <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
+                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="px-3 py-1">
+                    Trang {{ currentPage }} / {{ totalPages }}
+                </span>
+                <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)"
+                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Customer Edit Modal -->
+        <CustomerEditModal :is-visible="isEditModalVisible" :customer="selectedCustomer" @close="closeEditModal"
+            @save="handleSaveCustomer" />
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import CustomerEditModal from './CustomerEditModal.vue'
+import { useAuth } from '../../../composable/useAuth'
+
+const { updateCustomerStatus } = useAuth()
 
 const props = defineProps({
     customers: {
@@ -113,14 +140,30 @@ const props = defineProps({
     isLoading: {
         type: Boolean,
         default: false
+    },
+    currentPage: {
+        type: Number,
+        default: 1
+    },
+    itemsPerPage: {
+        type: Number,
+        default: 10
+    },
+    totalItems: {
+        type: Number,
+        default: 0
     }
 })
 
 const defaultAvatar = ref('https://img.freepik.com/premium-vector/error-404-found-glitch-effect_8024-4.jpg')
-const emit = defineEmits(['delete'])
+const emit = defineEmits(['delete', 'page-change', 'update-customer', 'toggle-status'])
 
 const searchQuery = ref('')
 const filterStatus = ref('')
+
+// Modal state
+const isEditModalVisible = ref(false)
+const selectedCustomer = ref({})
 
 const filteredCustomers = computed(() => {
     return props.customers.filter(customer => {
@@ -134,6 +177,26 @@ const filteredCustomers = computed(() => {
         return matchesSearch && matchesStatus
     })
 })
+
+// Simple pagination computed properties
+const totalPages = computed(() => Math.ceil(filteredCustomers.value.length / props.itemsPerPage))
+const startIndex = computed(() => (props.currentPage - 1) * props.itemsPerPage)
+const endIndex = computed(() => Math.min(startIndex.value + props.itemsPerPage, filteredCustomers.value.length))
+
+const paginatedCustomers = computed(() => {
+    return filteredCustomers.value.slice(startIndex.value, endIndex.value)
+})
+
+const getDisplayIndex = (index) => {
+    return startIndex.value + index + 1
+}
+
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value && page !== props.currentPage) {
+        emit('page-change', page)
+    }
+}
+
 const handleDelete = (customer) => {
     if (confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
         emit('delete', customer)
@@ -141,20 +204,40 @@ const handleDelete = (customer) => {
 }
 
 const toggleStatus = async (customer) => {
-    const newStatus = customer.status ? 0 : 1
+    const newStatus = customer.status === 1 ? 0 : 1
     try {
-        await updateCustomerStatus(customer.id, newStatus)
-        customer.status = newStatus
+        emit('toggle-status', customer)
         // Nếu có notyf hoặc emit refresh thì gọi ở đây
     } catch (e) {
         // Nếu có notyf thì báo lỗi ở đây
     }
 }
 
-// Hàm giả lập gọi API cập nhật trạng thái
-const updateCustomerStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
+// Modal functions
+const openEditModal = (customer) => {
+    selectedCustomer.value = { ...customer }
+    isEditModalVisible.value = true
+}
+
+const closeEditModal = () => {
+    isEditModalVisible.value = false
+    selectedCustomer.value = {}
+}
+
+const handleSaveCustomer = async (customerData) => {
+    try {
+        // Emit event to parent component to handle API call
+        emit('update-customer', customerData)
+
+        // Close modal after successful save
+        closeEditModal()
+
+        // You can add success notification here
+        console.log('Customer updated successfully:', customerData)
+    } catch (error) {
+        console.error('Error updating customer:', error)
+        // You can add error notification here
+    }
 }
 </script>
 

@@ -1,18 +1,20 @@
 <template>
     <div>
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-semibold text-gray-800">Mã Giảm Giá Mới Nhất</h2>
+        <div class="flex justify-between items-center mb-4 md:mb-6">
+            <h2 class="text-lg md:text-2xl font-semibold text-gray-800">Mã Giảm Giá Mới Nhất</h2>
             <router-link to="/kho-voucher"
-                class="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2">
+                class="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2 text-sm md:text-base">
                 Xem tất cả
                 <i class="fa-solid fa-arrow-right"></i>
             </router-link>
         </div>
 
         <!-- Loading -->
-        <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div v-for="i in 4" :key="i" class="flex max-w-xs w-full bg-white shadow-md rounded-md animate-pulse">
+        <div v-if="isLoading"
+            class="flex gap-4 overflow-x-auto scroll-smooth md:grid md:grid-cols-1 md:sm:grid-cols-2 md:lg:grid-cols-4 md:gap-6">
+            <div v-for="i in 4" :key="i"
+                class="flex max-w-xs w-80 md:w-full bg-white shadow-md rounded-md animate-pulse flex-shrink-0">
                 <div class="left-edge bg-gray-300"></div>
                 <div class="flex flex-col justify-center px-4 py-4 flex-1 space-y-2">
                     <div class="h-4 bg-gray-300 rounded"></div>
@@ -23,9 +25,10 @@
         </div>
 
         <!-- Coupons -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div v-else
+            class="flex gap-4 overflow-x-auto scroll-smooth md:grid md:grid-cols-1 md:sm:grid-cols-2 md:lg:grid-cols-4 md:gap-6">
             <div v-for="coupon in latestCoupons" :key="coupon.id"
-                class="flex max-w-xs w-full bg-white shadow-md rounded-md"
+                class="flex max-w-xs w-80 md:w-full bg-white shadow-md rounded-md flex-shrink-0"
                 :class="{ 'opacity-60': getCouponStatus(coupon) !== 'active' }">
                 <div class="left-edge flex items-center justify-center">
                     <i class="fa-solid fa-ticket text-white text-2xl"></i>

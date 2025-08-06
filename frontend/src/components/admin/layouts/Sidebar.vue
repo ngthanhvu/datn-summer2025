@@ -87,6 +87,10 @@
                     <span>Liên hệ</span>
                     <span v-if="unreadContacts > 0" class="badge">{{ unreadContacts }}</span>
                 </RouterLink>
+                <RouterLink to="/admin/pages" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Quản lý trang</span>
+                </RouterLink>
             </div>
 
             <!-- Hệ thống -->
@@ -109,6 +113,7 @@ const showInventoryMenu = ref(false)
 const unreadMessages = ref(0)
 const unapprovedReviews = ref(0)
 
+const unreadContacts = ref(0)
 // Gắn dữ liệu thực tế sau nếu cần
 unreadMessages.value = 3
 unapprovedReviews.value = 2
@@ -189,11 +194,12 @@ unapprovedReviews.value = 2
     padding: 1.5rem 1rem;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .sidebar-logo {

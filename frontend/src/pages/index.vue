@@ -4,17 +4,23 @@
         <ServiceFeatures />
         <CategoriesList />
 
+        <div class="mt-3" v-if="showFlashSale">
+            <!-- <div class="bg-[#e6f0fa] p-8 rounded-[5px] shadow-md relative overflow-hidden"> -->
+            <!-- <Snowfall /> -->
+            <FlashSale @has-flash-sale="handleFlashSaleStatus" />
+            <!-- </div> -->
+        </div>
+
         <div class="mt-3">
-            <div class="bg-white p-8 rounded-[5px]">
+            <Trending />
+        </div>
+
+        <div class="mt-3">
+            <div class="bg-white p-5 rounded-[5px]">
                 <CouponList />
             </div>
         </div>
-        <div class="mt-3" v-if="showFlashSale">
-            <div class="bg-[#e6f0fa] p-8 rounded-[5px] shadow-md relative overflow-hidden">
-                <Snowfall />
-                <FlashSale @has-flash-sale="handleFlashSaleStatus" />
-            </div>
-        </div>
+
         <div class="mt-3">
             <NewProducts />
         </div>
@@ -45,6 +51,7 @@ import ReviewLatest from '../components/home/ReviewLatest.vue';
 import FeaturedBlogs from '../components/home/FeaturedBlogs.vue';
 import FlashSale from '../components/home/FlashSale.vue';
 import Snowfall from '../components/common/Snowfall.vue';
+import Trending from '../components/home/Trending.vue';
 useHead({
     title: "Trang chủ | DEVGANG",
     meta: [

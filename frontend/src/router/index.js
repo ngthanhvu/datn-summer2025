@@ -19,6 +19,9 @@ import BlogPage from '../pages/blogs.vue';
 import BlogDetailPage from '../pages/blogs_detail.vue';
 import CheckOutPage from '../pages/checkout.vue';
 import FavoriteProductPage from '../pages/favorite.vue';
+import ShippingCalculatorPage from '../pages/shipping-calculator.vue';
+import FlashSalePage from '../pages/flash-sale.vue';
+import PageView from '../pages/page.vue';
 
 import Admin from '../pages/admin/index.vue';
 import ProductsPageAdmin from '../pages/admin/products/index.vue';
@@ -34,6 +37,7 @@ import OrdersPageAdmin from '../pages/admin/orders/index.vue';
 import OrderDetailPageAdmin from '../pages/admin/orders/detail.vue';
 import CouponsPageAdmin from '../pages/admin/coupons/index.vue';
 import CouponsCreate from '../pages/admin/coupons/create.vue';
+import CouponsEdit from '../pages/admin/coupons/edit.vue';
 import CustomerPageAdmin from '../pages/admin/customers/index.vue';
 import InventoryPageAdmin from '../pages/admin/inventory/index.vue';
 import InventoryImportPageAdmin from '../pages/admin/inventory/import.vue';
@@ -44,12 +48,18 @@ import MessagePageAdmin from '../pages/admin/messages/index.vue';
 import CommentPageAdmin from '../pages/admin/comments/index.vue';
 import FlashSalePageAdmin from '../pages/admin/flashsale/index.vue';
 import FlashSaleForm from '../pages/admin/flashsale/create.vue';
+import FlashSaleEdit from '../pages/admin/flashsale/edit.vue';
 import FlashSaleSelect from '../pages/admin/flashsale/select.vue';
 import SettingPageAdmin from '../pages/admin/settings/index.vue';
 import ContactsPageAdmin from '../pages/admin/contacts/index.vue';
+import PagesPageAdmin from '../pages/admin/page/index.vue';
+import PagesCreate from '../pages/admin/page/create.vue';
+import PagesEdit from '../pages/admin/page/edit.vue';
 
 import StatusPage from '../pages/status.vue';
+import CookieRule from '../components/CookieRule.vue';
 import NotFound from '../components/404.vue'
+import PagesContent from '../components/admin/newpage/PagesContent.vue'
 import { authGuard } from './middleware/auth';
 
 const routes = [
@@ -120,6 +130,18 @@ const routes = [
                 component: FavoriteProductPage
             },
             {
+                path: '/tinh-phi-van-chuyen',
+                component: ShippingCalculatorPage
+            },
+            {
+                path: '/flash-sale',
+                component: FlashSalePage
+            },
+            {
+                path: '/trang/:slug',
+                component: PageView
+            },
+            {
                 path: '/:pathMatch(.*)*',
                 component: NotFound
             },
@@ -134,7 +156,16 @@ const routes = [
             {
                 path: '/reset',
                 component: ResetPasswordPage
+            },
+            {
+                path: '/test-pages',
+                component: PagesContent
+            },
+            {
+                path: '/chinh-sach-cookie',
+                component: CookieRule
             }
+
         ]
     },
     {
@@ -199,6 +230,10 @@ const routes = [
                 component: CouponsCreate
             },
             {
+                path: '/admin/coupons/edit/:id',
+                component: CouponsEdit
+            },
+            {
                 path: '/admin/customers',
                 component: CustomerPageAdmin
             },
@@ -239,6 +274,10 @@ const routes = [
                 component: FlashSaleForm
             },
             {
+                path: '/admin/flashsale/:id/edit',
+                component: FlashSaleEdit
+            },
+            {
                 path: '/admin/flashsale/select',
                 component: FlashSaleSelect
             },
@@ -249,6 +288,18 @@ const routes = [
             {
                 path: '/admin/contacts',
                 component: ContactsPageAdmin
+            },
+            {
+                path: '/admin/pages',
+                component: PagesPageAdmin
+            },
+            {
+                path: '/admin/pages/create',
+                component: PagesCreate
+            },
+            {
+                path: '/admin/pages/:id/edit',
+                component: PagesEdit
             }
         ]
         // meta: { requiresAuth: true, requiresAdmin: true }

@@ -19,22 +19,22 @@
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Tỉnh/Thành phố</label>
-                    <select v-model="form.province"
+                    <select v-model="form.province" @change="onProvinceChange"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#81AACC]">
                         <option value="">Chọn Tỉnh/Thành phố</option>
-                        <option v-for="province in provinces" :key="province.code" :value="province.code">
-                            {{ province.name }}
+                        <option v-for="province in provinces" :key="province.ProvinceID" :value="province.ProvinceName">
+                            {{ province.ProvinceName }}
                         </option>
                     </select>
                     <div v-if="errors.province" class="text-red-500 text-xs">{{ errors.province }}</div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Quận/Huyện</label>
-                    <select v-model="form.district"
+                    <select v-model="form.district" @change="onDistrictChange"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#81AACC]">
                         <option value="">Chọn Quận/Huyện</option>
-                        <option v-for="district in districts" :key="district.code" :value="district.code">
-                            {{ district.name }}
+                        <option v-for="district in districts" :key="district.DistrictID" :value="district.DistrictName">
+                            {{ district.DistrictName }}
                         </option>
                     </select>
                     <div v-if="errors.district" class="text-red-500 text-xs">{{ errors.district }}</div>
@@ -44,17 +44,17 @@
                     <select v-model="form.ward"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#81AACC]">
                         <option value="">Chọn Xã/Phường</option>
-                        <option v-for="ward in wards" :key="ward.code" :value="ward.code">
-                            {{ ward.name }}
+                        <option v-for="ward in wards" :key="ward.WardCode" :value="ward.WardName">
+                            {{ ward.WardName }}
                         </option>
                     </select>
                     <div v-if="errors.ward" class="text-red-500 text-xs">{{ errors.ward }}</div>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-2">Thôn/Xóm</label>
+                    <label class="block text-sm font-medium mb-2">Địa chỉ chi tiết</label>
                     <input v-model="form.street" type="text"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#81AACC]"
-                        maxlength="100" placeholder="Nhập thôn/xóm">
+                        maxlength="100" placeholder="Số nhà, tên đường">
                     <div v-if="errors.street" class="text-red-500 text-xs">{{ errors.street }}</div>
                 </div>
             </div>
@@ -83,7 +83,12 @@
                     <tr v-for="address in addresses" :key="address.id">
                         <td class="px-6 py-4 whitespace-nowrap">{{ address.full_name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ address.phone }}</td>
-                        <td class="px-6 py-4">{{ getFullAddress(address) }}</td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">
+                                <div class="font-medium">{{ address.street }}</div>
+                                <div class="text-gray-600">{{ address.ward }}, {{ address.district }}, {{ address.province }}</div>
+                            </div>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <button @click="handleDeleteAddress(address.id)"
                                 class="text-red-600 hover:text-red-800 mr-2">
@@ -121,8 +126,11 @@
                 </div>
                 <p class="text-gray-700 text-sm"><span class="font-semibold">SĐT:</span> {{ address.phone }}
                 </p>
-                <p class="text-gray-700 text-sm"><span class="font-semibold">Địa chỉ:</span> {{
-                    getFullAddress(address) }}</p>
+                <div class="text-gray-700 text-sm">
+                    <div class="font-semibold">Địa chỉ:</div>
+                    <div class="mt-1">{{ address.street }}</div>
+                    <div class="text-gray-600">{{ address.ward }}, {{ address.district }}, {{ address.province }}</div>
+                </div>
             </div>
             <div v-if="addresses.length === 0" class="text-center py-4 text-gray-500 text-sm">
                 Không có địa chỉ nào
@@ -134,12 +142,15 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { useHead } from "@vueuse/head";
-import { useAddress } from "../../composable/useAddress"; // ✅ sửa lại đường dẫn cho đúng trong Vue 3
+import { useAddress } from "../../composable/useAddress";
+import { useNotivue } from "notivue";
 
 useHead({
     title: "Địa chỉ của tôi | DEVGANG",
     meta: [{ name: "description", content: "Địa chỉ" }],
 });
+
+const { notify } = useNotivue();
 
 const {
     form,
@@ -167,7 +178,12 @@ const fetchProvinces = async () => {
 
 const fetchDistricts = async () => {
     if (!form.value.province) return;
-    districts.value = await getDistricts(form.value.province);
+    
+    // Tìm ProvinceID từ ProvinceName
+    const selectedProvince = provinces.value.find((p) => p.ProvinceName === form.value.province);
+    if (!selectedProvince) return;
+    
+    districts.value = await getDistricts(selectedProvince.ProvinceID);
     wards.value = [];
     form.value.district = "";
     form.value.ward = "";
@@ -175,7 +191,12 @@ const fetchDistricts = async () => {
 
 const fetchWards = async () => {
     if (!form.value.district) return;
-    wards.value = await getWards(form.value.district);
+    
+    // Tìm DistrictID từ DistrictName
+    const selectedDistrict = districts.value.find((d) => d.DistrictName === form.value.district);
+    if (!selectedDistrict) return;
+    
+    wards.value = await getWards(selectedDistrict.DistrictID);
     form.value.ward = "";
 };
 
@@ -184,8 +205,8 @@ const fetchAddresses = async () => {
         const res = await getMyAddress();
         addresses.value = Array.isArray(res) ? res : [];
     } catch (error) {
-        console.error("Error fetching addresses:", error);
         addresses.value = [];
+        notify.error("Không thể tải danh sách địa chỉ!");
     }
 };
 
@@ -195,47 +216,81 @@ const handleSubmit = async () => {
         const addressData = {
             full_name: form.value.full_name,
             phone: form.value.phone,
-            province:
-                provinces.value.find((p) => p.code == form.value.province)?.name ||
-                form.value.province,
-            district:
-                districts.value.find((d) => d.code == form.value.district)?.name ||
-                form.value.district,
-            ward:
-                wards.value.find((w) => w.code == form.value.ward)?.name ||
-                form.value.ward,
+            province: form.value.province,
+            district: form.value.district,
+            ward: form.value.ward,
             street: form.value.street,
         };
 
         const res = await createAddress(addressData);
         addresses.value.push(res);
         resetForm();
-        notyf.success("Thêm địa chỉ thành công!");
+        notify.success("Thêm địa chỉ thành công!");
     } catch (error) {
         console.error(error);
-        notyf.error("Có lỗi xảy ra khi thêm địa chỉ!");
+        notify.error("Có lỗi xảy ra khi thêm địa chỉ!");
     }
 };
 
 const handleDeleteAddress = async (id) => {
-    const result = await deleteAddress(id);
-    if (result) {
-        addresses.value = addresses.value.filter((addr) => addr.id !== id);
-        notyf.success("Xóa địa chỉ thành công!");
-    } else {
-        notyf.error("Xóa địa chỉ thất bại!");
+    try {
+        const result = await deleteAddress(id);
+        if (result) {
+            addresses.value = addresses.value.filter((addr) => addr.id !== id);
+            notify.success("Xóa địa chỉ thành công!");
+        } else {
+            notify.error("Xóa địa chỉ thất bại!");
+        }
+    } catch (error) {
+        console.error("Error deleting address:", error);
+        notify.error("Có lỗi xảy ra khi xóa địa chỉ!");
     }
 };
 
 const editAddress = (address) => {
     setFormData(address);
+    
+    // Nếu có province, load districts
+    if (address.province) {
+        const selectedProvince = provinces.value.find((p) => p.ProvinceName === address.province);
+        if (selectedProvince) {
+            form.value.province = address.province;
+            fetchDistricts().then(() => {
+                // Sau khi load districts, nếu có district, load wards
+                if (address.district) {
+                    const selectedDistrict = districts.value.find((d) => d.DistrictName === address.district);
+                    if (selectedDistrict) {
+                        form.value.district = address.district;
+                        fetchWards().then(() => {
+                            if (address.ward) {
+                                form.value.ward = address.ward;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+};
+
+const onProvinceChange = () => {
+    form.value.district = "";
+    form.value.ward = "";
+    districts.value = [];
+    wards.value = [];
+    fetchDistricts();
+};
+
+const onDistrictChange = () => {
+    form.value.ward = "";
+    wards.value = [];
+    fetchWards();
 };
 
 watch(
     () => form.value.province,
     (newValue) => {
-        if (newValue) fetchDistricts();
-        else {
+        if (!newValue) {
             districts.value = [];
             form.value.district = "";
             form.value.ward = "";
@@ -246,8 +301,7 @@ watch(
 watch(
     () => form.value.district,
     (newValue) => {
-        if (newValue) fetchWards();
-        else {
+        if (!newValue) {
             wards.value = [];
             form.value.ward = "";
         }

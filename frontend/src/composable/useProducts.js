@@ -1,4 +1,5 @@
 import axios from 'axios'
+import Cookies from 'js-cookie'
 
 export const useProducts = () => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
@@ -372,56 +373,46 @@ export const useProducts = () => {
         }
     }
 
-    const logCategoryStats = async () => {
+    const getNewProducts = async (limit = 10) => {
         try {
-            const categories = await getCategories()
+            const cacheKey = `new_products_${limit}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
 
-            console.log('📊 THỐNG KÊ DANH MỤC VÀ SẢN PHẨM (useProducts)')
-            console.log('==================================================')
-
-            const totalCategories = categories.length
-            const totalProducts = categories.reduce((sum, cat) => sum + (cat.products_count || 0), 0)
-            const activeCategories = categories.filter(cat => cat.is_active).length
-
-            console.log(`📁 Tổng số danh mục: ${totalCategories}`)
-            console.log(`📦 Tổng số sản phẩm: ${totalProducts}`)
-            console.log(`✅ Danh mục đang hoạt động: ${activeCategories}`)
-            console.log(`❌ Danh mục không hoạt động: ${totalCategories - activeCategories}`)
-            console.log('')
-
-            // Danh mục có nhiều sản phẩm nhất
-            const topCategories = categories
-                .sort((a, b) => (b.products_count || 0) - (a.products_count || 0))
-                .slice(0, 3)
-
-            console.log('🏆 TOP 3 DANH MỤC CÓ NHIỀU SẢN PHẨM NHẤT:')
-            topCategories.forEach((cat, index) => {
-                console.log(`${index + 1}. ${cat.name}: ${cat.products_count || 0} sản phẩm`)
+            const response = await API.get('/api/products', {
+                params: {
+                    sort_by: 'created_at',
+                    sort_direction: 'desc',
+                    limit: limit
+                }
             })
-            console.log('')
-
-            // Danh mục không có sản phẩm
-            const emptyCategories = categories.filter(cat => !cat.products_count || cat.products_count === 0)
-            if (emptyCategories.length > 0) {
-                console.log('⚠️ DANH MỤC KHÔNG CÓ SẢN PHẨM:')
-                emptyCategories.forEach(cat => {
-                    console.log(`- ${cat.name}`)
-                })
-                console.log('')
-            }
-
-            console.log('==================================================')
-
-            return {
-                totalCategories,
-                totalProducts,
-                activeCategories,
-                topCategories,
-                emptyCategories
-            }
+            setCachedData(cacheKey, response.data)
+            return response.data
         } catch (error) {
-            console.error('❌ Lỗi khi lấy thống kê danh mục:', error)
-            return null
+            console.error('Error getting new products:', error)
+            return []
+        }
+    }
+
+    const getRecommendedProducts = async () => {
+        try {
+            const userCookie = Cookies.get('user')
+            let params = {}
+
+            if (userCookie) {
+                const user = typeof userCookie === 'string' ? JSON.parse(userCookie) : userCookie
+                if (user.gender) params.gender = user.gender
+                if (user.dateOfBirth) params.dateOfBirth = user.dateOfBirth
+                if (user.address) params.address = user.address
+            }
+
+            const response = await API.get('/api/products/recommend', { params })
+            return response.data
+        } catch (error) {
+            console.error('Error getting recommended products:', error)
+            return []
         }
     }
 
@@ -442,7 +433,8 @@ export const useProducts = () => {
         getTemplateSheet,
         importFile,
         bulkDeleteProducts,
-        logCategoryStats,
-        getVariant
+        getVariant,
+        getNewProducts,
+        getRecommendedProducts
     }
 }

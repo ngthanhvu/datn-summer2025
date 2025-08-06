@@ -102,6 +102,36 @@ npm run dev
 
 Truy cập ứng dụng tại: http://localhost:5173
 
+## Tài khoản thanh toán online ( test )
+**VNPAY**
+```bash
+Ngân hàng: NCB
+Số thẻ: 9704198526191432198
+Tên chủ thẻ:NGUYEN VAN A
+Ngày phát hành:07/15
+Mật khẩu OTP:123456
+```
+**MOMO**
+```bash
+NGUYEN VAN A
+9704 0000 0000 0018	
+03/07	
+OTP
+```
+**PAYPAL**
+```bash
+comming soon
+```
+
+**ZALOPAY**
+```bash
+Số thẻ	4111111111111111
+Tên	NGUYEN VAN A
+Ngày hết hạn	01/26
+Mã CVV	123
+
+```
+
 ## Cấu trúc thư mục (nếu cần)
 
 ```

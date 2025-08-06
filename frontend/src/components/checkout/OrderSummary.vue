@@ -70,13 +70,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Thông tin vận chuyển -->
+        <div class="mb-6">
+            <ShippingSection 
+                :cart-items="cartItems" 
+                :selected-address="selectedAddress"
+                @shipping-calculated="handleShippingCalculated" 
+            />
+        </div>
         <div class="space-y-3 border-t border-gray-300 pt-4">
             <div class="flex justify-between">
                 <span>Tạm tính</span>
                 <span>{{ formatPrice(subtotal) }}</span>
             </div>
             <div class="flex justify-between">
-                <span>Phí vận chuyển</span>
+                <span>Phí vận chuyển <span v-if="shippingZone" class="text-xs text-gray-500">({{ shippingZone }})</span></span>
                 <span>{{ formatPrice(shipping) }}</span>
             </div>
             <div class="flex justify-between">
@@ -98,6 +107,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useCoupon } from '../../composable/useCoupon' // thay '~/composables' bằng relative path
+import ShippingSection from './ShippingSection.vue'
 
 const props = defineProps({
     items: {
@@ -115,10 +125,22 @@ const props = defineProps({
     discount: {
         type: Number,
         default: 0
+    },
+    shippingZone: {
+        type: String,
+        default: ''
+    },
+    selectedAddress: {
+        type: Object,
+        default: null
+    },
+    cartItems: {
+        type: Array,
+        required: true
     }
 })
 
-const emit = defineEmits(['apply-coupon', 'place-order'])
+const emit = defineEmits(['apply-coupon', 'place-order', 'shipping-calculated'])
 
 const couponCode = ref('')
 const availableCoupons = ref([])
@@ -147,13 +169,16 @@ const selectCoupon = (coupon) => {
     applyCoupon()
 }
 
+const handleShippingCalculated = (shippingData) => {
+    emit('shipping-calculated', shippingData)
+}
+
 const fetchAvailableCoupons = async () => {
     try {
         const myCouponsData = await couponService.getMyCoupons()
         const myCoupons = myCouponsData?.coupons || []
 
         if (!Array.isArray(myCoupons)) {
-            console.error('Invalid my coupons data:', myCoupons)
             return
         }
 
@@ -167,7 +192,7 @@ const fetchAvailableCoupons = async () => {
             )
         })
     } catch (error) {
-        console.error('Error fetching my coupons:', error)
+        // Handle error silently
     }
 }
 

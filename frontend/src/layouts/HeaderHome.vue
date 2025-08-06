@@ -4,7 +4,7 @@
         <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
             <!-- Logo -->
             <router-link to="/" class="flex items-center">
-                <img src="/logo.png" alt="EGA MEN" class="w-20" />
+                <img src="/logo1.png" alt="EGA MEN" class="w-20" />
             </router-link>
 
             <!-- Desktop Navigation -->
@@ -41,11 +41,6 @@
 
             <!-- Desktop Icons -->
             <div class="hidden lg:flex items-center gap-4 text-gray-700">
-                <!-- Search -->
-                <button class="text-lg">
-                    <i class="bi bi-search"></i>
-                </button>
-
                 <!-- Wishlist -->
                 <router-link to="/san-pham-yeu-thich" class="relative text-xl">
                     <i class="bi bi-heart"></i>
@@ -81,6 +76,12 @@
 
         <!-- Mobile Menu -->
         <MobileMenu :is-open="isMobileMenuOpen" @close="toggleMobileMenu" />
+
+        <!-- Overlay for mobile menu -->
+        <Transition name="overlay">
+            <div v-if="isMobileMenuOpen" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                @click="toggleMobileMenu"></div>
+        </Transition>
     </nav>
     <CartPanel :is-open="isCartOpen" @close="toggleCart" />
 </template>
@@ -142,5 +143,21 @@ const toggleMobileMenu = () => {
     visibility: visible;
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Overlay Transition */
+.overlay-enter-active,
+.overlay-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.overlay-enter-from,
+.overlay-leave-to {
+    opacity: 0;
+}
+
+.overlay-enter-to,
+.overlay-leave-from {
+    opacity: 1;
 }
 </style>

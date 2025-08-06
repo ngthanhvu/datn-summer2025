@@ -41,9 +41,9 @@
                         <tr v-if="!Array.isArray(flashSales) || !flashSales[0]">
                             <td colspan="7" class="text-center text-gray-400 py-6">Không có dữ liệu</td>
                         </tr>
-                        <tr v-for="(item, idx) in (Array.isArray(flashSales) ? flashSales : [])" :key="item.id"
+                        <tr v-for="(item, idx) in paginatedFlashSales" :key="item.id"
                             class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-2 text-center">{{ idx + 1 }}</td>
+                            <td class="px-4 py-2 text-center">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
                             <td class="px-4 py-2 text-center">{{ item.name }}</td>
                             <td class="px-4 py-2 text-center">
                                 <span v-if="Array.isArray(item.products) && item.products[0]">Có sản phẩm</span>
@@ -91,15 +91,24 @@
                     </tbody>
                 </table>
             </div>
-            <div class="flex justify-between ter mt-4 text-sm text-gray-500">
-                <div>Hiển thị {{Array.isArray(flashSales) ? flashSales.map(() => 1).reduce((a, b) => a + b, 0) : 0}}
-                    trên tổng
-                    số {{Array.isArray(flashSales) ? flashSales.map(() => 1).reduce((a, b) => a + b, 0) : 0}} bản ghi
+
+            <!-- Pagination -->
+            <div v-if="!loading && !error && totalPages > 1" class="flex justify-between items-center mt-6">
+                <div class="text-sm text-gray-600">
+                    Hiển thị {{ paginatedFlashSales.length }} trên tổng số {{ flashSales.length }} bản ghi
                 </div>
                 <div class="flex gap-2">
-                    <button class="px-2 py-1 rounded border bg-white" disabled>&lt;</button>
-                    <span>Trang 1 / 1</span>
-                    <button class="px-2 py-1 rounded border bg-white" disabled>&gt;</button>
+                    <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
+                        class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="px-3 py-1">
+                        Trang {{ currentPage }} / {{ totalPages }}
+                    </span>
+                    <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)"
+                        class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -107,13 +116,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useFlashsale } from '../../../composable/useFlashsale'
+import { push } from 'notivue'
+
 const { getFlashSales, deleteFlashSale } = useFlashsale()
 const flashSales = ref([])
 const loading = ref(false)
 const error = ref('')
 const deleteLoading = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = 10
+
+// Pagination computed properties
+const totalPages = computed(() => Math.ceil(flashSales.value.length / itemsPerPage))
+
+const paginatedFlashSales = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    const end = start + itemsPerPage
+    return flashSales.value.slice(start, end)
+})
+
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+    }
+}
 
 async function fetchFlashSales() {
     loading.value = true
@@ -124,6 +152,7 @@ async function fetchFlashSales() {
     } catch (e) {
         error.value = e.message || 'Lỗi tải dữ liệu flash sale'
         flashSales.value = []
+        push.error('Có lỗi xảy ra khi tải danh sách flash sale!')
     } finally {
         loading.value = false
     }
@@ -138,10 +167,10 @@ async function handleDelete(id) {
         try {
             await deleteFlashSale(id)
             await fetchFlashSales()
-            alert('Đã xóa thành công!')
+            push.success('Xóa flash sale thành công!')
         } catch (e) {
             error.value = e.message || 'Xóa thất bại!'
-            alert(error.value)
+            push.error('Có lỗi xảy ra khi xóa flash sale!')
         } finally {
             deleteLoading.value = false
         }
@@ -153,9 +182,9 @@ const toggleStatus = async (item) => {
     try {
         await updateFlashSaleStatus(item.id, newStatus)
         item.active = newStatus
-        // Nếu có notyf hoặc emit refresh thì gọi ở đây
+        push.success('Cập nhật trạng thái flash sale thành công!')
     } catch (e) {
-        // Nếu có notyf thì báo lỗi ở đây
+        push.error('Có lỗi xảy ra khi cập nhật trạng thái flash sale!')
     }
 }
 

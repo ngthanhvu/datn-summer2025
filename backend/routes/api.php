@@ -23,6 +23,8 @@ use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ShippingController;
+use App\Http\Controllers\PagesController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -76,6 +78,14 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
     Route::post('/settings', [SettingController::class, 'update']);
 
+    // Pages routes (Admin only)
+    Route::get('/pages', [PagesController::class, 'index']);
+    Route::post('/pages', [PagesController::class, 'store']);
+    Route::get('/pages/{id}', [PagesController::class, 'show']);
+    Route::put('/pages/{id}', [PagesController::class, 'update']);
+    Route::delete('/pages/{id}', [PagesController::class, 'destroy']);
+    Route::put('/pages/{id}/status', [PagesController::class, 'updateStatus']);
+
     // Chat/Messenger routes
     Route::prefix('chat')->group(function () {
         Route::get('/conversations', [MessengerController::class, 'getConversations']);
@@ -91,6 +101,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/coupons/{id}/claim', [CouponsController::class, 'claim']);
     Route::post('/coupons/{id}/use', [CouponsController::class, 'use']);
     Route::get('/coupons/my-coupons', [CouponsController::class, 'myCoupons']);
+
+    //update infomation by admin
+    Route::put('/admin/user/{id}', [AuthController::class, 'updateUserByAdmin']);
 });
 Route::get('/settings', [SettingController::class, 'index']);
 
@@ -167,12 +180,9 @@ Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedPr
 Route::prefix('payment')->group(function () {
     Route::post('vnpay', [PaymentController::class, 'generateVnpayUrl']);
     Route::post('momo', [PaymentController::class, 'generateMomoUrl']);
-    Route::post('paypal', [PaymentController::class, 'generatePaypalUrl']);
 
     Route::get('vnpay-callback', [PaymentController::class, 'vnpayCallback']);
     Route::get('momo-callback', [PaymentController::class, 'momoCallback']);
-    Route::get('paypal-callback', [PaymentController::class, 'paypalCallback']);
-    Route::get('paypal-cancel', [PaymentController::class, 'paypalCancel']);
 });
 
 // Product import routes
@@ -212,3 +222,16 @@ Route::get('/contacts/{id}', [ContactController::class, 'show']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::post('/contacts/{id}/reply', [ContactController::class, 'reply']);
 Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
+
+// Shipping routes
+Route::prefix('shipping')->group(function () {
+    Route::get('/config', [ShippingController::class, 'getConfig']);
+    Route::get('/provinces', [ShippingController::class, 'getProvinces']);
+    Route::get('/districts', [ShippingController::class, 'getDistricts']);
+    Route::get('/wards', [ShippingController::class, 'getWards']);
+    Route::post('/calculate-fee', [ShippingController::class, 'calculateShippingFee']);
+});
+
+// Public pages routes
+Route::get('/pages/type/{type}', [PagesController::class, 'getByType']);
+Route::get('/pages/slug/{slug}', [PagesController::class, 'getBySlug']);

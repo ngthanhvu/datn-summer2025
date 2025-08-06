@@ -54,6 +54,11 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+
+        if ($user->status === 0) {
+            return response()->json(['error' => 'Tài khoản đã bị khóa'], 403);
+        }
+
         $user->update([
             'ip_user' => $request->ip()
         ]);
@@ -376,6 +381,73 @@ class AuthController extends Controller
 
             return response()->json([
                 'error' => 'Có lỗi xảy ra khi cập nhật thông tin tài khoản. Vui lòng thử lại.'
+            ], 500);
+        }
+    }
+
+    public function updateUserByAdmin(Request $request, $id)
+    {
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:255',
+            'email' => 'required|email',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'nullable|min:6',
+            'status' => 'required|in:0,1',
+        ], [
+            'username.required' => 'Tên người dùng là bắt buộc',
+            'username.string' => 'Tên người dùng phải là chuỗi',
+            'username.max' => 'Tên người dùng không được quá 255 ký tự',
+            'email.required' => 'Email là bắt buộc',
+            'email.email' => 'Email không đúng định dạng',
+            'phone.string' => 'Số điện thoại phải là chuỗi',
+            'phone.max' => 'Số điện thoại không được quá 20 ký tự',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'status.required' => 'Trạng thái là bắt buộc',
+            'status.in' => 'Trạng thái không hợp lệ',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $user = User::findOrFail($id);
+
+            $updateData = [
+                'username' => $request->username,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'status' => $request->status,
+            ];
+
+            if ($request->filled('password')) {
+                $updateData['password'] = bcrypt($request->password);
+            }
+
+            $user->update($updateData);
+
+            return response()->json([
+                'message' => 'Cập nhật người dùng thành công',
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'avatar' => $user->avatar ? url($user->avatar) : null,
+                    'role' => $user->role,
+                    'status' => $user->status,
+                    'gender' => $user->gender,
+                    'dateOfBirth' => $user->dateOfBirth,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Failed to update user by admin: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Có lỗi xảy ra khi cập nhật người dùng. Vui lòng thử lại.'
             ], 500);
         }
     }

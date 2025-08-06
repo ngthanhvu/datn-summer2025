@@ -1,4 +1,5 @@
 <template>
+    
     <div class="bg-white rounded-lg p-6 w-[50%] mx-auto border border-gray-200">
         <form @submit.prevent="handleSubmit" class="form form-grid">
             <div class="form-group">

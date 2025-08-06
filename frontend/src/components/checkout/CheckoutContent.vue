@@ -1,15 +1,17 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import AddressList from './AddressList.vue'
 import AddressForm from './AddressForm.vue'
 import PaymentMethods from './PaymentMethods.vue'
 import OrderSummary from './OrderSummary.vue'
+
 import { useAddress } from '../../composable/useAddress'
 import { useCart } from '../../composable/useCart'
 import { useCheckout } from '../../composable/useCheckout'
 import { useCoupon } from '../../composable/useCoupon'
 import { usePayment } from '../../composable/usePayment'
 import { useRouter } from 'vue-router'
+import { useAuth } from '../../composable/useAuth'
 
 const router = useRouter()
 
@@ -18,6 +20,7 @@ const cartService = useCart()
 const checkoutService = useCheckout()
 const couponService = useCoupon()
 const paymentService = usePayment()
+const authService = useAuth()
 
 const showAddressForm = ref(false)
 const editingAddressIndex = ref(null)
@@ -27,9 +30,10 @@ const isLoading = ref(false)
 const error = ref(null)
 
 const cartItems = ref([])
-const shipping = ref(30000)
+const shipping = ref(0)
 const discount = ref(0)
 const appliedCoupon = ref(null)
+const shippingZone = ref('')
 
 const subtotal = computed(() => {
     return cartItems.value.reduce((total, item) => {
@@ -128,7 +132,6 @@ const fetchAddresses = async () => {
             }))
         } else {
             addresses.value = []
-            console.error('API không trả về mảng địa chỉ:', response)
         }
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi lấy danh sách địa chỉ'
@@ -205,21 +208,42 @@ const updatePaymentMethods = () => {
             image: 'https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png',
             enabled: !!Number(s.enableMomo)
         },
-        {
-            title: 'PayPal',
-            description: Number(s.enablePaypal) ? 'Thanh toán qua PayPal' : 'Sắp ra mắt',
-            code: 'paypal',
-            image: 'https://rgb.vn/wp-content/uploads/2014/05/rgb_vn_new_branding_paypal_2014_logo_detail.png',
-            enabled: !!Number(s.enablePaypal)
-        }
     ]
 }
 
+
+const handleShippingCalculated = (shippingData) => {
+    shipping.value = shippingData.shippingFee?.total || 0;
+    shippingZone.value = shippingData.zone || '';
+};
+
+watch(() => selectedAddress.value, (newValue) => {
+    if (newValue === null || newValue >= addresses.value.length) {
+        shipping.value = 0;
+        shippingZone.value = '';
+    }
+});
 
 const placeOrder = async () => {
     try {
         if (addresses.value.length === 0) {
             error.value = 'Vui lòng thêm địa chỉ giao hàng'
+            return
+        }
+
+        // Kiểm tra user authentication
+        if (!authService.isAuthenticated.value) {
+            error.value = 'Vui lòng đăng nhập để đặt hàng'
+            return
+        }
+
+        // Đảm bảo user đã được load
+        if (!authService.user.value) {
+            await authService.getUser()
+        }
+
+        if (!authService.user.value?.id) {
+            error.value = 'Không thể xác định thông tin người dùng'
             return
         }
 
@@ -242,12 +266,12 @@ const placeOrder = async () => {
             total_price: subtotal.value,
             shipping_fee: shipping.value,
             discount_price: discount.value,
-            final_price: total.value
+            final_price: total.value,
+            user_id: authService.user.value.id,
+            shipping_zone: shippingZone.value
         }
 
-        console.log('Creating order with data:', orderData)
         const result = await checkoutService.createOrder(orderData)
-        console.log('Order creation result:', result)
 
         // Handle new backend logic for online payment
         if (result && result.message === 'Redirect to payment gateway') {
@@ -259,9 +283,6 @@ const placeOrder = async () => {
                 paymentUrl = paymentResult.payment_url
             } else if (paymentMethod === 'momo') {
                 paymentResult = await paymentService.generateMomoUrl(result.data)
-                paymentUrl = paymentResult.payment_url
-            } else if (paymentMethod === 'paypal') {
-                paymentResult = await paymentService.generatePaypalUrl(result.data)
                 paymentUrl = paymentResult.payment_url
             }
             if (paymentUrl) {
@@ -281,7 +302,6 @@ const placeOrder = async () => {
             throw new Error('Không thể tạo đơn hàng')
         }
     } catch (err) {
-        console.error('Error in placeOrder:', err)
         error.value = err.message || 'Có lỗi xảy ra khi đặt hàng'
     } finally {
         isLoading.value = false
@@ -294,6 +314,14 @@ const { settings, fetchSettings } = useSettings()
 onMounted(async () => {
     try {
         isLoading.value = true
+
+        // Kiểm tra authentication trước
+        const isAuthenticated = await authService.checkAuth()
+        if (!isAuthenticated) {
+            router.push('/login?redirect=' + encodeURIComponent(router.currentRoute.value.fullPath))
+            return
+        }
+
         await Promise.all([
             fetchSettings(),
             fetchAddresses(),
@@ -376,6 +404,23 @@ onMounted(async () => {
             {{ error }}
         </div>
 
+        <!-- Authentication Error -->
+        <div v-else-if="!authService.isAuthenticated.value" class="bg-yellow-50 p-4 rounded-md text-yellow-600 mb-6">
+            <p>Vui lòng <router-link to="/login" class="underline font-medium">đăng nhập</router-link> để tiếp tục thanh
+                toán.</p>
+        </div>
+
+        <!-- Empty Cart -->
+        <div v-else-if="cartItems.length === 0" class="bg-blue-50 p-4 rounded-md text-blue-600 mb-6">
+            <p>Giỏ hàng trống. <router-link to="/products" class="underline font-medium">Tiếp tục mua sắm</router-link>
+            </p>
+        </div>
+
+        <!-- No Address -->
+        <div v-else-if="addresses.length === 0" class="bg-orange-50 p-4 rounded-md text-orange-600 mb-6">
+            <p>Vui lòng thêm địa chỉ giao hàng để tiếp tục thanh toán.</p>
+        </div>
+
         <!-- Nội dung thực -->
         <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="space-y-8">
@@ -383,15 +428,20 @@ onMounted(async () => {
                     <AddressList :addresses="addresses" :selected-address="selectedAddress"
                         @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
                         @add="openAddressModal" />
-
                     <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
                         @select="selectedPaymentMethod = $event" />
                 </div>
             </div>
 
             <div class="space-y-8">
+                <ShippingSection :cart-items="cartItems"
+                    :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
+                    @shipping-calculated="handleShippingCalculated" />
                 <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
-                    @place-order="placeOrder" @apply-coupon="applyCoupon" />
+                    :shipping-zone="shippingZone"
+                    :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
+                    :cart-items="cartItems" @place-order="placeOrder" @apply-coupon="applyCoupon"
+                    @shipping-calculated="handleShippingCalculated" />
             </div>
         </div>
 
