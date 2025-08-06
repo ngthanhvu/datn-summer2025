@@ -104,6 +104,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePages } from '../../../composable/usePages'
 import { useHead } from '@vueuse/head';
+import { push } from 'notivue'
 import CKEditor from '../../../components/CKEditor.vue'
 useHead({
     title: "Sửa trang page | DEVGANG",
@@ -164,6 +165,7 @@ const loadPage = async () => {
         }
     } catch (error) {
         console.error('Error loading page:', error)
+        push.error('Có lỗi xảy ra khi tải thông tin trang!')
     }
 }
 
@@ -174,9 +176,11 @@ const handleSubmit = async () => {
     try {
         const pageId = route.params.id
         await updatePage(pageId, formData.value)
+        push.success('Cập nhật trang thành công!')
         router.push('/admin/pages')
     } catch (error) {
         console.error('Error updating page:', error)
+        push.error('Có lỗi xảy ra khi cập nhật trang!')
     } finally {
         submitting.value = false
     }

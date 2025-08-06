@@ -100,6 +100,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePages } from '../../../composable/usePages'
 import { useHead } from '@vueuse/head';
+import { push } from 'notivue'
 import CKEditor from '../../../components/CKEditor.vue'
 useHead({
     title: "Tạo mới page | DEVGANG",
@@ -145,9 +146,11 @@ const handleSubmit = async () => {
 
     try {
         await createPage(formData.value)
+        push.success('Tạo trang thành công!')
         router.push('/admin/pages')
     } catch (error) {
         console.error('Error creating page:', error)
+        push.error('Có lỗi xảy ra khi tạo trang!')
     }
 }
 

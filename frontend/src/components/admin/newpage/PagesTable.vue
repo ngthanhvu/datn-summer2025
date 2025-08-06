@@ -152,6 +152,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePages } from '../../../composable/usePages'
+import { push } from 'notivue'
 
 const { pages, loading, error, pagination, fetchPages, updatePageStatus, deletePage: deletePageApi } = usePages()
 
@@ -187,6 +188,7 @@ const loadPages = async () => {
         await fetchPages(1, {})
     } catch (err) {
         console.error('Error loading pages:', err)
+        push.error('Có lỗi xảy ra khi tải danh sách trang!')
     }
 }
 
@@ -258,9 +260,11 @@ const handleDelete = async (page) => {
     if (confirm(`Bạn có chắc chắn muốn xóa trang "${page.title}"?`)) {
         try {
             await deletePageApi(page.id)
+            push.success('Xóa trang thành công!')
             await loadPages()
         } catch (err) {
             console.error('Error deleting page:', err)
+            push.error('Có lỗi xảy ra khi xóa trang!')
         }
     }
 }
@@ -268,13 +272,13 @@ const handleDelete = async (page) => {
 const toggleStatus = async (page) => {
     try {
         await updatePageStatus(page.id, !page.status)
+        push.success('Cập nhật trạng thái trang thành công!')
         await loadPages()
     } catch (error) {
         console.error('Error updating page status:', error)
+        push.error('Có lỗi xảy ra khi cập nhật trạng thái trang!')
     }
 }
-
-
 
 // Watch for filter changes
 watch([selectedType, selectedStatus], () => {

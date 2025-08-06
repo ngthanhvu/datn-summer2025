@@ -8,7 +8,7 @@
                     Flash Sale</div>
             </div>
         </div>
-        <div v-if="error" class="text-red-500 mb-2">{{ error }}</div>
+        <!-- <div v-if="error" class="text-red-500 mb-2">{{ error }}</div> -->
         <div v-if="success" class="text-green-600 mb-2">{{ success }}</div>
         <div class="flex flex-col md:flex-row gap-8">
             <div class="bg-white rounded shadow p-6 md:w-2/5 mb-6 md:mb-0 text-sm">
@@ -167,6 +167,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { useFlashsale } from '../../../composable/useFlashsale'
 import { useProducts } from '../../../composable/useProducts'
 import { useRouter } from 'vue-router'
+import { push } from 'notivue'
 function formatPrice(price) {
     if (price === null || price === undefined || price === '') return 'N/A'
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(price))
@@ -326,16 +327,17 @@ async function submit() {
         let res
         if (props.editData && props.editData.id) {
             res = await updateFlashSale(props.editData.id, payload)
-            success.value = 'Cập nhật flash sale thành công!'
+            push.success('Cập nhật flash sale thành công!')
         } else {
             res = await createFlashSale(payload)
-            success.value = 'Tạo flash sale thành công!'
+            push.success('Tạo flash sale thành công!')
             setTimeout(() => router.push('/admin/flashsale'), 1000)
         }
         // Xóa dữ liệu form tạm sau khi submit thành công
         localStorage.removeItem('flashsale_form_data');
     } catch (e) {
         error.value = e.message || 'Có lỗi xảy ra khi lưu flash sale'
+        push.error('Có lỗi xảy ra khi lưu flash sale!')
     } finally {
         loading.value = false
     }
