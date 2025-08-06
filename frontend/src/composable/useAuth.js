@@ -177,6 +177,16 @@ const resetPasswordProfile = async (currentPassword, newPassword, newPasswordCon
     }
 }
 
+const updateUser = async (userData) => {
+    try {
+        const res = await API.put(`/api/admin/user/${userData.id}`, userData)
+        return res.data
+    } catch (err) {
+        console.error('Update user error:', err.response?.data || err.message)
+        throw err
+    }
+}
+
 const getToken = () => token.value
 
 export const useAuth = () => {
@@ -196,6 +206,7 @@ export const useAuth = () => {
         resetPassword,
         updateUserProfile,
         resetPasswordProfile,
+        updateUser,
         getToken
     }
 }

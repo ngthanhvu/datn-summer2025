@@ -15,6 +15,7 @@ class Products extends Model
         'price',
         'discount_price',
         'slug',
+        'sold_count',
         'categories_id',
         'brand_id',
         'is_active',
