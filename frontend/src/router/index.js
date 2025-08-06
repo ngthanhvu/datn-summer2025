@@ -20,6 +20,7 @@ import BlogDetailPage from '../pages/blogs_detail.vue';
 import CheckOutPage from '../pages/checkout.vue';
 import FavoriteProductPage from '../pages/favorite.vue';
 import ShippingCalculatorPage from '../pages/shipping-calculator.vue';
+import PageView from '../pages/page.vue';
 
 import Admin from '../pages/admin/index.vue';
 import ProductsPageAdmin from '../pages/admin/products/index.vue';
@@ -48,6 +49,9 @@ import FlashSaleForm from '../pages/admin/flashsale/create.vue';
 import FlashSaleSelect from '../pages/admin/flashsale/select.vue';
 import SettingPageAdmin from '../pages/admin/settings/index.vue';
 import ContactsPageAdmin from '../pages/admin/contacts/index.vue';
+import PagesPageAdmin from '../pages/admin/page/index.vue';
+import PagesCreate from '../pages/admin/page/create.vue';
+import PagesEdit from '../pages/admin/page/edit.vue';
 
 import StatusPage from '../pages/status.vue';
 import NotFound from '../components/404.vue'
@@ -125,6 +129,10 @@ const routes = [
                 component: ShippingCalculatorPage
             },
             {
+                path: '/trang/:slug',
+                component: PageView
+            },
+            {
                 path: '/:pathMatch(.*)*',
                 component: NotFound
             },
@@ -139,6 +147,10 @@ const routes = [
             {
                 path: '/reset',
                 component: ResetPasswordPage
+            },
+            {
+                path: '/test-pages',
+                component: () => import('../components/admin/newpage/PagesContent.vue')
             }
         ]
     },
@@ -254,6 +266,18 @@ const routes = [
             {
                 path: '/admin/contacts',
                 component: ContactsPageAdmin
+            },
+            {
+                path: '/admin/pages',
+                component: PagesPageAdmin
+            },
+            {
+                path: '/admin/pages/create',
+                component: PagesCreate
+            },
+            {
+                path: '/admin/pages/:id/edit',
+                component: PagesEdit
             }
         ]
         // meta: { requiresAuth: true, requiresAdmin: true }

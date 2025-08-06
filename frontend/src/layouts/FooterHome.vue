@@ -29,26 +29,35 @@
                     </div>
                 </div>
 
-                <!-- Cột 2: Chính sách -->
-                <div>
-                    <div class="font-bold mb-4">CHÍNH SÁCH</div>
-                    <ul class="space-y-2 text-gray-100">
-                        <li><a href="/about" class="hover:text-[#2563eb]">Giới thiệu</a></li>
-                        <li><a href="/store-system" class="hover:text-[#2563eb]">Hệ thống cửa hàng</a></li>
-                        <li><a href="/faq" class="hover:text-[#2563eb]">Câu hỏi thường gặp</a></li>
-                        <li><a href="/order-call" class="hover:text-[#2563eb]">Gọi điện đặt hàng</a></li>
-                    </ul>
-                </div>
+                <!-- Cột 2 & 3: Chính sách và Hỗ trợ khách hàng - DYNAMIC -->
+                <div class="md:col-span-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Chính sách -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-white-300 mb-4">CHÍNH SÁCH</h3>
+                            <ul class="space-y-2 text-gray-100">
+                                <li v-for="page in policyPages" :key="page.id">
+                                    <RouterLink :to="`/trang/${page.slug}`" class="hover:text-red-300 transition-colors">
+                                        {{ page.title }}
+                                    </RouterLink>
+                                </li>
+                                <li v-if="policyPages.length === 0" class="text-gray-200 text-sm">Đang tải...</li>
+                            </ul>
+                        </div>
 
-                <!-- Cột 3: Hỗ trợ khách hàng -->
-                <div>
-                    <div class="font-bold mb-4">HỖ TRỢ KHÁCH HÀNG</div>
-                    <ul class="space-y-2 text-gray-100">
-                        <li><a href="/contact" class="hover:text-[#2563eb]">Liên hệ</a></li>
-                        <li><a href="/policy/sale" class="hover:text-[#2563eb]">Chính sách bán hàng</a></li>
-                        <li><a href="/policy/shipping" class="hover:text-[#2563eb]">Chính sách giao hàng</a></li>
-                        <li><a href="/policy/return" class="hover:text-[#2563eb]">Chính sách đổi trả</a></li>
-                    </ul>
+                        <!-- Hỗ trợ khách hàng -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-white-300 mb-4">HỖ TRỢ KHÁCH HÀNG</h3>
+                            <ul class="space-y-2 text-gray-100">
+                                <li v-for="page in supportPages" :key="page.id">
+                                    <RouterLink :to="`/trang/${page.slug}`" class="hover:text-red-300 transition-colors">
+                                        {{ page.title }}
+                                    </RouterLink>
+                                </li>
+                                <li v-if="supportPages.length === 0" class="text-gray-200 text-sm">Đang tải...</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Cột 4: Đăng ký nhận tin -->
@@ -76,12 +85,34 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useSettings } from '../composable/useSettingsApi';
+import { usePages } from '../composable/usePages';
 
 const { settings, fetchSettings } = useSettings()
+const { getPagesByType } = usePages()
+
+const policyPages = ref([])
+const supportPages = ref([])
+
+const loadFooterPages = async () => {
+    try {
+        const policyRes = await getPagesByType('policy')
+        if (policyRes && policyRes.data) {
+            policyPages.value = policyRes.data.filter(page => page.status)
+        }
+        const supportRes = await getPagesByType('support')
+        if (supportRes && supportRes.data) {
+            supportPages.value = supportRes.data.filter(page => page.status)
+        }
+    } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('FooterHome - Error loading pages:', e)
+    }
+}
 
 onMounted(() => {
     fetchSettings()
+    loadFooterPages()
 })
 </script>

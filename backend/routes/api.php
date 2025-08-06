@@ -24,6 +24,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ShippingController;
+use App\Http\Controllers\PagesController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -76,6 +77,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/favorites/check/{slug}', [FavoriteProductController::class, 'check']);
     Route::delete('/favorites/{product_slug}', [FavoriteProductController::class, 'destroy']);
     Route::post('/settings', [SettingController::class, 'update']);
+
+    // Pages routes (Admin only)
+    Route::get('/pages', [PagesController::class, 'index']);
+    Route::post('/pages', [PagesController::class, 'store']);
+    Route::get('/pages/{id}', [PagesController::class, 'show']);
+    Route::put('/pages/{id}', [PagesController::class, 'update']);
+    Route::delete('/pages/{id}', [PagesController::class, 'destroy']);
+    Route::put('/pages/{id}/status', [PagesController::class, 'updateStatus']);
 
     // Chat/Messenger routes
     Route::prefix('chat')->group(function () {
@@ -222,3 +231,7 @@ Route::prefix('shipping')->group(function () {
     Route::get('/wards', [ShippingController::class, 'getWards']);
     Route::post('/calculate-fee', [ShippingController::class, 'calculateShippingFee']);
 });
+
+// Public pages routes
+Route::get('/pages/type/{type}', [PagesController::class, 'getByType']);
+Route::get('/pages/slug/{slug}', [PagesController::class, 'getBySlug']);
