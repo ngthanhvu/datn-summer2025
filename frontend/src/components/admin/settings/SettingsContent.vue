@@ -31,6 +31,8 @@
                         :fields="notificationFields" v-model="notificationSettings" />
                     <SettingCard v-if="activeTab === 'api'" title="Cài đặt API" :fields="apiFields"
                         v-model="apiSettings" />
+                    <SettingCard v-if="activeTab === 'banner'" title="Cài đặt banner" :fields="bannerFields"
+                        v-model="bannerSettings" />
                 </div>
                 <div class="mt-6 text-right">
                     <button @click="handleSaveAll"
@@ -60,6 +62,7 @@ const emailSettings = ref({})
 const notificationSettings = ref({})
 const apiSettings = ref({})
 const activeTab = ref('general')
+const bannerSettings = ref({})
 
 const tabs = [
     { key: 'general', label: 'Tổng quan' },
@@ -67,6 +70,7 @@ const tabs = [
     { key: 'shipping', label: 'Giao hàng' },
     { key: 'email', label: 'Email' },
     { key: 'notification', label: 'Thông báo' },
+    { key: 'banner', label: 'Banner' },
     { key: 'api', label: 'API' }
 ]
 onMounted(async () => {
@@ -82,6 +86,7 @@ onMounted(async () => {
     emailSettings.value = extractSettings(['smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'emailFrom'])
     notificationSettings.value = extractSettings(['enableEmailNotification', 'enableSmsNotification', 'smsApiKey', 'notifyOnNewOrder', 'notifyOnOrderStatus'])
     apiSettings.value = extractSettings(['enableApi', 'apiKey', 'allowedOrigins'])
+    bannerSettings.value = extractSettings(['banners'])
 })
 
 const mergedSettings = computed(() => ({
@@ -90,7 +95,8 @@ const mergedSettings = computed(() => ({
     ...shippingSettings.value,
     ...emailSettings.value,
     ...notificationSettings.value,
-    ...apiSettings.value
+    ...apiSettings.value,
+    ...bannerSettings.value,
 }))
 
 const handleSaveAll = async () => {
@@ -178,6 +184,15 @@ const apiFields = [
     { name: 'enableApi', label: 'Kích hoạt API', type: 'toggle' },
     { name: 'apiKey', label: 'API Key', type: 'text', readonly: true },
     { name: 'allowedOrigins', label: 'Allowed Origins', type: 'textarea', placeholder: 'Mỗi domain một dòng', rows: 3 }
+]
+
+const bannerFields = [
+    {
+        name: 'banners',
+        label: 'Ảnh banner',
+        type: 'images',
+        multiple: true
+    }
 ]
 </script>
 

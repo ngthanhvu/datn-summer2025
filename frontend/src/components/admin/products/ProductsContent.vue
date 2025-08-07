@@ -1,25 +1,12 @@
 <template>
     <div class="products-page">
-        <div class="page-header flex items-center justify-between">
-            <div>
+        <div class="page-header">
+            <div class="header-content">
                 <h1>Quản lý sản phẩm</h1>
                 <p class="text-gray-600">Quản lý danh sách sản phẩm của bạn</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <button @click="handleRefresh"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                        </path>
-                    </svg>
-                    Tải lại
-                </button>
-            </div>
         </div>
 
-        <!-- <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands"
-            :isLoading="isLoading" @delete="handleDelete" @refresh="handleRefresh" /> -->
         <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands"
             :isLoading="isLoading" :itemsPerPage="10" @delete="handleDelete" @refresh="handleRefresh" />
 
@@ -56,63 +43,132 @@ const columns = [
 const products = ref([])
 const isLoading = ref(false)
 
-onMounted(async () => {
+const loadData = async () => {
     isLoading.value = true
-    await Promise.all([
-        productStore.fetchProducts(),
-        categoryStore.fetchCategories(),
-        brandStore.fetchBrands()
-    ])
+    try {
+        await Promise.all([
+            productStore.fetchProducts(),
+            categoryStore.fetchCategories(),
+            brandStore.fetchBrands()
+        ])
 
-    const rawProducts = productStore.products
-    const categories = categoryStore.categories
-    const brands = brandStore.brands
+        const rawProducts = productStore.products
+        const categoriesData = categoryStore.categories
+        const brandsData = brandStore.brands
 
-    products.value = rawProducts.map(p => {
-        const mainImage = p.images.find(img => img.is_main === 1)?.image_path || ''
-        const subImages = p.images.filter(img => img.is_main === 0).map(img => img.image_path)
-        const category = categories.find(c => c.id === p.categories_id)?.name || ''
-        const brand = brands.find(b => b.id === p.brand_id)?.name || ''
+        categories.value = categoriesData
+        brands.value = brandsData
 
-        return {
-            ...p,
-            main_image: mainImage,
-            sub_images: subImages,
-            category,
-            brand
-        }
-    })
+        products.value = rawProducts.map(p => {
+            const mainImage = p.images.find(img => img.is_main === 1)?.image_path || ''
+            const subImages = p.images.filter(img => img.is_main === 0).map(img => img.image_path)
+            const category = categoriesData.find(c => c.id === p.categories_id)?.name || ''
+            const brand = brandsData.find(b => b.id === p.brand_id)?.name || ''
 
-    isLoading.value = false
+            return {
+                ...p,
+                main_image: mainImage,
+                sub_images: subImages,
+                category,
+                brand
+            }
+        })
+    } catch (error) {
+        console.error('Error loading data:', error)
+        push.error('Có lỗi khi tải dữ liệu')
+    } finally {
+        isLoading.value = false
+    }
+}
+
+onMounted(() => {
+    loadData()
 })
 
 const handleDelete = async (product) => {
     if (confirm(`Xoá sản phẩm: ${product.name}?`)) {
-        await productStore.deleteProduct(product.id)
-        products.value = products.value.filter(p => p.id !== product.id)
-        push.success('Đã xoá sản phẩm.')
+        try {
+            await productStore.deleteProduct(product.id)
+            products.value = products.value.filter(p => p.id !== product.id)
+            push.success('Đã xoá sản phẩm.')
+        } catch (error) {
+            push.error('Có lỗi khi xoá sản phẩm')
+        }
     }
 }
 
 const handleRefresh = async () => {
-    await productStore.fetchProducts()
+    await loadData()
+    push.success('Đã tải lại dữ liệu')
 }
 </script>
 
-
 <style scoped>
 .products-page {
-    padding: 1.5rem;
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    .products-page {
+        padding: 1.5rem;
+    }
 }
 
 .page-header {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.page-header h1 {
-    font-size: 1.875rem;
+@media (min-width: 768px) {
+    .page-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0;
+    }
+}
+
+.header-content h1 {
+    font-size: 1.5rem;
     font-weight: 600;
     color: #111827;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+@media (min-width: 768px) {
+    .header-content h1 {
+        font-size: 1.875rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #6b7280;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.refresh-btn:hover {
+    background-color: #4b5563;
+}
+
+.refresh-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #6b7280, 0 0 0 4px rgba(107, 114, 128, 0.2);
 }
 </style>

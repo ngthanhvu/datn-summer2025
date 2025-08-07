@@ -1,98 +1,107 @@
 <template>
     <div class="bg-white rounded-lg shadow p-4">
-        <div class="flex justify-between items-center mb-3">
-            <div class="flex gap-3">
-                <div class="relative">
-                    <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..." @input="handleSearch"
-                        class="border border-gray-300 rounded px-3 py-1.5 pl-8 w-56 text-sm">
-                    <i class="fas fa-search absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <!-- Search and Filters Row -->
+            <div class="filters-row">
+                <div class="search-container">
+                    <div class="relative">
+                        <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..." @input="handleSearch"
+                            class="search-input">
+                    </div>
                 </div>
 
-                <select v-if="categories.length" v-model="selectedCategory"
-                    class="border border-gray-300 rounded px-3 py-1.5 w-48 text-sm">
-                    <option value="">Tất cả danh mục</option>
-                    <option v-for="category in categories" :key="category.value" :value="category.value">
-                        {{ category.label }}
-                    </option>
-                </select>
+                <div class="filters-container">
+                    <select v-if="categories.length" v-model="selectedCategory" class="filter-select">
+                        <option value="">Tất cả danh mục</option>
+                        <option v-for="category in categories" :key="category.value" :value="category.value">
+                            {{ category.label }}
+                        </option>
+                    </select>
 
-                <select v-if="brands.length" v-model="selectedBrand"
-                    class="border border-gray-300 rounded px-3 py-1.5 w-48 text-sm">
-                    <option value="">Tất cả thương hiệu</option>
-                    <option v-for="brand in brands" :key="brand.value" :value="brand.value">
-                        {{ brand.label }}
-                    </option>
-                </select>
+                    <select v-if="brands.length" v-model="selectedBrand" class="filter-select">
+                        <option value="">Tất cả thương hiệu</option>
+                        <option v-for="brand in brands" :key="brand.value" :value="brand.value">
+                            {{ brand.label }}
+                        </option>
+                    </select>
 
-                <select v-model="selectedStatus" class="border border-gray-300 rounded px-3 py-1.5 w-48 text-sm">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="1">Hoạt động</option>
-                    <option value="0">Vô hiệu</option>
-                </select>
+                    <select v-model="selectedStatus" class="filter-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="1">Hoạt động</option>
+                        <option value="0">Vô hiệu</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="flex gap-2">
-                <button v-if="selectedRows.length > 0" @click="handleBulkDelete"
-                    class="bg-red-600 text-white rounded px-3 py-1.5 flex items-center gap-2 text-sm hover:bg-red-700">
-                    <i class="fas fa-trash"></i>
-                    Xoá đã chọn
-                </button>
-                <button @click="showImportModal = true"
-                    class="bg-primary text-white rounded px-3 py-1.5 flex items-center gap-2 text-sm hover:bg-primary-dark">
-                    <i class="fa-solid fa-file-import"></i>Nhập excel
-                </button>
-                <router-link to="/admin/products/create"
-                    class="bg-primary text-white rounded px-3 py-1.5 flex items-center gap-2 text-sm hover:bg-primary-dark">
-                    <i class="fas fa-plus"></i>
-                    Thêm mới
-                </router-link>
+            <!-- Actions Row -->
+            <div class="actions-row">
+                <div class="bulk-actions">
+                    <button v-if="selectedRows.length > 0" @click="handleBulkDelete" class="bulk-delete-btn">
+                        <i class="fas fa-trash"></i>
+                        <span class="hidden sm:inline">Xoá đã chọn</span>
+                    </button>
+                </div>
+
+                <div class="action-buttons">
+                    <button @click="$emit('refresh')" class="action-btn refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span class="hidden sm:inline">Tải lại</span>
+                    </button>
+                    <button @click="showImportModal = true" class="action-btn import-btn">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span class="hidden sm:inline">Nhập excel</span>
+                    </button>
+                    <router-link to="/admin/products/create" class="action-btn add-btn">
+                        <i class="fas fa-plus"></i>
+                        <span class="hidden sm:inline">Thêm mới</span>
+                    </router-link>
+                </div>
             </div>
         </div>
 
-        <div v-if="showImportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 w-96">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">Nhập sản phẩm từ Excel</h3>
-                    <button @click="showImportModal = false" class="text-gray-500 hover:text-gray-700">
+        <!-- Import Modal -->
+        <div v-if="showImportModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Nhập sản phẩm từ Excel</h3>
+                    <button @click="showImportModal = false" class="modal-close">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
 
-                <div class="space-y-4">
-                    <div class="border rounded-lg p-4">
-                        <h4 class="font-medium mb-2">Tải file mẫu</h4>
-                        <p class="text-sm text-gray-600 mb-3">Tải file mẫu Excel để nhập dữ liệu sản phẩm</p>
-                        <button @click="handleDownloadTemplate"
-                            class="w-full bg-gray-100 text-gray-700 rounded px-3 py-2 flex items-center justify-center gap-2 hover:bg-gray-200">
+                <div class="modal-body">
+                    <div class="template-section">
+                        <h4 class="section-title">Tải file mẫu</h4>
+                        <p class="section-description">Tải file mẫu Excel để nhập dữ liệu sản phẩm</p>
+                        <button @click="handleDownloadTemplate" class="template-btn">
                             <i class="fa-solid fa-download"></i>
                             Tải file mẫu
                         </button>
                     </div>
 
-                    <div class="border rounded-lg p-4">
-                        <h4 class="font-medium mb-2">Tải lên file Excel</h4>
-                        <p class="text-sm text-gray-600 mb-3">Chọn file Excel đã điền thông tin sản phẩm</p>
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <div class="upload-section">
+                        <h4 class="section-title">Tải lên file Excel</h4>
+                        <p class="section-description">Chọn file Excel đã điền thông tin sản phẩm</p>
+                        <div class="upload-area">
                             <input type="file" ref="fileInput" accept=".xlsx,.xls" class="hidden"
                                 @change="handleFileUpload">
-                            <button @click="$refs.fileInput.click()"
-                                class="w-full bg-gray-100 text-gray-700 rounded px-3 py-2 flex items-center justify-center gap-2 hover:bg-gray-200">
+                            <button @click="$refs.fileInput.click()" class="upload-btn">
                                 <i class="fa-solid fa-upload"></i>
                                 Chọn file
                             </button>
-                            <p v-if="selectedFile" class="mt-2 text-sm text-gray-600">
+                            <p v-if="selectedFile" class="selected-file">
                                 Đã chọn: {{ selectedFile.name }}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end gap-2">
-                    <button @click="showImportModal = false" class="px-4 py-2 border rounded hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button @click="showImportModal = false" class="cancel-btn">
                         Hủy
                     </button>
-                    <button @click="handleImport" :disabled="!selectedFile || isLoading"
-                        class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark disabled:opacity-50 flex items-center justify-center gap-2">
+                    <button @click="handleImport" :disabled="!selectedFile || isLoading" class="import-submit-btn">
                         <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
                         <span>{{ isLoading ? 'Đang xử lý...' : 'Nhập dữ liệu' }}</span>
                     </button>
@@ -100,124 +109,191 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
-            <table class="w-full text-center text-sm">
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="px-6 py-3">
-                            <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
-                        </th>
-                        <th class="px-3 py-2">#</th>
-                        <th v-for="column in columns" :key="column.key" class="px-3 py-2 font-semibold"
-                            @click="sortBy(column.key)">
-                            {{ column.label }}
-                            <i v-if="sortKey === column.key"
-                                :class="['fas', sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down']"></i>
-                        </th>
-                        <th class="px-3 py-2 font-semibold text-left">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Skeleton loading -->
-                    <tr v-if="props.isLoading" v-for="n in props.itemsPerPage" :key="'skeleton-' + n">
-                        <td v-for="i in columns.length + 3" :key="i" class="px-6 py-3">
-                            <div class="skeleton-loader"></div>
-                        </td>
-                    </tr>
-                    <tr v-else v-for="(item, index) in paginatedData" :key="index"
-                        class="border-b border-gray-200 hover:bg-gray-50">
-                        <td class="px-3 py-2">
+        <!-- Table Section -->
+        <div class="table-container">
+            <!-- Desktop Table -->
+            <div class="desktop-table">
+                <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                    <table class="w-full text-center text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="px-6 py-3">
+                                    <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
+                                </th>
+                                <th class="px-3 py-2">#</th>
+                                <th v-for="column in columns" :key="column.key" class="px-3 py-2 font-semibold"
+                                    @click="sortBy(column.key)">
+                                    {{ column.label }}
+                                    <i v-if="sortKey === column.key"
+                                        :class="['fas', sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down']"></i>
+                                </th>
+                                <th class="px-3 py-2 font-semibold text-left">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Skeleton loading -->
+                            <tr v-if="props.isLoading" v-for="n in props.itemsPerPage" :key="'skeleton-' + n">
+                                <td v-for="i in columns.length + 3" :key="i" class="px-6 py-3">
+                                    <div class="skeleton-loader"></div>
+                                </td>
+                            </tr>
+                            <tr v-else v-for="(item, index) in paginatedData" :key="index"
+                                class="border-b border-gray-200 hover:bg-gray-50">
+                                <td class="px-3 py-2">
+                                    <input type="checkbox" :checked="selectedRows.includes(item.id)"
+                                        @change="toggleSelectRow(item.id)" />
+                                </td>
+                                <td class="px-3 py-2">
+                                    {{ (currentPage - 1) * props.itemsPerPage + index + 1 }}
+                                </td>
+                                <td v-for="column in columns" :key="column.key" class="px-3 py-2 text-center">
+                                    <template v-if="column.type === 'main_image'">
+                                        <img :src="getMainImage(item.images)?.image_path"
+                                            :alt="getMainImage(item.images)?.image_path"
+                                            class="w-10 h-10 object-cover rounded" />
+                                    </template>
+                                    <template v-else-if="column.type === 'sub_images'">
+                                        <div class="flex gap-1">
+                                            <img v-for="image in getSubImages(item.images)" :key="image.id"
+                                                :src="image.image_path" :alt="image.image_path"
+                                                class="w-6 h-6 object-cover rounded cursor-pointer hover:opacity-75"
+                                                @click="handleImageClick(image)" />
+                                        </div>
+                                    </template>
+                                    <template v-else-if="column.type === 'brand'">
+                                        <span class="text-xs">{{ item[column.key] }}</span>
+                                    </template>
+                                    <template v-else-if="column.type === 'category'">
+                                        <span class="text-xs">{{ item[column.key] }}</span>
+                                    </template>
+                                    <template v-else-if="column.type === 'status'">
+                                        <button
+                                            :class="['status-toggle', item[column.key] === 1 ? 'active' : 'inactive']"
+                                            @click="toggleStatus(item)" :aria-pressed="item[column.key] === 1">
+                                            <span class="toggle-slider"></span>
+                                        </button>
+                                    </template>
+                                    <template v-else-if="column.type === 'price'">
+                                        {{ formatPrice(item[column.key]) }}
+                                    </template>
+                                    <template v-else-if="column.type === 'variants'">
+                                        <Badges :variants="item[column.key]" />
+                                    </template>
+                                    <template v-else>
+                                        {{ item[column.key] }}
+                                    </template>
+                                </td>
+                                <td class="px-3 py-2">
+                                    <div class="flex items-center gap-2">
+                                        <router-link :to="`/admin/products/edit/${item.id}`"
+                                            class="action-link edit-link" title="Chỉnh sửa sản phẩm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                </path>
+                                            </svg>
+                                        </router-link>
+                                        <button @click="$emit('delete', item)" class="action-link delete-link"
+                                            title="Xóa sản phẩm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr v-if="!props.isLoading && paginatedData.length === 0">
+                                <td :colspan="columns.length + 3" class="px-3 py-2 text-center text-gray-500">
+                                    Không có dữ liệu
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mobile Cards -->
+            <div class="mobile-cards">
+                <div v-if="props.isLoading" class="mobile-skeleton">
+                    <div v-for="n in props.itemsPerPage" :key="'mobile-skeleton-' + n" class="mobile-card skeleton">
+                        <div class="skeleton-loader"></div>
+                    </div>
+                </div>
+                <div v-else v-for="(item, index) in paginatedData" :key="'mobile-' + index" class="mobile-card">
+                    <div class="card-header">
+                        <div class="card-checkbox">
                             <input type="checkbox" :checked="selectedRows.includes(item.id)"
                                 @change="toggleSelectRow(item.id)" />
-                        </td>
-                        <td class="px-3 py-2">
-                            {{ (currentPage - 1) * props.itemsPerPage + index + 1 }}
-                        </td>
-                        <td v-for="column in columns" :key="column.key" class="px-3 py-2 text-center">
-                            <template v-if="column.type === 'main_image'">
-                                <img :src="getMainImage(item.images)?.image_path"
-                                    :alt="getMainImage(item.images)?.image_path"
-                                    class="w-10 h-10 object-cover rounded" />
-                            </template>
-                            <template v-else-if="column.type === 'sub_images'">
-                                <div class="flex gap-1">
-                                    <img v-for="image in getSubImages(item.images)" :key="image.id"
-                                        :src="image.image_path" :alt="image.image_path"
-                                        class="w-6 h-6 object-cover rounded cursor-pointer hover:opacity-75"
-                                        @click="handleImageClick(image)" />
-                                </div>
-                            </template>
-                            <template v-else-if="column.type === 'brand'">
-                                <span class="text-xs">{{ item[column.key] }}</span>
-                            </template>
-                            <template v-else-if="column.type === 'category'">
-                                <span class="text-xs">{{ item[column.key] }}</span>
-                            </template>
-                            <template v-else-if="column.type === 'status'">
-                                <button
-                                    :class="['w-10 h-6 rounded-full relative transition-colors', item[column.key] === 1 ? 'bg-primary' : 'bg-gray-300']"
-                                    @click="toggleStatus(item)" :aria-pressed="item[column.key] === 1"
-                                    style="background-color: #3bb77e">
-                                    <span
-                                        :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', item[column.key] === 1 ? 'translate-x-4' : '']"></span>
-                                </button>
-                            </template>
-                            <template v-else-if="column.type === 'price'">
-                                {{ formatPrice(item[column.key]) }}
-                            </template>
-                            <template v-else-if="column.type === 'variants'">
-                                <Badges :variants="item[column.key]" />
-                            </template>
-                            <template v-else>
-                                {{ item[column.key] }}
-                            </template>
-                        </td>
-                        <td class="px-3 py-2">
-                            <div class="flex items-center gap-2">
-                                <router-link :to="`/admin/products/edit/${item.id}`"
-                                    class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
-                                    title="Chỉnh sửa sản phẩm">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                        </path>
-                                    </svg>
-                                </router-link>
-                                <button @click="$emit('delete', item)"
-                                    class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150"
-                                    title="Xóa sản phẩm">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                        </path>
-                                    </svg>
-                                </button>
+                        </div>
+                        <div class="card-number">{{ (currentPage - 1) * props.itemsPerPage + index + 1 }}</div>
+                    </div>
+
+                    <div class="card-content">
+                        <div class="product-image">
+                            <img :src="getMainImage(item.images)?.image_path"
+                                :alt="getMainImage(item.images)?.image_path" class="w-16 h-16 object-cover rounded" />
+                        </div>
+
+                        <div class="product-info">
+                            <h3 class="product-name">{{ item.name }}</h3>
+                            <div class="product-details">
+                                <span class="detail-item">
+                                    <i class="fas fa-tag text-gray-400"></i>
+                                    {{ item.category }}
+                                </span>
+                                <span class="detail-item">
+                                    <i class="fas fa-copyright text-gray-400"></i>
+                                    {{ item.brand }}
+                                </span>
+                                <span class="detail-item">
+                                    <i class="fas fa-dollar-sign text-gray-400"></i>
+                                    {{ formatPrice(item.price) }}
+                                </span>
                             </div>
-                        </td>
-                    </tr>
-                    <tr v-if="!props.isLoading && paginatedData.length === 0">
-                        <td :colspan="columns.length + 3" class="px-3 py-2 text-center text-gray-500">
-                            Không có dữ liệu
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                        </div>
+
+                        <div class="product-status">
+                            <button :class="['status-toggle', item.is_active === 1 ? 'active' : 'inactive']"
+                                @click="toggleStatus(item)" :aria-pressed="item.is_active === 1">
+                                <span class="toggle-slider"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <router-link :to="`/admin/products/edit/${item.id}`" class="mobile-action-btn edit-btn">
+                            <i class="fas fa-edit"></i>
+                            <span>Sửa</span>
+                        </router-link>
+                        <button @click="$emit('delete', item)" class="mobile-action-btn delete-btn">
+                            <i class="fas fa-trash"></i>
+                            <span>Xóa</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="!props.isLoading && paginatedData.length === 0" class="empty-state">
+                    <i class="fas fa-box-open text-gray-400 text-4xl mb-2"></i>
+                    <p class="text-gray-500">Không có dữ liệu</p>
+                </div>
+            </div>
         </div>
 
-        <div class="flex justify-between items-center mt-3">
-            <div class="text-xs text-gray-600">
+        <!-- Pagination -->
+        <div class="pagination-section">
+            <div class="pagination-info">
                 Hiển thị {{ paginatedData.length }} trên tổng số {{ filteredData.length }} bản ghi
             </div>
-            <div class="flex gap-1">
-                <button :disabled="currentPage === 1" @click="currentPage--"
-                    class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-sm">
+            <div class="pagination-controls">
+                <button :disabled="currentPage === 1" @click="currentPage--" class="pagination-btn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <span class="px-2 py-1 text-sm">
+                <span class="pagination-text">
                     Trang {{ currentPage }} / {{ totalPages }}
                 </span>
-                <button :disabled="currentPage === totalPages" @click="currentPage++"
-                    class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-sm">
+                <button :disabled="currentPage === totalPages" @click="currentPage++" class="pagination-btn">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
@@ -483,28 +559,618 @@ const updateProductStatus = async (id, status) => {
 </script>
 
 <style scoped>
-.bg-primary {
-    background-color: #3bb77e;
+/* Filters Section */
+.filters-section {
+    margin-bottom: 1.5rem;
 }
 
-.bg-primary-dark {
+.filters-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .filters-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+}
+
+.search-container {
+    flex: 1;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: #f9fafb;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.filters-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .filters-container {
+        flex-direction: row;
+        gap: 0.75rem;
+    }
+}
+
+.filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    min-width: 120px;
+}
+
+@media (min-width: 768px) {
+    .filter-select {
+        min-width: 150px;
+    }
+}
+
+.actions-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+@media (min-width: 768px) {
+    .actions-row {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.bulk-actions {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .action-buttons {
+        gap: 0.25rem;
+    }
+
+    .action-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}
+
+.bulk-delete-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.bulk-delete-btn:hover {
+    background-color: #b91c1c;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.refresh-btn {
+    background-color: #4f46e5;
+    color: white;
+}
+
+.refresh-btn:hover {
+    background-color: #4338ca;
+}
+
+.refresh-btn i {
+    transition: transform 0.3s ease;
+}
+
+.refresh-btn:active i {
+    transform: rotate(180deg);
+}
+
+.import-btn {
+    background-color: #3bb77e;
+    color: white;
+}
+
+.import-btn:hover {
     background-color: #2ea16d;
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
+.add-btn {
+    background-color: #3bb77e;
+    color: white;
+}
+
+.add-btn:hover {
+    background-color: #2ea16d;
+}
+
+/* Modal Responsive */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 0.75rem;
+    width: 100%;
+    max-width: 28rem;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: #374151;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.template-section,
+.upload-section {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #111827;
+}
+
+.section-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+}
+
+.template-btn,
+.upload-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #f3f4f6;
+    color: #374151;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.template-btn:hover,
+.upload-btn:hover {
+    background-color: #e5e7eb;
+}
+
+.upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.selected-file {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 640px) {
+    .modal-footer {
+        flex-direction: column;
     }
 
-    to {
-        transform: rotate(360deg);
+    .modal-footer button {
+        width: 100%;
     }
 }
 
-.fa-spinner {
-    animation: spin 1s linear infinite;
+.cancel-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background: white;
+    color: #374151;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
+.cancel-btn:hover {
+    background-color: #f9fafb;
+}
+
+.import-submit-btn {
+    padding: 0.5rem 1rem;
+    background-color: #3bb77e;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.import-submit-btn:hover:not(:disabled) {
+    background-color: #2ea16d;
+}
+
+.import-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Table Styles */
+.table-container {
+    margin-bottom: 1.5rem;
+}
+
+.desktop-table {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .desktop-table {
+        display: block;
+    }
+}
+
+.mobile-cards {
+    display: block;
+}
+
+@media (min-width: 1024px) {
+    .mobile-cards {
+        display: none;
+    }
+}
+
+.mobile-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: white;
+    transition: box-shadow 0.2s;
+}
+
+.mobile-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.card-checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.card-number {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.card-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.product-image {
+    flex-shrink: 0;
+}
+
+.product-info {
+    flex: 1;
+}
+
+.product-name {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.product-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.detail-item i {
+    width: 1rem;
+}
+
+.product-status {
+    flex-shrink: 0;
+}
+
+.status-toggle {
+    width: 2.5rem;
+    height: 1.5rem;
+    border-radius: 1rem;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.status-toggle.active {
+    background-color: #3bb77e;
+}
+
+.status-toggle.inactive {
+    background-color: #d1d5db;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 0.125rem;
+    left: 0.125rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.status-toggle.active .toggle-slider {
+    transform: translateX(1rem);
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.mobile-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.edit-btn {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.edit-btn:hover {
+    background-color: #bfdbfe;
+}
+
+.delete-btn {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.delete-btn:hover {
+    background-color: #fecaca;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+}
+
+/* Desktop Table Styles */
+.action-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem;
+    border-radius: 0.5rem;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+
+.edit-link {
+    color: #2563eb;
+}
+
+.edit-link:hover {
+    color: #1d4ed8;
+    background-color: #dbeafe;
+}
+
+.delete-link {
+    color: #dc2626;
+}
+
+.delete-link:hover {
+    color: #b91c1c;
+    background-color: #fee2e2;
+}
+
+/* Pagination */
+.pagination-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .pagination-section {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .pagination-info {
+        text-align: left;
+    }
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-btn {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #f9fafb;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-text {
+    font-size: 0.875rem;
+    color: #374151;
+    padding: 0 0.5rem;
+}
+
+/* Skeleton Loading */
 .skeleton-loader {
     height: 20px;
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
@@ -520,5 +1186,118 @@ const updateProductStatus = async (id, status) => {
     100% {
         background-position: calc(200px + 100%) 0;
     }
+}
+
+.mobile-skeleton .mobile-card {
+    background: #f9fafb;
+}
+
+.mobile-skeleton .mobile-card .skeleton-loader {
+    height: 60px;
+    margin-bottom: 0.5rem;
+}
+
+/* Utility Classes */
+.bg-primary {
+    background-color: #3bb77e;
+}
+
+.bg-primary-dark {
+    background-color: #2ea16d;
+}
+
+/* Table Container Responsive */
+.table-container {
+    margin-bottom: 1.5rem;
+}
+
+.overflow-x-auto {
+    overflow-x: auto;
+}
+
+@media (max-width: 1023px) {
+    .overflow-x-auto {
+        overflow-x: hidden;
+    }
+
+    table {
+        min-width: 800px;
+    }
+}
+
+/* Pagination Responsive */
+.pagination-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .pagination-section {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .pagination-info {
+        text-align: left;
+    }
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-btn {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #f9fafb;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-text {
+    font-size: 0.875rem;
+    color: #374151;
+    padding: 0 0.5rem;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
 }
 </style>

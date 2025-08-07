@@ -1,13 +1,16 @@
 <template>
     <div class="admin-layout">
-        <!-- Sidebar -->
-        <SidebarAdmin />
+        <!-- Desktop Sidebar - hidden on mobile -->
+        <SidebarAdmin class="desktop-sidebar" />
+
+        <!-- Mobile Sidebar -->
+        <MobileSidebar :isOpen="isMobileOpen" @close="closeSidebar" />
 
         <!-- Main Content -->
         <div class="main-content">
             <header class="header">
                 <div class="header-left">
-                    <button class="menu-toggle">
+                    <button class="menu-toggle" @click="toggleSidebar">
                         <i class="fas fa-bars"></i>
                     </button>
                     <div class="search-bar">
@@ -53,12 +56,24 @@
 
 <script setup>
 import SidebarAdmin from '../components/admin/layouts/Sidebar.vue'
+import MobileSidebar from '../components/admin/layouts/MobileSidebar.vue'
 import NotificationDropdown from '../components/common/NotificationDropdown.vue'
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useNotification } from '../composable/useNotification'
 
 const { notifications, fetchNotifications, loading, error, testNotification } = useNotification()
 let intervalId = null
+
+// Mobile sidebar state
+const isMobileOpen = ref(false)
+
+const toggleSidebar = () => {
+    isMobileOpen.value = !isMobileOpen.value
+}
+
+const closeSidebar = () => {
+    isMobileOpen.value = false
+}
 
 onMounted(() => {
     fetchNotifications()
@@ -76,11 +91,25 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Hide desktop sidebar on mobile */
+@media (max-width: 768px) {
+    .desktop-sidebar {
+        display: none;
+    }
+}
+
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     margin-left: 250px;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
 }
 
 .header {
@@ -96,15 +125,61 @@ onUnmounted(() => {
     height: 64px;
 }
 
+@media (max-width: 768px) {
+    .header {
+        padding: 0.75rem 1rem;
+    }
+}
+
 .header-left {
     display: flex;
     align-items: center;
     gap: 1.5rem;
 }
 
+@media (max-width: 768px) {
+    .header-left {
+        gap: 1rem;
+    }
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+}
+
+.menu-toggle:hover {
+    background-color: #f3f4f6;
+}
+
 .search-bar {
     position: relative;
     width: 300px;
+}
+
+@media (max-width: 768px) {
+    .search-bar {
+        width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-bar {
+        width: 150px;
+    }
 }
 
 .search-bar input {
@@ -129,6 +204,12 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     gap: 1rem;
+}
+
+@media (max-width: 480px) {
+    .header-right {
+        gap: 0.5rem;
+    }
 }
 
 .screen {
