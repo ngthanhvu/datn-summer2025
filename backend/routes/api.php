@@ -104,6 +104,10 @@ Route::middleware('auth:api')->group(function () {
 
     //update infomation by admin
     Route::put('/admin/user/{id}', [AuthController::class, 'updateUserByAdmin']);
+
+    Route::get('/notifications', function (Request $request) {
+        return $request->user()->notifications()->orderBy('created_at', 'desc')->take(20)->get();
+    });
 });
 Route::get('/settings', [SettingController::class, 'index']);
 
