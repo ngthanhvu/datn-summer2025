@@ -1,5 +1,9 @@
 <template>
-    <div class="form-container mx-auto mt-[100px] bg-white mb-10 border border-gray-200">
+    <!-- <div class="form-container mx-auto mt-[100px] bg-white mb-10 border border-gray-200"> -->
+    <div class="mx-auto mt-[100px] bg-white mb-10 border border-gray-200 
+            rounded-lg
+            w-[90%] sm:w-[400px] md:w-[500px] max-w-[500px]
+            px-4 sm:px-6 py-6">
         <h2 class="text-center mb-4 mt-3 font-semibold text-2xl">Đăng Nhập</h2>
         <form @submit.prevent="handleLogin">
             <div class="mb-3">
@@ -159,11 +163,3 @@ const googleLogin = () => {
     alert('Đăng nhập bằng Google (fake)')
 }
 </script>
-
-<style scoped>
-.form-container {
-    max-width: 500px;
-    padding: 20px;
-    border-radius: 10px;
-}
-</style>

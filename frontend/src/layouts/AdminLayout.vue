@@ -17,6 +17,14 @@
                 </div>
                 <div class="header-right">
                     <div class="flex items-center space-x-2">
+                        <div class="relative">
+                            <NotificationDropdown :notifications="notifications" />
+                            <div v-if="loading" class="absolute -top-1 -right-1">
+                                <div
+                                    class="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin">
+                                </div>
+                            </div>
+                        </div>
                         <RouterLink to="/admin/settings" class="p-2 hover:bg-gray-100 rounded-lg" title="Cài đặt">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -45,6 +53,26 @@
 
 <script setup>
 import SidebarAdmin from '../components/admin/layouts/Sidebar.vue'
+import NotificationDropdown from '../components/common/NotificationDropdown.vue'
+import { onMounted, onUnmounted } from 'vue'
+import { useNotification } from '../composable/useNotification'
+
+const { notifications, fetchNotifications, loading, error, testNotification } = useNotification()
+let intervalId = null
+
+onMounted(() => {
+    fetchNotifications()
+    intervalId = setInterval(() => {
+        fetchNotifications()
+    }, 5000)
+
+    // Test notification khi component mount (có thể xóa sau)
+    // setTimeout(() => testNotification('success'), 2000)
+})
+
+onUnmounted(() => {
+    clearInterval(intervalId)
+})
 </script>
 
 <style scoped>
@@ -105,5 +133,39 @@ import SidebarAdmin from '../components/admin/layouts/Sidebar.vue'
 
 .screen {
     min-height: calc(100vh - 64px);
+}
+
+.notification-dropdown {
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    min-width: 250px;
+    z-index: 100;
+    animation: fadeIn 0.2s;
+}
+
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 </style>
