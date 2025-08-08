@@ -1,10 +1,10 @@
 <template>
-    <div class="messages-sidebar w-[320px] bg-white border-r flex flex-col h-[calc(100vh-64px)]">
+    <div class="messages-sidebar w-full sm:w-[320px] bg-white border-r flex flex-col h-[calc(100vh-64px)]">
         <!-- Header (sticky) -->
-        <div class="p-4 border-b bg-white sticky top-0 z-10">
+        <div class="p-3 sm:p-4 border-b bg-white sticky top-0 z-10">
             <div class="relative">
                 <input type="text" v-model="searchQuery" placeholder="Tìm kiếm tin nhắn..."
-                    class="w-full border rounded px-4 py-2 pl-10">
+                    class="w-full border rounded px-4 py-2 pl-10 text-sm">
                 <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
             </div>
         </div>
@@ -12,23 +12,22 @@
         <!-- Danh sách cuộc trò chuyện (cuộn) -->
         <div class="message-list flex-1 overflow-y-auto">
             <div v-for="message in filteredMessages" :key="message.id" @click="$emit('select', message)"
-                class="message-item p-4 border-b cursor-pointer"
+                class="message-item p-3 sm:p-4 border-b cursor-pointer"
                 :class="[selectedMessageId === message.id ? 'bg-primary/10' : 'hover:bg-gray-50']">
                 <div class="flex gap-3">
                     <div class="relative">
                         <img :src="getAvatarUrl(message.avatar)" :alt="message.name"
-                            class="w-12 h-12 rounded-full object-cover">
+                            class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover">
                         <div v-if="!message.read"
                             class="w-3 h-3 bg-primary rounded-full absolute right-0 bottom-0 border-2 border-white">
                         </div>
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-start">
-                            <h3 class="font-medium truncate">{{ message.name }}</h3>
-                            <span class="text-xs text-gray-500 whitespace-nowrap ml-2">{{ message.time
-                                }}</span>
+                            <h3 class="font-medium truncate text-sm sm:text-base">{{ message.name }}</h3>
+                            <span class="text-xs text-gray-500 whitespace-nowrap ml-2">{{ message.time }}</span>
                         </div>
-                        <p class="text-sm text-gray-600 truncate">{{ message.lastMessage }}</p>
+                        <p class="text-xs sm:text-sm text-gray-600 truncate">{{ message.lastMessage }}</p>
                     </div>
                 </div>
             </div>

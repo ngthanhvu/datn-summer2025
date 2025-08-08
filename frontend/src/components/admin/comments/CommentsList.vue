@@ -1,37 +1,185 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-4">
+    <div class="bg-white rounded-lg shadow p-3 sm:p-4">
         <!-- Filter Row -->
-        <div class="p-4">
-            <div class="flex gap-2 items-center">
-                <select v-model="filterStatus" class="border border-gray-300 rounded px-3 py-1 text-sm">
-                    <option value="">Trạng thái</option>
-                    <option value="pending">Chờ duyệt</option>
-                    <option value="approved">Hiển thị</option>
-                    <option value="rejected">Vi phạm</option>
-                </select>
-                <select v-model="filterRating" class="border border-gray-300 rounded px-3 py-1 text-sm">
-                    <option value="">Điểm đánh giá</option>
-                    <option v-for="n in 5" :key="n" :value="n">{{ n }} sao</option>
-                </select>
-                <select v-model="filterHasImage" class="border border-gray-300 rounded px-3 py-1 text-sm">
-                    <option value="">Có hình ảnh</option>
-                    <option value="yes">Có</option>
-                    <option value="no">Không</option>
-                </select>
-                <select v-model="filterUnread" class="border border-gray-300 rounded px-3 py-1 text-sm">
-                    <option value="">Chưa đọc</option>
-                    <option value="yes">Chưa đọc</option>
-                </select>
-                <select v-model="filterBadwords" class="border border-gray-300 rounded px-3 py-1 text-sm">
-                    <option value="">Tiêu cực</option>
-                    <option value="1">Chỉ tiêu cực</option>
-                </select>
-                <input v-model="searchQuery" type="text" placeholder="Nhập từ khóa tìm kiếm ..."
-                    class="border border-gray-300 rounded px-3 py-1 text-sm w-64 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100" />
+        <div class="p-3 sm:p-4">
+            <!-- Mobile: Stack filters vertically -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+                <!-- Row 1: Status and Rating filters -->
+                <div class="flex gap-2 flex-wrap">
+                    <select v-model="filterStatus" class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">
+                        <option value="">Trạng thái</option>
+                        <option value="pending">Chờ duyệt</option>
+                        <option value="approved">Hiển thị</option>
+                        <option value="rejected">Vi phạm</option>
+                    </select>
+                    <select v-model="filterRating" class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">
+                        <option value="">Điểm đánh giá</option>
+                        <option v-for="n in 5" :key="n" :value="n">{{ n }} sao</option>
+                    </select>
+                </div>
+                
+                <!-- Row 2: Image and Unread filters -->
+                <div class="flex gap-2 flex-wrap">
+                    <select v-model="filterHasImage" class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">
+                        <option value="">Có hình ảnh</option>
+                        <option value="yes">Có</option>
+                        <option value="no">Không</option>
+                    </select>
+                    <select v-model="filterUnread" class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">
+                        <option value="">Chưa đọc</option>
+                        <option value="yes">Chưa đọc</option>
+                    </select>
+                    <select v-model="filterBadwords" class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">
+                        <option value="">Tiêu cực</option>
+                        <option value="1">Chỉ tiêu cực</option>
+                    </select>
+                </div>
+                
+                <!-- Row 3: Search input -->
+                <div class="w-full sm:w-64">
+                    <input v-model="searchQuery" type="text" placeholder="Nhập từ khóa tìm kiếm ..."
+                        class="w-full border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100" />
+                </div>
             </div>
         </div>
-        <!-- Table -->
-        <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        <!-- Mobile Card Layout (hidden on desktop) -->
+        <div class="block sm:hidden">
+            <!-- Empty State -->
+            <div v-if="!loading && filteredComments.length === 0" class="p-8 text-center">
+                <i class="fas fa-comments text-4xl text-gray-300 mb-4"></i>
+                <p class="text-gray-600">Không có đánh giá nào</p>
+            </div>
+            
+            <!-- Loading Cards -->
+            <div v-else-if="loading" class="space-y-4">
+                <div v-for="n in 3" :key="n" class="bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="animate-pulse">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="bg-gray-200 h-4 rounded w-20"></div>
+                            <div class="bg-gray-200 h-6 rounded w-16"></div>
+                        </div>
+                        <div class="bg-gray-200 h-4 rounded w-full mb-2"></div>
+                        <div class="bg-gray-200 h-4 rounded w-3/4 mb-3"></div>
+                        <div class="flex justify-between items-center">
+                            <div class="bg-gray-200 h-4 rounded w-24"></div>
+                            <div class="bg-gray-200 h-8 rounded w-20"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comment Cards -->
+            <div v-else class="space-y-4">
+                <div v-for="comment in filteredComments" :key="comment.id" 
+                     :class="['bg-white border border-gray-200 rounded-lg p-4', 
+                              comment.status === 'rejected' ? 'border-red-200 bg-red-50' : 
+                              comment.status === 'approved' ? 'border-blue-200 bg-blue-50' : '']">
+                    
+                    <!-- Header: Rating and Status -->
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-2">
+                            <span v-html="renderStars(comment.rating)" class="text-sm"></span>
+                            <span class="text-xs text-gray-500">{{ comment.rating }}/5</span>
+                        </div>
+                        <span :class="[
+                            'px-2 py-1 rounded-full text-xs font-medium',
+                            comment.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            comment.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                        ]">
+                            {{ comment.status === 'approved' ? 'Hiển thị' : 
+                               comment.status === 'rejected' ? 'Vi phạm' : 'Chờ duyệt' }}
+                        </span>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-900 mb-2">{{ comment.content }}</p>
+                        
+                        <!-- Images -->
+                        <div v-if="comment.images && comment.images.length" class="mb-2">
+                            <div class="text-xs mb-1 font-semibold text-gray-600">Hình ảnh đánh giá:</div>
+                            <div class="flex gap-2 flex-wrap">
+                                <img v-for="img in comment.images" :key="img.id"
+                                     :src="getImageUrl(img.image_path)" 
+                                     class="w-12 h-12 object-cover rounded border"
+                                     alt="review image" />
+                            </div>
+                        </div>
+                        
+                        <!-- User and Product Info -->
+                        <div class="text-xs text-gray-500">
+                            <div class="mb-1">
+                                <i class="fas fa-user mr-1"></i>
+                                <span class="font-semibold">{{ comment.userEmail || comment.userName }}</span>
+                            </div>
+                            <div class="mb-1">
+                                <i class="fas fa-box mr-1"></i>
+                                <span class="text-blue-600">{{ comment.productInfo?.name }}</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-clock mr-1"></i>
+                                {{ comment.date }} {{ comment.time }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Reply -->
+                    <div v-if="comment.reply" class="mb-3 ml-2 p-2 bg-gray-100 rounded border-l-2 border-blue-400">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-user-shield text-blue-600 text-xs"></i>
+                            <span class="text-xs font-semibold text-blue-600">Phản hồi của Admin</span>
+                            <span class="text-xs text-gray-500">{{ comment.reply.date }} {{ comment.reply.time }}</span>
+                        </div>
+                        <p class="text-xs text-gray-700">{{ comment.reply.content }}</p>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-200">
+                        <button @click="updateStatus(comment.id, 'approved')" 
+                                :disabled="comment.status === 'approved'"
+                                class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-check mr-1"></i>Duyệt
+                        </button>
+                        <button @click="updateStatus(comment.id, 'rejected')" 
+                                :disabled="comment.status === 'rejected'"
+                                class="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-times mr-1"></i>Từ chối
+                        </button>
+                        <button @click="deleteComment(comment.id)" 
+                                class="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
+                            <i class="fas fa-trash mr-1"></i>Xóa
+                        </button>
+                        <button @click="toggleReplyForm(comment)" 
+                                class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                            <i class="fas fa-reply mr-1"></i>Phản hồi
+                        </button>
+                    </div>
+                    
+                    <!-- Reply Form -->
+                    <div v-if="comment.showReplyForm" class="mt-3 p-3 bg-gray-50 rounded border">
+                        <textarea v-model="comment.replyText" 
+                                  placeholder="Nhập phản hồi của bạn..."
+                                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                  rows="3"></textarea>
+                        <div class="flex gap-2 mt-2">
+                            <button @click="submitReply(comment)" 
+                                    :disabled="!comment.replyText.trim()"
+                                    class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-paper-plane mr-1"></i>Gửi
+                            </button>
+                            <button @click="comment.showReplyForm = false" 
+                                    class="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
+                                <i class="fas fa-times mr-1"></i>Hủy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Table Layout (hidden on mobile) -->
+        <div class="hidden sm:block overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
             <!-- Empty State -->
             <div v-if="!loading && filteredComments.length === 0" class="p-8 text-center">
                 <i class="fas fa-comments text-4xl text-gray-300 mb-4"></i>
@@ -282,6 +430,22 @@ const deleteComment = (id) => {
 const addReply = (comment) => {
     if (!comment.replyText.trim()) return;
     emit("add-reply", { id: comment.id, content: comment.replyText });
+};
+
+// Mobile-specific methods
+const toggleReplyForm = (comment) => {
+    comment.showReplyForm = !comment.showReplyForm;
+    if (!comment.showReplyForm) {
+        comment.replyText = '';
+    }
+};
+
+const submitReply = (comment) => {
+    if (comment.replyText.trim()) {
+        addReply(comment);
+        comment.showReplyForm = false;
+        comment.replyText = '';
+    }
 };
 
 const renderStars = (rating) => {

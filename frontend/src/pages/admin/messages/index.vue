@@ -1,22 +1,35 @@
 <template>
     <div class="admin-chat-container h-screen flex bg-gray-50">
+        <!-- Mobile Back Button (only visible when chat is selected) -->
+        <div v-if="selectedUser && isMobile" 
+            class="fixed top-16 left-4 z-50 lg:hidden">
+            <button @click="goBackToList" 
+                class="bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:bg-gray-50">
+                <i class="fas fa-arrow-left text-gray-600"></i>
+            </button>
+        </div>
+
         <!-- Sidebar - User Conversations -->
-        <div class="w-1/3 bg-white border-r border-gray-200 flex flex-col h-[calc(100vh-64px)]">
+        <div :class="[
+            'bg-white border-r border-gray-200 flex flex-col h-[calc(100vh-64px)] transition-transform duration-300',
+            isMobile ? (selectedUser ? '-translate-x-full lg:translate-x-0' : 'translate-x-0') : '',
+            isMobile ? 'fixed inset-y-16 left-0 w-full z-40 lg:relative lg:w-1/3' : 'w-1/3'
+        ]">
             <!-- Header -->
-            <div class="p-4 border-b" style="background-color: #3BB77E; color: #fff;">
+            <div class="p-3 sm:p-4 border-b" style="background-color: #3BB77E; color: #fff;">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <i class="fas fa-comments text-lg"></i>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-comments text-sm sm:text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-semibold">Tin nhắn từ khách hàng</h2>
-                        <p class="text-sm opacity-90">{{ conversations.length }} cuộc trò chuyện</p>
+                        <h2 class="text-base sm:text-lg font-semibold">Tin nhắn từ khách hàng</h2>
+                        <p class="text-xs sm:text-sm opacity-90">{{ conversations.length }} cuộc trò chuyện</p>
                     </div>
                 </div>
             </div>
 
             <!-- Search (sticky) -->
-            <div class="p-4 border-b border-gray-100 sticky top-[64px] z-10 bg-white">
+            <div class="p-3 sm:p-4 border-b border-gray-100 sticky top-[64px] z-10 bg-white">
                 <div class="relative">
                     <input v-model="searchQuery" type="text" placeholder="Tìm kiếm khách hàng..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100">
@@ -28,46 +41,46 @@
             <div class="flex-1 overflow-y-auto">
                 <!-- Loading State -->
                 <div v-if="loading" class="p-4 text-center">
-                    <i class="fas fa-spinner animate-spin text-xl text-gray-400 mb-2"></i>
-                    <div class="text-gray-500">Đang tải cuộc trò chuyện...</div>
+                    <i class="fas fa-spinner animate-spin text-lg sm:text-xl text-gray-400 mb-2"></i>
+                    <div class="text-gray-500 text-sm">Đang tải cuộc trò chuyện...</div>
                 </div>
 
                 <!-- Empty State -->
-                <div v-else-if="filteredConversations.length === 0" class="p-8 text-center text-gray-500">
-                    <i class="fas fa-comment-slash text-4xl mb-3"></i>
-                    <div class="font-medium mb-1">Chưa có tin nhắn nào</div>
-                    <div class="text-sm">Tin nhắn từ khách hàng sẽ hiển thị ở đây</div>
+                <div v-else-if="filteredConversations.length === 0" class="p-6 sm:p-8 text-center text-gray-500">
+                    <i class="fas fa-comment-slash text-3xl sm:text-4xl mb-3"></i>
+                    <div class="font-medium mb-1 text-sm sm:text-base">Chưa có tin nhắn nào</div>
+                    <div class="text-xs sm:text-sm">Tin nhắn từ khách hàng sẽ hiển thị ở đây</div>
                 </div>
 
                 <!-- Conversations -->
                 <div v-else class="divide-y divide-gray-100">
                     <div v-for="conversation in filteredConversations" :key="conversation.user.id"
                         @click="selectConversation(conversation)" :class="[
-                            'flex items-center gap-3 p-4 cursor-pointer transition-colors hover:bg-gray-50',
+                            'flex items-center gap-3 p-3 sm:p-4 cursor-pointer transition-colors hover:bg-gray-50',
                             selectedUser?.id === conversation.user.id ? 'bg-green-50 border-r-4 border-[#3BB77E]' : ''
                         ]">
                         <div class="relative">
                             <img :src="conversation.user.avatar ? getUserAvatar(conversation.user.avatar) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
                                 :alt="conversation.user.username"
-                                class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+                                class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-gray-200">
                             <div v-if="conversation.unread_count > 0"
-                                class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                                class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-xs font-bold">
                                 {{ conversation.unread_count > 9 ? '9+' : conversation.unread_count }}
                             </div>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex justify-between items-start">
-                                <div class="font-medium text-gray-900 truncate">
+                                <div class="font-medium text-gray-900 truncate text-sm sm:text-base">
                                     {{ conversation.user.username || conversation.user.username }}
                                 </div>
-                                <div class="text-xs text-gray-500 ml-2">
+                                <div class="text-xs text-gray-500 ml-2 whitespace-nowrap">
                                     <span v-if="conversation.latest_message && conversation.latest_message.sent_at">{{ formatTime(conversation.latest_message.sent_at) }}</span>
                                 </div>
                             </div>
-                            <div class="text-sm text-gray-600 truncate mt-1">
+                            <div class="text-xs sm:text-sm text-gray-600 truncate mt-1">
                                 {{ conversation.latest_message.message }}
                             </div>
-                            <div class="text-xs text-gray-400 mt-1">
+                            <div class="text-xs text-gray-400 mt-1 hidden sm:block">
                                 {{ conversation.user.email }}
                             </div>
                         </div>
@@ -77,11 +90,15 @@
         </div>
 
         <!-- Main Chat Area -->
-        <div class="flex-1 w-0 flex flex-col h-full overflow-x-hidden bg-white">
+        <div :class="[
+            'flex flex-col overflow-x-hidden bg-white transition-transform duration-300',
+            isMobile ? (selectedUser ? 'translate-x-0' : 'translate-x-full lg:translate-x-0') : 'flex-1 w-0 h-full',
+            isMobile ? 'fixed top-16 bottom-0 right-0 w-full z-30 lg:relative lg:flex-1 lg:w-0 lg:h-full' : ''
+        ]">
             <div v-if="selectedUser" class="flex flex-col h-full">
                 <div v-if="loadingMessages" class="flex-1 flex items-center justify-center">
-                    <i class="fas fa-spinner animate-spin text-3xl text-gray-400 mb-2"></i>
-                    <div class="text-gray-500 ml-2">Đang tải tin nhắn...</div>
+                    <i class="fas fa-spinner animate-spin text-2xl sm:text-3xl text-gray-400 mb-2"></i>
+                    <div class="text-gray-500 ml-2 text-sm sm:text-base">Đang tải tin nhắn...</div>
                 </div>
                 <MessageContent
                     v-else
@@ -98,10 +115,10 @@
                 />
             </div>
             <div v-else class="flex-1 flex items-center justify-center bg-white">
-                <div class="text-center text-gray-500">
-                    <i class="fas fa-comment-dots text-6xl mb-4"></i>
-                    <h3 class="text-xl font-medium mb-2">Chọn một cuộc trò chuyện</h3>
-                    <p class="text-gray-400">Chọn khách hàng từ danh sách để bắt đầu chat</p>
+                <div class="text-center text-gray-500 p-4">
+                    <i class="fas fa-comment-dots text-4xl sm:text-6xl mb-4"></i>
+                    <h3 class="text-lg sm:text-xl font-medium mb-2">Chọn một cuộc trò chuyện</h3>
+                    <p class="text-gray-400 text-sm sm:text-base">Chọn khách hàng từ danh sách để bắt đầu chat</p>
                 </div>
             </div>
         </div>
@@ -128,6 +145,17 @@ useHead({
 import { ref, onMounted, computed, nextTick, watch, onUnmounted } from 'vue'
 import { useChat } from '../../../composable/useChat'
 import MessageContent from '../../../components/admin/messages/MessagesContent.vue'
+
+// Mobile responsive logic
+const isMobile = ref(false)
+
+const checkMobile = () => {
+    isMobile.value = window.innerWidth < 1024 // lg breakpoint
+}
+
+const goBackToList = () => {
+    selectedUser.value = null
+}
 
 function formatTime(timestamp) {
   if (!timestamp) return '';
@@ -350,12 +378,18 @@ watch(messages, (newMessages) => {
 
 onMounted(async () => {
     console.log('[Admin] Trang tin nhắn được mở - Bắt đầu load dữ liệu')
+    
+    // Check mobile on mount
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
     await loadConversations() // Load ngay lập tức
     startAutoUpdate()
 })
 
 onUnmounted(() => {
     stopAutoUpdate()
+    window.removeEventListener('resize', checkMobile)
 })
 </script>
 
