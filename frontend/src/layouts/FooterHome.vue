@@ -37,7 +37,8 @@
                             <h3 class="text-lg font-semibold text-white-300 mb-4">CHÍNH SÁCH</h3>
                             <ul class="space-y-2 text-gray-100">
                                 <li v-for="page in policyPages" :key="page.id">
-                                    <RouterLink :to="`/trang/${page.slug}`" class="hover:text-red-300 transition-colors">
+                                    <RouterLink :to="`/trang/${page.slug}`"
+                                        class="hover:text-[#1E293B] transition-colors">
                                         {{ page.title }}
                                     </RouterLink>
                                 </li>
@@ -50,7 +51,8 @@
                             <h3 class="text-lg font-semibold text-white-300 mb-4">HỖ TRỢ KHÁCH HÀNG</h3>
                             <ul class="space-y-2 text-gray-100">
                                 <li v-for="page in supportPages" :key="page.id">
-                                    <RouterLink :to="`/trang/${page.slug}`" class="hover:text-red-300 transition-colors">
+                                    <RouterLink :to="`/trang/${page.slug}`"
+                                        class="hover:text-[#1E293B] transition-colors">
                                         {{ page.title }}
                                     </RouterLink>
                                 </li>
