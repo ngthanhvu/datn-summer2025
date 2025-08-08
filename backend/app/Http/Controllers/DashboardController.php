@@ -287,11 +287,19 @@ class DashboardController extends Controller
     public function getOrdersByStatus(Request $request): JsonResponse
     {
         try {
-            $month = $request->get('month', Carbon::now()->month);
-            $year = $request->get('year', Carbon::now()->year);
+            $period = $request->get('period');
 
-            $startDate = Carbon::create($year, $month, 1)->startOfMonth();
-            $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+            if ($period) {
+                // Nếu có tham số period, tính toán khoảng thời gian từ ngày hiện tại
+                $endDate = Carbon::now();
+                $startDate = Carbon::now()->subDays($period);
+            } else {
+                // Mặc định theo tháng hiện tại
+                $month = $request->get('month', Carbon::now()->month);
+                $year = $request->get('year', Carbon::now()->year);
+                $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+                $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+            }
 
             // Thống kê đơn hàng theo trạng thái
             $ordersByStatus = Orders::whereBetween('created_at', [$startDate, $endDate])
@@ -351,6 +359,17 @@ class DashboardController extends Controller
                 ->orderBy('date')
                 ->get();
 
+            $periodInfo = $period ? [
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'period_days' => $period
+            ] : [
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'month' => $month,
+                'year' => $year
+            ];
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -359,12 +378,7 @@ class DashboardController extends Controller
                     'orders_by_status' => $chartData,
                     'apex_chart_data' => $apexChartData,
                     'daily_orders' => $dailyOrders,
-                    'period' => [
-                        'start_date' => $startDate->format('Y-m-d'),
-                        'end_date' => $endDate->format('Y-m-d'),
-                        'month' => $month,
-                        'year' => $year
-                    ]
+                    'period' => $periodInfo
                 ]
             ]);
         } catch (\Exception $e) {

@@ -30,7 +30,7 @@
             </template>
             <template v-else>
                 <RevenueChart :data="revenueData" />
-                <OrdersChart :data="ordersData" />
+                <OrdersChart :data="ordersData" @period-change="handleOrdersPeriodChange" />
             </template>
         </div>
 
@@ -134,6 +134,17 @@ const fetchDashboardData = async () => {
         recentOrders.value = []
     } finally {
         loading.value = false
+    }
+}
+
+const handleOrdersPeriodChange = async (period) => {
+    try {
+        const response = await getOrdersByStatus({ period })
+        if (response.success) {
+            ordersData.value = response.data
+        }
+    } catch (error) {
+        console.error('Error fetching orders data for period:', error)
     }
 }
 

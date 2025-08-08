@@ -1,6 +1,6 @@
 <template>
     <div class="top-selling bg-white rounded-2xl p-6 text-gray-900 border border-gray-200">
-        <h3 class="mb-4 font-bold text-lg">Top Sản Phẩm Bán Chạy</h3>
+        <h3 class="mb-4 font-semibold text-lg">Top Sản Phẩm Bán Chạy</h3>
         <div v-if="loading" class="py-8 text-center text-gray-400">Đang tải...</div>
         <div v-else-if="error" class="py-8 text-center text-red-500">{{ error }}</div>
         <ul v-else class="space-y-4">
@@ -18,6 +18,10 @@
                         </span>
                     </div>
                 </div>
+                <div class="text-right min-w-[80px]">
+                    <div class="text-xs text-gray-500">đã bán</div>
+                    <span class="text-green-600 font-bold text-sm">{{ product.sold_count }}</span>
+                </div>
                 <div class="flex items-center gap-1 min-w-[60px]">
                     <template v-if="Array.isArray(product.colors) && product.colors.length">
                         <template v-for="(color, cidx) in product.colors.slice(0, 3)" :key="cidx">
@@ -26,7 +30,7 @@
                         </template>
                         <span v-if="product.colors.length > 3" class="ml-1 text-xs text-gray-500 font-bold">+{{
                             product.colors.length - 3
-                            }}</span>
+                        }}</span>
                     </template>
                     <template v-else>
                         <span v-if="product.color" class="w-4 h-4 rounded-full border-2 border-gray-200"
@@ -34,6 +38,7 @@
                         <span v-else class="text-gray-400">-</span>
                     </template>
                 </div>
+
             </li>
         </ul>
     </div>
