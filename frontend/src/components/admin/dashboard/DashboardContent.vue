@@ -30,17 +30,30 @@
             </template>
             <template v-else>
                 <RevenueChart :data="revenueData" />
-                <OrdersChart :data="ordersData" />
+                <OrdersChart :data="ordersData" @period-change="handleOrdersPeriodChange" />
             </template>
         </div>
 
-        <!-- Recent Orders Section -->
-        <template v-if="loading">
-            <RecentOrdersSkeleton />
-        </template>
-        <template v-else>
-            <RecentOrders :orders="recentOrders" />
-        </template>
+        <!-- Recent Orders & Top Selling Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+            <div class="lg:col-span-8 col-span-1">
+                <template v-if="loading">
+                    <RecentOrdersSkeleton />
+                </template>
+                <template v-else>
+                    <RecentOrders :orders="recentOrders" />
+                </template>
+            </div>
+            <div class="lg:col-span-4 col-span-1">
+                <template v-if="loading">
+                    <TopSellingSkeleton />
+                </template>
+                <template v-else>
+                    <TopSelling />
+                </template>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -53,6 +66,8 @@ import OrdersChart from './OrdersChart.vue'
 import ChartSkeleton from './ChartSkeleton.vue'
 import RecentOrders from './RecentOrders.vue'
 import RecentOrdersSkeleton from './RecentOrdersSkeleton.vue'
+import TopSelling from './TopSelling.vue'
+import TopSellingSkeleton from './TopSellingSkeleton.vue'
 import { useDashboard } from '../../../composable/useDashboard'
 
 const {
@@ -119,6 +134,17 @@ const fetchDashboardData = async () => {
         recentOrders.value = []
     } finally {
         loading.value = false
+    }
+}
+
+const handleOrdersPeriodChange = async (period) => {
+    try {
+        const response = await getOrdersByStatus({ period })
+        if (response.success) {
+            ordersData.value = response.data
+        }
+    } catch (error) {
+        console.error('Error fetching orders data for period:', error)
     }
 }
 
