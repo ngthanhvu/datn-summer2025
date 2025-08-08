@@ -1,13 +1,13 @@
 <template>
     <div class="bg-white rounded-lg shadow p-4">
         <div class="p-4">
-            <div class="flex justify-between items-center">
-                <div class="relative">
+            <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+                <div class="relative w-full sm:w-auto">
                     <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..."
-                        class="border border-gray-300 rounded px-4 py-2 pl-10 w-64">
+                        class="border border-gray-300 rounded px-4 py-2 pl-10 w-full sm:w-64">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
-                <select v-model="filterStatus" class="border border-gray-300 rounded px-4 py-2">
+                <select v-model="filterStatus" class="border border-gray-300 rounded px-4 py-2 w-full sm:w-auto">
                     <option value="">Tất cả trạng thái</option>
                     <option value="1">Đang hoạt động</option>
                     <option value="0">Đã khóa</option>
@@ -15,7 +15,8 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        <!-- Desktop table -->
+        <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white hidden md:block">
             <table class="w-full">
                 <thead class="border-b border-gray-300">
                     <tr>
@@ -99,12 +100,69 @@
             </table>
         </div>
 
+        <!-- Mobile card list -->
+        <div v-if="!props.isLoading && paginatedCustomers.length > 0" class="space-y-3 md:hidden">
+            <div v-for="(customer, index) in paginatedCustomers" :key="'m-' + customer.id"
+                class="rounded-lg border border-gray-200 p-3">
+                <div class="flex items-center gap-3">
+                    <img :src="customer.avatar || defaultAvatar" :alt="customer.username"
+                        class="w-12 h-12 rounded-full object-cover" />
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <div class="text-sm font-semibold truncate">{{ customer.username }}</div>
+                                <div class="text-xs text-gray-500 break-all">{{ customer.email }}</div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button @click="openEditModal(customer)"
+                                    class="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                                    title="Chỉnh sửa khách hàng">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <button @click="handleDelete(customer)"
+                                    class="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+                                    title="Xóa khách hàng">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                            <div class="text-gray-500">Số điện thoại</div>
+                            <div class="text-right">{{ customer.phone ? customer.phone : 'Không có' }}</div>
+                            <div class="text-gray-500">Trạng thái</div>
+                            <div class="text-right">
+                                <span v-if="customer.status == 1"
+                                    class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full bg-green-100 text-green-700">Hoạt
+                                    động</span>
+                                <span v-else
+                                    class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-500 text-white">Đã
+                                    khoá</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="!props.isLoading && paginatedCustomers.length === 0"
+            class="text-center text-gray-500 py-4 md:hidden">
+            Không có dữ liệu
+        </div>
+
         <!-- Simple Pagination -->
-        <div v-if="!props.isLoading && totalPages > 1" class="flex justify-between items-center mt-6">
-            <div class="text-sm text-gray-600">
+        <div v-if="!props.isLoading && totalPages > 1"
+            class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-6 gap-3">
+            <div class="text-sm text-gray-600 text-center sm:text-left">
                 Hiển thị {{ paginatedCustomers.length }} trên tổng số {{ filteredCustomers.length }} bản ghi
             </div>
-            <div class="flex gap-2">
+            <div class="flex justify-center gap-2">
                 <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
                     class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
                     <i class="fas fa-chevron-left"></i>

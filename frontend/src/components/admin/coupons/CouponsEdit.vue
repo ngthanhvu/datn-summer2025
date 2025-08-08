@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white rounded-lg p-6 w-[50%] mx-auto border border-gray-200">
+    <div class="bg-white rounded-lg p-4 sm:p-6 w-full sm:w-[50%] mx-auto border border-gray-200">
         <form @submit.prevent="handleSubmit" class="form form-grid">
             <div class="form-group">
                 <label for="name">Tên chương trình <span class="text-red-500">*</span></label>
@@ -20,7 +20,7 @@
                     v-model="formData.description" rows="3"
                     placeholder="Nhập mô tả chi tiết về chương trình khuyến mãi"></textarea>
                 <span v-if="errors.description" class="text-red-500 text-sm mt-1">{{ errors.description
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
                 <label for="type">Loại giảm giá <span class="text-red-500">*</span></label>
@@ -51,7 +51,7 @@
                     <span class="suffix">đ</span>
                 </div>
                 <span v-if="errors.min_order_value" class="text-red-500 text-sm mt-1">{{ errors.min_order_value
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="max_discount_value">Giảm tối đa <span class="text-red-500">*</span></label>
@@ -64,7 +64,7 @@
                 </div>
                 <span v-if="errors.max_discount_value" class="text-red-500 text-sm mt-1">{{
                     errors.max_discount_value
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="usage_limit">Giới hạn sử dụng <span class="text-red-500">*</span></label>
@@ -73,7 +73,7 @@
                     v-model.number="formData.usage_limit" type="number" :min="0" :step="1"
                     placeholder="0 = không giới hạn" />
                 <span v-if="errors.usage_limit" class="text-red-500 text-sm mt-1">{{ errors.usage_limit
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="start_date">Ngày bắt đầu <span class="text-red-500">*</span></label>
@@ -98,7 +98,7 @@
         </form>
         <div class="flex justify-end gap-4 mt-6">
             <button @click="handleSubmit"
-                class="bg-primary text-white rounded px-4 py-2 hover:bg-primary-dark cursor-pointer">
+                class="w-full sm:w-auto bg-primary text-white rounded px-4 py-2 hover:bg-primary-dark cursor-pointer">
                 Cập nhật khuyến mãi
             </button>
         </div>
@@ -291,6 +291,7 @@ watch(() => formData.value.type, (newType) => {
 @media (max-width: 768px) {
     .form-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 }
 </style>

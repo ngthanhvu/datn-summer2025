@@ -1,6 +1,6 @@
 <template>
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Danh sách phiếu nhập/xuất</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Danh sách phiếu nhập/xuất</h1>
         <p class="text-gray-600">Quản lý và theo dõi các phiếu nhập/xuất kho</p>
     </div>
 
@@ -10,7 +10,8 @@
     </div>
 
     <div v-else class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
+        <!-- Desktop table -->
+        <table class="min-w-full divide-y divide-gray-200 hidden md:table">
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -40,7 +41,7 @@
                 <tr v-for="(movement, index) in paginatedMovements" :key="movement.id" class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="text-sm font-medium text-gray-900">#{{ (currentPage - 1) * itemsPerPage + index + 1
-                        }}</span>
+                            }}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span :class="[
@@ -89,14 +90,57 @@
                 </tr>
             </tbody>
         </table>
+
+        <!-- Mobile card list -->
+        <div v-if="paginatedMovements.length > 0" class="space-y-3 p-4 md:hidden">
+            <div v-for="(movement, index) in paginatedMovements" :key="'m-' + movement.id"
+                class="rounded-lg border border-gray-200 p-3">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-semibold">#{{ (currentPage - 1) * itemsPerPage + index + 1 }}</div>
+                        <div class="text-xs text-gray-500">{{ movement.user?.username || 'N/A' }}</div>
+                    </div>
+                    <span :class="[
+                        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+                        movement.type === 'import'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                    ]">
+                        {{ movement.type === 'import' ? 'Nhập kho' : 'Xuất kho' }}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="text-gray-500">Ngày tạo</div>
+                    <div class="text-right">{{ formatDate(movement.created_at) }}</div>
+                    <div class="text-gray-500">Số sản phẩm</div>
+                    <div class="text-right">{{ movement.items?.length || 0 }} sản phẩm</div>
+                    <div class="text-gray-500">Ghi chú</div>
+                    <div class="text-right">{{ movement.note || '-' }}</div>
+                </div>
+                <div class="flex gap-2 mt-3">
+                    <button @click="viewDetails(movement)"
+                        class="flex-1 text-blue-600 hover:text-blue-900 text-xs py-1 px-2 border border-blue-200 rounded hover:bg-blue-50">
+                        Xem chi tiết
+                    </button>
+                    <button @click="printReceipt(movement)"
+                        class="flex-1 text-green-600 hover:text-green-900 text-xs py-1 px-2 border border-green-200 rounded hover:bg-green-50">
+                        In phiếu
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div v-if="paginatedMovements.length === 0" class="text-center text-gray-500 py-4 md:hidden">
+            Không có dữ liệu
+        </div>
     </div>
 
     <!-- Pagination -->
-    <div v-if="!loading && totalPages > 1" class="flex justify-between items-center mt-6">
-        <div class="text-sm text-gray-600">
+    <div v-if="!loading && totalPages > 1"
+        class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-6 gap-3">
+        <div class="text-sm text-gray-600 text-center sm:text-left">
             Hiển thị {{ paginatedMovements.length }} trên tổng số {{ stockMovements.length }} bản ghi
         </div>
-        <div class="flex gap-2">
+        <div class="flex justify-center gap-2">
             <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
                 class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
                 <i class="fas fa-chevron-left"></i>
@@ -112,8 +156,9 @@
     </div>
 
     <!-- Movement Details Modal -->
-    <div v-if="showDetailsModal" class="fixed inset-0 backdrop-blur-sm bg-black/30 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 w-3/4 max-w-4xl shadow-lg rounded-md bg-white">
+    <div v-if="showDetailsModal"
+        class="fixed inset-0 backdrop-blur-sm bg-black/30 overflow-y-auto h-full w-full z-50 p-4">
+        <div class="relative top-10 mx-auto p-4 sm:p-5 w-full sm:w-3/4 max-w-4xl shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">
@@ -127,7 +172,7 @@
                     </button>
                 </div>
                 <div v-if="selectedMovement" class="mb-6">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Loại giao dịch</label>
                             <span :class="[
@@ -142,7 +187,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Người tạo</label>
                             <p class="mt-1 text-sm text-gray-900">{{ selectedMovement.user?.username || 'N/A'
-                                }}
+                            }}
                             </p>
                         </div>
                         <div>
@@ -203,14 +248,16 @@
     </div>
 
     <!-- Print Receipt Modal -->
-    <div v-if="showPrintModal" class="fixed inset-0 backdrop-blur-sm bg-black/30 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-10 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+    <div v-if="showPrintModal"
+        class="fixed inset-0 backdrop-blur-sm bg-black/30 overflow-y-auto h-full w-full z-50 p-4">
+        <div
+            class="relative top-10 mx-auto p-4 sm:p-5 border w-full sm:w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <div class="no-print flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">
                         In phiếu #{{ selectedMovement?.id }}
                     </h3>
-                    <div class="flex space-x-2">
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                         <button @click="printDocument"
                             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,16 +274,16 @@
                     </div>
                 </div>
 
-                <div class="receipt-content bg-white p-8" ref="receiptContent">
+                <div class="receipt-content bg-white p-4 sm:p-8" ref="receiptContent">
                     <div class="text-center mb-8">
-                        <h1 class="text-2xl font-bold mb-2">
+                        <h1 class="text-xl sm:text-2xl font-bold mb-2">
                             {{ selectedMovement?.type === 'import' ? 'PHIẾU NHẬP KHO' : 'PHIẾU XUẤT KHO' }}
                         </h1>
-                        <p class="text-lg">Số phiếu: <strong>#{{ selectedMovement?.id }}</strong></p>
+                        <p class="text-base sm:text-lg">Số phiếu: <strong>#{{ selectedMovement?.id }}</strong></p>
                         <p class="text-sm text-gray-600">Ngày: {{ formatDate(selectedMovement?.created_at) }}</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-8 mb-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-8">
                         <div>
                             <h3 class="font-semibold mb-2">Thông tin phiếu:</h3>
                             <p><strong>Loại:</strong>
@@ -252,67 +299,69 @@
 
                     <div class="mb-8">
                         <h3 class="font-semibold mb-4">Danh sách sản phẩm:</h3>
-                        <table class="w-full border-collapse border border-gray-300">
-                            <thead>
-                                <tr class="bg-gray-50">
-                                    <th class="border border-gray-300 px-4 py-2 text-left">STT</th>
-                                    <th class="border border-gray-300 px-4 py-2 text-left">Tên sản phẩm
-                                    </th>
-                                    <th class="border border-gray-300 px-4 py-2 text-left">SKU</th>
-                                    <th class="border border-gray-300 px-4 py-2 text-center">Số lượng
-                                    </th>
-                                    <th class="border border-gray-300 px-4 py-2 text-right">Đơn giá</th>
-                                    <th class="border border-gray-300 px-4 py-2 text-right">Thành tiền
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(item, index) in selectedMovement?.items" :key="item.id">
-                                    <td class="border border-gray-300 px-4 py-2 text-center">{{ index + 1
-                                    }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">{{
-                                        item.variant.product.name }}
-                                    </td>
-                                    <td class="border border-gray-300 px-4 py-2">{{ item.variant.sku }}
-                                    </td>
-                                    <td class="border border-gray-300 px-4 py-2 text-center">{{
-                                        item.quantity }}
-                                    </td>
-                                    <td class="border border-gray-300 px-4 py-2 text-right">{{
-                                        formatCurrency(item.unit_price) }}</td>
-                                    <td class="border border-gray-300 px-4 py-2 text-right">{{
-                                        formatCurrency(item.quantity * item.unit_price) }}</td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr class="bg-gray-50 font-semibold">
-                                    <td colspan="3" class="border border-gray-300 px-4 py-2 text-right">
-                                        Tổng cộng:
-                                    </td>
-                                    <td class="border border-gray-300 px-4 py-2 text-center">{{
-                                        totalQuantity }}
-                                    </td>
-                                    <td class="border border-gray-300 px-4 py-2 text-right">-</td>
-                                    <td class="border border-gray-300 px-4 py-2 text-right">{{
-                                        formatCurrency(totalAmount) }}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-collapse border border-gray-300 text-xs sm:text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="border border-gray-300 px-2 sm:px-4 py-2 text-left">STT</th>
+                                        <th class="border border-gray-300 px-2 sm:px-4 py-2 text-left">Tên sản phẩm
+                                        </th>
+                                        <th class="border border-gray-300 px-2 sm:px-4 py-2 text-left">SKU</th>
+                                        <th class="border border-gray-300 px-2 sm:px-4 py-2 text-center">Số lượng
+                                        </th>
+                                        <th class="border border-gray-300 px-2 sm:px-4 py-2 text-right">Đơn giá</th>
+                                        <th class="border border-gray-300 px-2 sm:px-4 py-2 text-right">Thành tiền
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index) in selectedMovement?.items" :key="item.id">
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2 text-center">{{ index + 1
+                                            }}</td>
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2">{{
+                                            item.variant.product.name }}
+                                        </td>
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2">{{ item.variant.sku }}
+                                        </td>
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2 text-center">{{
+                                            item.quantity }}
+                                        </td>
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
+                                            formatCurrency(item.unit_price) }}</td>
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
+                                            formatCurrency(item.quantity * item.unit_price) }}</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-gray-50 font-semibold">
+                                        <td colspan="3" class="border border-gray-300 px-2 sm:px-4 py-2 text-right">
+                                            Tổng cộng:
+                                        </td>
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2 text-center">{{
+                                            totalQuantity }}
+                                        </td>
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">-</td>
+                                        <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
+                                            formatCurrency(totalAmount) }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-8 mt-16">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 mt-8 sm:mt-16">
                         <div class="text-center">
-                            <p class="font-semibold mb-16">Người lập phiếu</p>
+                            <p class="font-semibold mb-8 sm:mb-16">Người lập phiếu</p>
                             <p class="border-t border-gray-400 pt-2">{{ selectedMovement?.user?.username ||
                                 'N/A' }}
                             </p>
                         </div>
                         <div class="text-center">
-                            <p class="font-semibold mb-16">Thủ kho</p>
+                            <p class="font-semibold mb-8 sm:mb-16">Thủ kho</p>
                             <p class="border-t border-gray-400 pt-2">_________________</p>
                         </div>
                         <div class="text-center">
-                            <p class="font-semibold mb-16">Giám đốc</p>
+                            <p class="font-semibold mb-8 sm:mb-16">Giám đốc</p>
                             <p class="border-t border-gray-400 pt-2">_________________</p>
                         </div>
                     </div>

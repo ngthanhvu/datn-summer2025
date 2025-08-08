@@ -34,7 +34,7 @@
                 <!-- Có ảnh thì hiển thị preview -->
                 <div v-if="formData[field.name]" class="relative inline-block mb-2">
                     <img :src="formData[field.name]" :alt="field.label"
-                        class="max-h-32 rounded-md border border-gray-300" />
+                        class="max-h-24 sm:max-h-32 rounded-md border border-gray-300" />
                     <button type="button" @click="removeImage(field.name)"
                         class="absolute top-1 right-1 bg-white text-red-600 text-xs px-2 py-1 rounded hover:bg-red-100">
                         Xoá ảnh
@@ -43,16 +43,16 @@
 
                 <!-- Nếu chưa có ảnh -->
                 <label v-else :for="field.name"
-                    class="block border-2 border-dashed border-gray-300 rounded-md py-10 text-center cursor-pointer hover:bg-gray-50">
+                    class="block border-2 border-dashed border-gray-300 rounded-md py-6 sm:py-10 text-center cursor-pointer hover:bg-gray-50">
                     <div class="text-gray-400 mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mx-auto" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-8 sm:h-8 mx-auto" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3m6-3V5a2 2 0 00-2-2H6a2 2 0 00-2 2v11" />
                         </svg>
                     </div>
-                    <p class="text-gray-600">Click để tải ảnh lên</p>
-                    <p class="text-gray-400 text-sm">PNG, JPG, GIF (tối đa 2MB)</p>
+                    <p class="text-gray-600 text-sm sm:text-base">Click để tải ảnh lên</p>
+                    <p class="text-gray-400 text-xs">PNG, JPG, GIF (tối đa 2MB)</p>
                 </label>
 
                 <!-- File input -->
@@ -65,7 +65,7 @@
                 <div v-if="field.description" class="text-sm text-gray-600 font-medium">{{ field.description }}</div>
 
                 <!-- Image Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                     <!-- Existing Images -->
                     <div v-for="(image, index) in getImagesArray(field.name)" :key="index"
                         class="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -80,7 +80,7 @@
 
                         <!-- Remove button -->
                         <button type="button" @click="removeMultipleImage(field.name, index)"
-                            class="absolute top-2 right-2 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110">
+                            class="absolute top-1 sm:top-2 right-1 sm:right-2 w-6 h-6 sm:w-7 sm:h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110">
                             ×
                         </button>
                     </div>
@@ -88,15 +88,16 @@
                     <!-- Add More Button -->
                     <label :for="`${field.name}_upload`"
                         class="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
-                        <div class="text-gray-400 group-hover:text-blue-500 mb-2 transition-colors duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
+                        <div
+                            class="text-gray-400 group-hover:text-blue-500 mb-1 sm:mb-2 transition-colors duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-8 sm:h-8" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4" />
                             </svg>
                         </div>
                         <p
-                            class="text-gray-600 group-hover:text-blue-600 text-sm font-medium transition-colors duration-200">
+                            class="text-gray-600 group-hover:text-blue-600 text-xs sm:text-sm font-medium transition-colors duration-200">
                             Thêm ảnh</p>
                         <p class="text-gray-400 text-xs mt-1">PNG, JPG, GIF</p>
                     </label>
@@ -490,5 +491,21 @@ img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+    }
+
+    .form-group label {
+        font-size: 0.875rem;
+    }
 }
 </style>

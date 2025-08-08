@@ -1,14 +1,14 @@
 <template>
-    <div class="max-w-4xl mx-auto p-6">
+    <div class="max-w-4xl mx-auto p-4 sm:p-6">
         <!-- Header -->
         <div class="mb-8">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Nhập kho sản phẩm</h1>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Nhập kho sản phẩm</h1>
                     <p class="text-gray-600">Tạo phiếu nhập kho mới cho các sản phẩm</p>
                 </div>
                 <router-link to="/admin/inventory"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 cursor-pointer">
+                    class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -20,16 +20,16 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
             <form @submit.prevent="submitForm">
-                <div class="px-6 py-4 border-b border-gray-200">
+                <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
                     <h2 class="text-xl font-semibold text-gray-900">Thông tin phiếu nhập</h2>
                 </div>
 
-                <div class="p-6 space-y-6">
+                <div class="p-4 sm:p-6 space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Loại giao
                                 dịch</label>
-                            <div class="flex space-x-4">
+                            <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
                                 <label class="flex items-center">
                                     <input type="radio" v-model="formData.type" value="import"
                                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
@@ -51,10 +51,10 @@
                         </div>
                     </div>
                     <div>
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
                             <h3 class="text-lg font-medium text-gray-900">Danh sách sản phẩm</h3>
                             <button type="button" @click="addProductItem"
-                                class="cursor-pointer inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                class="w-full sm:w-auto cursor-pointer inline-flex items-center justify-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 4v16m8-8H4"></path>
@@ -65,8 +65,8 @@
                         <div class="space-y-4">
                             <div v-for="(item, index) in formData.items" :key="index"
                                 class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                                    <div class="md:col-span-2">
+                                <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
+                                    <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Sản
                                             phẩm <span class="text-red-500">*</span></label>
                                         <select v-model="item.variant_id"
@@ -78,11 +78,12 @@
                                                 (SKU: {{ variant.sku }})
                                             </option>
                                         </select>
-                                        <div v-if="item.variant_id" class="flex items-center gap-4 mt-2">
+                                        <div v-if="item.variant_id"
+                                            class="flex flex-col sm:flex-row sm:items-center gap-4 mt-2">
                                             <img v-if="getVariantImage(item.variant_id)"
                                                 :src="getVariantImage(item.variant_id)" alt="Ảnh biến thể"
                                                 class="w-16 h-16 object-cover rounded" />
-                                            <div v-if="getVariantInfo(item.variant_id)">
+                                            <div v-if="getVariantInfo(item.variant_id)" class="flex-1">
                                                 <div class="text-sm font-medium">Tên: {{
                                                     getVariantInfo(item.variant_id).product?.name }}</div>
                                                 <div class="text-xs">Màu: <span class="font-semibold">{{
@@ -129,11 +130,11 @@
                         </div>
                     </div>
 
-                    <div v-if="formData.items.length > 0" class="bg-blue-50 rounded-lg p-6">
+                    <div v-if="formData.items.length > 0" class="bg-blue-50 rounded-lg p-4 sm:p-6">
                         <h3 class="text-lg font-medium text-blue-900 mb-4">Tổng kết phiếu {{ formData.type
                             === 'import'
                             ? 'nhập' : 'xuất' }}</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="text-center">
                                 <p class="text-sm text-blue-600">Tổng số sản phẩm</p>
                                 <p class="text-2xl font-bold text-blue-900">{{ formData.items.length }}</p>
@@ -151,14 +152,14 @@
                     </div>
                 </div>
 
-                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-                    <div class="flex justify-end space-x-3">
+                <div class="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                    <div class="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3">
                         <router-link to="/inventory/stock"
-                            class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            class="w-full sm:w-auto px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 text-center">
                             Hủy
                         </router-link>
                         <button type="submit" :disabled="!isFormValid || loading" :class="[
-                            'px-6 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 cursor-pointer',
+                            'w-full sm:w-auto px-6 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 cursor-pointer',
                             formData.type === 'import'
                                 ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
                                 : 'bg-red-600 hover:bg-red-700 focus:ring-red-500',

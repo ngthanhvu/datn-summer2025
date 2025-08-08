@@ -1,9 +1,10 @@
 <template>
-    <h2 class="text-2xl font-semibold text-gray-800 mb-8 text-center mt-5">
+    <h2 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 sm:mb-8 text-center mt-5">
         {{ isEditMode ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới' }}
     </h2>
-    <div class="p-6 pb-28 w-[90%] bg-white mx-auto border border-gray-200 mb-[50px] rounded-md relative">
-        <form @submit.prevent="handleSubmit" class="flex flex-col lg:flex-row gap-8 mb-3">
+    <div
+        class="p-4 sm:p-6 pb-20 sm:pb-28 w-full sm:w-[90%] bg-white mx-auto border border-gray-200 mb-[50px] rounded-md relative">
+        <form @submit.prevent="handleSubmit" class="flex flex-col lg:flex-row gap-6 sm:gap-8 mb-3">
             <!-- Cột trái -->
             <div class="flex-1 space-y-4">
                 <!-- Title -->
@@ -24,17 +25,18 @@
                         :class="{ 'border-red-500': errors.description }" placeholder="Nhập mô tả bài viết..."
                         rows="3"></textarea>
                     <span v-if="errors.description" class="text-red-500 text-sm mt-1">{{ errors.description
-                        }}</span>
+                    }}</span>
                 </div>
                 <!-- Image Upload -->
                 <div class="flex flex-col">
                     <label class="font-medium text-gray-700 mb-2">Hình ảnh <span class="text-red-500">*</span></label>
                     <div>
                         <label
-                            class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+                            class="flex flex-col items-center justify-center w-full h-32 sm:h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
                             <div class="flex flex-col items-center justify-center">
-                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
-                                <span class="text-gray-500 font-semibold">Click để tải ảnh lên</span>
+                                <i class="fas fa-cloud-upload-alt text-2xl sm:text-3xl text-gray-400 mb-2"></i>
+                                <span class="text-gray-500 font-semibold text-sm sm:text-base">Click để tải ảnh
+                                    lên</span>
                                 <span class="text-xs text-gray-400">PNG, JPG, GIF (tối đa 2MB)</span>
                             </div>
                             <input type="file" id="blog-image" accept="image/*" class="hidden"
@@ -42,12 +44,12 @@
                         </label>
                     </div>
                     <div v-if="errors.image" class="text-red-500 text-sm mt-1">{{ errors.image }}</div>
-                    <div v-if="formData.image" class="relative w-48 h-48 mt-4">
+                    <div v-if="formData.image" class="relative w-32 sm:w-48 h-32 sm:h-48 mt-4">
                         <img :src="formData.image" class="w-full h-full object-cover rounded-lg shadow" />
                         <button type="button" @click="removeImage"
-                            class="absolute top-2 right-2 p-2 rounded-full bg-white shadow hover:bg-gray-100"
+                            class="absolute top-2 right-2 p-1 sm:p-2 rounded-full bg-white shadow hover:bg-gray-100"
                             title="Xóa ảnh">
-                            <i class="fas fa-times text-red-500"></i>
+                            <i class="fas fa-times text-red-500 text-sm sm:text-base"></i>
                         </button>
                     </div>
                 </div>
@@ -65,7 +67,7 @@
                                 formData.status === 'published' ? 'translate-x-6' : 'translate-x-1'
                             ]"></span>
                         </button>
-                        <span class="ml-2">{{ formData.status === 'published' ? 'Đã xuất bản' : 'Nháp' }}</span>
+                        <span class="ml-2 text-sm">{{ formData.status === 'published' ? 'Đã xuất bản' : 'Nháp' }}</span>
                     </div>
                     <span v-if="errors.status" class="text-red-500 text-sm mt-1">{{ errors.status }}</span>
                 </div>
@@ -79,12 +81,13 @@
                 <span v-if="errors.content" class="text-red-500 text-sm mt-1">{{ errors.content }}</span>
             </div>
         </form>
-        <div class="absolute bottom-0 right-0 m-6 flex gap-4">
-            <button type="button" @click="handleCancel" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50">
+        <div class="absolute bottom-0 right-0 m-4 sm:m-6 flex flex-col sm:flex-row gap-2 sm:gap-4">
+            <button type="button" @click="handleCancel"
+                class="w-full sm:w-auto px-4 py-2 border rounded text-gray-600 hover:bg-gray-50 text-center">
                 Hủy
             </button>
             <button type="button" @click="handleSubmit" :disabled="loading"
-                class="bg-primary text-white rounded px-4 py-2 cursor-pointer hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed">
+                class="w-full sm:w-auto bg-primary text-white rounded px-4 py-2 cursor-pointer hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed">
                 {{ loading ? 'Đang xử lý...' : isEditMode ? 'Cập nhật' : 'Thêm mới' }}
             </button>
         </div>
@@ -247,7 +250,14 @@ const handleCancel = () => router.push('/admin/blogs')
 }
 
 :deep(.ck-editor__editable_inline) {
-    min-height: 400px;
-    max-height: 600px;
+    min-height: 300px;
+    max-height: 500px;
+}
+
+@media (max-width: 640px) {
+    :deep(.ck-editor__editable_inline) {
+        min-height: 250px;
+        max-height: 400px;
+    }
 }
 </style>

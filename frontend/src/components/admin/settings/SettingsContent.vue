@@ -5,19 +5,23 @@
             <p class="text-gray-600">Quản lý cài đặt của cửa hàng</p>
         </div>
 
-        <!-- Layout 2 cột -->
-        <div class="settings-layout flex">
-            <!-- Sidebar trái -->
-            <div class="settings-sidebar w-1/4 pr-4 border-r border-gray-200">
-                <div class="flex flex-col gap-2">
-                    <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
-                        :class="['px-4 py-2 rounded-l-md text-left cursor-pointer', activeTab === tab.key ? 'bg-white border-l-4 border-[#3BB77E] font-medium' : 'bg-gray-100 hover:bg-gray-200']">
+        <!-- Layout responsive -->
+        <div class="settings-layout flex flex-col lg:flex-row">
+            <!-- Sidebar - horizontal on mobile, vertical on desktop -->
+            <div class="settings-sidebar w-full lg:w-1/4 lg:pr-4 lg:border-r lg:border-gray-200 mb-4 lg:mb-0">
+                <div class="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible">
+                    <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key" :class="[
+                        'px-4 py-2 rounded-md lg:rounded-l-md lg:rounded-r-none text-left cursor-pointer whitespace-nowrap lg:whitespace-normal',
+                        activeTab === tab.key
+                            ? 'bg-white border-l-0 lg:border-l-4 border-[#3BB77E] font-medium shadow-sm lg:shadow-none'
+                            : 'bg-gray-100 hover:bg-gray-200'
+                    ]">
                         {{ tab.label }}
                     </button>
                 </div>
             </div>
-            <!-- Nội dung phải -->
-            <div class="settings-content w-3/4 pl-4">
+            <!-- Nội dung - full width on mobile -->
+            <div class="settings-content w-full lg:w-3/4 lg:pl-4">
                 <div class="rounded-md border border-gray-300 bg-white">
                     <SettingCard v-if="activeTab === 'general'" title="Thông tin cửa hàng" :fields="generalFields"
                         v-model="generalSettings" />
@@ -34,9 +38,9 @@
                     <SettingCard v-if="activeTab === 'banner'" title="Cài đặt banner" :fields="bannerFields"
                         v-model="bannerSettings" />
                 </div>
-                <div class="mt-6 text-right">
+                <div class="mt-6 text-center lg:text-right">
                     <button @click="handleSaveAll"
-                        class="bg-[#3BB77E] hover:bg-green-700 text-white font-medium px-6 py-2 rounded cursor-pointer">
+                        class="w-full sm:w-auto bg-[#3BB77E] hover:bg-green-700 text-white font-medium px-6 py-2 rounded cursor-pointer">
                         Lưu thay đổi
                     </button>
                 </div>
@@ -199,7 +203,13 @@ const bannerFields = [
 
 <style scoped>
 .settings-page {
-    padding: 1.5rem;
+    padding: 1rem;
+}
+
+@media (min-width: 640px) {
+    .settings-page {
+        padding: 1.5rem;
+    }
 }
 
 .page-header {
@@ -207,9 +217,34 @@ const bannerFields = [
 }
 
 .page-header h1 {
-    font-size: 1.875rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: #111827;
     margin-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .page-header h1 {
+        font-size: 1.875rem;
+    }
+}
+
+/* Custom scrollbar for mobile sidebar */
+.settings-sidebar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.settings-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.settings-sidebar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+.settings-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 </style>

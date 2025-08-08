@@ -1,27 +1,27 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-6 text-sm">
-        <div class="flex justify-between items-center mb-6">
-            <div class="flex gap-4">
-                <div class="relative">
+    <div class="bg-white rounded-lg shadow p-4 sm:p-6 text-sm">
+        <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="relative w-full sm:w-auto">
                     <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..." @input="handleSearch"
-                        class="border border-gray-300 rounded px-4 py-2 pl-10 w-64 focus:outline-none focus:border-primary">
+                        class="border border-gray-300 rounded px-4 py-2 pl-10 w-full sm:w-64 focus:outline-none focus:border-primary">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
-                <div class="relative">
+                <div class="relative w-full sm:w-auto">
                     <select v-model="selectedStatus"
-                        class="border border-gray-300 rounded px-4 py-2 w-56 focus:outline-none focus:border-primary appearance-none">
+                        class="border border-gray-300 rounded px-4 py-2 w-full sm:w-56 focus:outline-none focus:border-primary appearance-none">
                         <option value="">Tất cả trạng thái</option>
                         <option value="1">Hoạt động</option>
                         <option value="0">Vô hiệu</option>
                     </select>
                 </div>
-                <div class="relative">
+                <div class="relative w-full sm:w-auto">
                     <input v-model="selectedDate" type="date"
-                        class="border border-gray-300 rounded px-4 py-2 w-56 focus:outline-none focus:border-primary">
+                        class="border border-gray-300 rounded px-4 py-2 w-full sm:w-56 focus:outline-none focus:border-primary">
                 </div>
             </div>
             <router-link to="/admin/coupons/create"
-                class="bg-primary text-white rounded px-4 py-2 flex items-center gap-2 hover:bg-primary-dark transition-colors cursor-poiner">
+                class="w-full sm:w-auto bg-primary text-white rounded px-4 py-2 flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors cursor-pointer">
                 <i class="fas fa-plus"></i>
                 Thêm mới
             </router-link>
@@ -29,7 +29,9 @@
         <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {{ error }}
         </div>
-        <div v-else class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+
+        <!-- Desktop table -->
+        <div v-else class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white hidden md:block">
             <table class="w-full text-left">
                 <thead>
                     <tr class="border-b border-gray-300">
@@ -89,7 +91,6 @@
                             {{ formatPrice(item.min_order_value) }}
                         </td>
                         <td class="px-4 py-3">
-                            <!-- {{ formatPrice(item.max_discount_value) }} -->
                             {{
                                 item.max_discount_value != null ? formatPrice(item.max_discount_value) :
                                     'Giảm theo phần trăm'
@@ -150,11 +151,95 @@
             </table>
         </div>
 
-        <div v-if="!loading && !error" class="flex justify-between items-center mt-6">
-            <div class="text-sm text-gray-600">
+        <!-- Mobile card list -->
+        <div v-if="!props.isLoading && paginatedData.length > 0" class="space-y-3 md:hidden">
+            <div v-for="(item, index) in paginatedData" :key="'m-' + index"
+                class="rounded-lg border border-gray-200 p-3">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-semibold truncate">{{ item.name }}</div>
+                        <div class="text-xs text-gray-500 break-all">{{ item.code }}</div>
+                    </div>
+                    <div class="flex gap-1">
+                        <router-link :to="'/admin/coupons/edit/' + item.id"
+                            class="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                            title="Xem/Chỉnh sửa khuyến mãi">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                </path>
+                            </svg>
+                        </router-link>
+                        <button @click="handleDelete(item)"
+                            class="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+                            title="Xóa khuyến mãi">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="text-gray-500">Loại</div>
+                    <div class="text-right">
+                        <span :class="[
+                            'px-2 py-0.5 rounded text-[10px] inline-block',
+                            item.type === 'percent'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-purple-100 text-purple-700'
+                        ]">
+                            {{ item.type === 'percent' ? 'Giảm theo %' : 'Giảm số tiền' }}
+                        </span>
+                    </div>
+                    <div class="text-gray-500">Giá trị</div>
+                    <div class="text-right font-medium">
+                        <span :class="[
+                            item.type === 'percent'
+                                ? 'text-blue-600'
+                                : 'text-purple-600'
+                        ]">
+                            {{ item.type === 'percent' ? Math.round(parseFloat(item.value)) + '%' :
+                                formatPrice(item.value) }}
+                        </span>
+                    </div>
+                    <div class="text-gray-500">Đơn tối thiểu</div>
+                    <div class="text-right">{{ formatPrice(item.min_order_value) }}</div>
+                    <div class="text-gray-500">Giảm tối đa</div>
+                    <div class="text-right">
+                        {{ item.max_discount_value != null ? formatPrice(item.max_discount_value) : 'Giảm theo %' }}
+                    </div>
+                    <div class="text-gray-500">Giới hạn</div>
+                    <div class="text-right">{{ item.usage_limit === 0 ? 'Không giới hạn' : item.usage_limit }}</div>
+                    <div class="text-gray-500">Đã dùng</div>
+                    <div class="text-right">{{ item.used_count }}</div>
+                    <div class="text-gray-500">Ngày bắt đầu</div>
+                    <div class="text-right">{{ formatDate(item.start_date) }}</div>
+                    <div class="text-gray-500">Ngày kết thúc</div>
+                    <div class="text-right">{{ formatDate(item.end_date) }}</div>
+                    <div class="text-gray-500">Trạng thái</div>
+                    <div class="text-right">
+                        <button
+                            :class="['w-8 h-5 rounded-full relative transition-colors', item.is_active === 1 ? 'bg-primary' : 'bg-gray-300']"
+                            @click="toggleStatus(item)" :aria-pressed="item.is_active === 1"
+                            style="background-color: #3bb77e">
+                            <span
+                                :class="['absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform', item.is_active === 1 ? 'translate-x-3' : '']"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="!props.isLoading && !paginatedData.length" class="text-center text-gray-500 py-4 md:hidden">
+            Không có dữ liệu
+        </div>
+
+        <div v-if="!loading && !error" class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-6 gap-3">
+            <div class="text-sm text-gray-600 text-center sm:text-left">
                 Hiển thị {{ paginatedData.length }} trên tổng số {{ filteredData.length }} bản ghi
             </div>
-            <div class="flex gap-2">
+            <div class="flex justify-center gap-2">
                 <button :disabled="currentPage === 1" @click="currentPage--"
                     class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     <i class="fas fa-chevron-left"></i>
