@@ -1,40 +1,143 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-6 text-sm">
-        <div class="flex justify-between items-center mb-6">
-            <div class="flex gap-4">
+    <div class="bg-white rounded-lg shadow p-4 sm:p-6 text-sm">
+        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-4 sm:mb-6">
+            <!-- Filters - Stack on mobile -->
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
                 <div class="relative">
                     <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..." @input="handleSearch"
-                        class="border border-gray-300 rounded px-4 py-2 pl-10 w-64 focus:outline-none focus:border-primary">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        class="border border-gray-300 rounded px-3 sm:px-4 py-2 pl-9 sm:pl-10 w-full sm:w-64 text-xs sm:text-sm focus:outline-none focus:border-primary">
+                    <i class="fas fa-search absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs sm:text-sm"></i>
                 </div>
-                <div class="relative">
-                    <select v-model="selectedType"
-                        class="border border-gray-300 rounded px-4 py-2 w-56 focus:outline-none focus:border-primary appearance-none">
-                        <option value="">Tất cả loại trang</option>
-                        <option value="policy">Chính sách</option>
-                        <option value="support">Hỗ trợ</option>
-                        <option value="other">Khác</option>
-                    </select>
-                </div>
-                <div class="relative">
-                    <select v-model="selectedStatus"
-                        class="border border-gray-300 rounded px-4 py-2 w-56 focus:outline-none focus:border-primary appearance-none">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="1">Hoạt động</option>
-                        <option value="0">Vô hiệu</option>
-                    </select>
+                <div class="flex gap-3 sm:gap-4">
+                    <div class="relative flex-1 sm:flex-none">
+                        <select v-model="selectedType"
+                            class="border border-gray-300 rounded px-3 sm:px-4 py-2 w-full sm:w-56 text-xs sm:text-sm focus:outline-none focus:border-primary appearance-none">
+                            <option value="">Tất cả loại trang</option>
+                            <option value="policy">Chính sách</option>
+                            <option value="support">Hỗ trợ</option>
+                            <option value="other">Khác</option>
+                        </select>
+                    </div>
+                    <div class="relative flex-1 sm:flex-none">
+                        <select v-model="selectedStatus"
+                            class="border border-gray-300 rounded px-3 sm:px-4 py-2 w-full sm:w-56 text-xs sm:text-sm focus:outline-none focus:border-primary appearance-none">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="1">Hoạt động</option>
+                            <option value="0">Vô hiệu</option>
+                        </select>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Add button -->
             <button @click="$router.push('/admin/pages/create')"
-                class="bg-primary text-white rounded px-4 py-2 flex items-center gap-2 hover:bg-primary-dark transition-colors cursor-pointer">
-                <i class="fas fa-plus"></i>
+                class="bg-primary text-white rounded px-3 sm:px-4 py-2 flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors cursor-pointer text-xs sm:text-sm">
+                <i class="fas fa-plus text-xs sm:text-sm"></i>
                 Thêm mới
             </button>
         </div>
         <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {{ error }}
         </div>
-        <div v-else class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        
+        <div v-else>
+            <!-- Mobile Card Layout (hidden on desktop) -->
+            <div class="block sm:hidden">
+                <!-- Loading Cards -->
+                <div v-if="props.isLoading" class="space-y-4">
+                    <div v-for="n in 5" :key="n" class="bg-white border border-gray-200 rounded-lg p-4">
+                        <div class="animate-pulse">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="bg-gray-200 h-5 rounded w-32"></div>
+                                <div class="bg-gray-200 h-6 rounded w-16"></div>
+                            </div>
+                            <div class="bg-gray-200 h-4 rounded w-24 mb-2"></div>
+                            <div class="bg-gray-200 h-4 rounded w-20 mb-3"></div>
+                            <div class="flex justify-between items-center">
+                                <div class="bg-gray-200 h-4 rounded w-28"></div>
+                                <div class="bg-gray-200 h-8 rounded w-20"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div v-else-if="paginatedData.length === 0" class="text-center py-8">
+                    <i class="fas fa-file-alt text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-600">Không có trang nào</p>
+                </div>
+                
+                <!-- Page Cards -->
+                <div v-else class="space-y-4">
+                    <div v-for="(item, index) in paginatedData" :key="index" 
+                         class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        
+                        <!-- Header: Title and Status -->
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-medium text-gray-900 text-sm leading-tight mb-1 truncate">
+                                    {{ item.title }}
+                                </h3>
+                                <div class="text-xs text-gray-500 mb-2">
+                                    <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                        {{ item.slug }}
+                                    </span>
+                                </div>
+                            </div>
+                                                    <button
+                            :class="['w-10 h-6 rounded-full relative transition-colors ml-3 flex-shrink-0', item.status ? 'bg-primary' : 'bg-gray-300']"
+                            @click="toggleStatus(item)" :aria-pressed="item.status"
+                            :title="item.status ? 'Vô hiệu hóa' : 'Kích hoạt'">
+                                <span
+                                    :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', item.status ? 'translate-x-4' : '']"></span>
+                            </button>
+                        </div>
+                        
+                        <!-- Meta Info -->
+                        <div class="grid grid-cols-2 gap-4 text-xs text-gray-500 mb-3">
+                            <div>
+                                <span class="font-medium">Loại:</span>
+                                <span :class="[
+                                    'ml-1 px-2 py-1 rounded text-xs',
+                                    getTypeBadgeClass(item.type)
+                                ]">
+                                    {{ getTypeLabel(item.type) }}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="font-medium">Thứ tự:</span>
+                                <span class="ml-1">{{ item.sort_order }}</span>
+                            </div>
+                            <div class="col-span-2">
+                                <span class="font-medium">Ngày tạo:</span>
+                                <span class="ml-1">{{ formatDate(item.created_at) }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex gap-2 pt-3 border-t border-gray-200">
+                            <button @click="$router.push(`/admin/pages/${item.id}/edit`)"
+                                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150 text-xs">
+                                <i class="fas fa-edit mr-1"></i>
+                                Sửa
+                            </button>
+                            <button @click="viewPage(item)"
+                                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-150 text-xs">
+                                <i class="fas fa-eye mr-1"></i>
+                                Xem
+                            </button>
+                                                    <button @click="handleDelete(item)"
+                            class="flex-1 inline-flex items-center justify-center px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150 text-xs">
+                            <i class="fas fa-trash mr-1"></i>
+                            Xóa
+                        </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop Table Layout (hidden on mobile) -->
+            <div class="hidden sm:block overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
             <table class="w-full text-left">
                 <thead>
                     <tr class="border-b border-gray-300">
@@ -123,23 +226,27 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
-        <div v-if="!loading && !error" class="flex justify-between items-center mt-6">
-            <div class="text-sm text-gray-600">
+        <!-- Pagination -->
+        <div v-if="!loading && !error" class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mt-4 sm:mt-6 pt-4 border-t border-gray-200">
+            <div class="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                 Hiển thị {{ paginatedData.length }} trên tổng số {{ filteredData.length }} bản ghi
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 justify-center">
                 <button :disabled="currentPage === 1" @click="currentPage--"
-                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    <i class="fas fa-chevron-left"></i>
+                    class="px-2 sm:px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm">
+                    <i class="fas fa-chevron-left mr-1"></i>
+                    <span class="hidden sm:inline">Trước</span>
                 </button>
-                <span class="px-3 py-1">
+                <span class="px-2 sm:px-3 py-1 text-xs sm:text-sm">
                     Trang {{ currentPage }} / {{ totalPages }}
                 </span>
                 <button :disabled="currentPage === totalPages" @click="currentPage++"
-                    class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    <i class="fas fa-chevron-right"></i>
+                    class="px-2 sm:px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm">
+                    <span class="hidden sm:inline">Sau</span>
+                    <i class="fas fa-chevron-right ml-1"></i>
                 </button>
             </div>
         </div>
@@ -278,6 +385,13 @@ const toggleStatus = async (page) => {
         console.error('Error updating page status:', error)
         push.error('Có lỗi xảy ra khi cập nhật trạng thái trang!')
     }
+}
+
+const viewPage = (page) => {
+    // Open page in new tab to view
+    const baseUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
+    const pageUrl = `${baseUrl}/page/${page.slug}`
+    window.open(pageUrl, '_blank')
 }
 
 // Watch for filter changes

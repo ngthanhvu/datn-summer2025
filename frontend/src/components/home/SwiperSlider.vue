@@ -2,24 +2,63 @@
 <template>
   <Swiper :modules="[Autoplay, Navigation, Pagination]" :slides-per-view="1" :loop="true" :autoplay="{ delay: 3000 }"
     navigation pagination class="w-full">
-    <SwiperSlide v-for="(image, index) in images" :key="index">
-      <img :src="image" class="w-full object-cover" />
+    <!-- <SwiperSlide v-for="(image, index) in images" :key="index">
+      <img :src="image" class="w-full object-cover" /> -->
+    <SwiperSlide v-for="(image, index) in bannerImages" :key="index">
+      <img :src="image" :alt="`Banner ${index + 1}`" class="w-full object-cover" @error="handleImageError(index)" />
     </SwiperSlide>
   </Swiper>
 </template>
 
 <script setup>
+import { computed, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Autoplay, Navigation, Pagination } from 'swiper/modules'
-
+import { useSetting } from '../../composable/useSettingsApi'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
-const images = [
+const { settings, fetchSettings } = useSetting()
+
+const defaultImages = [
   'https://theme.hstatic.net/200000696635/1001257291/14/slider_2.jpg?v=107',
   'https://theme.hstatic.net/200000696635/1001257291/14/slider_1.jpg?v=107',
 ]
+
+onMounted(async () => {
+  await fetchSettings()
+})
+
+const bannerImages = computed(() => {
+  const bannersData = settings.value.banners
+
+  if (!bannersData) return defaultImages
+
+  let parsed = []
+
+  if (typeof bannersData === 'string') {
+    if (bannersData.startsWith('[') && bannersData.endsWith(']')) {
+      try {
+        parsed = JSON.parse(bannersData)
+      } catch {
+        parsed = bannersData.split(',')
+      }
+    } else {
+      parsed = bannersData.split(',')
+    }
+  } else if (Array.isArray(bannersData)) {
+    parsed = bannersData
+  }
+
+  const clean = parsed.filter(img => img && img.trim())
+
+  return clean.length > 0 ? clean : defaultImages
+})
+
+const handleImageError = (index) => {
+  console.error(`Không thể load banner ${index + 1}`)
+}
 </script>
 
 <style scoped>

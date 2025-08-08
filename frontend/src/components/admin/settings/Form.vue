@@ -34,7 +34,7 @@
                 <!-- Có ảnh thì hiển thị preview -->
                 <div v-if="formData[field.name]" class="relative inline-block mb-2">
                     <img :src="formData[field.name]" :alt="field.label"
-                        class="max-h-32 rounded-md border border-gray-300" />
+                        class="max-h-24 sm:max-h-32 rounded-md border border-gray-300" />
                     <button type="button" @click="removeImage(field.name)"
                         class="absolute top-1 right-1 bg-white text-red-600 text-xs px-2 py-1 rounded hover:bg-red-100">
                         Xoá ảnh
@@ -43,26 +43,76 @@
 
                 <!-- Nếu chưa có ảnh -->
                 <label v-else :for="field.name"
-                    class="block border-2 border-dashed border-gray-300 rounded-md py-10 text-center cursor-pointer hover:bg-gray-50">
+                    class="block border-2 border-dashed border-gray-300 rounded-md py-6 sm:py-10 text-center cursor-pointer hover:bg-gray-50">
                     <div class="text-gray-400 mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mx-auto" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-8 sm:h-8 mx-auto" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3m6-3V5a2 2 0 00-2-2H6a2 2 0 00-2 2v11" />
                         </svg>
                     </div>
-                    <p class="text-gray-600">Click để tải ảnh lên</p>
-                    <p class="text-gray-400 text-sm">PNG, JPG, GIF (tối đa 2MB)</p>
+                    <p class="text-gray-600 text-sm sm:text-base">Click để tải ảnh lên</p>
+                    <p class="text-gray-400 text-xs">PNG, JPG, GIF (tối đa 2MB)</p>
                 </label>
 
                 <!-- File input -->
                 <input type="file" class="hidden" :id="field.name" :name="field.name" accept="image/*"
                     @change="(e) => handleImageUpload(e, field.name)" />
             </div>
+
+            <!-- Multiple Images (for banners) -->
+            <div v-else-if="field.type === 'images'" class="space-y-4">
+                <div v-if="field.description" class="text-sm text-gray-600 font-medium">{{ field.description }}</div>
+
+                <!-- Image Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                    <!-- Existing Images -->
+                    <div v-for="(image, index) in getImagesArray(field.name)" :key="index"
+                        class="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <img :src="image" :alt="`${field.label} ${index + 1}`"
+                            class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                            @error="handleImageError" />
+
+                        <!-- Overlay on hover -->
+                        <div
+                            class="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200">
+                        </div>
+
+                        <!-- Remove button -->
+                        <button type="button" @click="removeMultipleImage(field.name, index)"
+                            class="absolute top-1 sm:top-2 right-1 sm:right-2 w-6 h-6 sm:w-7 sm:h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110">
+                            ×
+                        </button>
+                    </div>
+
+                    <!-- Add More Button -->
+                    <label :for="`${field.name}_upload`"
+                        class="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
+                        <div
+                            class="text-gray-400 group-hover:text-blue-500 mb-1 sm:mb-2 transition-colors duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-8 sm:h-8" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <p
+                            class="text-gray-600 group-hover:text-blue-600 text-xs sm:text-sm font-medium transition-colors duration-200">
+                            Thêm ảnh</p>
+                        <p class="text-gray-400 text-xs mt-1">PNG, JPG, GIF</p>
+                    </label>
+                </div>
+
+                <!-- File input -->
+                <input type="file" class="hidden" :id="`${field.name}_upload`" multiple accept="image/*"
+                    @change="(e) => handleMultipleImageUpload(e, field.name)" />
+            </div>
+
             <!-- Password Input -->
             <input v-else-if="field.type === 'password'" :id="field.name" v-model="formData[field.name]" type="password"
                 :placeholder="field.placeholder"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                class="tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-px-3 tw-py-2 tw-text-sm focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500" />
+
             <!-- Main Image Upload -->
             <div v-else-if="field.type === 'mainImage'" class="image-upload">
                 <div v-if="field.description" class="text-sm text-gray-500 mb-2">{{ field.description }}</div>
@@ -277,6 +327,79 @@ const removeAdditionalImage = (index) => {
 const triggerAdditionalImagesUpload = () => {
     document.getElementById('additionalImages').click()
 }
+
+const getImagesArray = (fieldName) => {
+    const value = formData.value[fieldName]
+
+    if (!value) return []
+
+    // If it's already an array, return it
+    if (Array.isArray(value)) {
+        return value
+    }
+
+    // If it's a string (maybe JSON), try to parse it
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value)
+            if (Array.isArray(parsed)) {
+                return parsed
+            } else {
+                return [value]
+            }
+        } catch {
+            // If not JSON, treat as single image
+            return [value]
+        }
+    }
+
+    return []
+}
+
+const handleMultipleImageUpload = async (event, fieldName) => {
+    const files = Array.from(event.target.files)
+    const existingImages = getImagesArray(fieldName)
+
+    const processFile = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                resolve(e.target.result)
+            }
+            reader.onerror = (error) => {
+                reject(error)
+            }
+            reader.readAsDataURL(file)
+        })
+    }
+
+    const newImages = await Promise.all(files.map(processFile))
+    const updatedImages = [...existingImages, ...newImages]
+
+    formData.value = {
+        ...formData.value,
+        [fieldName]: updatedImages
+    }
+
+    // Reset input
+    event.target.value = ''
+}
+
+const removeMultipleImage = (fieldName, index) => {
+    const existingImages = getImagesArray(fieldName)
+    const updatedImages = existingImages.filter((_, i) => i !== index)
+
+    formData.value = {
+        ...formData.value,
+        [fieldName]: updatedImages
+    }
+}
+
+// Error handling for images
+const handleImageError = (event) => {
+    // Fallback to a default image or show an error message
+    event.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MEg2NVY1MEg3NVY0MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTc1IDUwSDY1VjYwSDc1VjUwWiIgZmlsbD0iIzlDQTNBRiIvPgo8cGF0aCBkPSJNNzUgNjBINjVWNzBINzVWNjBaIiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik04NSA0MEg3NVY1MEg4NVY0MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTg1IDUwSDc1VjYwSDg1VjUwWiIgZmlsbD0iIzlDQTNBRiIvPgo8cGF0aCBkPSJNODUgNjBINzVWNzBIODVWNjBaIiBmaWxsPSIjOUNBM0FGIi8+Cjx0ZXh0IHg9Ijc1IiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjc3NDhEIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7huqNuIGluaCBuaMOgbjwvdGV4dD4KPC9zdmc+'
+}
 </script>
 
 <style scoped>
@@ -351,83 +474,38 @@ const triggerAdditionalImagesUpload = () => {
     transform: translateX(24px);
 }
 
-.image-upload {
-    width: 100%;
-}
-
-.image-preview {
-    position: relative;
-    width: 150px;
-    height: 150px;
-}
-
-.image-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 6px;
-}
-
-.remove-image {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #ef4444;
-    color: white;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.upload-placeholder {
-    height: 150px;
-    border: 2px dashed #e5e7eb;
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    color: #6b7280;
-}
-
-.upload-placeholder i {
-    font-size: 2rem;
-}
-
-.hidden {
-    display: none;
-}
-
 .error-message {
     color: #ef4444;
     font-size: 0.875rem;
 }
 
-.additional-images-upload {
-    width: 100%;
-}
-
-.image-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-top: 0.5rem;
-}
-
-.image-grid .image-preview,
-.image-grid .upload-placeholder {
-    aspect-ratio: 1;
-    width: 100%;
-}
-
-.image-grid .upload-placeholder {
+/* Ensure images display properly */
+img {
+    display: block;
+    max-width: 100%;
     height: auto;
+}
+
+/* Fix for aspect-square images */
+.aspect-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+    }
+
+    .form-group label {
+        font-size: 0.875rem;
+    }
 }
 </style>

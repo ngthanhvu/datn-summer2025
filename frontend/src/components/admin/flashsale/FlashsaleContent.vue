@@ -1,29 +1,33 @@
 <template>
-    <div class="bg-[#f7f8fa] min-h-screen p-6">
-        <h1 class="text-3xl font-bold">Quản lý Flash Sale</h1>
-        <div class="text-gray-500 mb-6">Quản lý các chương trình Flash Sale của bạn</div>
-        <div class="bg-white rounded-xl shadow p-6">
-            <div class="flex gap-4 mb-4 flex-wrap">
-                <div class="relative flex-1 min-w-[220px]">
-                    <input class="border border-gray-300 rounded px-3 py-2 w-full pl-10" placeholder="Tìm kiếm..." />
+    <div class="bg-[#f7f8fa] min-h-screen p-3 sm:p-6">
+        <h1 class="text-2xl sm:text-3xl font-bold">Quản lý Flash Sale</h1>
+        <div class="text-gray-500 mb-4 sm:mb-6">Quản lý các chương trình Flash Sale của bạn</div>
+        <div class="bg-white rounded-xl shadow p-3 sm:p-6">
+            <!-- Mobile-first filter layout -->
+            <div class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 mb-4 sm:flex-wrap">
+                <div class="relative flex-1 min-w-full sm:min-w-[220px]">
+                    <input class="border border-gray-300 rounded px-3 py-2 w-full pl-10 text-sm" placeholder="Tìm kiếm..." />
                     <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
-                <select class="border border-gray-300 rounded px-3 py-2 min-w-[180px]">
-                    <option>Tất cả trạng thái</option>
-                    <option>Đang diễn ra</option>
-                    <option>Kết thúc</option>
-                </select>
-                <div class="relative min-w-[180px]">
-                    <input class="border border-gray-300 rounded px-3 py-2 w-full" type="date" />
+                <div class="flex gap-2 sm:gap-4">
+                    <select class="border border-gray-300 rounded px-3 py-2 flex-1 sm:min-w-[180px] text-sm">
+                        <option>Tất cả trạng thái</option>
+                        <option>Đang diễn ra</option>
+                        <option>Kết thúc</option>
+                    </select>
+                    <div class="relative flex-1 sm:min-w-[180px]">
+                        <input class="border border-gray-300 rounded px-3 py-2 w-full text-sm" type="date" />
+                    </div>
                 </div>
                 <router-link to="/admin/flashsale/create"
-                    class="ml-auto bg-[#3BB77E] hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 cursor-pointer">
+                    class="w-full sm:w-auto sm:ml-auto bg-[#3BB77E] hover:bg-green-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2 cursor-pointer text-sm">
                     <i class="fa fa-plus"></i> Thêm mới
                 </router-link>
             </div>
             <div v-if="loading" class="text-center py-8">Đang tải dữ liệu...</div>
             <div v-if="error" class="text-center text-red-500 py-4">{{ error }}</div>
-            <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white"
+            <!-- Desktop table view -->
+            <div class="hidden lg:block overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white"
                 v-if="!loading && !error">
                 <table class="w-full bg-white rounded-xl shadow-sm text-sm">
                     <thead>
@@ -92,27 +96,93 @@
                 </table>
             </div>
 
+            <!-- Mobile card view -->
+            <div class="lg:hidden space-y-3" v-if="!loading && !error">
+                <div v-if="!Array.isArray(flashSales) || !flashSales[0]" class="text-center text-gray-400 py-6">
+                    Không có dữ liệu
+                </div>
+                <div v-for="(item, idx) in paginatedFlashSales" :key="item.id"
+                    class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900 text-sm">{{ item.name }}</h3>
+                            <p class="text-xs text-gray-500 mt-1">#{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button
+                                :class="['w-8 h-5 rounded-full relative transition-colors', item.active ? 'bg-primary' : 'bg-gray-300']"
+                                @click="toggleStatus(item)" :aria-pressed="item.active"
+                                style="background-color: #3bb77e">
+                                <span
+                                    :class="['absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform', item.active ? 'translate-x-3' : '']"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Sản phẩm:</span>
+                            <span v-if="Array.isArray(item.products) && item.products[0]" class="text-green-600">Có sản phẩm</span>
+                            <span v-else class="text-gray-500">Không có sản phẩm</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Thời gian:</span>
+                            <span class="text-gray-900 text-right">{{ item.start_time }} ~ {{ item.end_time }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Lặp lại:</span>
+                            <span v-if="item.repeat" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">Lặp lại</span>
+                            <span v-else class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">Không</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                        <router-link :to="`/admin/flashsale/${item.id}/edit`"
+                            class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors duration-150 text-xs font-medium"
+                            title="Sửa">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                </path>
+                            </svg>
+                            Sửa
+                        </router-link>
+                        <button
+                            class="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors duration-150 text-xs font-medium"
+                            @click="handleDelete(item.id)" title="Xóa">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg>
+                            Xóa
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Pagination -->
-            <div v-if="!loading && !error && totalPages > 1" class="flex justify-between items-center mt-6">
-                <div class="text-sm text-gray-600">
+            <div v-if="!loading && !error && totalPages > 1" class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3">
+                <div class="text-xs sm:text-sm text-gray-600 order-2 sm:order-1">
                     Hiển thị {{ paginatedFlashSales.length }} trên tổng số {{ flashSales.length }} bản ghi
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 order-1 sm:order-2">
                     <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
-                        class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                        class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer text-sm">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <span class="px-3 py-1">
+                    <span class="px-3 py-1 text-sm">
                         Trang {{ currentPage }} / {{ totalPages }}
                     </span>
                     <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)"
-                        class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                        class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer text-sm">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
             </div>
         </div>
     </div>
+    
 </template>
 
 <script setup>

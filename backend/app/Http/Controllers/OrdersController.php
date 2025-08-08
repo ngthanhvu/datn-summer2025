@@ -16,6 +16,7 @@ use App\Models\StockMovementItem;
 use App\Models\User;
 use App\Mail\ReturnRejected;
 use App\Models\Products;
+use App\Notifications\NewOrderNotification;
 
 class OrdersController extends Controller
 {
@@ -175,6 +176,10 @@ class OrdersController extends Controller
                 $user = Auth::user();
                 if ($user && !empty($user->email)) {
                     Mail::to($user->email)->send(new PaymentConfirmation($order));
+                }
+                $admin = \App\Models\User::where('role', 'admin')->first();
+                if ($admin) {
+                    $admin->notify(new NewOrderNotification($order));
                 }
                 DB::commit();
                 return response()->json([

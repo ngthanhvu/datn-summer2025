@@ -1,15 +1,15 @@
 <template>
     <div class="order-detail-page container mx-auto">
         <!-- Header Section -->
-        <div class="header-section px-6 mt-3">
-            <div class="flex justify-between items-start">
+        <div class="px-4 sm:px-6 mt-3">
+            <div class="flex flex-col gap-3 md:flex-row md:justify-between md:items-start">
                 <div class="flex items-center space-x-4">
                     <button @click="goBack" class="text-gray-600 hover:text-gray-800 cursor-pointer">
                         <i class="fas fa-arrow-left text-xl"></i>
                     </button>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Đơn hàng #{{ orderId }}</h1>
-                        <div class="flex items-center space-x-2 mt-1">
+                        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Đơn hàng #{{ orderId }}</h1>
+                        <div class="flex flex-wrap items-center gap-2 mt-1">
                             <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                                 {{ orderStatusText }}
                             </span>
@@ -17,26 +17,27 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center space-x-3">
+                <div class="flex flex-col md:flex-row md:items-center md:space-x-3 gap-3">
                     <!-- Nhóm cập nhật trạng thái -->
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select v-model="selectedStatus" class="border border-gray-300 rounded px-4 py-2 text-sm">
+                    <div class="flex flex-col md:flex-row md:items-center gap-2">
+                        <select v-model="selectedStatus"
+                            class="border border-gray-300 rounded px-4 py-2 text-sm w-full md:w-auto">
                             <option v-for="opt in statusOptions" :value="opt.value" :key="opt.value">{{ opt.label }}
                             </option>
                         </select>
                         <select v-model="selectedPaymentStatus"
-                            class="border border-gray-300 rounded px-4 py-2 text-sm">
+                            class="border border-gray-300 rounded px-4 py-2 text-sm w-full md:w-auto">
                             <option v-for="opt in paymentStatusOptions" :value="opt.value" :key="opt.value">{{
                                 opt.label }}</option>
                         </select>
                         <button
                             @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })"
-                            class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">Gửi</button>
+                            class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 w-full md:w-auto">Gửi</button>
                     </div>
                     <!-- Nhóm duyệt/từ chối hoàn hàng -->
                     <div v-if="currentOrder?.return_status === 'requested'"
-                        class="flex flex-col items-end gap-2 mt-2 md:mt-0">
-                        <span class="text-xs text-gray-500 font-medium mb-1">Xử lý yêu cầu hoàn hàng:</span>
+                        class="flex flex-col md:flex-row md:items-center gap-2 mt-2 md:mt-0 md:ml-2">
+                        <span class="text-xs text-gray-500 font-medium">Xử lý yêu cầu hoàn hàng:</span>
                         <div class="flex gap-2">
                             <button @click="handleApproveReturn"
                                 class="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700">
@@ -48,7 +49,8 @@
                             </button>
                         </div>
                     </div>
-                    <button class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                    <button
+                        class="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 w-full md:w-auto">
                         <i class="fas fa-print mr-2"></i>
                         In
                     </button>
@@ -68,12 +70,12 @@
         </div>
 
         <!-- Main Content -->
-        <div v-else-if="currentOrder" class="main-content p-6 min-h-screen">
+        <div v-else-if="currentOrder" class="main-content p-4 sm:p-6 min-h-screen">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Left Column -->
                 <div class="space-y-6">
                     <!-- Details Card -->
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">Chi tiết</h3>
 
@@ -85,8 +87,9 @@
                                 <img :src="item.variant?.product?.main_image?.image_path"
                                     class="w-12 h-12 object-cover rounded" :alt="item.variant?.product?.name" />
                                 <div class="flex-1">
-                                    <h4 class="font-medium text-gray-900">{{ item.variant?.product?.name }}</h4>
-                                    <p class="text-sm text-gray-500">{{ item.variant?.sku }}</p>
+                                    <h4 class="font-medium text-gray-900 truncate">{{ item.variant?.product?.name }}
+                                    </h4>
+                                    <p class="text-sm text-gray-500 break-all">{{ item.variant?.sku }}</p>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-sm text-gray-500">x{{ item.quantity }}</div>
@@ -121,10 +124,10 @@
                     </div>
 
                     <!-- History Card -->
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Trạng thái đơn hàng</h3>
-                        <div class="flex items-center justify-between">
-                            <div class="flex flex-col items-center relative">
+                        <div class="flex items-center justify-between overflow-x-auto no-scrollbar">
+                            <div class="flex flex-col items-center relative min-w-[72px]">
                                 <div
                                     class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,8 +138,8 @@
                                 <span class="text-sm mt-2">Đặt hàng</span>
                                 <span class="text-xs text-gray-500">{{ formatDate(currentOrder?.created_at) }}</span>
                             </div>
-                            <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
-                            <div class="flex flex-col items-center relative">
+                            <div class="flex-1 h-0.5 bg-gray-200 mx-2 sm:mx-4"></div>
+                            <div class="flex flex-col items-center relative min-w-[72px]">
                                 <div :class="[
                                     'w-10 h-10 rounded-full flex items-center justify-center text-white',
                                     currentOrder?.status === 'pending' ? 'bg-yellow-500' : 'bg-green-500'
@@ -152,8 +155,8 @@
                                         formatDate(currentOrder?.updated_at)
                                     }}</span>
                             </div>
-                            <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
-                            <div class="flex flex-col items-center relative">
+                            <div class="flex-1 h-0.5 bg-gray-200 mx-2 sm:mx-4"></div>
+                            <div class="flex flex-col items-center relative min-w-[72px]">
                                 <div :class="[
                                     'w-10 h-10 rounded-full flex items-center justify-center text-white',
                                     ['shipping', 'completed'].includes(currentOrder?.status) ? 'bg-green-500' : 'bg-gray-300'
@@ -167,9 +170,9 @@
                                 <span class="text-xs text-gray-500">{{ ['shipping',
                                     'completed'].includes(currentOrder?.status) ? 'Đang giao' : 'Chờ xử lý' }}</span>
                             </div>
-                            <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
+                            <div class="flex-1 h-0.5 bg-gray-200 mx-2 sm:mx-4"></div>
                             <div v-if="currentOrder?.status === 'completed'"
-                                class="flex flex-col items-center relative">
+                                class="flex flex-col items-center relative min-w-[72px]">
                                 <div :class="[
                                     'w-10 h-10 rounded-full flex items-center justify-center text-white',
                                     'bg-green-500'
@@ -185,7 +188,7 @@
                                 </span>
                             </div>
                             <div v-else-if="currentOrder?.status === 'cancelled'"
-                                class="flex flex-col items-center relative">
+                                class="flex flex-col items-center relative min-w-[72px]">
                                 <div :class="[
                                     'w-10 h-10 rounded-full flex items-center justify-center text-white',
                                     'bg-red-500'
@@ -231,7 +234,7 @@
                 <!-- Right Column -->
                 <div class="space-y-6">
                     <!-- Customer Info Card -->
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">Thông tin khách hàng</h3>
                         </div>
@@ -239,47 +242,49 @@
                             <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
                                 <i class="fas fa-user text-gray-600"></i>
                             </div>
-                            <div class="flex-1">
-                                <h4 class="font-medium text-gray-900">{{ currentOrder?.user?.username }}</h4>
-                                <p class="text-sm text-gray-500">{{ currentOrder?.user?.email }}</p>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-medium text-gray-900 truncate">{{ currentOrder?.user?.username }}</h4>
+                                <p class="text-sm text-gray-500 break-all">{{ currentOrder?.user?.email }}</p>
                                 <p class="text-sm text-gray-500">IP: 192.158.1.38</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Delivery Card -->
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">Vận chuyển</h3>
 
                         </div>
                         <div class="space-y-2">
-                            <div class="flex justify-between">
+                            <div class="flex justify-between gap-2">
                                 <span class="text-gray-600">Mã theo dõi:</span>
-                                <a href="#" class="text-blue-600 underline font-medium bg-gray-300 px-2 py-1 rounded">{{
-                                    currentOrder?.tracking_code
-                                    ||
-                                    'SPX037739199373' }}</a>
+                                <a href="#"
+                                    class="text-blue-600 underline font-medium bg-gray-300 px-2 py-1 rounded truncate max-w-[60%] text-right">{{
+                                        currentOrder?.tracking_code
+                                        ||
+                                        'SPX037739199373' }}</a>
                             </div>
                         </div>
                     </div>
 
                     <!-- Shipping Card -->
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">Địa chỉ giao hàng</h3>
 
                         </div>
                         <div class="space-y-2">
-                            <p class="text-gray-600"><span class=" font-medium text-gray-700">Địa chỉ:</span> {{
-                                getFullAddress(currentOrder?.address) }}</p>
+                            <p class="text-gray-600"><span class=" font-medium text-gray-700">Địa chỉ:</span> <span
+                                    class="break-words">{{
+                                        getFullAddress(currentOrder?.address) }}</span></p>
                             <p class="text-gray-600"><span class=" font-medium text-gray-700">Số điện thoại:</span> {{
                                 currentOrder?.address?.phone }}</p>
                         </div>
                     </div>
 
                     <!-- Payment Card -->
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">Thanh toán</h3>
 
@@ -485,11 +490,6 @@ onMounted(async () => {
     min-height: 100vh;
 }
 
-.header-section {
-    position: sticky;
-    top: 0;
-}
-
 .main-content {
     padding-top: 1.5rem;
 }
@@ -505,5 +505,14 @@ onMounted(async () => {
     font-weight: 600;
     color: #111827;
     margin-bottom: 1rem;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 </style>

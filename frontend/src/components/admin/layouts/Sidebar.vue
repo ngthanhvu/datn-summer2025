@@ -112,8 +112,8 @@ const showProductsMenu = ref(false)
 const showInventoryMenu = ref(false)
 const unreadMessages = ref(0)
 const unapprovedReviews = ref(0)
-
 const unreadContacts = ref(0)
+
 // Gắn dữ liệu thực tế sau nếu cần
 unreadMessages.value = 3
 unapprovedReviews.value = 2
@@ -200,6 +200,9 @@ unapprovedReviews.value = 2
     top: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    z-index: 50;
+    transition: transform 0.3s ease-in-out;
+    /* box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1); */
 }
 
 .sidebar-logo {
@@ -207,6 +210,7 @@ unapprovedReviews.value = 2
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 2rem;
+    position: relative;
 }
 
 .logo-text {

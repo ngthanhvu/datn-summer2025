@@ -1,8 +1,8 @@
 <template>
-    <div v-if="isVisible" class="fixed inset-0 bg-gray-900/70 bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+    <div v-if="isVisible" class="fixed inset-0 bg-gray-900/70 bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto">
             <!-- Header -->
-            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900">
                     Chỉnh sửa thông tin khách hàng
                 </h3>
@@ -15,7 +15,7 @@
             </div>
 
             <!-- Form -->
-            <form @submit.prevent="handleSubmit" class="p-6">
+            <form @submit.prevent="handleSubmit" class="p-4 sm:p-6">
                 <div class="space-y-4">
                     <!-- Avatar -->
                     <div class="flex justify-center mb-4">
@@ -103,7 +103,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Trạng thái tài khoản
                         </label>
-                        <div class="flex items-center space-x-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
                             <label class="flex items-center">
                                 <input type="radio" v-model="formData.status" :value="1"
                                     class="w-4 h-4 text-primary border-gray-300 focus:ring-primary cursor-pointer" />
@@ -119,13 +119,14 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                <div
+                    class="flex flex-col sm:flex-row sm:justify-end sm:space-x-3 space-y-2 sm:space-y-0 mt-6 pt-4 border-t border-gray-200">
                     <button type="button" @click="closeModal"
-                        class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer">
+                        class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer">
                         Hủy
                     </button>
                     <button type="submit" :disabled="isSubmitting"
-                        class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                        class="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
                         <span v-if="isSubmitting">Đang lưu...</span>
                         <span v-else>Lưu thay đổi</span>
                     </button>

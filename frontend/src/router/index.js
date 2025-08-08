@@ -91,7 +91,8 @@ const routes = [
             },
             {
                 path: '/trang-ca-nhan',
-                component: ProfilePage
+                component: ProfilePage,
+                meta: { requiresAuth: true }
             },
             {
                 path: '/kho-voucher',

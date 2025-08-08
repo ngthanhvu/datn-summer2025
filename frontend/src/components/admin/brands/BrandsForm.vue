@@ -1,11 +1,12 @@
 <template>
-    <div class="flex justify-between items-center mb-6 pt-6 pl-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pt-6 pl-4 sm:pl-6 gap-4">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-900">Thêm thương hiệu mới</h1>
-            <p class="text-gray-600">Điền thông tin để tạo thương hiệu mới</p>
+            <h1 class="text-xl sm:text-2xl font-semibold text-gray-900">Thêm thương hiệu mới</h1>
+            <p class="text-gray-600 text-sm sm:text-base">Điền thông tin để tạo thương hiệu mới</p>
         </div>
     </div>
-    <div class="bg-white shadow p-10 w-[50%] mx-auto rounded-[10px] border border-gray-300">
+    <div
+        class="bg-white shadow p-4 sm:p-6 lg:p-10 w-full sm:w-[80%] lg:w-[60%] xl:w-[50%] mx-auto rounded-[10px] border border-gray-300">
         <div class="mb-4">
             <label class="block font-medium mb-1">Tên thương hiệu <span class="text-red-500">*</span></label>
             <input v-model="formData.name" type="text"
@@ -34,8 +35,8 @@
             <div v-if="formErrors.parent_id" class="text-red-500 text-sm">{{ formErrors.parent_id }}</div>
         </div>
 
-        <div class="mb-4 flex items-center">
-            <label class="block font-medium mb-1 mr-2">Trạng thái</label>
+        <div class="mb-4 flex items-center gap-2">
+            <label class="block font-medium mb-1">Trạng thái</label>
             <button @click="formData.is_active = !formData.is_active" :class="[
                 'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
                 formData.is_active ? 'bg-[#3BB77E]' : 'bg-gray-200'
@@ -45,20 +46,20 @@
                     formData.is_active ? 'translate-x-6' : 'translate-x-1'
                 ]"></span>
             </button>
-            <span class="ml-2">{{ formData.is_active ? 'Kích hoạt' : 'Ẩn' }}</span>
+            <span class="text-sm sm:text-base">{{ formData.is_active ? 'Kích hoạt' : 'Ẩn' }}</span>
         </div>
 
         <div class="mb-4">
             <label class="block font-medium mb-1">
                 Logo thương hiệu <span class="text-red-500">*</span>
             </label>
-            <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary cursor-pointer"
+            <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-primary cursor-pointer"
                 @click="$refs.imageInput.click()">
                 <input ref="imageInput" type="file" class="hidden" accept="image/png, image/jpeg, image/gif"
                     @change="onImageChange" />
                 <div class="flex flex-col items-center">
-                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400"></i>
-                    <p class="mt-2 text-gray-600">Click để tải logo lên</p>
+                    <i class="fas fa-cloud-upload-alt text-2xl sm:text-3xl text-gray-400"></i>
+                    <p class="mt-2 text-gray-600 text-sm sm:text-base">Click để tải logo lên</p>
                     <p class="text-xs text-gray-400">PNG, JPG, GIF (tối đa 2MB)</p>
                 </div>
             </div>
@@ -66,7 +67,7 @@
                 {{ formErrors.image }}
             </div>
             <div v-if="imagePreview" class="mt-4 relative inline-block">
-                <img :src="imagePreview" alt="Preview" class="max-h-40 rounded-lg shadow object-cover" />
+                <img :src="imagePreview" alt="Preview" class="max-h-32 sm:max-h-40 rounded-lg shadow object-cover" />
                 <button @click="removeImage"
                     class="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-100" title="Xóa logo">
                     <i class="fas fa-times text-red-500"></i>
@@ -74,9 +75,9 @@
             </div>
         </div>
 
-        <div class="flex justify-end gap-4 mt-6">
+        <div class="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 mt-6">
             <router-link to="/admin/brands"
-                class="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 cursor-pointer">
+                class="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 cursor-pointer text-center">
                 Hủy
             </router-link>
             <button @click="handleSubmit"

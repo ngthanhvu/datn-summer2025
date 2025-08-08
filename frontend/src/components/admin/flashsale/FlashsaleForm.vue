@@ -1,40 +1,40 @@
 <template>
-    <div class="bg-[#f7f8fa] p-6 min-h-screen text-sm">
-        <div class="flex justify-between items-center mb-6 pt-6 pl-6">
+    <div class="bg-[#f7f8fa] p-3 sm:p-6 min-h-screen text-sm">
+        <div class="flex justify-between items-center mb-4 sm:mb-6 pt-3 sm:pt-6 pl-3 sm:pl-6">
             <div>
-                <h1 class="text-2xl font-bold mb-2">{{ props.editData ? 'Cập nhật' : 'Thêm' }} chiến dịch Flash Sale
+                <h1 class="text-xl sm:text-2xl font-bold mb-2">{{ props.editData ? 'Cập nhật' : 'Thêm' }} chiến dịch Flash Sale
                 </h1>
-                <div class="text-gray-500 mb-4">Điền thông tin để {{ props.editData ? 'cập nhật' : 'tạo' }} chương trình
+                <div class="text-gray-500 mb-4 text-sm">Điền thông tin để {{ props.editData ? 'cập nhật' : 'tạo' }} chương trình
                     Flash Sale</div>
             </div>
         </div>
         <!-- <div v-if="error" class="text-red-500 mb-2">{{ error }}</div> -->
         <div v-if="success" class="text-green-600 mb-2">{{ success }}</div>
-        <div class="flex flex-col md:flex-row gap-8">
-            <div class="bg-white rounded shadow p-6 md:w-2/5 mb-6 md:mb-0 text-sm">
+        <div class="flex flex-col lg:flex-row gap-4 lg:gap-8">
+            <div class="bg-white rounded shadow p-4 sm:p-6 lg:w-2/5 mb-4 lg:mb-0 text-sm">
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-1">Tên chiến dịch <span class="text-red-500">*
                             </span></label>
                         <input v-model="form.name"
-                            class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                            class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
                             placeholder="Nhập tên chiến dịch" />
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-col sm:flex-row gap-2">
                         <div class="flex-1">
                             <label class="block text-sm font-medium mb-1">Thời gian bắt đầu <span
                                     class="text-red-500">*</span></label>
                             <input type="datetime-local" v-model="form.start"
-                                class="input border-gray-300 w-full border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100" />
+                                class="input border-gray-300 w-full border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm" />
                         </div>
                         <div class="flex-1">
                             <label class="block text-sm font-medium mb-1">Thời gian kết thúc <span
                                     class="text-red-500">*</span></label>
                             <input type="datetime-local" v-model="form.end"
-                                class="input border-gray-300 w-full border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100" />
+                                class="input border-gray-300 w-full border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm" />
                         </div>
                     </div>
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                         <div class="flex items-center gap-2">
                             <label class="text-sm">Tự động lặp lại</label>
                             <button @click="form.repeat = !form.repeat"
@@ -47,7 +47,7 @@
                         <div v-if="form.repeat" class="flex items-center gap-2">
                             <label class="text-sm">Số phút lặp lại</label>
                             <input v-model="form.repeatMinutes" type="number" min="1"
-                                class="input w-20 border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                                class="input w-20 border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
                                 placeholder="Phút" />
                         </div>
                     </div>
@@ -55,21 +55,23 @@
                         <i class="fas fa-info-circle mr-1"></i>
                         Khi chương trình kết thúc, hệ thống sẽ tự động tạo lại chương trình mới sau {{ form.repeatMinutes || 60 }} phút
                     </div>
-                    <div class="flex items-center gap-4 mt-2">
-                        <div class="flex items-center gap-2">
-                            <label class="text-sm">Tự động tăng số lượng bán</label>
-                            <button @click="form.autoIncrease = !form.autoIncrease"
-                                :class="form.autoIncrease ? 'bg-[#3bb77e]' : 'bg-gray-300'"
-                                class="relative w-12 h-7 rounded-full transition-colors duration-300 outline-none flex items-center cursor-pointer">
-                                <span :class="form.autoIncrease ? 'translate-x-6' : 'translate-x-1'"
-                                    class="absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300"></span>
-                            </button>
-                        </div>
-                        <div v-if="form.autoIncrease" class="flex items-center gap-2">
-                            <label class="text-sm">Tăng mỗi 1 giờ</label>
-                            <input v-model="form.increaseAmount" type="number" min="1"
-                                class="input w-20 border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                                placeholder="SL" />
+                    <div class="flex flex-col gap-3 mt-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm">Tự động tăng số lượng bán</label>
+                                <button @click="form.autoIncrease = !form.autoIncrease"
+                                    :class="form.autoIncrease ? 'bg-[#3bb77e]' : 'bg-gray-300'"
+                                    class="relative w-12 h-7 rounded-full transition-colors duration-300 outline-none flex items-center cursor-pointer">
+                                    <span :class="form.autoIncrease ? 'translate-x-6' : 'translate-x-1'"
+                                        class="absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300"></span>
+                                </button>
+                            </div>
+                            <div v-if="form.autoIncrease" class="flex items-center gap-2">
+                                <label class="text-sm">Tăng mỗi 1 giờ</label>
+                                <input v-model="form.increaseAmount" type="number" min="1"
+                                    class="input w-20 border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    placeholder="SL" />
+                            </div>
                         </div>
                         <div class="flex items-center gap-2">
                             <label class="text-sm">Active</label>
@@ -85,20 +87,22 @@
                         <i class="fas fa-clock mr-1"></i>
                         Hệ thống sẽ tự động tăng số lượng đã bán thêm {{ form.increaseAmount || 1 }} mỗi 1 giờ, không vượt quá số lượng tổng
                     </div>
-                    <div class="flex gap-2 mt-6">
-                        <button class="px-3 py-2 bg-[#3BB77E] text-white cursor-pointer rounded hover:bg-[#74c09d]"
+                    <div class="flex flex-col sm:flex-row gap-2 mt-6">
+                        <button class="px-3 py-2 bg-[#3BB77E] text-white cursor-pointer rounded hover:bg-[#74c09d] text-sm"
                             :disabled="loading" @click="submit">{{
                                 loading ?
                                     'Đang lưu...' :
                                     (props.editData ? 'Cập nhật' : 'Hoàn tất') }}</button>
-                        <button class="px-3 py-2 bg-[#81aacc] text-white rounded hover:bg-[#498dc4] cursor-pointer"
+                        <button class="px-3 py-2 bg-[#81aacc] text-white rounded hover:bg-[#498dc4] cursor-pointer text-sm"
                             @click="goToSelectProducts">Thêm sản phẩm</button>
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded shadow p-6 md:w-3/5 text-sm">
-                <h3 class="font-semibold text-xl mb-2">Sản phẩm Flash Sale</h3>
-                <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <div class="bg-white rounded shadow p-4 sm:p-6 lg:w-3/5 text-sm">
+                <h3 class="font-semibold text-lg sm:text-xl mb-2">Sản phẩm Flash Sale</h3>
+                
+                <!-- Desktop table view -->
+                <div class="hidden lg:block overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
                     <table class="w-full bg-white rounded text-sm">
                         <thead>
                             <tr class="border-b border-gray-300">
@@ -123,13 +127,13 @@
                                 <td class="px-3 py-2">{{ item.product?.discount_price ?
                                     formatPrice(item.product.discount_price) :
                                     (item.discount_price ? formatPrice(item.discount_price) : 'N/A') }}</td>
-                                <td class="px-3 py-2"><input v-model="item.flashPrice" class="input w-24 border border-gray-300 rounded p-1"
+                                <td class="px-3 py-2"><input v-model="item.flashPrice" class="input w-24 border border-gray-300 rounded p-1 text-sm"
                                         placeholder="Giá FS" /></td>
                                 <td class="px-3 py-2">
-                                    <input v-model="item.sold" class="input w-12 border border-gray-300 rounded p-1"
+                                    <input v-model="item.sold" class="input w-12 border border-gray-300 rounded p-1 text-sm"
                                         placeholder="Đã bán" />
                                 </td>
-                                <td class="px-3 py-2"><input v-model="item.quantity" class="input w-16 border border-gray-300 rounded p-1"
+                                <td class="px-3 py-2"><input v-model="item.quantity" class="input w-16 border border-gray-300 rounded p-1 text-sm"
                                         placeholder="SL" />
                                 </td>
                                 <td class="px-3 py-2"><input type="checkbox" v-model="item.realQty" /></td>
@@ -149,11 +153,63 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="flex justify-center items-center gap-2 mt-2">
-                    <button class="px-3 py-1 rounded bg-gray-200" :disabled="productPage === 1"
+
+                <!-- Mobile card view -->
+                <div class="lg:hidden space-y-3">
+                    <div v-if="paginatedProducts.length === 0" class="text-center py-4 text-gray-500">
+                        Không có sản phẩm
+                    </div>
+                    <div v-for="(item, idx) in paginatedProducts" :key="item.id"
+                        class="border border-gray-200 rounded-lg p-3 bg-white">
+                        <div class="flex items-start gap-3 mb-3">
+                            <img :src="getMainImage(item)" class="w-12 h-12 rounded flex-shrink-0" />
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-medium text-sm text-gray-900 truncate">{{ item.name }}</h4>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <div>Giá thường: {{ item.product?.price ? formatPrice(item.product.price) : (item.price ? formatPrice(item.price) : 'N/A') }}</div>
+                                    <div>Giá KM: {{ item.product?.discount_price ? formatPrice(item.product.discount_price) : (item.discount_price ? formatPrice(item.discount_price) : 'N/A') }}</div>
+                                </div>
+                            </div>
+                            <button class="text-red-500 hover:text-red-700 p-1" @click="removeProduct(idx)" title="Xóa">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div>
+                                <label class="block text-gray-600 mb-1">Giá Flash Sale</label>
+                                <input v-model="item.flashPrice" class="input w-full border border-gray-300 rounded p-2 text-sm"
+                                    placeholder="Giá FS" />
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 mb-1">Đã bán</label>
+                                <input v-model="item.sold" class="input w-full border border-gray-300 rounded p-2 text-sm"
+                                    placeholder="Đã bán" />
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 mb-1">Số lượng</label>
+                                <input v-model="item.quantity" class="input w-full border border-gray-300 rounded p-2 text-sm"
+                                    placeholder="SL" />
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 mb-1">SL Thật</label>
+                                <div class="flex items-center pt-2">
+                                    <input type="checkbox" v-model="item.realQty" class="w-4 h-4" />
+                                    <span class="ml-2 text-xs text-gray-600">Sử dụng số lượng thật</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center items-center gap-2 mt-4">
+                    <button class="px-3 py-1 rounded bg-gray-200 text-sm" :disabled="productPage === 1"
                         @click="productPage > 1 && (productPage--)">&lt;</button>
-                    <span>Trang {{ productPage }} / {{ productTotalPages }}</span>
-                    <button class="px-3 py-1 rounded bg-gray-200" :disabled="productPage === productTotalPages"
+                    <span class="text-sm">Trang {{ productPage }} / {{ productTotalPages }}</span>
+                    <button class="px-3 py-1 rounded bg-gray-200 text-sm" :disabled="productPage === productTotalPages"
                         @click="productPage < productTotalPages && (productPage++)">&gt;</button>
                 </div>
             </div>

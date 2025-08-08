@@ -1,15 +1,15 @@
 <template>
-    <form @submit.prevent="handleSubmit" class="space-y-8">
+    <form @submit.prevent="handleSubmit" class="space-y-6 sm:space-y-8">
         <!-- 2-column grid for info and SEO -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <!-- Thông tin trang -->
-            <div class="bg-white rounded-2xl shadow p-8 flex flex-col gap-4">
-                <h3 class="text-lg font-semibold mb-4">Thông tin trang</h3>
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow p-4 sm:p-6 lg:p-8 flex flex-col gap-3 sm:gap-4">
+                <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Thông tin trang</h3>
                 <div>
                     <label for="title" class="block text-sm font-medium mb-1">Tên trang <span
                             class="text-red-500">*</span></label>
                     <input id="title" v-model="formData.title" type="text"
-                        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-100 focus:border-green-500"
+                        class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500"
                         placeholder="Nhập tên trang" required />
                     <span v-if="errors.title" class="text-red-500 text-xs mt-1">{{ errors.title }}</span>
                 </div>
@@ -17,7 +17,7 @@
                     <label for="type" class="block text-sm font-medium mb-1">Loại trang <span
                             class="text-red-500">*</span></label>
                     <select id="type" v-model="formData.type"
-                        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-100 focus:border-green-500"
+                        class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500"
                         required>
                         <option value="">Chọn loại trang</option>
                         <option value="policy">Chính sách</option>
@@ -29,7 +29,7 @@
                 <div>
                     <label for="sort_order" class="block text-sm font-medium mb-1">Thứ tự hiển thị</label>
                     <input id="sort_order" v-model.number="formData.sort_order" type="number" min="0"
-                        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-100 focus:border-green-500"
+                        class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500"
                         placeholder="0" />
                     <span v-if="errors.sort_order" class="text-red-500 text-xs mt-1">{{ errors.sort_order }}</span>
                 </div>
@@ -55,13 +55,13 @@
                 </div>
             </div>
             <!-- SEO & Meta -->
-            <div class="bg-white rounded-2xl shadow p-8 flex flex-col gap-4">
-                <h3 class="text-lg font-semibold mb-4">SEO & Meta</h3>
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow p-4 sm:p-6 lg:p-8 flex flex-col gap-3 sm:gap-4">
+                <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">SEO & Meta</h3>
                 <div>
                     <label for="meta_title" class="block text-sm font-medium mb-1">Meta Title <span
                             class="text-red-500">*</span></label>
                     <input id="meta_title" v-model="formData.meta_title" type="text"
-                        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-100 focus:border-green-500"
+                        class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500"
                         placeholder="Meta title cho SEO..." />
                     <span v-if="errors.meta_title" class="text-red-500 text-xs mt-1">{{ errors.meta_title }}</span>
                 </div>
@@ -69,7 +69,7 @@
                     <label for="meta_description" class="block text-sm font-medium mb-1">Meta Description <span
                             class="text-red-500">*</span></label>
                     <textarea id="meta_description" v-model="formData.meta_description"
-                        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-100 focus:border-green-500"
+                        class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500"
                         rows="4" placeholder="Meta description cho SEO..."></textarea>
                     <span v-if="errors.meta_description" class="text-red-500 text-xs mt-1">{{ errors.meta_description
                         }}</span>
@@ -77,19 +77,19 @@
             </div>
         </div>
         <!-- Full-width for content -->
-        <div class="bg-white rounded-2xl shadow p-8">
-            <h3 class="text-lg font-semibold mb-4">Nội dung trang <span class="text-red-500">*</span></h3>
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow p-4 sm:p-6 lg:p-8">
+            <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Nội dung trang <span class="text-red-500">*</span></h3>
             <div>
                 <CKEditor v-model="formData.content" />
                 <span v-if="errors.content" class="text-red-500 text-xs mt-1">{{ errors.content }}</span>
             </div>
         </div>
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-4 pt-4 border-t border-gray-300 mt-4">
+        <div class="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4 pt-4 border-t border-gray-300 mt-4">
             <button type="button" @click="$router.go(-1)"
-                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Hủy</button>
+                class="px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm sm:text-base order-2 sm:order-1">Hủy</button>
             <button type="submit" :disabled="loading"
-                class="bg-green-500 text-white rounded px-4 py-2 hover:bg-green-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                class="bg-green-500 text-white rounded px-3 sm:px-4 py-2 hover:bg-green-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base order-1 sm:order-2">
                 <div v-if="loading" class="animate-spin rounded-full h-4 w-4 border-b border-white mr-2">
                 </div>
                 Tạo trang

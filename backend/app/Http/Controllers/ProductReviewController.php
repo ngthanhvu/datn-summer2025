@@ -7,18 +7,52 @@ use App\Models\ReviewImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Products;
+use App\Notifications\NewCommentNotification;
 
 class ProductReviewController extends Controller
 {
     private $badWords = [
-        'cặc', 'lồn', 'chó đẻ', 'rác rưởi', 'lừa đảo', 'hàng giả', 'sủa', 'thối', 'đểu', 'vớ vẩn',
-        'tào lao', 'phịa', 'bẩn thỉu', 'khốn nạn', 'mạt sát', 'vô dụng', 'lởm', 'đểu cáng', 'lừa gạt',
-        'hạ phẩm', 'mất dạy', 'kệch cỡm', 'bội bạc', 'chửi rủa', 'ngớ ngẩn', 'xấu xí', 'không ra gì',
-        'dối trá', 'độc hại', 'lôi thôi', 'kém chất lượng', 'vô giá trị', 'giả mạo', 'đểu cáng', 'lởm', 'lừa gạt',
+        'cặc',
+        'lồn',
+        'chó đẻ',
+        'rác rưởi',
+        'lừa đảo',
+        'hàng giả',
+        'sủa',
+        'thối',
+        'đểu',
+        'vớ vẩn',
+        'tào lao',
+        'phịa',
+        'bẩn thỉu',
+        'khốn nạn',
+        'mạt sát',
+        'vô dụng',
+        'lởm',
+        'đểu cáng',
+        'lừa gạt',
+        'hạ phẩm',
+        'mất dạy',
+        'kệch cỡm',
+        'bội bạc',
+        'chửi rủa',
+        'ngớ ngẩn',
+        'xấu xí',
+        'không ra gì',
+        'dối trá',
+        'độc hại',
+        'lôi thôi',
+        'kém chất lượng',
+        'vô giá trị',
+        'giả mạo',
+        'đểu cáng',
+        'lởm',
+        'lừa gạt',
     ];
-    
 
-    private function containsBadWords($content) {
+
+    private function containsBadWords($content)
+    {
         foreach ($this->badWords as $word) {
             if (stripos($content, $word) !== false) {
                 return true;
@@ -34,7 +68,7 @@ class ProductReviewController extends Controller
             ->whereNull('parent_id');
         if ($request->get('badwords') == 1) {
             $badWords = $this->badWords;
-            $query->where(function($q) use ($badWords) {
+            $query->where(function ($q) use ($badWords) {
                 foreach ($badWords as $word) {
                     $q->orWhere('content', 'LIKE', "%$word%");
                 }
@@ -91,6 +125,11 @@ class ProductReviewController extends Controller
                     'image_path' => $path,
                 ]);
             }
+        }
+
+        $admin = \App\Models\User::where('role', 'admin')->first();
+        if ($admin) {
+            $admin->notify(new NewCommentNotification($review));
         }
 
         return response()->json($review->load(['images']), 201);
@@ -183,8 +222,8 @@ class ProductReviewController extends Controller
         $query = ProductReview::with(['user', 'replies.images', 'images'])
             ->where('product_slug', 'LIKE', '%' . $slug . '%')
             ->whereNull('parent_id')
-            ->where(function($q) use ($userId) {
-                $q->where(function($q2) {
+            ->where(function ($q) use ($userId) {
+                $q->where(function ($q2) {
                     $q2->where('is_approved', true)->where('is_hidden', false);
                 });
                 if ($userId) {

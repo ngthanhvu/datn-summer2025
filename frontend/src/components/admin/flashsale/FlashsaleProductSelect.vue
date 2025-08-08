@@ -1,25 +1,27 @@
 <template>
-    <div class="bg-[#f7f8fa] p-6 min-h-screen">
-        <div class="bg-[#3BB77E] text-white p-4 text-xl font-bold rounded-t">Thêm Flash Sale</div>
-        <div class="bg-white p-6 rounded-b shadow">
-            <div class="mb-4 flex items-center gap-4">
+    <div class="bg-[#f7f8fa] p-3 sm:p-6 min-h-screen">
+        <div class="bg-[#3BB77E] text-white p-3 sm:p-4 text-lg sm:text-xl font-bold rounded-t">Thêm Flash Sale</div>
+        <div class="bg-white p-3 sm:p-6 rounded-b shadow">
+            <div class="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <input v-model="search"
-                    class="input w-80 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                    class="input flex-1 sm:w-80 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
                     placeholder="Gõ tên sản phẩm để tìm kiếm" />
-                <button class="bg-[#3BB77E] text-white rounded px-4 py-2 cursor-pointer" @click="showDiscount = true"><i
+                <button class="bg-[#3BB77E] text-white rounded px-4 py-2 cursor-pointer text-sm whitespace-nowrap" @click="showDiscount = true"><i
                         class="fa fa-percent"></i> Áp dụng giảm giá hàng loạt</button>
             </div>
-            <div class="mb-8">
-                <h3 class="font-bold mb-2">Tất cả sản phẩm</h3>
-                <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <div class="mb-6 sm:mb-8">
+                <h3 class="font-bold mb-2 text-sm sm:text-base">Tất cả sản phẩm</h3>
+                
+                <!-- Desktop table view -->
+                <div class="hidden lg:block overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
                     <table class="w-full bg-white rounded">
                         <thead class="border-b border-gray-300">
                             <tr>
-                                <th class="px-2 py-2">Ảnh</th>
-                                <th class="px-2 py-2">Tên sản phẩm</th>
-                                <th class="px-2 py-2">Giá thường</th>
-                                <th class="px-2 py-2">Giá KM</th>
-                                <th class="px-2 py-2">Thao Tác</th>
+                                <th class="px-2 py-2 text-sm">Ảnh</th>
+                                <th class="px-2 py-2 text-sm">Tên sản phẩm</th>
+                                <th class="px-2 py-2 text-sm">Giá thường</th>
+                                <th class="px-2 py-2 text-sm">Giá KM</th>
+                                <th class="px-2 py-2 text-sm">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -27,77 +29,97 @@
                                 class="border-b border-gray-300 text-center">
                                 <td class="px-2 py-2 flex items-center justify-center"><img :src="getMainImage(item)"
                                         class="w-10 h-10 rounded" /></td>
-                                <td class="px-2 py-2">{{ item.name }}</td>
-                                <td class="px-2 py-2">{{ item.price }}</td>
-                                <td class="px-2 py-2">{{ item.discount_price }}</td>
+                                <td class="px-2 py-2 text-sm">{{ item.name }}</td>
+                                <td class="px-2 py-2 text-sm">{{ item.price }}</td>
+                                <td class="px-2 py-2 text-sm">{{ item.discount_price }}</td>
                                 <td class="px-2 py-2">
                                     <span v-if="selectedProducts.some(p => p.id === item.id)"
-                                        class="text-green-600 font-semibold">Đã chọn</span>
-                                    <button v-else class="bg-[#3BB77E] text-white px-2 py-1 rounded cursor-pointer"
+                                        class="text-green-600 font-semibold text-xs">Đã chọn</span>
+                                    <button v-else class="bg-[#3BB77E] text-white px-2 py-1 rounded cursor-pointer text-xs"
                                         @click="addProduct(item)"> <i class="fas fa-plus"></i> </button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="flex justify-center items-center gap-2 mt-2">
-                    <button class="px-3 py-1 rounded bg-gray-200" :disabled="page === 1"
+
+                <!-- Mobile card view -->
+                <div class="lg:hidden space-y-3">
+                    <div v-for="item in paginatedProducts" :key="item.id"
+                        class="border border-gray-200 rounded-lg p-3 bg-white">
+                        <div class="flex items-center gap-3">
+                            <img :src="getMainImage(item)" class="w-12 h-12 rounded flex-shrink-0" />
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-medium text-sm text-gray-900 truncate">{{ item.name }}</h4>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <div>Giá thường: {{ item.price }}</div>
+                                    <div>Giá KM: {{ item.discount_price }}</div>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span v-if="selectedProducts.some(p => p.id === item.id)"
+                                    class="text-green-600 font-semibold text-xs bg-green-50 px-2 py-1 rounded">Đã chọn</span>
+                                <button v-else class="bg-[#3BB77E] text-white px-3 py-1 rounded cursor-pointer text-xs"
+                                    @click="addProduct(item)">
+                                    <i class="fas fa-plus mr-1"></i>Chọn
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center items-center gap-2 mt-4">
+                    <button class="px-3 py-1 rounded bg-gray-200 text-sm" :disabled="page === 1"
                         @click="page > 1 && (page--)">&lt;</button>
-                    <span>Trang {{ page }} / {{ totalPages }}</span>
-                    <button class="px-3 py-1 rounded bg-gray-200" :disabled="page === totalPages"
+                    <span class="text-sm">Trang {{ page }} / {{ totalPages }}</span>
+                    <button class="px-3 py-1 rounded bg-gray-200 text-sm" :disabled="page === totalPages"
                         @click="page < totalPages && (page++)">&gt;</button>
                 </div>
             </div>
             <div class="mb-4">
-                <h3 class="font-bold mb-2">Sản phẩm đã chọn</h3>
-                <div class="overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                <h3 class="font-bold mb-2 text-sm sm:text-base">Sản phẩm đã chọn</h3>
+                
+                <!-- Desktop table view -->
+                <div class="hidden lg:block overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
                     <table class="w-full bg-white rounded text-center">
                         <thead>
                             <tr class="border-b border-gray-300">
-                                <th class="px-2 py-2">Ảnh</th>
-                                <th class="px-2 py-2">Tên sản phẩm</th>
-                                <th class="px-2 py-2">Giá thường</th>
-                                <th class="px-2 py-2">Giá KM</th>
-                                <th class="px-2 py-2">Giá Flash sale</th>
-                                <th class="px-2 py-2">Đã bán</th>
-                                <th class="px-2 py-2">Số lượng</th>
-                                <th class="px-2 py-2">SL Thật</th>
-                                <th class="px-2 py-2">Thao tác</th>
+                                <th class="px-2 py-2 text-sm">Ảnh</th>
+                                <th class="px-2 py-2 text-sm">Tên sản phẩm</th>
+                                <th class="px-2 py-2 text-sm">Giá thường</th>
+                                <th class="px-2 py-2 text-sm">Giá KM</th>
+                                <th class="px-2 py-2 text-sm">Giá Flash sale</th>
+                                <th class="px-2 py-2 text-sm">Đã bán</th>
+                                <th class="px-2 py-2 text-sm">Số lượng</th>
+                                <th class="px-2 py-2 text-sm">SL Thật</th>
+                                <th class="px-2 py-2 text-sm">Thao tác</th>
                             </tr>
                         </thead>
-
                         <tbody>
                             <tr v-for="(item, idx) in paginatedSelectedProducts" :key="item.id"
                                 class="border-b border-gray-300">
-                                <!-- Ảnh -->
                                 <td class="px-2 py-2">
                                     <div class="flex justify-center items-center">
                                         <img :src="getMainImage(item)" class="w-10 h-10 rounded" />
                                     </div>
                                 </td>
-
-                                <!-- Các cột text -->
-                                <td class="px-2 py-2">{{ item.name }}</td>
-                                <td class="px-2 py-2">{{ item.price }}</td>
-                                <td class="px-2 py-2">{{ item.discount_price }}</td>
-
-                                <!-- Input -->
+                                <td class="px-2 py-2 text-sm">{{ item.name }}</td>
+                                <td class="px-2 py-2 text-sm">{{ item.price }}</td>
+                                <td class="px-2 py-2 text-sm">{{ item.discount_price }}</td>
                                 <td class="px-2 py-2">
-                                    <input v-model="item.flashPrice" class="input w-20 text-center border border-gray-300 rounded"
+                                    <input v-model="item.flashPrice" class="input w-20 text-center border border-gray-300 rounded text-sm"
                                         placeholder="Giá FS" />
                                 </td>
                                 <td class="px-2 py-2">
                                     <input v-model="item.sold"
-                                        class="input w-16 text-center border border-gray-300 rounded"
+                                        class="input w-16 text-center border border-gray-300 rounded text-sm"
                                         placeholder="Đã bán" />
                                 </td>
                                 <td class="px-2 py-2">
                                     <input v-model="item.quantity"
-                                        class="input w-16 text-center border border-gray-300 rounded"
+                                        class="input w-16 text-center border border-gray-300 rounded text-sm"
                                         placeholder="SL" />
                                 </td>
-
-                                <!-- Checkbox -->
                                 <td class="px-2 py-2">
                                     <div class="flex justify-center items-center">
                                         <label class="relative inline-flex items-center cursor-pointer">
@@ -109,10 +131,9 @@
                                         </label>
                                     </div>
                                 </td>
-                                <!-- Nút xóa -->
                                 <td class="px-2 py-2">
                                     <div class="flex justify-center">
-                                        <button class="bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                                        <button class="bg-red-500 text-white px-2 py-1 rounded cursor-pointer text-xs"
                                             @click="remove(idx + (selectedPage - 1) * selectedPageSize)">
                                             <i class="fa fa-minus"></i>
                                         </button>
@@ -121,43 +142,89 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
 
-                    <div v-if="selectedProducts.length === 0" class="text-center text-gray-500 mt-2">
+                <!-- Mobile card view -->
+                <div class="lg:hidden space-y-3">
+                    <div v-if="selectedProducts.length === 0" class="text-center text-gray-500 py-6">
                         Bạn chưa chọn sản phẩm nào
                     </div>
-                    <div class="flex justify-center items-center gap-2 mt-2">
-                        <button class="px-3 py-1 rounded bg-gray-200" :disabled="selectedPage === 1"
-                            @click="selectedPage > 1 && (selectedPage--)">&lt;</button>
-                        <span>Trang {{ selectedPage }} / {{ selectedTotalPages }}</span>
-                        <button class="px-3 py-1 rounded bg-gray-200" :disabled="selectedPage === selectedTotalPages"
-                            @click="selectedPage < selectedTotalPages && (selectedPage++)">&gt;</button>
+                    <div v-for="(item, idx) in paginatedSelectedProducts" :key="item.id"
+                        class="border border-gray-200 rounded-lg p-3 bg-white">
+                        <div class="flex items-start gap-3 mb-3">
+                            <img :src="getMainImage(item)" class="w-12 h-12 rounded flex-shrink-0" />
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-medium text-sm text-gray-900 truncate">{{ item.name }}</h4>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <div>Giá thường: {{ item.price }}</div>
+                                    <div>Giá KM: {{ item.discount_price }}</div>
+                                </div>
+                            </div>
+                            <button class="text-red-500 hover:text-red-700 p-1" 
+                                @click="remove(idx + (selectedPage - 1) * selectedPageSize)" title="Xóa">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div>
+                                <label class="block text-gray-600 mb-1">Giá Flash Sale</label>
+                                <input v-model="item.flashPrice" class="input w-full border border-gray-300 rounded p-2 text-sm"
+                                    placeholder="Giá FS" />
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 mb-1">Đã bán</label>
+                                <input v-model="item.sold" class="input w-full border border-gray-300 rounded p-2 text-sm"
+                                    placeholder="Đã bán" />
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 mb-1">Số lượng</label>
+                                <input v-model="item.quantity" class="input w-full border border-gray-300 rounded p-2 text-sm"
+                                    placeholder="SL" />
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 mb-1">SL Thật</label>
+                                <div class="flex items-center pt-2">
+                                    <input type="checkbox" v-model="item.realQty" class="w-4 h-4" />
+                                    <span class="ml-2 text-xs text-gray-600">Sử dụng số lượng thật</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <div v-if="selectedProducts.length > 0" class="flex justify-center items-center gap-2 mt-4">
+                    <button class="px-3 py-1 rounded bg-gray-200 text-sm" :disabled="selectedPage === 1"
+                        @click="selectedPage > 1 && (selectedPage--)">&lt;</button>
+                    <span class="text-sm">Trang {{ selectedPage }} / {{ selectedTotalPages }}</span>
+                    <button class="px-3 py-1 rounded bg-gray-200 text-sm" :disabled="selectedPage === selectedTotalPages"
+                        @click="selectedPage < selectedTotalPages && (selectedPage++)">&gt;</button>
+                </div>
             </div>
-            <div class="flex justify-end mt-4">
-                <button class="bg-[#3BB77E] text-white px-6 py-2 rounded cursor-pointer" @click="apply">Áp dụng</button>
-                <button class="bg-gray-400 text-white px-6 py-2 ml-2 rounded cursor-pointer" @click="goBack"><i
+            <div class="flex flex-col sm:flex-row justify-end gap-2 mt-4">
+                <button class="bg-[#3BB77E] text-white px-6 py-2 rounded cursor-pointer text-sm order-2 sm:order-1" @click="apply">Áp dụng</button>
+                <button class="bg-gray-400 text-white px-6 py-2 rounded cursor-pointer text-sm order-1 sm:order-2" @click="goBack"><i
                         class="fas fa-arrow-left"></i> Quay lại</button>
             </div>
             <!-- Popup giảm giá hàng loạt -->
             <div v-if="showDiscount"
-                class="fixed top-0 left-0 w-full h-full bg-black/30 z-50 flex items-center justify-center">
-                <div class="bg-white shadow-lg rounded p-6 z-50 w-96">
-                    <div class="font-bold mb-2">Thiết lập giảm giá hàng loạt</div>
-                    <div class="flex gap-2 mb-2">
+                class="fixed top-0 left-0 w-full h-full bg-black/30 z-50 flex items-center justify-center p-4">
+                <div class="bg-white shadow-lg rounded p-4 sm:p-6 z-50 w-full max-w-sm sm:max-w-md">
+                    <div class="font-bold mb-3 text-sm sm:text-base">Thiết lập giảm giá hàng loạt</div>
+                    <div class="flex gap-2 mb-3">
                         <button :class="discountType === '%' ? 'bg-blue-600 text-white' : 'bg-gray-200'"
-                            class="px-3 py-1 rounded cursor-pointer" @click="discountType = '%'">%</button>
+                            class="px-3 py-1 rounded cursor-pointer text-sm flex-1" @click="discountType = '%'">%</button>
                         <button :class="discountType === '$' ? 'bg-blue-600 text-white' : 'bg-gray-200'"
-                            class="px-3 py-1 rounded cursor-pointer" @click="discountType = '$'">$</button>
+                            class="px-3 py-1 rounded cursor-pointer text-sm flex-1" @click="discountType = '$'">$</button>
                         <button :class="discountType === '₫' ? 'bg-blue-600 text-white' : 'bg-gray-200'"
-                            class="px-3 py-1 rounded cursor-pointer" @click="discountType = '₫'">Đồng ₫</button>
+                            class="px-3 py-1 rounded cursor-pointer text-sm flex-1" @click="discountType = '₫'">Đồng ₫</button>
                     </div>
-                    <input v-model.number="discountValue" type="number" class="border border-gray-300 w-full mb-2 p-2"
+                    <input v-model.number="discountValue" type="number" class="border border-gray-300 w-full mb-3 p-2 text-sm"
                         placeholder="Nhập giá trị giảm" />
-                    <div class="flex justify-end gap-2">
-                        <button class="bg-gray-300 text-black px-4 py-1 rounded cursor-pointer"
+                    <div class="flex flex-col sm:flex-row justify-end gap-2">
+                        <button class="bg-gray-300 text-black px-4 py-2 rounded cursor-pointer text-sm order-2 sm:order-1"
                             @click="showDiscount = false">Đóng</button>
-                        <button class="bg-blue-600 text-white px-4 py-1 rounded cursor-pointer"
+                        <button class="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer text-sm order-1 sm:order-2"
                             @click="applyDiscount">Áp dụng</button>
                     </div>
                 </div>

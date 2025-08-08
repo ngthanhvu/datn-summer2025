@@ -1,24 +1,24 @@
 <template>
     <div class="comments-page">
-        <div class="page-header flex justify-between items-center mb-6">
+        <div class="page-header flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4">
             <div>
-                <h1 class="text-2xl font-semibold text-gray-900">Đánh giá</h1>
-                <p class="text-gray-600">
+                <h1 class="text-xl sm:text-2xl font-semibold text-gray-900">Đánh giá</h1>
+                <p class="text-sm sm:text-base text-gray-600">
                     Quản lý đánh giá sản phẩm - Đánh giá mới nhất hiển thị đầu tiên
                 </p>
             </div>
             <div class="flex gap-3">
                 <button @click="handleFilterChange"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200">
-                    <i class="fas fa-sync-alt mr-2"></i>Tải lại
+                    class="inline-flex items-center px-3 sm:px-4 py-2 bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200">
+                    <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>Tải lại
                 </button>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow mb-6">
-            <div class="p-4 flex items-center gap-4">
+        <div class="bg-white rounded-lg shadow mb-4 sm:mb-6">
+            <div class="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <button :class="[
-                    'font-semibold pb-2 cursor-pointer',
+                    'font-semibold pb-2 cursor-pointer text-sm sm:text-base',
                     activeTab === 'reviews'
                         ? 'border-b-2 border-[#3bb77e] text-[#3bb77e]'
                         : 'text-gray-500',
@@ -29,7 +29,7 @@
                         }}</span>
                 </button>
                 <button :class="[
-                    'font-semibold pb-2 cursor-pointer',
+                    'font-semibold pb-2 cursor-pointer text-sm sm:text-base',
                     activeTab === 'products'
                         ? 'border-b-2 border-[#3bb77e] text-[#3bb77e]'
                         : 'text-gray-500',
@@ -39,8 +39,8 @@
             </div>
 
             <!-- Pagination Summary -->
-            <div v-if="activeTab === 'reviews' && paginationData" class="p-4 bg-gray-50 border-t border-gray-300">
-                <div class="flex justify-between items-center text-sm">
+            <div v-if="activeTab === 'reviews' && paginationData" class="p-3 sm:p-4 bg-gray-50 border-t border-gray-300">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs sm:text-sm">
                     <div class="text-gray-600">
                         <i class="fas fa-info-circle mr-1"></i>
                         Trang {{ currentPage }} / {{ totalPages }} - Tổng
@@ -77,21 +77,21 @@
 
         <!-- Pagination Controls -->
         <div v-if="activeTab === 'reviews' && paginationData && totalPages > 1"
-            class="mt-6 flex justify-between items-center bg-white rounded-lg shadow p-4">
-            <div class="text-sm text-gray-600">
+            class="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white rounded-lg shadow p-3 sm:p-4">
+            <div class="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                 <span v-if="loading">Đang tải...</span>
                 <span v-else>Hiển thị {{ paginationData.from }} - {{ paginationData.to }} trong
                     tổng số {{ totalItems }} đánh giá ({{ perPage }} đánh giá/trang)</span>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-1 sm:gap-2 justify-center">
                 <button @click="handlePageChange(currentPage - 1)" :disabled="currentPage === 1 || loading"
-                    class="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
-                    <i class="fas fa-chevron-left mr-1"></i>Trước
+                    class="px-2 sm:px-3 py-1 border rounded text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+                    <i class="fas fa-chevron-left mr-1"></i><span class="hidden sm:inline">Trước</span>
                 </button>
                 <div class="flex gap-1">
                     <button v-for="page in getVisiblePages()" :key="page" @click="handlePageChange(page)"
                         :disabled="loading" :class="[
-                            'px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed',
+                            'px-2 sm:px-3 py-1 border rounded text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed',
                             page === currentPage
                                 ? 'bg-primary text-white border-primary'
                                 : 'bg-white text-gray-700 hover:bg-gray-50',
@@ -100,8 +100,8 @@
                     </button>
                 </div>
                 <button @click="handlePageChange(currentPage + 1)" :disabled="currentPage === totalPages || loading"
-                    class="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
-                    Sau<i class="fas fa-chevron-right ml-1"></i>
+                    class="px-2 sm:px-3 py-1 border rounded text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+                    <span class="hidden sm:inline">Sau</span><i class="fas fa-chevron-right ml-1"></i>
                 </button>
             </div>
         </div>
@@ -426,7 +426,13 @@ onMounted(() => {
 
 <style scoped>
 .comments-page {
-    padding: 1.5rem;
+    padding: 1rem;
+}
+
+@media (min-width: 640px) {
+    .comments-page {
+        padding: 1.5rem;
+    }
 }
 
 .bg-primary {
