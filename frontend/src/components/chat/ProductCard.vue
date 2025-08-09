@@ -65,8 +65,8 @@ export default {
 
 <style scoped>
 .products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   margin-top: 16px;
   padding: 12px;
@@ -74,6 +74,8 @@ export default {
   border-radius: 16px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .chat-product-card {
@@ -88,7 +90,11 @@ export default {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border: 1px solid rgba(226, 232, 240, 0.8);
   max-width: 100%;
+  width: 100%;
   backdrop-filter: blur(5px);
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
 }
 
 .chat-product-card:hover {
@@ -99,11 +105,13 @@ export default {
 
 .product-image {
   position: relative;
-  width: 100%;
-  height: 140px;
-  border-radius: 8px 8px 0 0;
+  width: 120px;
+  height: 120px;
+  border-radius: 8px 0 0 8px;
   overflow: hidden;
   margin-bottom: 0;
+  max-width: 100%;
+  flex-shrink: 0;
 }
 
 .product-image img {
@@ -131,26 +139,35 @@ export default {
 }
 
 .product-info {
-  padding: 12px;
+  padding: 16px;
+  max-width: 100%;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .product-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #202124;
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .product-category {
-  font-size: 12px;
+  font-size: 13px;
   color: #5f6368;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-weight: 500;
 }
 
@@ -159,6 +176,8 @@ export default {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .original-price {
@@ -168,12 +187,43 @@ export default {
 }
 
 .current-price {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: #ff4757;
   background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Responsive design cho mobile */
+@media (max-width: 480px) {
+  .chat-product-card {
+    flex-direction: column;
+  }
+  
+  .product-image {
+    width: 100%;
+    height: 140px;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .product-info {
+    padding: 12px;
+  }
+  
+  .product-name {
+    font-size: 14px;
+    margin: 0 0 6px 0;
+  }
+  
+  .product-category {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .current-price {
+    font-size: 16px;
+  }
 }
 </style>

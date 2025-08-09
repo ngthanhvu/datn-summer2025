@@ -307,6 +307,9 @@ export default {
   right: 20px;
   z-index: 1000;
   font-family: 'Inter', sans-serif;
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 :root.chatwidget-open .ai-chatbot .chat-widget-button { display: none; }
@@ -375,6 +378,8 @@ export default {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(20px);
+  max-width: 100vw;
+  max-height: 100vh;
 }
 
 .chat-header {
@@ -469,10 +474,12 @@ export default {
   flex: 1;
   padding: 16px;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: transparent; 
+  background: transparent;
+  max-width: 100%;
 }
 
 .message {
@@ -519,6 +526,8 @@ export default {
 
 .message-content {
   flex: 1;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .message-text {
@@ -533,6 +542,9 @@ export default {
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .message-text::before {
@@ -729,6 +741,9 @@ export default {
     left: 10px;
     right: 10px;
     bottom: 10px;
+    max-width: 100vw;
+    max-height: 100vh;
+    overflow: hidden;
   }
   
   .chat-widget-button {
