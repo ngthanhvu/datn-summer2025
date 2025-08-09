@@ -60,26 +60,28 @@
             />
           </div>
           <div class="message-content">
-            <div class="message-text" v-html="formatMessage(message.text)"></div>
-             
-            <!-- Product Cards -->
-            <ProductCard 
-              v-if="message.products && message.products.length > 0" 
-              :products="message.products" 
-              @view-product="viewProduct"
-            />
-             
-            <!-- Coupon Cards -->
-            <CouponCard 
-              v-if="message.coupons && message.coupons.length > 0" 
-              :coupons="message.coupons" 
-            />
-             
-            <!-- Flash Sale Cards -->
-            <FlashSaleCard 
-              v-if="message.flashSales && message.flashSales.length > 0" 
-              :flash-sales="message.flashSales" 
-            />
+            <div class="message-text">
+              <div v-html="formatMessage(message.text)"></div>
+              
+              <!-- Product Cards -->
+              <ProductCard 
+                v-if="message.products && message.products.length > 0" 
+                :products="message.products" 
+                @view-product="viewProduct"
+              />
+               
+              <!-- Coupon Cards -->
+              <CouponCard 
+                v-if="message.coupons && message.coupons.length > 0" 
+                :coupons="message.coupons" 
+              />
+               
+              <!-- Flash Sale Cards -->
+              <FlashSaleCard 
+                v-if="message.flashSales && message.flashSales.length > 0" 
+                :flash-sales="message.flashSales" 
+              />
+            </div>
              
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
@@ -190,7 +192,7 @@ export default {
 
     const quickActions = [
       { text: 'Tìm sản phẩm 🔍' },
-      { text: 'Mã khuyến mãi 🎉' },
+      { text: 'Mã giảm giá 🎉' },
       { text: 'Flash sale 🔥' },
       { text: 'Hướng dẫn thanh toán 💳' },
       { text: 'Danh mục sản phẩm 🛒' }
@@ -199,7 +201,7 @@ export default {
     const toggleChat = () => {
       toggleAIChat()
       if (isOpen.value) {
-        if (messages.length === 0) {
+        if (messages.value.length === 0) {
           addWelcomeMessage()
         }
         nextTick(() => {
@@ -532,7 +534,7 @@ export default {
 
 .message-text {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  padding: 12px 16px;
+  padding: 16px;
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.6;
@@ -541,7 +543,7 @@ export default {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
   backdrop-filter: blur(10px);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   word-wrap: break-word;
   word-break: break-word;
   max-width: 100%;

@@ -12,13 +12,21 @@
         <div class="coupon-code">{{ coupon.code }}</div>
         <div class="coupon-discount">
           <span v-if="coupon.type === 'percent'">
-            Giảm {{ coupon.value }}% (Tối đa: {{ formatPrice(coupon.max_discount_value || 0) }})
+            Giảm {{ coupon.value }}% 
+            <span v-if="coupon.max_discount_value && coupon.max_discount_value > 0">
+              (Tối đa: {{ formatPrice(coupon.max_discount_value) }})
+            </span>
           </span>
           <span v-else>
             Giảm {{ formatPrice(coupon.value) }}
           </span>
         </div>
-        <div class="coupon-min-order">Đơn tối thiểu: {{ formatPrice(coupon.min_order_value || 0) }}</div>
+        <div class="coupon-min-order">
+          Đơn tối thiểu: {{ formatPrice(coupon.min_order_value || 0) }}
+        </div>
+        <div v-if="coupon.end_date" class="coupon-expiry">
+          Hạn sử dụng: {{ formatDate(coupon.end_date) }}
+        </div>
         <div v-if="coupon.description" class="coupon-desc">{{ coupon.description }}</div>
       </div>
       <div class="coupon-badge">HOT</div>
@@ -40,8 +48,15 @@ export default {
   setup() {
     const { formatPrice } = useAIChat()
     
+    const formatDate = (dateString) => {
+      if (!dateString) return ''
+      const date = new Date(dateString)
+      return date.toLocaleDateString('vi-VN')
+    }
+    
     return {
-      formatPrice
+      formatPrice,
+      formatDate
     }
   }
 }
@@ -171,6 +186,17 @@ export default {
   color: rgba(255, 255, 255, 0.9);
   font-size: 12px;
   font-weight: 500;
+}
+
+.coupon-expiry {
+  color: #ff7675;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 118, 117, 0.1);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 118, 117, 0.3);
+  align-self: flex-start;
 }
 
 .coupon-desc {
