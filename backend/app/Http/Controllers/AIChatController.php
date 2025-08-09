@@ -51,7 +51,7 @@ class AIChatController extends Controller
                     ];
                 }
             }
-            
+
             // Phân loại loại câu hỏi để lọc context gửi ra frontend
             $lowerMsg = strtolower($userMessage);
             $flashSaleKeywords = ['flash sale', 'flashsale', 'khuyến mãi', 'sale', 'khuyến mãi gì', 'có sale không', 'có khuyến mãi không', 'flash sale nào', 'sale gì'];
@@ -59,14 +59,38 @@ class AIChatController extends Controller
             $stockKeywords = ['còn hàng', 'có hàng', 'tồn kho', 'số lượng', 'bao nhiêu cái'];
             $generalKeywords = ['tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 'mua gì', 'tìm gì', 'có gì'];
 
-            $isFlashSaleQuestion = false; foreach ($flashSaleKeywords as $kw) { if (strpos($lowerMsg, $kw) !== false) { $isFlashSaleQuestion = true; break; } }
-            $isCouponQuestion = false; foreach ($couponKeywords as $kw) { if (strpos($lowerMsg, $kw) !== false) { $isCouponQuestion = true; break; } }
-            $isStockQuestion = false; foreach ($stockKeywords as $kw) { if (strpos($lowerMsg, $kw) !== false) { $isStockQuestion = true; break; } }
-            $isGeneralProductQuestion = false; foreach ($generalKeywords as $kw) { if (strpos($lowerMsg, $kw) !== false) { $isGeneralProductQuestion = true; break; } }
+            $isFlashSaleQuestion = false;
+            foreach ($flashSaleKeywords as $kw) {
+                if (strpos($lowerMsg, $kw) !== false) {
+                    $isFlashSaleQuestion = true;
+                    break;
+                }
+            }
+            $isCouponQuestion = false;
+            foreach ($couponKeywords as $kw) {
+                if (strpos($lowerMsg, $kw) !== false) {
+                    $isCouponQuestion = true;
+                    break;
+                }
+            }
+            $isStockQuestion = false;
+            foreach ($stockKeywords as $kw) {
+                if (strpos($lowerMsg, $kw) !== false) {
+                    $isStockQuestion = true;
+                    break;
+                }
+            }
+            $isGeneralProductQuestion = false;
+            foreach ($generalKeywords as $kw) {
+                if (strpos($lowerMsg, $kw) !== false) {
+                    $isGeneralProductQuestion = true;
+                    break;
+                }
+            }
 
             // Lọc context dựa trên loại câu hỏi TRƯỚC KHI gọi AI
             $filteredContext = [];
-            
+
             if ($isFlashSaleQuestion) {
                 // Chỉ hiển thị flash sale khi hỏi về flash sale
                 if (isset($context['flash_sales'])) {
@@ -94,11 +118,11 @@ class AIChatController extends Controller
             $prompt = $this->buildPrompt($userMessage, $filteredContext);
             $response = $this->callGeminiAPI($prompt);
             $aiResponse = $this->processAIResponse($response, $userMessage);
-            
+
             // Sử dụng context đã lọc cho frontend
             $finalContext = $filteredContext;
             $this->processProductImages($finalContext);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => $aiResponse,
@@ -109,7 +133,7 @@ class AIChatController extends Controller
                 'user_message' => $userMessage ?? 'null',
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại sau.',
@@ -129,9 +153,9 @@ class AIChatController extends Controller
 
             $coupons = Coupons::where('is_active', true)
                 ->where('end_date', '>', now())
-                ->where(function($query) {
+                ->where(function ($query) {
                     $query->whereNull('usage_limit')
-                          ->orWhereRaw('used_count < usage_limit');
+                        ->orWhereRaw('used_count < usage_limit');
                 })
                 ->orderBy('created_at', 'desc')
                 ->take(20)
@@ -277,7 +301,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
    - **QUAN TRỌNG**: Khi hỏi về tồn kho, CHỈ hiển thị sản phẩm được đề cập, KHÔNG hiển thị tất cả sản phẩm khác";
 
         $contextData = $this->formatContextForPrompt($context, $userMessage);
-        
+
         $contextInstruction = "\n\n**HƯỚNG DẪN SỬ DỤNG CONTEXT:**\n";
         $contextInstruction .= "Bạn CHỈ được phép sử dụng thông tin có sẵn trong context bên dưới.\n";
         $contextInstruction .= "KHÔNG BAO GIỜ tự bịa ra thông tin không có trong context.\n";
@@ -294,31 +318,30 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
         $contextInstruction .= "Nếu hỏi về 'áo', CHỈ hiển thị áo, không hiển thị váy, quần, giày.\n";
         $contextInstruction .= "KHÔNG BAO GIỜ hiển thị sản phẩm không liên quan đến câu hỏi của khách hàng.\n";
         $contextInstruction .= "Nếu context không có sản phẩm phù hợp, hãy nói: 'Xin lỗi, hiện tại cửa hàng chưa có sản phẩm này.'\n";
-        
+
         return $systemPrompt . "\n\n" . $contextInstruction . $contextData . "\n\nKhách hàng: " . $userMessage . "\n\nTrợ lý AI:";
     }
 
     private function formatContextForPrompt($context, $userMessage = '')
     {
         $formatted = "THÔNG TIN CỬA HÀNG:\n\n";
-        
-        // Chỉ hiển thị sản phẩm nếu thực sự có trong context
+
         if (isset($context['products']) && $context['products']->count() > 0) {
             $formatted .= "SẢN PHẨM:\n";
             foreach ($context['products'] as $product) {
                 $name = is_object($product) ? $product->name : $product['name'];
                 $price = is_object($product) ? $product->price : $product['price'];
                 $discountPrice = is_object($product) ? $product->discount_price : ($product['discount_price'] ?? null);
-                
+
                 $formatted .= "📦 {$name}\n";
                 $formatted .= "💰 Giá gốc: " . number_format($price) . " VNĐ\n";
-                
+
                 if ($discountPrice) {
                     $formatted .= "🏷️ Giảm giá: " . number_format($discountPrice) . " VNĐ\n";
                     $discountPercent = round((($price - $discountPrice) / $price) * 100);
                     $formatted .= "📊 Tiết kiệm: {$discountPercent}%\n";
                 }
-                
+
                 if (is_object($product)) {
                     if ($product->categories) {
                         $formatted .= "📂 Danh mục: {$product->categories->name}\n";
@@ -328,7 +351,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                         $formatted .= "📂 Danh mục: {$product['categories']['name']}\n";
                     }
                 }
-                
+
                 if (is_object($product)) {
                     if ($product->variants && $product->variants->count() > 0) {
                         $sizes = $product->variants->pluck('size')->unique()->implode(', ');
@@ -339,7 +362,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                         if ($colors) {
                             $formatted .= "🎨 Màu sắc: {$colors}\n";
                         }
-                        
+
                         $totalStock = 0;
                         $stockDetails = [];
                         foreach ($product->variants as $variant) {
@@ -351,9 +374,9 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                                 }
                             }
                         }
-                        
+
                         $isSimpleStockQuestion = $this->isSimpleStockQuestion($userMessage);
-                        
+
                         if ($totalStock > 0) {
                             if ($isSimpleStockQuestion) {
                                 $formatted .= "📦 Tình trạng: Còn hàng\n";
@@ -377,7 +400,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                         if ($colors) {
                             $formatted .= "🎨 Màu sắc: {$colors}\n";
                         }
-                        
+
                         $totalStock = 0;
                         $stockDetails = [];
                         foreach ($product['variants'] as $variant) {
@@ -389,9 +412,9 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                                 }
                             }
                         }
-                        
+
                         $isSimpleStockQuestion = $this->isSimpleStockQuestion($userMessage);
-                        
+
                         if ($totalStock > 0) {
                             if ($isSimpleStockQuestion) {
                                 $formatted .= "📦 Tình trạng: Còn hàng\n";
@@ -406,7 +429,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                         }
                     }
                 }
-                
+
                 if (is_object($product)) {
                     if ($product->brand) {
                         $formatted .= "🏢 Thương hiệu: {$product->brand->name}\n";
@@ -416,19 +439,18 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                         $formatted .= "🏢 Thương hiệu: {$product['brand']['name']}\n";
                     }
                 }
-                
-                
+
+
                 $description = is_object($product) ? $product->description : ($product['description'] ?? null);
                 if ($description) {
                     $shortDesc = substr($description, 0, 100);
                     $formatted .= "📝 Mô tả: {$shortDesc}...\n";
                 }
-                
+
                 $formatted .= "---\n";
             }
         }
-        
-        // Chỉ hiển thị mã giảm giá nếu thực sự có trong context
+
         if (isset($context['coupons']) && $context['coupons']->count() > 0) {
             $formatted .= "🎫 MÃ GIẢM GIÁ HIỆN CÓ:\n";
             foreach ($context['coupons'] as $coupon) {
@@ -447,8 +469,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 $formatted .= "---\n";
             }
         }
-        
-        // Chỉ hiển thị flash sale nếu thực sự có trong context
+
         if (isset($context['flash_sales']) && $context['flash_sales']->count() > 0) {
             $formatted .= "⚡ FLASH SALE ĐANG DIỄN RA:\n";
             foreach ($context['flash_sales'] as $flashSale) {
@@ -460,17 +481,16 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 $formatted .= "---\n";
             }
         }
-        
-        // Chỉ hiển thị danh mục và thương hiệu nếu có sản phẩm
+
         if (isset($context['products']) && $context['products']->count() > 0) {
-            
+
             if (isset($context['categories']) && $context['categories']->count() > 0) {
                 $formatted .= "\n📂 DANH MỤC SẢN PHẨM:\n";
                 foreach ($context['categories'] as $category) {
                     $formatted .= "• {$category->name}\n";
                 }
             }
-            
+
             if (isset($context['brands']) && $context['brands']->count() > 0) {
                 $formatted .= "\n🏢 THƯƠNG HIỆU:\n";
                 foreach ($context['brands'] as $brand) {
@@ -478,44 +498,48 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 }
             }
         }
-        
+
         return $formatted;
     }
 
     private function callGeminiAPI($prompt)
     {
+        $prompt = iconv('UTF-8', 'UTF-8//IGNORE', $prompt) ?: '';
+
+        $payload = [
+            'contents' => [[
+                'parts' => [['text' => $prompt]]
+            ]],
+        ];
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'X-goog-api-key' => $this->geminiApiKey
-        ])->post($this->geminiApiUrl, [
-            'contents' => [
-                [
-                    'parts' => [
-                        [
-                            'text' => $prompt
-                        ]
-                    ]
-                ]
-            ]
-        ]);
+        ])->post($this->geminiApiUrl, $payload);
 
         if ($response->successful()) {
             $data = $response->json();
             return $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
         }
-
         throw new \Exception('Gemini API error: ' . $response->body());
     }
 
     private function processAIResponse($aiResponse, $userMessage)
     {
         $response = trim($aiResponse);
-        
+
         $message = strtolower($userMessage);
-        
+
         $flashSaleKeywords = [
-            'flash sale', 'flashsale', 'khuyến mãi', 'sale', 'khuyến mãi gì', 
-            'có sale không', 'có khuyến mãi không', 'flash sale nào', 'sale gì'
+            'flash sale',
+            'flashsale',
+            'khuyến mãi',
+            'sale',
+            'khuyến mãi gì',
+            'có sale không',
+            'có khuyến mãi không',
+            'flash sale nào',
+            'sale gì'
         ];
         $isFlashSaleQuestion = false;
         foreach ($flashSaleKeywords as $keyword) {
@@ -524,10 +548,17 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 break;
             }
         }
-        
+
         $couponKeywords = [
-            'mã giảm', 'coupon', 'mã khuyến mãi', 'mã giảm giá', 'có mã giảm không',
-            'mã giảm nào', 'coupon nào', 'mã khuyến mãi nào', 'giảm giá gì'
+            'mã giảm',
+            'coupon',
+            'mã khuyến mãi',
+            'mã giảm giá',
+            'có mã giảm không',
+            'mã giảm nào',
+            'coupon nào',
+            'mã khuyến mãi nào',
+            'giảm giá gì'
         ];
         $isCouponQuestion = false;
         foreach ($couponKeywords as $keyword) {
@@ -536,7 +567,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 break;
             }
         }
-        
+
         $generalKeywords = ['tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 'mua gì', 'tìm gì', 'có gì'];
         $isGeneralSearch = false;
         foreach ($generalKeywords as $keyword) {
@@ -545,7 +576,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 break;
             }
         }
-        
+
         $stockKeywords = ['còn hàng', 'có hàng', 'tồn kho', 'số lượng', 'bao nhiêu cái'];
         $isStockQuestion = false;
         foreach ($stockKeywords as $keyword) {
@@ -554,8 +585,8 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 break;
             }
         }
-        
-        
+
+
         if ($isFlashSaleQuestion && (strlen($response) < 100 || strpos($response, 'không biết') !== false)) {
             $response = "⚡ Flash Sale đang diễn ra:\n\n";
             $response .= "🔥 Nhiều khuyến mãi hấp dẫn\n";
@@ -563,7 +594,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             $response .= "💰 Giá cả cực tốt\n\n";
             $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
         }
-        
+
         if ($isCouponQuestion && (strlen($response) < 100 || strpos($response, 'không biết') !== false)) {
             $response = "🎫 Mã giảm giá hiện có:\n\n";
             $response .= "💎 Nhiều mã giảm giá hấp dẫn\n";
@@ -571,7 +602,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             $response .= "📱 Dễ dàng sử dụng\n\n";
             $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
         }
-        
+
         if ($isStockQuestion && (strlen($response) < 100 || strpos($response, 'không biết') !== false)) {
             $response = "Tôi đã kiểm tra tình trạng tồn kho cho bạn:\n\n";
             $response .= "📦 Thông tin tồn kho đã được hiển thị bên dưới\n";
@@ -579,7 +610,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             $response .= "✅ Nếu còn hàng: sẽ hiển thị số lượng cụ thể\n";
             $response .= "❌ Nếu hết hàng: sẽ hiển thị 'Hết hàng'";
         }
-        
+
         if ($isGeneralSearch && (strlen($response) < 100 || strpos($response, 'bạn muốn tìm gì') !== false)) {
             $response = "Tôi tìm thấy một số sản phẩm tiêu biểu trong cửa hàng:\n\n";
             $response .= "📦 Sản phẩm chất lượng cao\n";
@@ -587,7 +618,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             $response .= "🏷️ Nhiều khuyến mãi hấp dẫn\n\n";
             $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
         }
-        
+
         if (strlen($response) < 50) {
             if ($isFlashSaleQuestion) {
                 $response .= "\n\nBạn có thể hỏi tôi về:\n- Flash sale cụ thể\n- Thời gian khuyến mãi\n- Mô tả chi tiết";
@@ -597,7 +628,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 $response .= "\n\nBạn có thể hỏi tôi về:\n- Sản phẩm cụ thể\n- Mã giảm giá\n- Flash sale\n- Quy trình thanh toán\n- Danh mục sản phẩm\n- Tình trạng tồn kho";
             }
         }
-        
+
         return $response;
     }
 
@@ -606,13 +637,20 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
         try {
             $context = [];
             $message = strtolower($userMessage);
-            
+
             $productQuery = Products::with(['categories', 'brand', 'mainImage', 'variants.inventory', 'images'])
                 ->where('is_active', true);
-            
+
             $flashSaleKeywords = [
-                'flash sale', 'flashsale', 'khuyến mãi', 'sale', 'khuyến mãi gì', 
-                'có sale không', 'có khuyến mãi không', 'flash sale nào', 'sale gì'
+                'flash sale',
+                'flashsale',
+                'khuyến mãi',
+                'sale',
+                'khuyến mãi gì',
+                'có sale không',
+                'có khuyến mãi không',
+                'flash sale nào',
+                'sale gì'
             ];
             $isFlashSaleQuestion = false;
             foreach ($flashSaleKeywords as $keyword) {
@@ -621,7 +659,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     break;
                 }
             }
-            
+
             if ($isFlashSaleQuestion) {
                 $context['flash_sales'] = FlashSale::with(['products.product'])
                     ->where('active', true)
@@ -631,12 +669,19 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 // Đảm bảo KHÔNG có coupons và products trong context khi hỏi về flash sale
                 $context['coupons'] = collect([]);
                 $context['products'] = collect([]);
-                return $context; 
+                return $context;
             }
-            
+
             $couponKeywords = [
-                'mã giảm', 'coupon', 'mã khuyến mãi', 'mã giảm giá', 'có mã giảm không',
-                'mã giảm nào', 'coupon nào', 'mã khuyến mãi nào', 'giảm giá gì'
+                'mã giảm',
+                'coupon',
+                'mã khuyến mãi',
+                'mã giảm giá',
+                'có mã giảm không',
+                'mã giảm nào',
+                'coupon nào',
+                'mã khuyến mãi nào',
+                'giảm giá gì'
             ];
             $isCouponQuestion = false;
             foreach ($couponKeywords as $keyword) {
@@ -645,28 +690,28 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     break;
                 }
             }
-            
+
             if ($isCouponQuestion) {
                 $context['coupons'] = Coupons::where('is_active', true)
                     ->where('end_date', '>', now())
-                    ->where(function($query) {
+                    ->where(function ($query) {
                         $query->whereNull('usage_limit')
-                              ->orWhereRaw('used_count < usage_limit');
+                            ->orWhereRaw('used_count < usage_limit');
                     })
                     ->orderBy('created_at', 'desc')
                     ->take(5)->get();
                 // Đảm bảo KHÔNG có flash_sales và products trong context khi hỏi về mã giảm giá
                 $context['flash_sales'] = collect([]);
                 $context['products'] = collect([]);
-                return $context; 
+                return $context;
             }
-            
+
             // Kiểm tra câu hỏi về giới tính cụ thể
             $genderKeywords = [
                 'nam' => ['nam', 'đàn ông', 'con trai', 'anh', 'chàng'],
                 'nữ' => ['nữ', 'đàn bà', 'con gái', 'chị', 'cô', 'váy', 'đầm']
             ];
-            
+
             $targetGender = null;
             foreach ($genderKeywords as $gender => $keywords) {
                 foreach ($keywords as $keyword) {
@@ -676,41 +721,48 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     }
                 }
             }
-            
+
             // Nếu có yêu cầu về giới tính cụ thể, lọc sản phẩm theo giới tính
             if ($targetGender) {
                 $filteredQuery = clone $productQuery;
                 if ($targetGender === 'nam') {
                     // Chỉ tìm sản phẩm nam, không tìm chung chung
-                    $filteredQuery->where(function($q) {
+                    $filteredQuery->where(function ($q) {
                         $q->where('name', 'like', '%nam%')
-                          ->orWhere('name', 'like', '%áo nam%')
-                          ->orWhere('name', 'like', '%quần nam%')
-                          ->orWhere('name', 'like', '%giày nam%');
+                            ->orWhere('name', 'like', '%áo nam%')
+                            ->orWhere('name', 'like', '%quần nam%')
+                            ->orWhere('name', 'like', '%giày nam%');
                     });
                 } elseif ($targetGender === 'nữ') {
                     // Chỉ tìm sản phẩm nữ, không tìm chung chung
-                    $filteredQuery->where(function($q) {
+                    $filteredQuery->where(function ($q) {
                         $q->where('name', 'like', '%nữ%')
-                          ->orWhere('name', 'like', '%váy%')
-                          ->orWhere('name', 'like', '%đầm%')
-                          ->orWhere('name', 'like', '%áo nữ%')
-                          ->orWhere('name', 'like', '%quần nữ%');
+                            ->orWhere('name', 'like', '%váy%')
+                            ->orWhere('name', 'like', '%đầm%')
+                            ->orWhere('name', 'like', '%áo nữ%')
+                            ->orWhere('name', 'like', '%quần nữ%');
                     });
                 }
-                
+
                 $genderProducts = $filteredQuery->take(3)->get();
                 if ($genderProducts->count() > 0) {
                     $context['products'] = $genderProducts;
                     return $context;
                 }
             }
-            
+
             $generalSearchKeywords = [
-                'tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 
-                'mua gì', 'tìm gì', 'có gì', 'bán gì', 'shop có gì'
+                'tìm sản phẩm',
+                'mua sản phẩm',
+                'có gì bán',
+                'sản phẩm nào',
+                'mua gì',
+                'tìm gì',
+                'có gì',
+                'bán gì',
+                'shop có gì'
             ];
-            
+
             $isGeneralSearch = false;
             foreach ($generalSearchKeywords as $keyword) {
                 if (strpos($message, $keyword) !== false) {
@@ -718,15 +770,17 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     break;
                 }
             }
-            
+
             if ($isGeneralSearch) {
                 $context['products'] = $productQuery->inRandomOrder()->take(3)->get();
                 return $context;
             }
-            
-            if (strpos($message, 'còn hàng') !== false || strpos($message, 'có hàng') !== false || 
-                strpos($message, 'tồn kho') !== false || strpos($message, 'số lượng') !== false) {
-                
+
+            if (
+                strpos($message, 'còn hàng') !== false || strpos($message, 'có hàng') !== false ||
+                strpos($message, 'tồn kho') !== false || strpos($message, 'số lượng') !== false
+            ) {
+
                 if (!empty($contextHints) && isset($contextHints['product_ids']) && is_array($contextHints['product_ids'])) {
                     $ids = array_filter($contextHints['product_ids']);
                     if (!empty($ids)) {
@@ -745,18 +799,18 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     $context['products'] = $specificProductSearch;
                     return $context;
                 }
-                
+
                 // Nếu không tìm thấy sản phẩm cụ thể, thử tìm theo danh mục
                 $categoryProducts = $this->searchByCategory($message, (clone $productQuery));
                 if ($categoryProducts && $categoryProducts->count() > 0) {
                     $context['products'] = $categoryProducts;
                     return $context;
                 }
-                
+
                 // Nếu không tìm thấy gì, KHÔNG hiển thị sản phẩm ngẫu nhiên
                 // $context['products'] = collect([]); // Để trống để AI biết không có sản phẩm phù hợp
             }
-            
+
             return $context;
         } catch (\Exception $e) {
             \Log::error('getRelevantContext Error: ' . $e->getMessage());
@@ -768,13 +822,13 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
     {
         $message = strtolower($userMessage);
         $simpleStockKeywords = ['còn hàng không', 'có hàng không', 'còn hàng ạ', 'có hàng ạ'];
-        
+
         foreach ($simpleStockKeywords as $keyword) {
             if (strpos($message, $keyword) !== false) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -790,7 +844,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     $product->mainImage->image_url = url($imagePath);
                 }
             });
-            
+
             $context['products'] = $context['products']->map(function ($product) {
                 $productArray = $product->toArray();
                 if (isset($productArray['main_image'])) {
@@ -805,18 +859,18 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
     private function searchBySpecificProduct($message, $productQuery)
     {
         $words = explode(' ', $message);
-        
+
         $stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi'];
         $keywords = array_diff($words, $stopWords);
-        
+
         // Nếu không có từ khóa có ý nghĩa, không tìm kiếm
         if (empty($keywords)) {
             return null;
         }
-        
+
         // Tìm kiếm sản phẩm theo từ khóa chính xác
         $foundProducts = collect();
-        
+
         foreach ($keywords as $keyword) {
             $keyword = trim($keyword);
             if (strlen($keyword) >= 2) {
@@ -825,9 +879,9 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 if ($productsByName->count() > 0) {
                     $foundProducts = $foundProducts->merge($productsByName);
                 }
-                
+
                 // Tìm kiếm theo danh mục
-                $productsByCategory = (clone $productQuery)->whereHas('categories', function($q) use ($keyword) {
+                $productsByCategory = (clone $productQuery)->whereHas('categories', function ($q) use ($keyword) {
                     $q->where('name', 'like', "%{$keyword}%");
                 })->get();
                 if ($productsByCategory->count() > 0) {
@@ -835,76 +889,76 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 }
             }
         }
-        
+
         // Loại bỏ sản phẩm trùng lặp và chỉ trả về sản phẩm thực sự liên quan
         if ($foundProducts->count() > 0) {
             $uniqueProducts = $foundProducts->unique('id');
             return $uniqueProducts->take(5); // Giới hạn tối đa 5 sản phẩm
         }
-        
+
         return null;
     }
 
     private function searchByCategory($message, $productQuery)
     {
         $message = strtolower($message);
-        
+
         // Tìm kiếm theo danh mục cụ thể
         if (strpos($message, 'áo khoác') !== false) {
-            return $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function ($q) {
                 $q->where('name', 'like', '%áo khoác%');
             })->take(3)->get();
         } elseif (strpos($message, 'áo polo') !== false) {
             return $productQuery->where('name', 'like', '%áo polo%')->take(3)->get();
         } elseif (strpos($message, 'sơ mi') !== false) {
             return $productQuery->where('name', 'like', '%sơ mi%')
-                ->orWhereHas('categories', function($q) {
+                ->orWhereHas('categories', function ($q) {
                     $q->where('name', 'like', '%sơ mi%');
                 })->take(3)->get();
         } elseif (strpos($message, 'váy') !== false) {
-            return $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function ($q) {
                 $q->where('name', 'like', '%váy%');
             })->take(3)->get();
         } elseif (strpos($message, 'đầm') !== false) {
-            return $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function ($q) {
                 $q->where('name', 'like', '%đầm%');
             })->take(3)->get();
         } elseif (strpos($message, 'quần') !== false) {
-            return $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function ($q) {
                 $q->where('name', 'like', '%quần%');
             })->take(3)->get();
         } elseif (strpos($message, 'giày') !== false) {
-            return $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function ($q) {
                 $q->where('name', 'like', '%giày%');
             })->take(3)->get();
         } elseif (strpos($message, 'dép') !== false) {
-            return $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function ($q) {
                 $q->where('name', 'like', '%dép%');
             })->take(3)->get();
         } elseif (strpos($message, 'túi') !== false) {
-            return $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function ($q) {
                 $q->where('name', 'like', '%túi%');
             })->take(3)->get();
         } elseif (strpos($message, 'áo') !== false && !strpos($message, 'áo khoác') && !strpos($message, 'áo polo') && !strpos($message, 'sơ mi')) {
-            return $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function ($q) {
                 $q->where('name', 'like', '%áo%');
             })->take(3)->get();
         }
-        
+
         return null;
     }
 
     public function searchProducts(Request $request)
     {
         $query = $request->input('query');
-        
+
         $products = Products::with(['categories', 'brand', 'mainImage'])
             ->where('name', 'like', "%{$query}%")
             ->orWhere('description', 'like', "%{$query}%")
             ->where('is_active', true)
             ->take(10)
             ->get();
-            
+
         return response()->json([
             'success' => true,
             'products' => $products
@@ -915,13 +969,13 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
     {
         $coupons = Coupons::where('is_active', true)
             ->where('end_date', '>', now())
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('usage_limit')
-                      ->orWhereRaw('used_count < usage_limit');
+                    ->orWhereRaw('used_count < usage_limit');
             })
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         return response()->json([
             'success' => true,
             'coupons' => $coupons
@@ -935,7 +989,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             ->where('end_time', '>', now())
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         return response()->json([
             'success' => true,
             'flash_sales' => $flashSales
