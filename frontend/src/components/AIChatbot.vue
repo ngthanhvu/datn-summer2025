@@ -59,99 +59,30 @@
               alt="Trợ Lí DEVGANG"
             />
           </div>
-                     <div class="message-content">
-             <div class="message-text" v-html="formatMessage(message.text)"></div>
+          <div class="message-content">
+            <div class="message-text" v-html="formatMessage(message.text)"></div>
              
-             <!-- Product Cards -->
-             <div v-if="message.products && message.products.length > 0" class="products-grid">
-               <div 
-                 v-for="product in message.products" 
-                 :key="product.id" 
-                 class="chat-product-card product-card"
-                 @click="viewProduct(product)"
-               >
-                 <div class="product-image">
-                   <img 
-                     :src="getImageUrl(product)" 
-                     :alt="product.name"
-                     @error="handleImageError"
-                   />
-                   <div v-if="product.discount_price" class="discount-badge">
-                     -{{ calculateDiscountPercentage(product) }}%
-                   </div>
-                 </div>
-                 <div class="product-info">
-                   <h4 class="product-name">{{ product.name }}</h4>
-                   <div class="product-category">{{ product.categories?.name }}</div>
-                   <div class="product-price">
-                     <span v-if="product.discount_price" class="original-price">
-                       {{ formatPrice(product.price) }}
-                     </span>
-                     <span class="current-price">
-                       {{ formatPrice(product.discount_price || product.price) }}
-                     </span>
-                   </div>
-                 </div>
-               </div>
-             </div>
+            <!-- Product Cards -->
+            <ProductCard 
+              v-if="message.products && message.products.length > 0" 
+              :products="message.products" 
+              @view-product="viewProduct"
+            />
              
-             <!-- Coupon Cards -->
-             <div v-if="message.coupons && message.coupons.length > 0" class="coupons-section">
-               <div class="coupon-title">MÃ GIẢM GIÁ HOT</div>
-               <div 
-                 v-for="(coupon, index) in message.coupons" 
-                 :key="coupon.id || index"
-                 class="coupon-item"
-                 :class="index === 0 ? 'coupon-item-premium' : 'coupon-item-standard'"
-               >
-                 <div class="coupon-details">
-                   <div class="coupon-name">{{ coupon.name || 'Mã giảm giá' }}</div>
-                   <div class="coupon-code">{{ coupon.code }}</div>
-                   <div class="coupon-discount">
-                     <span v-if="coupon.type === 'percent'">
-                       Giảm {{ coupon.value }}% (Tối đa: {{ formatPrice(coupon.max_discount_value || 0) }})
-                     </span>
-                     <span v-else>
-                       Giảm {{ formatPrice(coupon.value) }}
-                     </span>
-                   </div>
-                   <div class="coupon-min-order">Đơn tối thiểu: {{ formatPrice(coupon.min_order_value || 0) }}</div>
-                   <div v-if="coupon.description" class="coupon-desc">{{ coupon.description }}</div>
-                 </div>
-                 <div class="coupon-badge">HOT</div>
-               </div>
-             </div>
+            <!-- Coupon Cards -->
+            <CouponCard 
+              v-if="message.coupons && message.coupons.length > 0" 
+              :coupons="message.coupons" 
+            />
              
-             <!-- Flash Sale Cards -->
-             <div v-if="message.flashSales && message.flashSales.length > 0" class="flashsale-section">
-               <div class="flashsale-title">FLASH SALE ĐANG DIỄN RA</div>
-               <div 
-                 v-for="(flashSale, index) in message.flashSales" 
-                 :key="flashSale.id || index"
-                 class="flashsale-item"
-                 :class="index === 0 ? 'flashsale-item-premium' : 'flashsale-item-standard'"
-               >
-                 <div class="flashsale-content">
-                   <div class="flashsale-main">
-                     <div class="flashsale-info">
-                       <div class="flashsale-name">{{ flashSale.name }}</div>
-                       <div class="flashsale-time">
-                         <span class="time-label">Thời gian:</span>
-                         <div class="time-value">
-                           {{ flashSale.start_time }} - {{ flashSale.end_time }}
-                         </div>
-                       </div>
-                     </div>
-                     <div class="flashsale-badge">SALE</div>
-                   </div>
-                   <div v-if="flashSale.description" class="flashsale-desc">{{ flashSale.description }}</div>
-                 </div>
-               </div>
-             </div>
+            <!-- Flash Sale Cards -->
+            <FlashSaleCard 
+              v-if="message.flashSales && message.flashSales.length > 0" 
+              :flash-sales="message.flashSales" 
+            />
              
-             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
-           </div>
-          
+            <div class="message-time">{{ formatTime(message.timestamp) }}</div>
+          </div>
         </div>
 
         <div v-if="isTyping" class="message ai-message">
@@ -212,9 +143,17 @@
 <script>
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useAIChat } from '../composable/useAIChat'
+import ProductCard from './chat/ProductCard.vue'
+import CouponCard from './chat/CouponCard.vue'
+import FlashSaleCard from './chat/FlashSaleCard.vue'
 
 export default {
   name: 'AIChatbot',
+  components: {
+    ProductCard,
+    CouponCard,
+    FlashSaleCard
+  },
   setup() {
     const {
       isOpen,
@@ -227,7 +166,8 @@ export default {
       toggleChat: toggleAIChat,
       addWelcomeMessage,
       formatMessage,
-      formatTime
+      formatTime,
+      viewProduct
     } = useAIChat()
     
     const isOnline = ref(true)
@@ -267,7 +207,6 @@ export default {
           messageInput.value?.focus()
         })
       }
-      // Hide hint once user opens chat
       if (isOpen.value) {
         showScrollHint.value = false
       }
@@ -307,45 +246,6 @@ export default {
           messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
         }
       })
-    }
-
-    const formatPrice = (price) => {
-      return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-      }).format(price)
-    }
-
-    const calculateDiscountPercentage = (product) => {
-      if (!product.discount_price) return 0
-      return Math.round(((product.price - product.discount_price) / product.price) * 100)
-    }
-
-    const handleImageError = (event) => {
-      console.log('Image error for:', event.target.alt, 'URL:', event.target.src)
-      event.target.src = getPlaceholderImage()
-    }
-
-    const getPlaceholderImage = () => {
-      return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmYWZjIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4='
-    }
-
-    const getImageUrl = (product) => {
-      console.log('Product:', product.name)
-      console.log('MainImage:', product.mainImage)
-      console.log('MainImage (snake_case):', product.main_image)
-      console.log('Image URL:', product.mainImage?.image_url)
-      console.log('Image URL (snake_case):', product.main_image?.image_url)
-      
-      const mainImage = product.mainImage || product.main_image
-      if (mainImage && mainImage.image_url) {
-        return mainImage.image_url
-      }
-      return getPlaceholderImage()
-    }
-
-    const viewProduct = (product) => {
-      window.open(`/san-pham/${product.slug}`, '_blank')
     }
 
     watch(messages, (newMessages) => {
@@ -393,11 +293,7 @@ export default {
       handleEnter,
       formatMessage,
       formatTime,
-      viewProduct,
-      getImageUrl,
-      handleImageError,
-      calculateDiscountPercentage,
-      formatPrice
+      viewProduct
     }
   }
 }
@@ -832,656 +728,10 @@ export default {
   transform: scale(0.95);
 }
 
-/* Product Card Styles */
-.product-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 16px;
-  padding: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  max-width: 100%;
-  overflow: hidden;
-  backdrop-filter: blur(5px);
-}
-
-.product-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  border-color: rgba(102, 126, 234, 0.3);
-}
-
-.product-image {
-  position: relative;
-  width: 100%;
-  height: 120px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.product-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.discount-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: #ff4757;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.product-info {
-  padding: 0 4px;
-}
-
-.product-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #202124;
-  margin: 0 0 4px 0;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.product-category {
-  font-size: 12px;
-  color: #5f6368;
-  margin-bottom: 6px;
-}
-
-.product-price {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.original-price {
-  font-size: 12px;
-  color: #9aa0a6;
-  text-decoration: line-through;
-}
-
-.current-price {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ff4757;
-}
-
-/* Product display styling */
-.product-line {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  margin: 6px 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  flex-wrap: wrap;
-}
-
-.product-line:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #667eea;
-}
-
-.product-name {
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 14px;
-  flex: 1;
-  min-width: 120px;
-}
-
-.product-price {
-  color: #e53e3e;
-  font-weight: 600;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.product-brand {
-  color: #4a5568;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.product-size,
-.product-color {
-  color: #718096;
-  font-size: 12px;
-  white-space: nowrap;
-  padding: 2px 8px;
-  background: rgba(113, 128, 150, 0.1);
-  border-radius: 12px;
-  border: 1px solid rgba(113, 128, 150, 0.2);
-}
-
 /* Simple text formatting for chat messages */
 .message-text strong {
   font-weight: 600;
   color: #2d3748;
-}
-
-/* Beautiful Coupon Section Styling */
-.coupons-section {
-  margin: 12px 0;
-  padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.coupons-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-
-.coupon-title {
-  text-align: center;
-  color: white;
-  font-weight: 800;
-  font-size: 16px;
-  margin-bottom: 16px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  animation: pulse 2s infinite;
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-.coupon-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  margin: 12px 0;
-  border-radius: 12px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-}
-
-.coupon-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-}
-
-.coupon-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s ease;
-}
-
-.coupon-item:hover::before {
-  left: 100%;
-}
-
-/* Premium coupon (first one) */
-.coupon-item-premium {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  border: 3px solid #ffd700;
-  box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5);
-}
-
-.coupon-item-premium .coupon-icon {
-  font-size: 28px;
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-12px); }
-  60% { transform: translateY(-6px); }
-}
-
-/* Standard coupon (others) */
-.coupon-item-standard {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  border: 2px solid #4facfe;
-  box-shadow: 0 6px 25px rgba(79, 172, 254, 0.4);
-}
-
-.coupon-item-standard .coupon-icon {
-  font-size: 24px;
-  animation: rotate 4s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.coupon-icon {
-  font-size: 20px;
-  min-width: 32px;
-  text-align: center;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.coupon-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.coupon-name {
-  color: white;
-  font-weight: 700;
-  font-size: 15px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
-  line-height: 1.3;
-}
-
-.coupon-code {
-  color: #ffeaa7;
-  font-weight: 800;
-  font-size: 16px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px 10px;
-  border-radius: 16px;
-  display: inline-block;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  align-self: flex-start;
-}
-
-.coupon-discount {
-  color: #ffeaa7;
-  font-weight: 600;
-  font-size: 13px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.coupon-min-order {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.coupon-desc {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 11px;
-  font-style: italic;
-  line-height: 1.4;
-}
-
-.coupon-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
-  color: white;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 6px 10px;
-  border-radius: 15px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  animation: flash 1.5s infinite;
-  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-@keyframes flash {
-  0%, 50%, 100% { opacity: 1; transform: scale(1); }
-  25%, 75% { opacity: 0.7; transform: scale(1.1); }
-}
-
-/* Enhanced Product Cards */
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.chat-product-card {
-  transform: scale(0.95);
-  margin: 0 auto;
-  transition: all 0.3s ease;
-  border-radius: 12px;
-  overflow: hidden;
-  background: white;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.chat-product-card:hover {
-  transform: scale(1);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.product-image {
-  position: relative;
-  width: 100%;
-  height: 140px;
-  border-radius: 8px 8px 0 0;
-  overflow: hidden;
-  margin-bottom: 0;
-}
-
-.product-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.chat-product-card:hover .product-image img {
-  transform: scale(1.05);
-}
-
-.discount-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
-}
-
-.product-info {
-  padding: 12px;
-}
-
-.product-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #202124;
-  margin: 0 0 6px 0;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.product-category {
-  font-size: 12px;
-  color: #5f6368;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.product-price {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.original-price {
-  font-size: 12px;
-  color: #9aa0a6;
-  text-decoration: line-through;
-}
-
-.current-price {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ff4757;
-  background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Beautiful Flash Sale Section Styling */
-.flashsale-section {
-  margin: 12px 0;
-  padding: 16px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.flashsale-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: flashShimmer 2s infinite;
-}
-
-@keyframes flashShimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-
-.flashsale-title {
-  text-align: center;
-  color: white;
-  font-weight: 800;
-  font-size: 16px;
-  margin-bottom: 16px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  animation: flashPulse 1.5s infinite;
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes flashPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.9; }
-}
-
-.flashsale-item {
-  padding: 16px;
-  margin: 12px 0;
-  border-radius: 12px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-}
-
-.flashsale-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-}
-
-.flashsale-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transition: left 0.6s ease;
-}
-
-.flashsale-item:hover::before {
-  left: 100%;
-}
-
-/* Premium flash sale (first one) */
-.flashsale-item-premium {
-  background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
-  border: 3px solid #ffd700;
-  box-shadow: 0 6px 24px rgba(255, 71, 87, 0.5);
-}
-
-.flashsale-item-premium .flashsale-icon {
-  font-size: 24px;
-  animation: flashBounce 1.5s infinite;
-}
-
-@keyframes flashBounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1); }
-  40% { transform: translateY(-6px) scale(1.1); }
-  60% { transform: translateY(-3px) scale(1.05); }
-}
-
-/* Standard flash sale (others) */
-.flashsale-item-standard {
-  background: linear-gradient(135deg, #ff9ff3 0%, #f368e0 100%);
-  border: 2px solid #ff9ff3;
-  box-shadow: 0 4px 20px rgba(255, 159, 243, 0.4);
-}
-
-.flashsale-item-standard .flashsale-icon {
-  font-size: 20px;
-  animation: flashRotate 3s linear infinite;
-}
-
-@keyframes flashRotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.flashsale-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.flashsale-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.flashsale-icon {
-  font-size: 20px;
-  min-width: 32px;
-  text-align: center;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  margin-top: 2px;
-}
-
-.flashsale-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.flashsale-name {
-  color: white;
-  font-weight: 700;
-  font-size: 15px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
-  line-height: 1.3;
-}
-
-.flashsale-badge {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  color: #333;
-  font-size: 9px;
-  font-weight: 800;
-  padding: 4px 8px;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  animation: flashBadge 2s infinite;
-  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  white-space: nowrap;
-  align-self: flex-start;
-  margin-top: 2px;
-}
-
-@keyframes flashBadge {
-  0%, 50%, 100% { opacity: 1; transform: scale(1); }
-  25%, 75% { opacity: 0.8; transform: scale(1.1); }
-}
-
-.flashsale-time {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.time-label {
-  color: #ffeaa7;
-  font-weight: 600;
-  font-size: 11px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.time-value {
-  color: white;
-  font-weight: 600;
-  font-size: 11px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.12);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  line-height: 1.4;
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
-.flashsale-desc {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 11px;
-  font-style: italic;
-  line-height: 1.4;
-  padding-left: 0;
 }
 
 /* Responsive */
@@ -1529,43 +779,11 @@ export default {
   .message-input { padding: 10px 14px; font-size: 13px; }
   .send-btn { width: 38px; height: 38px; }
 
-  .products-grid { padding: 8px; gap: 10px; }
-  .product-name { font-size: 13px; }
-  .current-price { font-size: 14px; }
-
-  .coupon-code {
-    font-size: 16px;
-  }
-  
-  .coupon-discount {
-    font-size: 14px;
-  }
-  
   /* On very small screens, keep it stacked above ChatWidget */
   .ai-chatbot {
     bottom: 90px;
     right: 20px;
   }
-
-  /* Compact coupons on mobile */
-  .coupons-section { padding: 12px; border-radius: 12px; }
-  .coupon-title { font-size: 14px; margin-bottom: 12px; }
-  .coupon-item { gap: 10px; padding: 12px; margin: 8px 0; border-radius: 10px; }
-  .coupon-name { font-size: 13px; }
-  .coupon-code { font-size: 14px; padding: 3px 8px; border-radius: 12px; }
-  .coupon-discount { font-size: 12px; }
-  .coupon-min-order { font-size: 11px; }
-  .coupon-desc { font-size: 10px; }
-  .coupon-badge { font-size: 9px; padding: 4px 8px; top: 8px; right: 8px; }
-
-  /* Compact flash sale on mobile */
-  .flashsale-section { padding: 12px; border-radius: 12px; }
-  .flashsale-title { font-size: 14px; margin-bottom: 12px; }
-  .flashsale-item { padding: 12px; margin: 8px 0; border-radius: 10px; }
-  .flashsale-name { font-size: 13px; }
-  .time-label, .time-value { font-size: 10px; }
-  .time-value { padding: 6px 8px; border-radius: 8px; }
-  .flashsale-desc { font-size: 10px; }
  
 }
 

@@ -206,6 +206,39 @@ export function useAIChat() {
     })
   }
 
+  // Chat helpers
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(price)
+  }
+
+  const calculateDiscountPercentage = (product) => {
+    if (!product.discount_price) return 0
+    return Math.round(((product.price - product.discount_price) / product.price) * 100)
+  }
+
+  const getPlaceholderImage = () => {
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmYWZjIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4='
+  }
+
+  const getImageUrl = (product) => {
+    const mainImage = product.mainImage || product.main_image
+    if (mainImage && mainImage.image_url) {
+      return mainImage.image_url
+    }
+    return getPlaceholderImage()
+  }
+
+  const handleImageError = (event) => {
+    event.target.src = getPlaceholderImage()
+  }
+
+  const viewProduct = (product) => {
+    window.open(`/san-pham/${product.slug}`, '_blank')
+  }
+
   return {
     // State
     isOpen,
@@ -223,6 +256,14 @@ export function useAIChat() {
     getAvailableCoupons,
     getActiveFlashSales,
     formatMessage,
-    formatTime
+    formatTime,
+    
+    // Chat helpers
+    formatPrice,
+    calculateDiscountPercentage,
+    getPlaceholderImage,
+    getImageUrl,
+    handleImageError,
+    viewProduct
   }
 }
