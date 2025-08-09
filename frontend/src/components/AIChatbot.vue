@@ -377,7 +377,7 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(22, 22, 22, 0.3);
+  border: 1px solid #d4e6ff;
   backdrop-filter: blur(20px);
   max-width: 100vw;
   max-height: 100vh;
