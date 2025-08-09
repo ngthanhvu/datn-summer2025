@@ -359,7 +359,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 }
             }
             
-            // Nếu là tìm kiếm chung chung, lấy 2-3 sản phẩm ngẫu nhiên
             if ($isGeneralSearch) {
                 $context['products'] = $productQuery->inRandomOrder()->take(3)->get();
                 return $context;
@@ -371,6 +370,11 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 });
             } elseif (strpos($message, 'áo polo') !== false) {
                 $productQuery->where('name', 'like', '%áo polo%');
+            } elseif (strpos($message, 'sơ mi') !== false) {
+                $productQuery->where('name', 'like', '%sơ mi%')
+                    ->orWhereHas('categories', function($q) {
+                        $q->where('name', 'like', '%sơ mi%');
+                    });
             } elseif (strpos($message, 'váy') !== false) {
                 $productQuery->whereHas('categories', function($q) {
                     $q->where('name', 'like', '%váy%');
@@ -393,17 +397,17 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 $productQuery->whereHas('categories', function($q) {
                     $q->where('name', 'like', '%túi%');
                 });
-            } elseif (strpos($message, 'áo') !== false && !strpos($message, 'áo khoác') && !strpos($message, 'áo polo')) {
+            } elseif (strpos($message, 'áo') !== false && !strpos($message, 'áo khoác') && !strpos($message, 'áo polo') && !strpos($message, 'sơ mi')) {
                 $productQuery->whereHas('categories', function($q) {
                     $q->where('name', 'like', '%áo%');
                 });
             }
             
             if (strpos($message, 'áo khoác') !== false || strpos($message, 'áo polo') !== false || 
-                strpos($message, 'váy') !== false || strpos($message, 'đầm') !== false || 
-                strpos($message, 'quần') !== false || strpos($message, 'giày') !== false || 
-                strpos($message, 'dép') !== false || strpos($message, 'túi') !== false ||
-                strpos($message, 'áo') !== false) {
+                strpos($message, 'sơ mi') !== false || strpos($message, 'váy') !== false || 
+                strpos($message, 'đầm') !== false || strpos($message, 'quần') !== false || 
+                strpos($message, 'giày') !== false || strpos($message, 'dép') !== false || 
+                strpos($message, 'túi') !== false || strpos($message, 'áo') !== false) {
                 $context['products'] = $productQuery->inRandomOrder()->take(3)->get();
             }
             
