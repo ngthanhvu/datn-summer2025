@@ -32,15 +32,12 @@ class AIChatController extends Controller
             // Lấy context liên quan trước
             $relevantContext = $this->getRelevantContext($userMessage);
             
-            // Nếu có sản phẩm liên quan, sử dụng context đó
             if (isset($relevantContext['products']) && $relevantContext['products']->count() > 0) {
                 $context = $relevantContext;
             } else {
-                // Nếu không có sản phẩm cụ thể, sử dụng context chung
                 try {
                     $context = $this->getDatabaseContext();
                 } catch (\Exception $e) {
-                    // Fallback nếu có lỗi database
                     $context = [
                         'products' => collect([]),
                         'coupons' => collect([]),
@@ -51,13 +48,8 @@ class AIChatController extends Controller
                 }
             }
             
-            // Tạo prompt với context
             $prompt = $this->buildPrompt($userMessage, $context);
-            
-            // Gọi Gemini API
             $response = $this->callGeminiAPI($prompt);
-            
-            // Xử lý response
             $aiResponse = $this->processAIResponse($response, $userMessage);
             
             // Xử lý hình ảnh cho sản phẩm
@@ -70,22 +62,9 @@ class AIChatController extends Controller
                             $imagePath = 'storage/' . ltrim($imagePath, '/');
                         }
                         $product->mainImage->image_url = url($imagePath);
-                        
-                        // Debug log
-                        \Log::info('Product image processed', [
-                            'product_name' => $product->name,
-                            'image_path' => $product->mainImage->image_path,
-                            'image_url' => $product->mainImage->image_url
-                        ]);
-                    } else {
-                        \Log::info('Product has no main image', [
-                            'product_name' => $product->name,
-                            'has_main_image' => $product->mainImage ? 'yes' : 'no'
-                        ]);
                     }
                 });
                 
-                // Convert to array and fix the mainImage key
                 $relevantContext['products'] = $relevantContext['products']->map(function ($product) {
                     $productArray = $product->toArray();
                     if (isset($productArray['main_image'])) {
@@ -96,18 +75,11 @@ class AIChatController extends Controller
                 });
             }
             
-            $response = response()->json([
+            return response()->json([
                 'success' => true,
                 'message' => $aiResponse,
                 'context' => $relevantContext
             ]);
-
-            // Add CORS headers
-            $response->headers->set('Access-Control-Allow-Origin', '*');
-            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-
-            return $response;
         } catch (\Exception $e) {
             \Log::error('AI Chat Error: ' . $e->getMessage(), [
                 'user_message' => $userMessage ?? 'null',
@@ -124,7 +96,6 @@ class AIChatController extends Controller
 
     private function getDatabaseContext()
     {
-        // Cache context để tối ưu performance
         return Cache::remember('ai_chat_context', 300, function () {
             $products = Products::with(['categories', 'brand', 'mainImage', 'variants.inventory', 'images'])
                 ->where('is_active', true)
@@ -220,7 +191,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
     {
         $formatted = "THÔNG TIN CỬA HÀNG:\n\n";
         
-        // Sản phẩm
         if (isset($context['products']) && $context['products']->count() > 0) {
             $formatted .= "SẢN PHẨM:\n";
             foreach ($context['products'] as $product) {
@@ -237,7 +207,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     $formatted .= "📂 Danh mục: {$product->categories->name}\n";
                 }
                 
-                // Thêm thông tin variants (size, color)
                 if ($product->variants && $product->variants->count() > 0) {
                     $sizes = $product->variants->pluck('size')->unique()->implode(', ');
                     $colors = $product->variants->pluck('color')->unique()->implode(', ');
@@ -249,12 +218,10 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     }
                 }
                 
-                // Thêm thông tin thương hiệu
                 if ($product->brand) {
                     $formatted .= "🏢 Thương hiệu: {$product->brand->name}\n";
                 }
                 
-                // Thêm mô tả ngắn
                 if ($product->description) {
                     $shortDesc = substr($product->description, 0, 100);
                     $formatted .= "📝 Mô tả: {$shortDesc}...\n";
@@ -264,7 +231,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
         
-        // Mã giảm giá
         if (isset($context['coupons']) && $context['coupons']->count() > 0) {
             $formatted .= "\n🎫 MÃ GIẢM GIÁ HIỆN CÓ:\n";
             foreach ($context['coupons'] as $coupon) {
@@ -284,7 +250,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
         
-        // Flash sale
         if (isset($context['flash_sales']) && $context['flash_sales']->count() > 0) {
             $formatted .= "\n⚡ FLASH SALE ĐANG DIỄN RA:\n";
             foreach ($context['flash_sales'] as $flashSale) {
@@ -297,7 +262,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
         
-        // Danh mục
         if (isset($context['categories']) && $context['categories']->count() > 0) {
             $formatted .= "\n📂 DANH MỤC SẢN PHẨM:\n";
             foreach ($context['categories'] as $category) {
@@ -305,7 +269,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
         
-        // Thương hiệu
         if (isset($context['brands']) && $context['brands']->count() > 0) {
             $formatted .= "\n🏢 THƯƠNG HIỆU:\n";
             foreach ($context['brands'] as $brand) {
@@ -343,10 +306,8 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
 
     private function processAIResponse($aiResponse, $userMessage)
     {
-        // Xử lý response từ AI
         $response = trim($aiResponse);
         
-        // Kiểm tra nếu AI trả lời quá ngắn hoặc chung chung
         $message = strtolower($userMessage);
         $generalKeywords = ['tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 'mua gì', 'tìm gì', 'có gì'];
         
@@ -358,7 +319,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
         
-        // Nếu là tìm kiếm chung chung mà AI trả lời ngắn, thêm thông tin
         if ($isGeneralSearch && (strlen($response) < 100 || strpos($response, 'bạn muốn tìm gì') !== false)) {
             $response = "Tôi tìm thấy một số sản phẩm tiêu biểu trong cửa hàng:\n\n";
             $response .= "📦 Sản phẩm chất lượng cao\n";
@@ -370,7 +330,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             $response .= "• Flash sale";
         }
         
-        // Nếu response quá ngắn, thêm thông tin hữu ích
         if (strlen($response) < 50) {
             $response .= "\n\nBạn có thể hỏi tôi về:\n- Sản phẩm cụ thể\n- Mã giảm giá\n- Flash sale\n- Quy trình thanh toán\n- Danh mục sản phẩm";
         }
@@ -384,11 +343,9 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             $context = [];
             $message = strtolower($userMessage);
             
-            // Tìm sản phẩm theo từ khóa cụ thể
             $productQuery = Products::with(['categories', 'brand', 'mainImage', 'variants.inventory', 'images'])
                 ->where('is_active', true);
             
-            // Kiểm tra các từ khóa tìm kiếm chung chung
             $generalSearchKeywords = [
                 'tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 
                 'mua gì', 'tìm gì', 'có gì', 'bán gì', 'shop có gì'
@@ -408,7 +365,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 return $context;
             }
             
-            // Lọc theo từ khóa cụ thể
             if (strpos($message, 'áo khoác') !== false) {
                 $productQuery->whereHas('categories', function($q) {
                     $q->where('name', 'like', '%áo khoác%');
@@ -438,13 +394,11 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     $q->where('name', 'like', '%túi%');
                 });
             } elseif (strpos($message, 'áo') !== false && !strpos($message, 'áo khoác') && !strpos($message, 'áo polo')) {
-                // Tìm tất cả các loại áo
                 $productQuery->whereHas('categories', function($q) {
                     $q->where('name', 'like', '%áo%');
                 });
             }
             
-            // Lấy sản phẩm nếu có từ khóa cụ thể hoặc áo chung chung
             if (strpos($message, 'áo khoác') !== false || strpos($message, 'áo polo') !== false || 
                 strpos($message, 'váy') !== false || strpos($message, 'đầm') !== false || 
                 strpos($message, 'quần') !== false || strpos($message, 'giày') !== false || 
@@ -453,7 +407,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 $context['products'] = $productQuery->inRandomOrder()->take(3)->get();
             }
             
-            // Tìm mã giảm giá
             if (strpos($message, 'mã giảm') !== false || strpos($message, 'coupon') !== false || 
                 strpos($message, 'giảm giá') !== false) {
                 $context['coupons'] = Coupons::where('is_active', true)
@@ -462,7 +415,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     ->get();
             }
             
-            // Tìm flash sale
             if (strpos($message, 'flash') !== false || strpos($message, 'khuyến mãi') !== false) {
                 $context['flash_sales'] = FlashSale::with(['products.product'])
                     ->where('active', true)
@@ -524,186 +476,5 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
         ]);
     }
 
-    public function testProduct()
-    {
-        $product = Products::with(['variants', 'images', 'categories', 'brand'])
-            ->where('is_active', true)
-            ->first();
-            
-        if (!$product) {
-            return response()->json(['error' => 'No product found']);
-        }
-        
-        $variants = $product->variants->map(function($variant) {
-            return [
-                'size' => $variant->size,
-                'color' => $variant->color,
-                'price' => $variant->price
-            ];
-        });
-        
-        // Test context generation
-        $context = $this->getDatabaseContext();
-        $formattedContext = $this->formatContextForPrompt($context);
-        
-        // Test filtering
-        $aoKhoacContext = $this->getRelevantContext('áo khoác');
-        $aoPoloContext = $this->getRelevantContext('áo polo');
-        
-        return response()->json([
-            'product' => [
-                'name' => $product->name,
-                'price' => $product->price,
-                'discount_price' => $product->discount_price,
-                'category' => $product->categories->name ?? 'N/A',
-                'variants' => $variants,
-                'images_count' => $product->images->count()
-            ],
-            'context_sample' => substr($formattedContext, 0, 500) . '...',
-            'products_count' => count($context['products']),
-            'products_with_variants' => $context['products']->filter(function($p) {
-                return $p->variants && $p->variants->count() > 0;
-            })->count(),
-            'ao_khoac_filter' => [
-                'has_products' => isset($aoKhoacContext['products']),
-                'products_count' => isset($aoKhoacContext['products']) ? count($aoKhoacContext['products']) : 0,
-                'products' => isset($aoKhoacContext['products']) ? $aoKhoacContext['products']->pluck('name') : []
-            ],
-            'ao_polo_filter' => [
-                'has_products' => isset($aoPoloContext['products']),
-                'products_count' => isset($aoPoloContext['products']) ? count($aoPoloContext['products']) : 0,
-                'products' => isset($aoPoloContext['products']) ? $aoPoloContext['products']->pluck('name') : []
-            ]
-        ]);
-    }
 
-    public function testFilter()
-    {
-        $aoKhoacContext = $this->getRelevantContext('áo khoác');
-        $aoPoloContext = $this->getRelevantContext('áo polo');
-        $vayContext = $this->getRelevantContext('váy');
-        
-        return response()->json([
-            'ao_khoac' => [
-                'has_products' => isset($aoKhoacContext['products']),
-                'count' => isset($aoKhoacContext['products']) ? count($aoKhoacContext['products']) : 0,
-                'products' => isset($aoKhoacContext['products']) ? $aoKhoacContext['products']->pluck('name', 'id') : []
-            ],
-            'ao_polo' => [
-                'has_products' => isset($aoPoloContext['products']),
-                'count' => isset($aoPoloContext['products']) ? count($aoPoloContext['products']) : 0,
-                'products' => isset($aoPoloContext['products']) ? $aoPoloContext['products']->pluck('name', 'id') : []
-            ],
-            'vay' => [
-                'has_products' => isset($vayContext['products']),
-                'count' => isset($vayContext['products']) ? count($vayContext['products']) : 0,
-                'products' => isset($vayContext['products']) ? $vayContext['products']->pluck('name', 'id') : []
-            ]
-        ]);
-    }
-
-    public function testChat(Request $request)
-    {
-        try {
-            $userMessage = $request->input('message');
-            $allInput = $request->all();
-            
-            // Lấy context liên quan
-            $relevantContext = $this->getRelevantContext($userMessage);
-            
-            return response()->json([
-                'user_message' => $userMessage,
-                'all_input' => $allInput,
-                'relevant_context' => [
-                    'has_products' => isset($relevantContext['products']),
-                    'products_count' => isset($relevantContext['products']) ? count($relevantContext['products']) : 0,
-                    'products' => isset($relevantContext['products']) ? $relevantContext['products']->pluck('name') : []
-                ]
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500);
-        }
-    }
-
-    public function debugChat(Request $request)
-    {
-        try {
-            $userMessage = $request->input('message');
-            
-            // Lấy context liên quan
-            $relevantContext = $this->getRelevantContext($userMessage);
-            
-            // Tạo prompt
-            $prompt = $this->buildPrompt($userMessage, $relevantContext);
-            
-            // Gọi Gemini API
-            $response = $this->callGeminiAPI($prompt);
-            
-            return response()->json([
-                'user_message' => $userMessage,
-                'relevant_context' => [
-                    'has_products' => isset($relevantContext['products']),
-                    'products_count' => isset($relevantContext['products']) ? count($relevantContext['products']) : 0,
-                    'products' => isset($relevantContext['products']) ? $relevantContext['products']->pluck('name') : []
-                ],
-                'prompt_length' => strlen($prompt),
-                'prompt_sample' => substr($prompt, 0, 1000) . '...',
-                'ai_response' => $response
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500);
-        }
-    }
-
-    public function testSimple()
-    {
-        try {
-            // Test database connection
-            $productCount = Products::count();
-            $couponCount = Coupons::count();
-            
-            // Test product with image
-            $productWithImage = Products::with(['mainImage'])->first();
-            $imageInfo = null;
-            if ($productWithImage && $productWithImage->mainImage) {
-                $imageInfo = [
-                    'product_name' => $productWithImage->name,
-                    'image_path' => $productWithImage->mainImage->image_path,
-                    'image_url' => $productWithImage->mainImage->image_url,
-                    'full_url' => url('storage/' . $productWithImage->mainImage->image_path)
-                ];
-            }
-            
-            // Test Gemini API
-            $testPrompt = "Xin chào, bạn có khỏe không?";
-            $geminiResponse = $this->callGeminiAPI($testPrompt);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'API đang hoạt động bình thường',
-                'timestamp' => now(),
-                'database' => [
-                    'products_count' => $productCount,
-                    'coupons_count' => $couponCount
-                ],
-                'image_test' => $imageInfo,
-                'gemini_api' => [
-                    'status' => 'working',
-                    'response_sample' => substr($geminiResponse, 0, 100) . '...'
-                ]
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500);
-        }
-    }
 }

@@ -48,6 +48,7 @@ export default {
 </script>
 
 <style scoped>
+@import url('../../assets/css/chat-animations.css');
 .coupons-section {
   margin: 12px 0;
   padding: 16px;
@@ -70,11 +71,6 @@ export default {
   animation: shimmer 3s infinite;
 }
 
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-
 .coupon-title {
   text-align: center;
   color: white;
@@ -85,11 +81,6 @@ export default {
   animation: pulse 2s infinite;
   position: relative;
   z-index: 1;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
 }
 
 .coupon-item {
@@ -206,8 +197,5 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-@keyframes flash {
-  0%, 50%, 100% { opacity: 1; transform: scale(1); }
-  25%, 75% { opacity: 0.7; transform: scale(1.1); }
-}
+
 </style>

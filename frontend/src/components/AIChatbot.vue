@@ -300,6 +300,7 @@ export default {
 </script>
 
 <style scoped>
+@import url('../assets/css/chat-animations.css');
 .ai-chatbot {
   position: fixed;
   bottom: 90px; 
@@ -331,14 +332,10 @@ export default {
 }
 
 .chat-widget-button.pulse {
-  animation: pulse 2s infinite;
+  animation: buttonPulse 2s infinite;
 }
 
-@keyframes pulse {
-  0% { box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4); }
-  50% { box-shadow: 0 4px 20px rgba(102, 126, 234, 0.8); }
-  100% { box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4); }
-}
+
 
 .chat-icon-img {
   width: 100%;
@@ -593,10 +590,7 @@ export default {
 .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
 .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
 
-@keyframes typing {
-  0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
-}
+
 
 .quick-actions {
   padding: 20px;
@@ -640,16 +634,7 @@ export default {
   border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
-.chat-product-card {
-  transform: scale(0.9);
-  margin: 0 auto;
-  transition: all 0.3s ease;
-}
 
-.chat-product-card:hover {
-  transform: scale(0.95);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
 
 .input-area {
   padding: 24px 20px;
@@ -816,8 +801,5 @@ export default {
   transform: rotate(-45deg);
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
 </style>
