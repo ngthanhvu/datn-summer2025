@@ -14,7 +14,7 @@
             <div class="flashsale-time">
               <span class="time-label">Thời gian:</span>
               <div class="time-value">
-                {{ flashSale.start_time }} - {{ flashSale.end_time }}
+                {{ formatDate(flashSale.start_time) }} - {{ formatDate(flashSale.end_time) }}
               </div>
             </div>
           </div>
@@ -33,6 +33,17 @@ export default {
     flashSales: {
       type: Array,
       required: true
+    }
+  },
+  setup() {
+    const formatDate = (dateString) => {
+      if (!dateString) return ''
+      const date = new Date(dateString)
+      return date.toLocaleDateString('vi-VN')
+    }
+    
+    return {
+      formatDate
     }
   }
 }

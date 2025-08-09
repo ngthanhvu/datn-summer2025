@@ -54,8 +54,8 @@ class AIChatController extends Controller
             
             // Phân loại loại câu hỏi để lọc context gửi ra frontend
             $lowerMsg = strtolower($userMessage);
-            $flashSaleKeywords = ['flash sale', 'flashsale', 'khuyến mãi', 'sale', 'giảm giá', 'khuyến mãi gì', 'có sale không', 'có khuyến mãi không', 'flash sale nào', 'sale gì'];
-            $couponKeywords = ['mã giảm', 'coupon', 'mã khuyến mãi', 'mã giảm giá', 'có mã giảm không', 'mã giảm nào', 'coupon nào', 'mã khuyến mãi nào', 'giảm giá gì'];
+            $flashSaleKeywords = ['flash sale', 'flashsale', 'khuyến mãi', 'sale', 'khuyến mãi gì', 'có sale không', 'có khuyến mãi không', 'flash sale nào', 'sale gì'];
+            $couponKeywords = ['mã giảm', 'coupon', 'mã khuyến mãi', 'mã giảm giá', 'có mã giảm không', 'mã giảm nào', 'coupon nào', 'mã khuyến mãi nào'];
             $stockKeywords = ['còn hàng', 'có hàng', 'tồn kho', 'số lượng', 'bao nhiêu cái'];
             $generalKeywords = ['tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 'mua gì', 'tìm gì', 'có gì'];
 
@@ -64,22 +64,39 @@ class AIChatController extends Controller
             $isStockQuestion = false; foreach ($stockKeywords as $kw) { if (strpos($lowerMsg, $kw) !== false) { $isStockQuestion = true; break; } }
             $isGeneralProductQuestion = false; foreach ($generalKeywords as $kw) { if (strpos($lowerMsg, $kw) !== false) { $isGeneralProductQuestion = true; break; } }
 
-            $prompt = $this->buildPrompt($userMessage, $context);
+            // Lọc context dựa trên loại câu hỏi TRƯỚC KHI gọi AI
+            $filteredContext = [];
+            
+            if ($isFlashSaleQuestion) {
+                // Chỉ hiển thị flash sale khi hỏi về flash sale
+                if (isset($context['flash_sales'])) {
+                    $filteredContext['flash_sales'] = $context['flash_sales'];
+                }
+                // Đảm bảo KHÔNG có coupons và products trong context khi hỏi về flash sale
+                $filteredContext['coupons'] = collect([]);
+                $filteredContext['products'] = collect([]);
+            } elseif ($isCouponQuestion) {
+                // Chỉ hiển thị mã giảm giá khi hỏi về mã giảm giá
+                if (isset($context['coupons'])) {
+                    $filteredContext['coupons'] = $context['coupons'];
+                }
+                // Đảm bảo KHÔNG có flash_sales và products trong context khi hỏi về mã giảm giá
+                $filteredContext['flash_sales'] = collect([]);
+                $filteredContext['products'] = collect([]);
+            } else {
+                // Hiển thị sản phẩm cho các câu hỏi khác
+                if (isset($context['products'])) {
+                    $filteredContext['products'] = $context['products'];
+                }
+            }
+
+            // Gọi AI với context đã được lọc
+            $prompt = $this->buildPrompt($userMessage, $filteredContext);
             $response = $this->callGeminiAPI($prompt);
             $aiResponse = $this->processAIResponse($response, $userMessage);
             
-            $finalContext = ($hasProducts || $hasCoupons || $hasFlashSales) ? $relevantContext : $context;
-
-            if ($isFlashSaleQuestion) {
-                unset($finalContext['products']);
-                unset($finalContext['coupons']);
-            } elseif ($isCouponQuestion) {
-                unset($finalContext['products']);
-                unset($finalContext['flash_sales']);
-            } else {
-                unset($finalContext['coupons']);
-                unset($finalContext['flash_sales']);
-            }
+            // Sử dụng context đã lọc cho frontend
+            $finalContext = $filteredContext;
             $this->processProductImages($finalContext);
             
             return response()->json([
@@ -106,17 +123,24 @@ class AIChatController extends Controller
         return Cache::remember('ai_chat_context', 300, function () {
             $products = Products::with(['categories', 'brand', 'mainImage', 'variants.inventory', 'images'])
                 ->where('is_active', true)
+                ->orderBy('created_at', 'desc')
                 ->take(50)
                 ->get();
 
             $coupons = Coupons::where('is_active', true)
                 ->where('end_date', '>', now())
+                ->where(function($query) {
+                    $query->whereNull('usage_limit')
+                          ->orWhereRaw('used_count < usage_limit');
+                })
+                ->orderBy('created_at', 'desc')
                 ->take(20)
                 ->get();
 
             $flashSales = FlashSale::with(['products.product'])
                 ->where('active', true)
                 ->where('end_time', '>', now())
+                ->orderBy('created_at', 'desc')
                 ->take(10)
                 ->get();
 
@@ -152,14 +176,19 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
 **QUAN TRỌNG VỀ LOGIC HIỂN THỊ:**
 
 **KHI KHÁCH HÀNG HỎI VỀ FLASH SALE/KHUYẾN MÃI:**
-- CHỈ hiển thị thông tin về flash sale và khuyến mãi
-- KHÔNG hiển thị sản phẩm không liên quan
+- CHỈ hiển thị thông tin về flash sale và khuyến mãi có sẵn trong database
+- KHÔNG hiển thị sản phẩm hoặc mã giảm giá
+- KHÔNG BAO GIỜ tự bịa ra thông tin flash sale không có trong database
 - Tập trung vào thông tin sale, thời gian, mô tả
+- Nếu không có flash sale nào, hãy nói: \"Hiện tại cửa hàng chưa có chương trình flash sale nào.\"
 
 **KHI KHÁCH HÀNG HỎI VỀ MÃ GIẢM GIÁ:**
-- CHỈ hiển thị thông tin về mã giảm giá
+- CHỈ hiển thị thông tin về mã giảm giá (coupons) có sẵn trong database
 - KHÔNG hiển thị sản phẩm hoặc flash sale
+- KHÔNG BAO GIỜ tự bịa ra mã giảm giá không có trong database
 - Tập trung vào mã code, giá trị giảm, điều kiện sử dụng
+- Trả lời: \"Chào bạn! Hiện tại cửa hàng đang có các mã giảm giá sau:\" rồi liệt kê CHÍNH XÁC các mã giảm giá có sẵn trong database của cửa hàng.
+- Nếu không có mã giảm giá nào, hãy nói: \"Hiện tại cửa hàng chưa có mã giảm giá nào.\" 
 
 **KHI KHÁCH HÀNG HỎI VỀ SẢN PHẨM:**
 - CHỈ hiển thị thông tin sản phẩm phù hợp với yêu cầu
@@ -222,7 +251,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
    🎨 Màu: [Các màu có sẵn]
    📦 Tình trạng: [Còn hàng/Hết hàng] ([Số lượng] sản phẩm)
    📊 Chi tiết tồn kho: [Size (Màu): Số lượng] (nếu có)
-   📝 Mô tả: [Mô tả ngắn gọn]'
+   📝 Mô tả: [Mô tả ngắn gọn]
 
 7. **QUAN TRỌNG VỀ HÌNH ẢNH**:
    - KHÔNG hiển thị URL hình ảnh trong text trả lời
@@ -249,16 +278,32 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
 
         $contextData = $this->formatContextForPrompt($context, $userMessage);
         
-        return $systemPrompt . "\n\n" . $contextData . "\n\nKhách hàng: " . $userMessage . "\n\nTrợ lý AI:";
+        $contextInstruction = "\n\n**HƯỚNG DẪN SỬ DỤNG CONTEXT:**\n";
+        $contextInstruction .= "Bạn CHỈ được phép sử dụng thông tin có sẵn trong context bên dưới.\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự bịa ra thông tin không có trong context.\n";
+        $contextInstruction .= "Nếu context trống hoặc không có thông tin phù hợp, hãy nói rõ điều đó.\n";
+        $contextInstruction .= "Đặc biệt: Khi hỏi về mã giảm giá, CHỈ liệt kê các mã có sẵn trong context, không tự tạo mã mới.\n";
+        $contextInstruction .= "Khi hỏi về flash sale, CHỈ liệt kê các chương trình có sẵn trong context, không tự tạo thông tin mới.\n";
+        $contextInstruction .= "Nếu context không có thông tin về mã giảm giá hoặc flash sale, hãy nói rõ ràng: 'Hiện tại cửa hàng chưa có...'\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự bịa ra mã giảm giá, tên sản phẩm, hoặc thông tin khuyến mãi không có trong context.\n";
+        $contextInstruction .= "Ví dụ: Nếu context chỉ có mã 'GIAM10', thì CHỈ liệt kê mã 'GIAM10', không tự tạo mã 'NEWBIE50' hoặc 'FREESHIP20'.\n";
+        $contextInstruction .= "Ví dụ: Nếu context chỉ có flash sale 'Sale vui tháng 8', thì CHỈ liệt kê 'Sale vui tháng 8', không tự tạo flash sale khác.\n";
+        $contextInstruction .= "\n**QUAN TRỌNG VỀ HIỂN THỊ SẢN PHẨM:**\n";
+        $contextInstruction .= "Khi khách hàng hỏi về sản phẩm cụ thể (ví dụ: 'váy', 'áo polo'), CHỈ hiển thị sản phẩm thực sự liên quan.\n";
+        $contextInstruction .= "Nếu hỏi về 'váy', CHỈ hiển thị váy, không hiển thị áo, quần, giày.\n";
+        $contextInstruction .= "Nếu hỏi về 'áo', CHỈ hiển thị áo, không hiển thị váy, quần, giày.\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ hiển thị sản phẩm không liên quan đến câu hỏi của khách hàng.\n";
+        $contextInstruction .= "Nếu context không có sản phẩm phù hợp, hãy nói: 'Xin lỗi, hiện tại cửa hàng chưa có sản phẩm này.'\n";
+        
+        return $systemPrompt . "\n\n" . $contextInstruction . $contextData . "\n\nKhách hàng: " . $userMessage . "\n\nTrợ lý AI:";
     }
 
     private function formatContextForPrompt($context, $userMessage = '')
     {
         $formatted = "THÔNG TIN CỬA HÀNG:\n\n";
         
-        if (isset($context['products']) && 
-            ((is_object($context['products']) && $context['products']->count() > 0) || 
-             (is_array($context['products']) && count($context['products']) > 0))) {
+        // Chỉ hiển thị sản phẩm nếu thực sự có trong context
+        if (isset($context['products']) && $context['products']->count() > 0) {
             $formatted .= "SẢN PHẨM:\n";
             foreach ($context['products'] as $product) {
                 $name = is_object($product) ? $product->name : $product['name'];
@@ -383,6 +428,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
         
+        // Chỉ hiển thị mã giảm giá nếu thực sự có trong context
         if (isset($context['coupons']) && $context['coupons']->count() > 0) {
             $formatted .= "🎫 MÃ GIẢM GIÁ HIỆN CÓ:\n";
             foreach ($context['coupons'] as $coupon) {
@@ -402,6 +448,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
         
+        // Chỉ hiển thị flash sale nếu thực sự có trong context
         if (isset($context['flash_sales']) && $context['flash_sales']->count() > 0) {
             $formatted .= "⚡ FLASH SALE ĐANG DIỄN RA:\n";
             foreach ($context['flash_sales'] as $flashSale) {
@@ -414,9 +461,8 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
         
-        if (isset($context['products']) && 
-            ((is_object($context['products']) && $context['products']->count() > 0) || 
-             (is_array($context['products']) && count($context['products']) > 0))) {
+        // Chỉ hiển thị danh mục và thương hiệu nếu có sản phẩm
+        if (isset($context['products']) && $context['products']->count() > 0) {
             
             if (isset($context['categories']) && $context['categories']->count() > 0) {
                 $formatted .= "\n📂 DANH MỤC SẢN PHẨM:\n";
@@ -468,7 +514,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
         $message = strtolower($userMessage);
         
         $flashSaleKeywords = [
-            'flash sale', 'flashsale', 'khuyến mãi', 'sale', 'giảm giá', 'khuyến mãi gì', 
+            'flash sale', 'flashsale', 'khuyến mãi', 'sale', 'khuyến mãi gì', 
             'có sale không', 'có khuyến mãi không', 'flash sale nào', 'sale gì'
         ];
         $isFlashSaleQuestion = false;
@@ -565,7 +611,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 ->where('is_active', true);
             
             $flashSaleKeywords = [
-                'flash sale', 'flashsale', 'khuyến mãi', 'sale', 'giảm giá', 'khuyến mãi gì', 
+                'flash sale', 'flashsale', 'khuyến mãi', 'sale', 'khuyến mãi gì', 
                 'có sale không', 'có khuyến mãi không', 'flash sale nào', 'sale gì'
             ];
             $isFlashSaleQuestion = false;
@@ -580,7 +626,11 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 $context['flash_sales'] = FlashSale::with(['products.product'])
                     ->where('active', true)
                     ->where('end_time', '>', now())
+                    ->orderBy('created_at', 'desc')
                     ->take(5)->get();
+                // Đảm bảo KHÔNG có coupons và products trong context khi hỏi về flash sale
+                $context['coupons'] = collect([]);
+                $context['products'] = collect([]);
                 return $context; 
             }
             
@@ -599,7 +649,15 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             if ($isCouponQuestion) {
                 $context['coupons'] = Coupons::where('is_active', true)
                     ->where('end_date', '>', now())
+                    ->where(function($query) {
+                        $query->whereNull('usage_limit')
+                              ->orWhereRaw('used_count < usage_limit');
+                    })
+                    ->orderBy('created_at', 'desc')
                     ->take(5)->get();
+                // Đảm bảo KHÔNG có flash_sales và products trong context khi hỏi về mã giảm giá
+                $context['flash_sales'] = collect([]);
+                $context['products'] = collect([]);
                 return $context; 
             }
             
@@ -623,16 +681,22 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             if ($targetGender) {
                 $filteredQuery = clone $productQuery;
                 if ($targetGender === 'nam') {
-                    $filteredQuery->where('name', 'like', '%nam%')
-                                  ->orWhere('name', 'like', '%áo%')
-                                  ->orWhere('name', 'like', '%quần%')
-                                  ->orWhere('name', 'like', '%giày%');
+                    // Chỉ tìm sản phẩm nam, không tìm chung chung
+                    $filteredQuery->where(function($q) {
+                        $q->where('name', 'like', '%nam%')
+                          ->orWhere('name', 'like', '%áo nam%')
+                          ->orWhere('name', 'like', '%quần nam%')
+                          ->orWhere('name', 'like', '%giày nam%');
+                    });
                 } elseif ($targetGender === 'nữ') {
-                    $filteredQuery->where('name', 'like', '%nữ%')
-                                  ->orWhere('name', 'like', '%váy%')
-                                  ->orWhere('name', 'like', '%đầm%')
-                                  ->orWhere('name', 'like', '%áo%')
-                                  ->orWhere('name', 'like', '%quần%');
+                    // Chỉ tìm sản phẩm nữ, không tìm chung chung
+                    $filteredQuery->where(function($q) {
+                        $q->where('name', 'like', '%nữ%')
+                          ->orWhere('name', 'like', '%váy%')
+                          ->orWhere('name', 'like', '%đầm%')
+                          ->orWhere('name', 'like', '%áo nữ%')
+                          ->orWhere('name', 'like', '%quần nữ%');
+                    });
                 }
                 
                 $genderProducts = $filteredQuery->take(3)->get();
@@ -674,76 +738,23 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     }
                 }
 
+                // Tìm kiếm sản phẩm cụ thể trước
                 $specificProductSearch = $this->searchBySpecificProduct($message, (clone $productQuery));
-                if ($specificProductSearch) {
+                if ($specificProductSearch && $specificProductSearch->count() > 0) {
+                    // Chỉ hiển thị sản phẩm thực sự liên quan
                     $context['products'] = $specificProductSearch;
-                    $context['products']->each(function ($product) {
-                        if ($product->variants && $product->variants->count() > 0) {
-                            $totalStock = 0;
-                            $stockDetails = [];
-                            
-                            foreach ($product->variants as $variant) {
-                                if ($variant->inventory) {
-                                    $stock = $variant->inventory->quantity ?? 0;
-                                    $totalStock += $stock;
-                                    if ($stock > 0) {
-                                        $stockDetails[] = [
-                                            'size' => $variant->size,
-                                            'color' => $variant->color,
-                                            'quantity' => $stock
-                                        ];
-                                    }
-                                }
-                            }
-                            
-                            $product->total_stock = $totalStock;
-                            $product->stock_details = $stockDetails;
-                            $product->in_stock = $totalStock > 0;
-                        }
-                    });
                     return $context;
                 }
                 
+                // Nếu không tìm thấy sản phẩm cụ thể, thử tìm theo danh mục
                 $categoryProducts = $this->searchByCategory($message, (clone $productQuery));
-                if ($categoryProducts) {
+                if ($categoryProducts && $categoryProducts->count() > 0) {
                     $context['products'] = $categoryProducts;
-                    $context['products']->each(function ($product) {
-                        if ($product->variants && $product->variants->count() > 0) {
-                            $totalStock = 0;
-                            $stockDetails = [];
-                            
-                            foreach ($product->variants as $variant) {
-                                if ($variant->inventory) {
-                                    $stock = $variant->inventory->quantity ?? 0;
-                                    $totalStock += $stock;
-                                    if ($stock > 0) {
-                                        $stockDetails[] = [
-                                            'size' => $variant->size,
-                                            'color' => $variant->color,
-                                            'quantity' => $stock
-                                        ];
-                                    }
-                                }
-                            }
-                            
-                            $product->total_stock = $totalStock;
-                            $product->stock_details = $stockDetails;
-                            $product->in_stock = $totalStock > 0;
-                        }
-                    });
                     return $context;
                 }
-            }
-            
-            $specificProductSearch = $this->searchBySpecificProduct($message, (clone $productQuery));
-            if ($specificProductSearch) {
-                $context['products'] = $specificProductSearch;
-                return $context;
-            }
-            
-            $categoryProducts = $this->searchByCategory($message, (clone $productQuery));
-            if ($categoryProducts) {
-                $context['products'] = $categoryProducts;
+                
+                // Nếu không tìm thấy gì, KHÔNG hiển thị sản phẩm ngẫu nhiên
+                // $context['products'] = collect([]); // Để trống để AI biết không có sản phẩm phù hợp
             }
             
             return $context;
@@ -795,45 +806,40 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
     {
         $words = explode(' ', $message);
         
-        $stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia'];
+        $stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi'];
         $keywords = array_diff($words, $stopWords);
         
-        if (strpos($message, 'còn hàng') !== false || strpos($message, 'có hàng') !== false || 
-            strpos($message, 'tồn kho') !== false || strpos($message, 'số lượng') !== false) {
-            
-            if (count($keywords) <= 1) {
-                $commonProductTypes = ['áo', 'quần', 'giày', 'túi', 'váy', 'đầm'];
-                foreach ($commonProductTypes as $type) {
-                    if (strpos($message, $type) !== false) {
-                        $productQuery->where('name', 'like', "%{$type}%");
-                        break;
-                    }
-                }
-                
-                if (count($keywords) == 0) {
-                    $products = $productQuery->orderBy('created_at', 'desc')->take(1)->get();
-                    if ($products->count() > 0) {
-                        return $products;
-                    }
-                }
-            }
-        }
-        
+        // Nếu không có từ khóa có ý nghĩa, không tìm kiếm
         if (empty($keywords)) {
             return null;
         }
         
+        // Tìm kiếm sản phẩm theo từ khóa chính xác
+        $foundProducts = collect();
+        
         foreach ($keywords as $keyword) {
             $keyword = trim($keyword);
-            if (strlen($keyword) >= 2) { 
-                $productQuery->where('name', 'like', "%{$keyword}%");
+            if (strlen($keyword) >= 2) {
+                // Tìm kiếm theo tên sản phẩm
+                $productsByName = (clone $productQuery)->where('name', 'like', "%{$keyword}%")->get();
+                if ($productsByName->count() > 0) {
+                    $foundProducts = $foundProducts->merge($productsByName);
+                }
+                
+                // Tìm kiếm theo danh mục
+                $productsByCategory = (clone $productQuery)->whereHas('categories', function($q) use ($keyword) {
+                    $q->where('name', 'like', "%{$keyword}%");
+                })->get();
+                if ($productsByCategory->count() > 0) {
+                    $foundProducts = $foundProducts->merge($productsByCategory);
+                }
             }
         }
         
-        $products = $productQuery->get();
-        
-        if ($products->count() > 0) {
-            return $products;
+        // Loại bỏ sản phẩm trùng lặp và chỉ trả về sản phẩm thực sự liên quan
+        if ($foundProducts->count() > 0) {
+            $uniqueProducts = $foundProducts->unique('id');
+            return $uniqueProducts->take(5); // Giới hạn tối đa 5 sản phẩm
         }
         
         return null;
@@ -841,48 +847,51 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
 
     private function searchByCategory($message, $productQuery)
     {
+        $message = strtolower($message);
+        
+        // Tìm kiếm theo danh mục cụ thể
         if (strpos($message, 'áo khoác') !== false) {
-            $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function($q) {
                 $q->where('name', 'like', '%áo khoác%');
-            });
+            })->take(3)->get();
         } elseif (strpos($message, 'áo polo') !== false) {
-            $productQuery->where('name', 'like', '%áo polo%');
+            return $productQuery->where('name', 'like', '%áo polo%')->take(3)->get();
         } elseif (strpos($message, 'sơ mi') !== false) {
-            $productQuery->where('name', 'like', '%sơ mi%')
+            return $productQuery->where('name', 'like', '%sơ mi%')
                 ->orWhereHas('categories', function($q) {
                     $q->where('name', 'like', '%sơ mi%');
-                });
+                })->take(3)->get();
         } elseif (strpos($message, 'váy') !== false) {
-            $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function($q) {
                 $q->where('name', 'like', '%váy%');
-            });
+            })->take(3)->get();
         } elseif (strpos($message, 'đầm') !== false) {
-            $productQuery->where('name', 'like', '%đầm%');
+            return $productQuery->whereHas('categories', function($q) {
+                $q->where('name', 'like', '%đầm%');
+            })->take(3)->get();
         } elseif (strpos($message, 'quần') !== false) {
-            $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function($q) {
                 $q->where('name', 'like', '%quần%');
-            });
+            })->take(3)->get();
         } elseif (strpos($message, 'giày') !== false) {
-            $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function($q) {
                 $q->where('name', 'like', '%giày%');
-            });
+            })->take(3)->get();
         } elseif (strpos($message, 'dép') !== false) {
-            $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function($q) {
                 $q->where('name', 'like', '%dép%');
-            });
+            })->take(3)->get();
         } elseif (strpos($message, 'túi') !== false) {
-            $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function($q) {
                 $q->where('name', 'like', '%túi%');
-            });
+            })->take(3)->get();
         } elseif (strpos($message, 'áo') !== false && !strpos($message, 'áo khoác') && !strpos($message, 'áo polo') && !strpos($message, 'sơ mi')) {
-            $productQuery->whereHas('categories', function($q) {
+            return $productQuery->whereHas('categories', function($q) {
                 $q->where('name', 'like', '%áo%');
-            });
-        } else {
-            return null;
+            })->take(3)->get();
         }
         
-        return $productQuery->inRandomOrder()->take(3)->get();
+        return null;
     }
 
     public function searchProducts(Request $request)
@@ -910,6 +919,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 $query->whereNull('usage_limit')
                       ->orWhereRaw('used_count < usage_limit');
             })
+            ->orderBy('created_at', 'desc')
             ->get();
             
         return response()->json([
@@ -923,6 +933,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
         $flashSales = FlashSale::with(['products.product'])
             ->where('active', true)
             ->where('end_time', '>', now())
+            ->orderBy('created_at', 'desc')
             ->get();
             
         return response()->json([

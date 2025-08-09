@@ -67,28 +67,27 @@ export default {
 .products-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 16px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  gap: 12px;
+  margin-top: 12px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
   max-width: 100%;
   overflow: hidden;
 }
 
 .chat-product-card {
-  transform: scale(0.95);
-  margin: 0 auto;
+  transform: scale(1);
+  margin: 8px 0;
   transition: all 0.3s ease;
   border-radius: 12px;
   overflow: hidden;
-  background: white;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  background: rgba(248, 250, 252, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.6);
   max-width: 100%;
   width: 100%;
   backdrop-filter: blur(5px);
@@ -98,9 +97,10 @@ export default {
 }
 
 .chat-product-card:hover {
-  transform: scale(1);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  border-color: rgba(102, 126, 234, 0.3);
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-color: rgba(102, 126, 234, 0.4);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .product-image {
