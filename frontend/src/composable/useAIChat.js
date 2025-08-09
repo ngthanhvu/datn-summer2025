@@ -65,7 +65,10 @@ export function useAIChat() {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ 
+          message,
+          context: buildClientContextHint()
+        })
       })
 
       const data = await response.json()
@@ -207,6 +210,21 @@ export function useAIChat() {
   }
 
   // Chat helpers
+  const buildClientContextHint = () => {
+    // Lấy danh sách product_ids từ tin nhắn AI gần nhất có products
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i]
+      if (!m.isUser && Array.isArray(m.products) && m.products.length > 0) {
+        const ids = m.products
+          .map(p => p.id)
+          .filter(id => typeof id === 'number' || typeof id === 'string')
+        if (ids.length > 0) {
+          return { product_ids: ids }
+        }
+      }
+    }
+    return {}
+  }
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
