@@ -25,6 +25,79 @@ use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\PagesController;
+use App\Http\Controllers\AIChatController;
+
+// AI Chatbot routes
+Route::post('/ai/chat', [AIChatController::class, 'chat']);
+Route::get('/ai/search-products', [AIChatController::class, 'searchProducts']);
+Route::get('/ai/coupons', [AIChatController::class, 'getAvailableCoupons']);
+Route::get('/ai/flash-sales', [AIChatController::class, 'getActiveFlashSales']);
+
+// Test route for debugging
+Route::get('/ai/test-product', [AIChatController::class, 'testProduct']);
+Route::get('/ai/test-filter', [AIChatController::class, 'testFilter']);
+Route::post('/ai/test-chat', [AIChatController::class, 'testChat']);
+Route::get('/ai/test-simple', [AIChatController::class, 'testSimple']);
+Route::get('/ai/test-basic', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'Basic API test successful',
+        'timestamp' => now()
+    ]);
+});
+
+Route::get('/ai/test-chat-response', function() {
+    $product = \App\Models\Products::with(['mainImage'])->first();
+    if ($product) {
+        // Simulate the same processing as in chat
+        if ($product->mainImage && $product->mainImage->image_path) {
+            $imagePath = $product->mainImage->image_path;
+            if (!str_starts_with($imagePath, 'storage/')) {
+                $imagePath = 'storage/' . ltrim($imagePath, '/');
+            }
+            $product->mainImage->image_url = url($imagePath);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Test message',
+            'context' => [
+                'products' => collect([$product])
+            ]
+        ]);
+    }
+    return response()->json([
+        'success' => false,
+        'message' => 'No product found'
+    ]);
+});
+
+Route::get('/ai/test-images', function() {
+    $product = \App\Models\Products::with(['mainImage'])->first();
+    if ($product && $product->mainImage) {
+        $imagePath = $product->mainImage->image_path;
+        $imageUrl = url('storage/' . $imagePath);
+        
+        // Test accessor
+        $accessorUrl = $product->mainImage->image_url;
+        
+        return response()->json([
+            'success' => true,
+            'product' => [
+                'name' => $product->name,
+                'image_path' => $imagePath,
+                'image_url' => $imageUrl,
+                'accessor_url' => $accessorUrl,
+                'main_image' => $product->mainImage->toArray()
+            ]
+        ]);
+    }
+    return response()->json([
+        'success' => false,
+        'message' => 'No product with image found'
+    ]);
+});
+
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);

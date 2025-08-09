@@ -6,6 +6,7 @@
         </main>
         <FooterHome />
         <ChatWidget :is-authenticated="isAuthenticated" />
+        <AIChatbot />
         <CookieConsent />
     </div>
 </template>
@@ -13,6 +14,7 @@
 import HeaderHome from './HeaderHome.vue'
 import FooterHome from './FooterHome.vue'
 import ChatWidget from './ChatWidget.vue'
+import AIChatbot from '../components/AIChatbot.vue'
 import CookieConsent from './CookieConsent.vue';
 
 import { useAuth } from '../composable/useAuth';
