@@ -464,7 +464,7 @@ onMounted(async () => {
                              <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
                                  <p class="text-gray-500 mb-4">Bạn chưa có địa chỉ giao hàng</p>
                                  <button @click="openAddressModal()" 
-                                     class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                     class="bg-[#81AACC] text-white px-4 py-2 rounded-lg hover:bg-[#81AACC]/80 transition-colors">
                                      + Thêm địa chỉ mới
                                  </button>
                              </div>
