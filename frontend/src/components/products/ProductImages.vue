@@ -3,16 +3,16 @@
         <!-- Main Image -->
         <div class="relative bg-white rounded-xl border border-gray-100 p-4 sm:p-6 lg:p-10 flex items-center justify-center w-full aspect-square max-w-[500px] sm:max-w-[500px] lg:max-w-[600px] mx-auto"
             @click="openModal">
-            <img :src="getImgSrc(mainImage)" :alt="productName" class="w-full h-full object-contain rounded-lg" />
+            <img :src="currentMainImage" :alt="productName" class="w-full h-full object-contain rounded-lg" />
 
-            <button v-if="productImages && productImages.length > 1" @click="previousImage"
+            <button v-if="currentImages && currentImages.length > 1" @click="previousImage"
                 class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                 <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </button>
 
-            <button v-if="productImages && productImages.length > 1" @click="nextImage"
+            <button v-if="currentImages && currentImages.length > 1" @click="nextImage"
                 class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                 <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -22,11 +22,11 @@
 
         <!-- Thumbnails -->
         <div class="flex flex-row gap-2 items-center justify-center flex-wrap">
-            <div v-for="(img, idx) in productImages || []" :key="idx"
+            <div v-for="(img, idx) in currentImages || []" :key="idx"
                 class="w-12 h-12 sm:w-16 sm:h-16 rounded border-2 bg-white cursor-pointer transition-all hover:scale-105 flex items-center justify-center"
                 :class="{
-                    'ring-2 ring-blue-400 border-blue-400': getImgSrc(img) === getImgSrc(mainImage),
-                    'border-gray-200 hover:border-gray-300': getImgSrc(img) !== getImgSrc(mainImage)
+                    'ring-2 ring-blue-400 border-blue-400': getImgSrc(img) === currentMainImage,
+                    'border-gray-200 hover:border-gray-300': getImgSrc(img) !== currentMainImage
                 }" @click="selectImage(getImgSrc(img))">
                 <img :src="getImgSrc(img)" :alt="productName" class="w-full h-full object-contain rounded" />
             </div>
@@ -37,7 +37,7 @@
             <div v-if="isModalOpen" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
                 @click.self="closeModal" @wheel="handleWheel">
                 <div class="relative p-4 max-w-full max-h-full overflow-hidden">
-                    <img :src="getImgSrc(productImages[modalIndex])" :alt="productName"
+                    <img :src="getImgSrc(currentImages[modalIndex])" :alt="productName"
                         class="max-w-full max-h-[90vh] rounded-lg shadow-xl transition-all duration-300" :style="{
                             transform: `scale(${zoomLevel}) translate(${panX}px, ${panY}px)`,
                             cursor: zoomLevel > 1 ? 'grab' : 'zoom-in'
@@ -52,14 +52,14 @@
                         </svg>
                     </button>
 
-                    <button v-if="productImages.length > 1" @click.stop="prevModalImage"
+                    <button v-if="currentImages.length > 1" @click.stop="prevModalImage"
                         class="absolute left-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-50 transition-colors">
                         <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
 
-                    <button v-if="productImages.length > 1" @click.stop="nextModalImage"
+                    <button v-if="currentImages.length > 1" @click.stop="nextModalImage"
                         class="absolute right-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-50 transition-colors">
                         <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -68,7 +68,7 @@
 
                     <div
                         class="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                        {{ modalIndex + 1 }} / {{ productImages.length }}
+                        {{ modalIndex + 1 }} / {{ currentImages.length }}
                     </div>
                 </div>
             </div>
@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 
 const props = defineProps({
     productImages: {
@@ -85,10 +85,57 @@ const props = defineProps({
         default: () => []
     },
     mainImage: String,
-    productName: String
+    productName: String,
+    selectedSize: String,
+    selectedColor: Object,
+    product: Object
 })
 
 const emit = defineEmits(['update:mainImage'])
+
+const currentImages = computed(() => {
+    if (props.selectedColor?.name && props.product?.variants) {
+      const colorSpecificVariant = props.product.variants.find(v =>
+        String(v.color) === String(props.selectedColor.name) &&
+        v.images && v.images.length > 0
+      )
+      
+      if (colorSpecificVariant) {
+        return colorSpecificVariant.images
+      }
+    }
+    
+    return props.productImages || []
+  })
+
+const currentImagesCount = computed(() => currentImages.value.length)
+
+const currentMainImage = computed(() => {
+    if (!props.mainImage) return ''
+    
+    const exists = currentImages.value.some(img => getImgSrc(img) === props.mainImage)
+    
+    if (!exists && currentImages.value.length > 0) {
+        return getImgSrc(currentImages.value[0])
+    }
+    
+    return props.mainImage
+})
+
+watch(currentImages, (newImages, oldImages) => {
+    if (newImages && newImages.length > 0) {
+        modalIndex.value = 0
+    }
+}, { deep: true })
+
+watch(currentMainImage, (newMainImage) => {
+    if (newMainImage && newMainImage !== props.mainImage) {
+        emit('update:mainImage', newMainImage)
+    }
+})
+
+watch(() => [props.selectedSize, props.selectedColor], ([newSize, newColor]) => {
+}, { deep: true })
 
 const isModalOpen = ref(false)
 const modalIndex = ref(0)
@@ -106,12 +153,18 @@ function getImgSrc(img) {
     return ''
 }
 
-const currentIndex = computed(() =>
-    props.productImages.findIndex(img => getImgSrc(img) === getImgSrc(props.mainImage))
-)
+const currentIndex = computed(() => {
+    const index = currentImages.value.findIndex(img => getImgSrc(img) === props.mainImage)
+    return index
+})
 
 function openModal() {
-    modalIndex.value = currentIndex.value !== -1 ? currentIndex.value : 0
+    if (currentImages.value.length > 0) {
+        modalIndex.value = currentIndex.value !== -1 ? currentIndex.value : 0
+        modalIndex.value = Math.min(modalIndex.value, currentImages.value.length - 1)
+    } else {
+        modalIndex.value = 0
+    }
     isModalOpen.value = true
     resetZoom()
 }
@@ -156,17 +209,17 @@ function stopPan() {
 }
 
 function prevModalImage() {
-    if (props.productImages.length > 1) {
+    if (currentImages.value.length > 1) {
         modalIndex.value =
-            modalIndex.value <= 0 ? props.productImages.length - 1 : modalIndex.value - 1
+            modalIndex.value <= 0 ? currentImages.value.length - 1 : modalIndex.value - 1
         resetZoom()
     }
 }
 
 function nextModalImage() {
-    if (props.productImages.length > 1) {
+    if (currentImages.value.length > 1) {
         modalIndex.value =
-            modalIndex.value >= props.productImages.length - 1 ? 0 : modalIndex.value + 1
+            modalIndex.value >= currentImages.value.length - 1 ? 0 : modalIndex.value + 1
         resetZoom()
     }
 }
@@ -174,21 +227,21 @@ function nextModalImage() {
 function previousImage() {
     const newIndex =
         currentIndex.value <= 0
-            ? props.productImages.length - 1
+            ? currentImages.value.length - 1
             : currentIndex.value - 1
-    emit('update:mainImage', getImgSrc(props.productImages[newIndex]))
+    emit('update:mainImage', getImgSrc(currentImages.value[newIndex]))
 }
 
 function nextImage() {
     const newIndex =
-        currentIndex.value >= props.productImages.length - 1
+        currentIndex.value >= currentImages.value.length - 1
             ? 0
             : currentIndex.value + 1
-    emit('update:mainImage', getImgSrc(props.productImages[newIndex]))
+    emit('update:mainImage', getImgSrc(currentImages.value[newIndex]))
 }
 
-function selectImage(imgSrc) {
-    emit('update:mainImage', imgSrc)
+const selectImage = (imagePath) => {
+    emit('update:mainImage', imagePath)
 }
 </script>
 

@@ -101,7 +101,7 @@
             <div v-if="sizes.length > 0">
                 <h3 class="font-medium mb-2 text-base sm:text-[17px]">Kích thước</h3>
                 <div class="flex gap-2">
-                    <button v-for="size in sizes" :key="size" @click="$emit('update:selectedSize', size)"
+                    <button v-for="size in sizes" :key="size" @click="handleSizeChange(size)"
                         @mouseenter="hoveredSize = size" @mouseleave="hoveredSize = ''" :class="[
                             'px-3 sm:px-4 py-2 border rounded-md transition-colors text-sm sm:text-base',
                             hoveredSize === size
@@ -119,7 +119,7 @@
             <div v-if="colors.length > 0">
                 <h3 class="font-medium mb-2 text-base sm:text-[17px]">Màu sắc</h3>
                 <div class="flex gap-2">
-                    <button v-for="color in colors" :key="color.name" @click="$emit('update:selectedColor', color)"
+                    <button v-for="color in colors" :key="color.name" @click="handleColorChange(color)"
                         @mouseenter="hoveredColor = color" @mouseleave="hoveredColor = null" :class="[
                             'w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-colors',
                             hoveredColor && hoveredColor.name === color.name
@@ -244,7 +244,8 @@ const emit = defineEmits([
     'update:selectedSize',
     'update:selectedColor',
     'update:quantity',
-    'addToCart'
+    'addToCart',
+    'variant-change'
 ])
 
 const hoveredSize = ref('')
@@ -349,7 +350,6 @@ const selectedVariantSalePrice = computed(() => {
 
 const selectedVariantInventory = computed(() => {
     if (!selectedVariant.value) return 0
-    // Ưu tiên theo variant_id nếu có, nếu không thì theo size/color
     const inv = props.productInventory.find(
         inv =>
             (inv.variant_id && inv.variant_id === selectedVariant.value.id) ||
@@ -363,6 +363,21 @@ const maxQuantity = computed(() => {
     return max > 0 ? max : Infinity
 })
 const canIncrease = computed(() => props.quantity < maxQuantity.value)
+
+const handleSizeChange = (size) => {
+    emit('update:selectedSize', size)
+    const variantData = { size, color: props.selectedColor?.name }
+    emit('variant-change', variantData)
+}
+
+const handleColorChange = (color) => {
+    emit('update:selectedColor', color)
+    const variantData = { size: props.selectedSize, color: color.name }
+    emit('variant-change', variantData)
+}
+
+watch(() => [props.selectedSize, props.selectedColor], ([newSize, newColor]) => {
+}, { deep: true })
 
 const addToCart = async () => {
     try {

@@ -15,12 +15,13 @@
         @update:showReviewForm="val => showReviewForm = val" @update:reviewForm="val => reviewForm = val"
         @removeImage="removeImage" @handleImageUpload="handleImageUpload" @add-to-cart="handleAddToCart"
         @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
-        @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts" />
+        @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts" 
+        @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
     <div v-else class="text-center py-10 mt-10">Đang tải sản phẩm...</div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import ProductsDetail from '../components/products/ProductsDetail.vue'
@@ -140,120 +141,71 @@ const fetchReviews = async (page = 1) => {
 }
 
 const handleImageUpload = (event) => {
-    console.log('handleImageUpload called with event:', event)
-    console.log('Event type:', event.type)
-    console.log('Event target:', event.target)
-    console.log('Event target type:', event.target?.type)
     
-    // Ensure reviewForm.value.images is an array at the beginning
     if (!Array.isArray(reviewForm.value.images)) {
-        console.log('reviewForm.value.images is not an array at the beginning, initializing...')
         reviewForm.value.images = []
     }
     
-    // Ensure previewImages.value is an array at the beginning
     if (!Array.isArray(previewImages.value)) {
-        console.log('previewImages.value is not an array at the beginning, initializing...')
         previewImages.value = []
     }
     
     const files = event.target.files
-    console.log('Files from event:', files)
 
     if (!files || files.length === 0) {
-        console.log('No files selected')
-        console.log('Files object:', files)
-        console.log('Files type:', typeof files)
-        console.log('Files constructor:', files?.constructor?.name)
         return
     }
 
-    console.log('Processing files:', Array.from(files))
-
     Array.from(files).forEach((file, index) => {
-        console.log(`Processing file ${index}:`, file)
-        console.log(`File type: ${file.type}, size: ${file.size}`)
-
-        // Ensure reviewForm.value.images is an array
-        if (!Array.isArray(reviewForm.value.images)) {
-            console.log('reviewForm.value.images is not an array, initializing...')
-            reviewForm.value.images = []
-        }
-
+        
         reviewForm.value.images.push(file)
         
-        // Ensure previewImages.value is an array
         if (!Array.isArray(previewImages.value)) {
-            console.log('previewImages.value is not an array, initializing...')
             previewImages.value = []
         }
         
         const reader = new FileReader()
         reader.onload = e => {
-            console.log(`File ${index} loaded, result:`, e.target.result.substring(0, 100) + '...')
             previewImages.value.push({
                 file,
                 url: e.target.result,
-                existing: false // Thêm thuộc tính existing: false cho ảnh mới
+                existing: false 
             })
         }
         reader.readAsDataURL(file)
     })
 
-    console.log('Final reviewForm.images:', reviewForm.value.images)
-    console.log('Final previewImages:', previewImages.value)
 }
 
 const removeImage = (index) => {
-    console.log('Removing image at index:', index)
     
-    // Ensure previewImages.value is an array
     if (!Array.isArray(previewImages.value)) {
-        console.log('previewImages.value is not an array, initializing...')
         previewImages.value = []
         return
     }
     
-    console.log('Image to remove:', previewImages.value[index])
-
     const imageToRemove = previewImages.value[index]
 
-    // Kiểm tra xem ảnh có phải là ảnh cũ không
     if (imageToRemove?.existing && imageToRemove?.id) {
-        console.log('Removing existing image with ID:', imageToRemove.id)
         deleteImageIds.value.push(imageToRemove.id)
-        console.log('Added to deleteImageIds:', deleteImageIds.value)
     } else {
-        // Nếu là ảnh mới, xóa khỏi reviewForm.images
-        console.log('Removing new image file')
-        
-        // Ensure reviewForm.value.images is an array
         if (!Array.isArray(reviewForm.value.images)) {
-            console.log('reviewForm.value.images is not an array, initializing...')
             reviewForm.value.images = []
         }
         
         const fileIndex = reviewForm.value.images.findIndex(img => img === imageToRemove.file)
-        console.log('File index in reviewForm.images:', fileIndex)
         if (fileIndex !== -1) {
             reviewForm.value.images.splice(fileIndex, 1)
-            console.log('File removed from reviewForm.images')
         }
     }
 
-    // Xóa ảnh khỏi previewImages
     previewImages.value.splice(index, 1)
-    console.log('Image removed from previewImages')
-    console.log('Updated reviewForm.images:', reviewForm.value.images)
-    console.log('Updated previewImages:', previewImages.value)
 }
 
 const submitReview = async () => {
     if (!product.value || !isAuthenticated.value || !reviewForm.value.content.trim()) return
     isSubmitting.value = true
-    // Ensure reviewForm.value.images is an array
     if (!Array.isArray(reviewForm.value.images)) {
-        console.log('reviewForm.value.images is not an array in submitReview, initializing...')
         reviewForm.value.images = []
     }
     
@@ -266,11 +218,6 @@ const submitReview = async () => {
         ...(editingReviewId.value && { delete_image_ids: deleteImageIds.value })
     }
 
-    console.log('Submitting review with payload:', payload)
-    console.log('Images in payload:', payload.images)
-    console.log('Delete image IDs:', deleteImageIds.value)
-    console.log('Editing review ID:', editingReviewId.value)
-
     try {
         if (editingReviewId.value) {
             await updateReview(editingReviewId.value, payload)
@@ -278,28 +225,20 @@ const submitReview = async () => {
             await addReview(payload)
         }
         
-        console.log('Review submitted successfully')
-        
-        // Reset form only on success
         reviewForm.value = { rating: 5, content: '', images: [] }
         editingReviewId.value = null
         previewImages.value = []
         deleteImageIds.value = []
         showReviewForm.value = false
         
-        // Ensure reviewForm.value.images is an array after reset
         if (!Array.isArray(reviewForm.value.images)) {
-            console.log('reviewForm.value.images is not an array after reset, initializing...')
             reviewForm.value.images = []
         }
         
-        // Ensure previewImages.value is an array after reset
         if (!Array.isArray(previewImages.value)) {
-            console.log('previewImages.value is not an array after reset, initializing...')
             previewImages.value = []
         }
         
-        console.log('Reset deleteImageIds after successful submission:', deleteImageIds.value)
         await fetchReviews(1)
     } catch (e) {
         console.error('Lỗi khi gửi đánh giá:', e)
@@ -307,55 +246,41 @@ const submitReview = async () => {
         console.error('Error status:', e.response?.status)
         console.error('Error headers:', e.response?.headers)
         console.error('Full error object:', e)
-        // Don't reset form on error - let user retry
     } finally {
         isSubmitting.value = false
     }
 }
 
 const editReview = (review) => {
-    console.log('Editing review:', review)
-    console.log('Review images:', review.images)
-
+    
     editingReviewId.value = review.id
     reviewForm.value = {
         rating: review.rating,
         content: review.content,
-        images: [] // Array rỗng cho ảnh mới
+        images: [] 
     }
     
-    // Reset deleteImageIds when editing
     deleteImageIds.value = []
-    console.log('Reset deleteImageIds for editing:', deleteImageIds.value)
 
-    // Ensure reviewForm.value.images is an array
     if (!Array.isArray(reviewForm.value.images)) {
-        console.log('reviewForm.value.images is not an array in editReview, initializing...')
         reviewForm.value.images = []
     }
 
-    // Ensure previewImages.value is an array
     if (!Array.isArray(previewImages.value)) {
-        console.log('previewImages.value is not an array in editReview, initializing...')
         previewImages.value = []
     }
 
-    // Xử lý ảnh cũ
     previewImages.value = review.images.map(img => ({
         url: `${import.meta.env.VITE_API_BASE_URL}/storage/${img.image_path}`,
         id: img.id,
         existing: true,
-        file: null // Không có file cho ảnh cũ
+        file: null 
     }))
-
-    console.log('Updated reviewForm:', reviewForm.value)
-    console.log('Updated previewImages:', previewImages.value)
 
     showReviewForm.value = true
 }
 
 const cancelEdit = () => {
-    console.log('Canceling edit, resetting form state')
     
     editingReviewId.value = null
     reviewForm.value = { rating: 5, content: '', images: [] }
@@ -363,21 +288,14 @@ const cancelEdit = () => {
     deleteImageIds.value = []
     showReviewForm.value = false
     
-    // Ensure reviewForm.value.images is an array
     if (!Array.isArray(reviewForm.value.images)) {
-        console.log('reviewForm.value.images is not an array in cancelEdit, initializing...')
         reviewForm.value.images = []
     }
     
-    // Ensure previewImages.value is an array
     if (!Array.isArray(previewImages.value)) {
-        console.log('previewImages.value is not an array in cancelEdit, initializing...')
         previewImages.value = []
     }
     
-    console.log('Reset deleteImageIds in cancelEdit:', deleteImageIds.value)
-    
-    console.log('Form state reset completed')
 }
 
 const removeReview = async (id) => {
@@ -394,16 +312,11 @@ const handleReviewPageChange = (page) => {
 
 const handleAddToCart = async () => {
     try {
-        console.log('selectedSize:', selectedSize.value)
-        console.log('selectedColor:', selectedColor.value)
-        console.log('variants:', product.value.variants)
-
+        
         const selectedVariant = product.value.variants?.find(v =>
             String(v.size) === String(selectedSize.value) &&
             String(v.color) === String(selectedColor.value?.name)
         )
-
-        console.log('selectedVariant:', selectedVariant)
 
         if (!selectedVariant) {
             push.error('Không tìm thấy biến thể sản phẩm phù hợp')
@@ -431,6 +344,50 @@ const handleAddToCart = async () => {
     }
 }
 
+const handleVariantChange = (variantData) => {
+  const { size, color } = variantData
+  
+  selectedSize.value = size
+  selectedColor.value = { name: color }
+  
+  const foundVariant = product.value.variants.find(v =>
+    v.size === size && v.color === color
+  )
+  
+  if (foundVariant) {
+    displayPrice.value = foundVariant.price
+    const inventory = productInventory.value.find(inv =>
+      (inv.variant_id && inv.variant_id === foundVariant.id) ||
+      (inv.size === foundVariant.size && inv.color === foundVariant.color)
+    )
+    selectedVariantStock.value = inventory ? inventory.quantity : 0
+  } else {
+    const sizeOnlyVariant = product.value.variants.find(v => v.size === size)
+    if (sizeOnlyVariant) {
+      displayPrice.value = sizeOnlyVariant.price
+      const inventory = productInventory.value.find(inv =>
+        (inv.variant_id && inv.variant_id === sizeOnlyVariant.id) ||
+        (inv.size === sizeOnlyVariant.size && inv.color === sizeOnlyVariant.color)
+      )
+      selectedVariantStock.value = inventory ? inventory.quantity : 0
+    }
+    
+    const colorOnlyVariant = product.value.variants.find(v => v.color === color)
+    
+    if (colorOnlyVariant && colorOnlyVariant.images && colorOnlyVariant.images.length > 0) {
+      mainImage.value = colorOnlyVariant.images[0].image_path
+    } else if (foundVariant && foundVariant.images && foundVariant.images.length > 0) {
+      mainImage.value = foundVariant.images[0].image_path
+    } else if (product.value.images && product.value.images.length > 0) {
+      mainImage.value = product.value.images[0].image_path
+    } else {
+      mainImage.value = ''
+    }
+  }
+  
+  quantity.value = 1
+};
+
 
 const relatedProducts = ref([])
 const fetchRelatedProducts = async () => {
@@ -440,7 +397,6 @@ const fetchRelatedProducts = async () => {
             relatedProducts.value = products
                 .filter(p => p.categories_id === product.value.categories_id && p.id !== product.value.id)
                 .slice(0, 5)
-            console.log('relatedProducts:', relatedProducts.value)
 
         } catch (error) {
             console.error('Error fetching related products:', error)
@@ -453,11 +409,35 @@ onMounted(async () => {
     if (!slug) return
     try {
         const data = await getProductBySlug(slug)
+        
         product.value = data
         mainImage.value = data.images?.[0]?.image_path || ''
         displayPrice.value = data.price
 
-        // LẤY GIÁ TRỊ FLASH SALE TỪ QUERY
+        if (data.variants && data.variants.length > 0) {
+            const firstVariant = data.variants[0]
+            
+            selectedSize.value = firstVariant.size
+            selectedColor.value = { name: firstVariant.color }
+            
+            displayPrice.value = firstVariant.price
+            const inventory = await getInventories({ product_id: data.id })
+            productInventory.value = inventory
+            
+            const firstInventory = inventory.find(inv =>
+                (inv.variant_id && inv.variant_id === firstVariant.id) ||
+                (inv.size === firstVariant.size && inv.color === firstVariant.color)
+            )
+            selectedVariantStock.value = firstInventory ? firstInventory.quantity : 0
+            
+            nextTick(() => {
+                handleVariantChange({ size: firstVariant.size, color: firstVariant.color })
+            })
+        } else {
+            const inventories = await getInventories({ product_id: data.id })
+            productInventory.value = inventories
+        }
+
         if (route.query.flashsale) {
             flashSaleName.value = route.query.flashsale
         }
@@ -474,11 +454,9 @@ onMounted(async () => {
             flashSaleQuantity.value = Number(route.query.quantity)
         }
 
-        const inventories = await getInventories({ product_id: data.id })
-        productInventory.value = inventories
-
         await fetchReviews()
         await fetchRelatedProducts()
+        
     } catch (err) {
         console.error('Lỗi khi tải sản phẩm:', err)
     }
