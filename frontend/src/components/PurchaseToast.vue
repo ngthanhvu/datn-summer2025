@@ -29,8 +29,8 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const props = defineProps({
-    intervalMs: { type: Number, default: 9000 },   // bao lâu thì pop cái mới
-    durationMs: { type: Number, default: 5000 },   // hiển thị trong bao lâu
+    intervalMs: { type: Number, default: 30000 },   // bao lâu thì pop cái mới
+    durationMs: { type: Number, default: 10000 },   // hiển thị trong bao lâu
     position: { type: String, default: 'bottom-left' }, // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
 })
 
