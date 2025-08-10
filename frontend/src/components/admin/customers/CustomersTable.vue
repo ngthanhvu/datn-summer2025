@@ -39,6 +39,9 @@
                             Trạng thái
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                            Lý do ban
+                        </th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                             Thao tác
                         </th>
                     </tr>
@@ -70,6 +73,13 @@
                                 class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">Đã
                                 khoá</span>
                         </td>
+                        <td class="px-4 py-3 text-center">
+                            <span v-if="customer.status == 0 && customer.note"
+                                class="text-sm text-gray-700 max-w-xs truncate block mx-auto" :title="customer.note">
+                                {{ customer.note }}
+                            </span>
+                            <span v-else class="text-sm text-gray-400">-</span>
+                        </td>
                         <td class="px-4 py-3 text-sm font-medium">
                             <div class="flex items-center justify-center gap-2">
                                 <button @click="openEditModal(customer)"
@@ -94,7 +104,7 @@
                         </td>
                     </tr>
                     <tr v-if="!props.isLoading && paginatedCustomers.length === 0">
-                        <td colspan="8" class="text-center text-gray-500">Không có dữ liệu</td>
+                        <td colspan="9" class="text-center text-gray-500">Không có dữ liệu</td>
                     </tr>
                 </tbody>
             </table>
@@ -145,6 +155,10 @@
                                 <span v-else
                                     class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-500 text-white">Đã
                                     khoá</span>
+                            </div>
+                            <div v-if="customer.status == 0" class="text-gray-500">Lý do ban</div>
+                            <div v-if="customer.status == 0" class="text-right text-xs text-gray-700">
+                                {{ customer.note ? customer.note : 'Không có' }}
                             </div>
                         </div>
                     </div>

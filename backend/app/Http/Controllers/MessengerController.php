@@ -70,7 +70,7 @@ class MessengerController extends Controller
         $user2 = max(Auth::id(), $request->receiver_id);
         $messenger = Messenger::firstOrCreate(
             ['user1_id' => $user1, 'user2_id' => $user2],
-            ['messages' => []] 
+            ['messages' => []]
         );
         $messages = is_array($messenger->messages) ? $messenger->messages : [];
         $attachmentPath = null;
@@ -130,7 +130,7 @@ class MessengerController extends Controller
         $users = User::where('id', '!=', $currentUserId)
             ->where(function ($q) use ($query) {
                 $q->where('username', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%");
+                    ->orWhere('email', 'like', "%{$query}%");
             })
             ->select('id', 'username', 'email', 'avatar')
             ->limit(10)

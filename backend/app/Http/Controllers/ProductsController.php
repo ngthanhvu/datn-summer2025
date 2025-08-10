@@ -143,7 +143,6 @@ class ProductsController extends Controller
             )
             ->findOrFail($id);
 
-        // Thêm url đầy đủ cho image_path
         if ($product && $product->images) {
             $product->images->transform(function ($image) {
                 $image->image_path = url('storage/' . $image->image_path);
@@ -170,7 +169,6 @@ class ProductsController extends Controller
                 return $image;
             });
 
-            // Đảm bảo images của từng variant cũng có url đầy đủ
             if ($product->variants) {
                 foreach ($product->variants as $variant) {
                     if ($variant->images) {
@@ -322,7 +320,6 @@ class ProductsController extends Controller
                 "is_active" => $request->is_active,
             ]);
 
-            // Handle main image update
             if ($request->hasFile('is_main')) {
                 $oldMainImage = Images::where('product_id', $product->id)->where('is_main', true)->first();
                 if ($oldMainImage) {
@@ -342,9 +339,7 @@ class ProductsController extends Controller
                 ]);
             }
 
-            // Handle additional images update
             if ($request->hasFile('image_path')) {
-                // Delete old additional images (not main image)
                 $oldImages = Images::where('product_id', $product->id)
                     ->where('is_main', false)
                     ->whereNull('variant_id')
@@ -370,14 +365,11 @@ class ProductsController extends Controller
                 }
             }
 
-            // Handle variants update
             if ($request->has('variants') && is_array($request->input('variants'))) {
                 \Log::info('🔥 Processing variants', ['variants' => $request->input('variants')]);
 
-                // Delete old variants and their images
                 $oldVariants = Variants::where('product_id', $product->id)->get();
                 foreach ($oldVariants as $oldVariant) {
-                    // Delete variant images
                     $variantImages = Images::where('variant_id', $oldVariant->id)->get();
                     foreach ($variantImages as $variantImage) {
                         try {
@@ -390,11 +382,9 @@ class ProductsController extends Controller
                 }
                 Variants::where('product_id', $product->id)->delete();
 
-                // Create new variants
                 foreach ($request->input('variants', []) as $variantIndex => $variant) {
                     \Log::info('🔥 Processing variant', ['variant' => $variant]);
 
-                    // Validate variant data structure
                     if (!isset($variant['color']) || !isset($variant['sizes']) || !is_array($variant['sizes'])) {
                         \Log::warning('🔥 Invalid variant structure', ['variant' => $variant]);
                         continue;
@@ -403,7 +393,6 @@ class ProductsController extends Controller
                     if (!empty($variant['color']) && !empty($variant['sizes']) && count($variant['sizes']) > 0) {
                         $firstVariant = null;
 
-                        // Create variants for each size
                         foreach ($variant['sizes'] as $sizeIndex => $sizeObj) {
                             \Log::info('🔥 Creating variant size', ['sizeObj' => $sizeObj]);
 
@@ -425,7 +414,6 @@ class ProductsController extends Controller
                             }
                         }
 
-                        // Handle variant images
                         if ($request->hasFile("variants.$variantIndex.images")) {
                             $variantImages = $request->file("variants.$variantIndex.images");
                             \Log::info('🔥 Processing variant images', ['variantImages' => $variantImages]);

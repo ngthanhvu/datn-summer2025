@@ -17,17 +17,14 @@ class PagesController extends Controller
     {
         $query = Pages::with(['creator', 'updater']);
 
-        // Filter by type
         if ($request->has('type') && $request->type) {
             $query->where('type', $request->type);
         }
 
-        // Filter by status
         if ($request->has('status') && $request->status !== '') {
             $query->where('status', $request->status);
         }
 
-        // Search by title
         if ($request->has('search') && $request->search) {
             $query->where('title', 'like', '%' . $request->search . '%');
         }
@@ -64,12 +61,10 @@ class PagesController extends Controller
             ], 422);
         }
 
-        // Generate slug from title
         $slug = Str::slug($request->title);
         $originalSlug = $slug;
         $counter = 1;
 
-        // Check if slug exists
         while (Pages::where('slug', $slug)->exists()) {
             $slug = $originalSlug . '-' . $counter;
             $counter++;
@@ -148,14 +143,12 @@ class PagesController extends Controller
             ], 422);
         }
 
-        // Generate slug from title if title changed
         $slug = $page->slug;
         if ($request->title !== $page->title) {
             $slug = Str::slug($request->title);
             $originalSlug = $slug;
             $counter = 1;
 
-            // Check if slug exists (excluding current page)
             while (Pages::where('slug', $slug)->where('id', '!=', $id)->exists()) {
                 $slug = $originalSlug . '-' . $counter;
                 $counter++;
@@ -280,4 +273,4 @@ class PagesController extends Controller
             'message' => 'Page status updated successfully'
         ]);
     }
-} 
+}

@@ -19,12 +19,10 @@ class SettingController extends Controller
         try {
             $data = $request->all();
 
-            // Cập nhật database trước
             foreach ($data as $key => $value) {
                 Setting::setValue($key, is_array($value) ? json_encode($value) : $value);
             }
-          
-            // Cập nhật .env sau
+
             $envFields = [
                 'smtpHost'        => 'MAIL_HOST',
                 'smtpPort'        => 'MAIL_PORT',
@@ -52,7 +50,7 @@ class SettingController extends Controller
             if ($envData) {
                 EnvHelper::setEnvValue($envData);
             }
-          
+
             return response()->json(['message' => 'Cập nhật cài đặt thành công']);
         } catch (\Exception $e) {
             \Log::error('Error updating settings: ' . $e->getMessage());
