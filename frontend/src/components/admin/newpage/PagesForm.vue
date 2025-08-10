@@ -10,15 +10,14 @@
                             class="text-red-500">*</span></label>
                     <input id="title" v-model="formData.title" type="text"
                         class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500"
-                        placeholder="Nhập tên trang" required />
+                        placeholder="Nhập tên trang" />
                     <span v-if="errors.title" class="text-red-500 text-xs mt-1">{{ errors.title }}</span>
                 </div>
                 <div>
                     <label for="type" class="block text-sm font-medium mb-1">Loại trang <span
                             class="text-red-500">*</span></label>
                     <select id="type" v-model="formData.type"
-                        class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500"
-                        required>
+                        class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500">
                         <option value="">Chọn loại trang</option>
                         <option value="policy">Chính sách</option>
                         <option value="support">Hỗ trợ khách hàng</option>
@@ -72,13 +71,14 @@
                         class="w-full border border-gray-300 rounded px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-green-100 focus:border-green-500"
                         rows="4" placeholder="Meta description cho SEO..."></textarea>
                     <span v-if="errors.meta_description" class="text-red-500 text-xs mt-1">{{ errors.meta_description
-                        }}</span>
+                    }}</span>
                 </div>
             </div>
         </div>
         <!-- Full-width for content -->
         <div class="bg-white rounded-xl sm:rounded-2xl shadow p-4 sm:p-6 lg:p-8">
-            <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Nội dung trang <span class="text-red-500">*</span></h3>
+            <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Nội dung trang <span
+                    class="text-red-500">*</span></h3>
             <div>
                 <CKEditor v-model="formData.content" />
                 <span v-if="errors.content" class="text-red-500 text-xs mt-1">{{ errors.content }}</span>
@@ -197,9 +197,9 @@ const insertLink = () => {
 }
 </script>
 
-<style>
+<style scoped>
 :deep(.ck-editor__editable_inline) {
-    min-height: 400px;
-    max-height: 600px;
+    min-height: 300px;
+    max-height: 500px;
 }
 </style>
