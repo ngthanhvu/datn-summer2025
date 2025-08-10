@@ -3,7 +3,7 @@
         enter-to-class="opacity-100" leave-active-class="transition-opacity duration-300" leave-from-class="opacity-100"
         leave-to-class="opacity-0">
         <button v-if="visible" @click="scrollToTop"
-            class="fixed bottom-[90px] right-6 bg-white border border-[#81aacc] text-[#81aacc] w-12 h-12 flex items-center justify-center rounded-full shadow-lg z-50 cursor-pointer"
+            class="fixed bottom-[200px] right-6 bg-white border border-[#81aacc] text-[#81aacc] w-12 h-12 flex items-center justify-center rounded-full shadow-lg z-1 cursor-pointer"
             aria-label="Back to top">
             <i class="fa-solid fa-arrow-up"></i>
         </button>

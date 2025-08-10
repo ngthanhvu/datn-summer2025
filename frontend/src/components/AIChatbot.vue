@@ -1,20 +1,15 @@
 <template>
   <div class="ai-chatbot">
     <!-- Chat Widget Button -->
-    <div 
-      v-if="!isOpen" 
-      @click="toggleChat" 
-      class="chat-widget-button"
-      :class="{ 'pulse': hasUnreadMessages }"
-    >
+    <div v-if="!isOpen" @click="toggleChat" class="chat-widget-button" :class="{ 'pulse': hasUnreadMessages }">
       <div class="chat-icon">
-        <img class="chat-icon-img" src="/chatbothehe.png" alt="Mở trò chuyện" />
+        <img class="chat-icon-img" src="/chatbot.gif" alt="Mở trò chuyện" />
       </div>
       <div class="chat-badge" v-if="hasUnreadMessages">{{ unreadCount }}</div>
     </div>
 
     <!-- Scroll hint bubble -->
-    <div v-if="!isOpen && showScrollHint" class="widget-hint">
+    <div v-if="!isOpen" class="widget-hint">
       Xin chào! Tôi là trợ lí ảo.
     </div>
 
@@ -24,11 +19,9 @@
       <div class="chat-header">
         <div class="chat-header-info">
           <div class="ai-avatar">
-            <img 
-              class="ai-avatar-img"
-              src="https://lapsedhistorian.com/wp-content/uploads/2024/09/125887131_Chatbot%20Message%20Bubble.jpg" 
-              alt="Trợ Lí DEVGANG"
-            />
+            <img class="ai-avatar-img"
+              src="https://lapsedhistorian.com/wp-content/uploads/2024/09/125887131_Chatbot%20Message%20Bubble.jpg"
+              alt="Trợ Lí DEVGANG" />
           </div>
           <div class="chat-title">
             <h3>Trợ Lí DEVGANG</h3>
@@ -39,50 +32,38 @@
         </div>
         <button @click="toggleChat" class="close-btn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+            <path
+              d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
+              fill="currentColor" />
           </svg>
         </button>
       </div>
 
       <!-- Messages Container -->
       <div class="messages-container" ref="messagesContainer">
-        <div 
-          v-for="(message, index) in messages" 
-          :key="index" 
-          class="message"
-          :class="{ 'user-message': message.isUser, 'ai-message': !message.isUser }"
-        >
+        <div v-for="(message, index) in messages" :key="index" class="message"
+          :class="{ 'user-message': message.isUser, 'ai-message': !message.isUser }">
           <div class="message-avatar" v-if="!message.isUser">
-            <img 
-              class="ai-message-avatar-img"
-              src="https://lapsedhistorian.com/wp-content/uploads/2024/09/125887131_Chatbot%20Message%20Bubble.jpg" 
-              alt="Trợ Lí DEVGANG"
-            />
+            <img class="ai-message-avatar-img"
+              src="https://lapsedhistorian.com/wp-content/uploads/2024/09/125887131_Chatbot%20Message%20Bubble.jpg"
+              alt="Trợ Lí DEVGANG" />
           </div>
           <div class="message-content">
             <div class="message-text">
               <div v-html="formatMessage(message.text)"></div>
-              
+
               <!-- Product Cards -->
-              <ProductCard 
-                v-if="message.products && message.products.length > 0" 
-                :products="message.products" 
-                @view-product="viewProduct"
-              />
-               
+              <ProductCard v-if="message.products && message.products.length > 0" :products="message.products"
+                @view-product="viewProduct" />
+
               <!-- Coupon Cards -->
-              <CouponCard 
-                v-if="message.coupons && message.coupons.length > 0" 
-                :coupons="message.coupons" 
-              />
-               
+              <CouponCard v-if="message.coupons && message.coupons.length > 0" :coupons="message.coupons" />
+
               <!-- Flash Sale Cards -->
-              <FlashSaleCard 
-                v-if="message.flashSales && message.flashSales.length > 0" 
-                :flash-sales="message.flashSales" 
-              />
+              <FlashSaleCard v-if="message.flashSales && message.flashSales.length > 0"
+                :flash-sales="message.flashSales" />
             </div>
-             
+
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
         </div>
@@ -90,7 +71,9 @@
         <div v-if="isTyping" class="message ai-message">
           <div class="message-avatar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9ZM19 21H5V3H13V9H19V21Z" fill="currentColor"/>
+              <path
+                d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9ZM19 21H5V3H13V9H19V21Z"
+                fill="currentColor" />
             </svg>
           </div>
           <div class="message-content">
@@ -105,12 +88,8 @@
 
       <!-- Quick Actions -->
       <div class="quick-actions" v-if="showQuickActions">
-        <button 
-          v-for="action in quickActions" 
-          :key="action.text"
-          @click="sendQuickMessage(action.text)"
-          class="quick-action-btn"
-        >
+        <button v-for="action in quickActions" :key="action.text" @click="sendQuickMessage(action.text)"
+          class="quick-action-btn">
           {{ action.text }}
         </button>
       </div>
@@ -118,22 +97,11 @@
       <!-- Input Area -->
       <div class="input-area">
         <div class="input-container">
-          <textarea
-            v-model="currentMessage"
-            @keydown.enter.prevent="sendMessage"
-            @keydown.enter="handleEnter"
-            placeholder="Nhập tin nhắn của bạn..."
-            class="message-input"
-            rows="1"
-            ref="messageInput"
-          ></textarea>
-          <button 
-            @click="sendMessage" 
-            class="send-btn"
-            :disabled="!currentMessage.trim() || isTyping"
-          >
+          <textarea v-model="currentMessage" @keydown.enter.prevent="sendMessage" @keydown.enter="handleEnter"
+            placeholder="Nhập tin nhắn của bạn..." class="message-input" rows="1" ref="messageInput"></textarea>
+          <button @click="sendMessage" class="send-btn" :disabled="!currentMessage.trim() || isTyping">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
+              <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor" />
             </svg>
           </button>
         </div>
@@ -171,7 +139,7 @@ export default {
       formatTime,
       viewProduct
     } = useAIChat()
-    
+
     const isOnline = ref(true)
     const messagesContainer = ref(null)
     const messageInput = ref(null)
@@ -224,7 +192,7 @@ export default {
       showQuickActions.value = false
 
       await sendAIMessage(userMessage)
-      
+
       nextTick(() => {
         scrollToBottom()
       })
@@ -237,7 +205,7 @@ export default {
 
     const handleEnter = (event) => {
       if (event.shiftKey) {
-        return 
+        return
       }
       sendMessage()
     }
@@ -263,7 +231,7 @@ export default {
     onMounted(() => {
       const textarea = messageInput.value
       if (textarea) {
-        textarea.addEventListener('input', function() {
+        textarea.addEventListener('input', function () {
           this.style.height = 'auto'
           this.style.height = this.scrollHeight + 'px'
         })
@@ -303,18 +271,21 @@ export default {
 
 <style scoped>
 @import url('../assets/css/chat-animations.css');
+
 .ai-chatbot {
   position: fixed;
-  bottom: 90px; 
+  bottom: 90px;
   right: 20px;
-  z-index: 1000;
+  z-index: 10;
   font-family: 'Inter', sans-serif;
   max-width: 100vw;
   max-height: 100vh;
   overflow: hidden;
 }
 
-:root.chatwidget-open .ai-chatbot .chat-widget-button { display: none; }
+:root.chatwidget-open .ai-chatbot .chat-widget-button {
+  display: none;
+}
 
 .chat-widget-button {
   width: 80px;
@@ -325,7 +296,7 @@ export default {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: none; 
+  box-shadow: none;
   transition: all 0.3s ease;
   position: relative;
   border: none;
@@ -346,9 +317,11 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 0; /* keep original PNG edges */
+  border-radius: 0;
+  /* keep original PNG edges */
   display: block;
-  pointer-events: none; /* ensure clicks pass to button */
+  pointer-events: none;
+  /* ensure clicks pass to button */
 }
 
 .chat-badge {
@@ -370,8 +343,8 @@ export default {
 .chat-window {
   width: 480px;
   height: 600px;
-  background: 
-    linear-gradient(rgba(255,255,255,0.88), rgba(248,250,252,0.88)),
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.88), rgba(248, 250, 252, 0.88)),
     url('/ai-chatbot-bg.png') center/cover no-repeat;
   border-radius: 24px;
   display: flex;
@@ -600,8 +573,13 @@ export default {
   box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
 }
 
-.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
 
 
 
@@ -646,8 +624,6 @@ export default {
   border-radius: 16px;
   border: 1px solid rgba(226, 232, 240, 0.6);
 }
-
-
 
 .input-area {
   padding: 24px 20px;
@@ -746,12 +722,12 @@ export default {
     max-height: 100vh;
     overflow: hidden;
   }
-  
+
   .chat-widget-button {
     width: 56px;
     height: 56px;
   }
-  
+
   .messages-container {
     padding: 10px;
     gap: 10px;
@@ -769,23 +745,48 @@ export default {
     height: 28px;
   }
 
-  .chat-title h3 { font-size: 16px; }
-  .status { font-size: 12px; }
+  .chat-title h3 {
+    font-size: 16px;
+  }
 
-  .quick-actions { padding: 12px; gap: 8px; }
-  .quick-action-btn { padding: 8px 12px; font-size: 12px; }
+  .status {
+    font-size: 12px;
+  }
 
-  .input-area { padding: 14px; }
-  .input-container { gap: 8px; }
-  .message-input { padding: 10px 14px; font-size: 13px; }
-  .send-btn { width: 38px; height: 38px; }
+  .quick-actions {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .quick-action-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .input-area {
+    padding: 14px;
+  }
+
+  .input-container {
+    gap: 8px;
+  }
+
+  .message-input {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .send-btn {
+    width: 38px;
+    height: 38px;
+  }
 
   /* On very small screens, keep it stacked above ChatWidget */
   .ai-chatbot {
     bottom: 90px;
     right: 20px;
   }
- 
+
 }
 
 /* Scroll hint bubble next to widget */
@@ -816,6 +817,4 @@ export default {
   border-bottom: 1px solid rgba(226, 232, 240, 0.9);
   transform: rotate(-45deg);
 }
-
-
 </style>

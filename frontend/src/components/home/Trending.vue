@@ -1,7 +1,7 @@
 <template>
     <div v-if="shouldShowRecommend" class="mt-3 bg-white p-4 md:p-8 rounded-[5px]">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg md:text-2xl font-bold text-gray-800">Sản phẩm đề xuất</h2>
+            <h2 class="text-lg md:text-2xl font-semibold text-gray-800">Sản phẩm đề xuất</h2>
             <router-link to="/products/trending"
                 class="text-blue-600 hover:text-blue-800 font-medium transition-colors text-sm md:text-base">
                 Xem tất cả →
