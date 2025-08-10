@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AddressList from './AddressList.vue'
 import AddressForm from './AddressForm.vue'
 import PaymentMethods from './PaymentMethods.vue'
@@ -24,16 +24,20 @@ const authService = useAuth()
 
 const showAddressForm = ref(false)
 const editingAddressIndex = ref(null)
-const selectedAddress = ref(0)
+const selectedAddress = ref(null)
 const addresses = ref([])
 const isLoading = ref(false)
 const error = ref(null)
 
+
+
 const cartItems = ref([])
 const shipping = ref(0)
+const shippingZone = ref('')
+const shippingLoading = ref(false)
 const discount = ref(0)
 const appliedCoupon = ref(null)
-const shippingZone = ref('')
+const orderSummaryRef = ref(null)
 
 const subtotal = computed(() => {
     return cartItems.value.reduce((total, item) => {
@@ -48,6 +52,14 @@ const total = computed(() => {
 const editingAddress = computed(() => {
     if (editingAddressIndex.value === null) return null
     return addresses.value[editingAddressIndex.value]
+})
+
+const currentSelectedAddress = computed(() => {
+    if (addresses.value.length === 0 || selectedAddress.value === null) return null
+    if (selectedAddress.value >= 0 && selectedAddress.value < addresses.value.length) {
+        return addresses.value[selectedAddress.value]
+    }
+    return null
 })
 
 const openAddressModal = (index = null) => {
@@ -75,6 +87,14 @@ const saveAddress = async (address) => {
                 note: address.note
             })
             await fetchAddresses()
+            // Chọn địa chỉ mới làm địa chỉ giao hàng
+            if (addresses.value.length > 0) {
+                selectedAddress.value = addresses.value.length - 1
+                await nextTick()
+                if (orderSummaryRef.value) {
+                    orderSummaryRef.value.forceShippingCalculation()
+                }
+            }
         } else {
             const addressId = addresses.value[editingAddressIndex.value].id
             await addressService.updateAddress(addressId, {
@@ -105,7 +125,11 @@ const deleteAddress = async (index) => {
         await fetchAddresses()
 
         if (selectedAddress.value === index) {
-            selectedAddress.value = 0
+            if (addresses.value.length > 0) {
+                selectedAddress.value = 0
+            } else {
+                selectedAddress.value = null
+            }
         }
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi xóa địa chỉ'
@@ -128,8 +152,13 @@ const fetchAddresses = async () => {
                 hamlet: addr.hamlet || '',
                 detail: addr.street,
                 note: addr.note || '',
-                fullAddress: addressService.getFullAddress(addr)
+                fullAddress: addressService.getFullAddress(addr),
+                district_id: addr.district_id || addr.district,
+                ward_code: addr.ward_code || addr.ward
             }))
+            if (selectedAddress.value === null && addresses.value.length > 0) {
+                selectedAddress.value = 0
+            }
         } else {
             addresses.value = []
         }
@@ -167,7 +196,7 @@ const applyCoupon = async (code) => {
         if (result.discount !== undefined) {
             appliedCoupon.value = result.coupon
             discount.value = Math.round(result.discount)
-            error.value = null // Clear any previous errors
+            error.value = null 
         } else {
             error.value = 'Mã giảm giá không hợp lệ'
         }
@@ -211,16 +240,28 @@ const updatePaymentMethods = () => {
     ]
 }
 
-
 const handleShippingCalculated = (shippingData) => {
-    shipping.value = shippingData.shippingFee?.total || 0;
-    shippingZone.value = shippingData.zone || '';
+    if (shippingData.loading !== undefined) {
+        shippingLoading.value = shippingData.loading;
+    }
+    
+    if (shippingData.shippingFee) {
+        shipping.value = shippingData.shippingFee?.total || 0;
+        shippingZone.value = shippingData.zone || '';
+    }
 };
 
 watch(() => selectedAddress.value, (newValue) => {
     if (newValue === null || newValue >= addresses.value.length) {
         shipping.value = 0;
         shippingZone.value = '';
+        shippingLoading.value = false;
+    }
+});
+
+watch(() => currentSelectedAddress.value, (newAddress) => {
+    if (!newAddress) {
+        shippingLoading.value = false;
     }
 });
 
@@ -231,13 +272,11 @@ const placeOrder = async () => {
             return
         }
 
-        // Kiểm tra user authentication
         if (!authService.isAuthenticated.value) {
             error.value = 'Vui lòng đăng nhập để đặt hàng'
             return
         }
 
-        // Đảm bảo user đã được load
         if (!authService.user.value) {
             await authService.getUser()
         }
@@ -273,7 +312,6 @@ const placeOrder = async () => {
 
         const result = await checkoutService.createOrder(orderData)
 
-        // Handle new backend logic for online payment
         if (result && result.message === 'Redirect to payment gateway') {
             const paymentMethod = result.payment_method
             let paymentUrl
@@ -293,9 +331,7 @@ const placeOrder = async () => {
             }
         }
 
-        // COD logic (order created immediately)
         if (result && result.order) {
-            // Redirect sang trang trạng thái đơn hàng
             router.push(`/status?status=success&orderId=${result.order.id}&amount=${result.order.final_price}&tracking_code=${result.order.tracking_code || ''}`)
             return
         } else {
@@ -315,7 +351,6 @@ onMounted(async () => {
     try {
         isLoading.value = true
 
-        // Kiểm tra authentication trước
         const isAuthenticated = await authService.checkAuth()
         if (!isAuthenticated) {
             router.push('/login?redirect=' + encodeURIComponent(router.currentRoute.value.fullPath))
@@ -340,7 +375,6 @@ onMounted(async () => {
     <div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
         <h1 class="text-2xl font-bold mb-8">Thanh toán</h1>
 
-        <!-- Skeleton Loading -->
         <div v-if="isLoading" class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-pulse">
             <!-- Cột trái -->
             <div class="space-y-8">
@@ -416,31 +450,37 @@ onMounted(async () => {
             </p>
         </div>
 
-        <!-- No Address -->
-        <div v-else-if="addresses.length === 0" class="bg-orange-50 p-4 rounded-md text-orange-600 mb-6">
-            <p>Vui lòng thêm địa chỉ giao hàng để tiếp tục thanh toán.</p>
-        </div>
-
-        <!-- Nội dung thực -->
         <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="space-y-8">
                 <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <AddressList :addresses="addresses" :selected-address="selectedAddress"
-                        @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
-                        @add="openAddressModal" />
+                    <div class="mb-6">                        
+                        <div v-if="addresses.length > 0">
+                            <AddressList :addresses="addresses" :selected-address="selectedAddress"
+                                @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
+                                @add="openAddressModal" />
+                        </div>
+                        
+                         <div v-else class="text-center">
+                             <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                                 <p class="text-gray-500 mb-4">Bạn chưa có địa chỉ giao hàng</p>
+                                 <button @click="openAddressModal()" 
+                                     class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                     + Thêm địa chỉ mới
+                                 </button>
+                             </div>
+                         </div>
+                    </div>
+                    
                     <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
                         @select="selectedPaymentMethod = $event" />
                 </div>
             </div>
 
             <div class="space-y-8">
-                <ShippingSection :cart-items="cartItems"
-                    :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
-                    @shipping-calculated="handleShippingCalculated" />
-                <OrderSummary :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
-                    :shipping-zone="shippingZone"
-                    :selected-address="addresses.length > 0 && selectedAddress >= 0 && selectedAddress < addresses.length ? addresses[selectedAddress] : null"
-                    :cart-items="cartItems" @place-order="placeOrder" @apply-coupon="applyCoupon"
+                <OrderSummary ref="orderSummaryRef" :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
+                    :shipping-zone="shippingZone" :shipping-loading="shippingLoading"
+                    :selected-address="currentSelectedAddress"
+                    :cart-items="cartItems" @place-order="placeOrder" @apply-coupon="applyCoupon" 
                     @shipping-calculated="handleShippingCalculated" />
             </div>
         </div>

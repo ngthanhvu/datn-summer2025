@@ -79,7 +79,7 @@ class PaymentController extends Controller
         $orderId = 'TMP' . time() . 'MOMOPAY' . $random;
         $orderInfo = "Thanh toán đơn hàng tạm thời";
         $requestId = $partnerCode . time();
-        $requestType = "payWithATM";
+        $requestType = "payWithCC";
         $extraData = json_encode($orderData);
         $rawSignature = "accessKey=$accessKey&amount=$amount&extraData=$extraData"
             . "&ipnUrl=$returnUrl&orderId=$orderId&orderInfo=$orderInfo"

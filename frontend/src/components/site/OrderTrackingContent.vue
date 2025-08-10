@@ -177,7 +177,7 @@ const mapOrderData = (order) => {
         })),
         summary: {
             subtotal: order.total_price,
-            shipping: order.shipping_fee,
+            shipping: order.final_price - order.total_price,
             discount: order.discount_price,
             total: order.final_price
         }
