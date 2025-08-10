@@ -304,6 +304,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import Badges from './Badges.vue'
+import { useProducts } from '../../../composable/useProducts'
+import { push } from 'notivue'
+import Swal from 'sweetalert2'
+
+const { getTemplateSheet, importFile, getProducts, bulkDeleteProducts } = useProducts()
 
 const props = defineProps({
     data: {
@@ -485,7 +490,7 @@ const handleImport = async () => {
         await importFile(formData)
         selectedFile.value = null
         showImportModal.value = false
-        notyf.success("Import sản phẩm thành công")
+        push.success("Import sản phẩm thành công")
         await getProducts()
         emit('refresh')
     } catch (error) {
@@ -530,12 +535,12 @@ const handleBulkDelete = async () => {
     if (!result.isConfirmed) return
     try {
         await bulkDeleteProducts(selectedRows.value)
-        notyf.success('Xoá sản phẩm thành công')
+        push.success('Xoá sản phẩm thành công')
         selectedRows.value = []
         await getProducts()
         emit('refresh')
     } catch (e) {
-        notyf.error('Xoá sản phẩm thất bại')
+        push.error('Xoá sản phẩm thất bại')
     }
 }
 
@@ -544,10 +549,10 @@ const toggleStatus = async (item) => {
     try {
         await updateProductStatus(item.id, newStatus)
         item.is_active = newStatus
-        notyf.success('Cập nhật trạng thái thành công')
+        push.success('Cập nhật trạng thái thành công')
         emit('refresh')
     } catch (e) {
-        notyf.error('Cập nhật trạng thái thất bại')
+        push.error('Cập nhật trạng thái thất bại')
     }
 }
 

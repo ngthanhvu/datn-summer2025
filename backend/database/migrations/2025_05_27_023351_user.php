@@ -27,6 +27,7 @@ return new class extends Migration
             $table->timestamp('otp_expires_at')->nullable();
             $table->boolean('status')->default(true);
             $table->string('ip_user')->nullable();
+            $table->string('note')->nullable();
             $table->timestamps();
         });
     }
