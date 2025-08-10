@@ -374,11 +374,10 @@ export default {
     linear-gradient(rgba(255,255,255,0.88), rgba(248,250,252,0.88)),
     url('/ai-chatbot-bg.png') center/cover no-repeat;
   border-radius: 24px;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #d4e6ff;
   backdrop-filter: blur(20px);
   max-width: 100vw;
   max-height: 100vh;
