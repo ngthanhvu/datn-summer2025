@@ -139,26 +139,124 @@ const fetchReviews = async (page = 1) => {
     }
 }
 
-const handleImageUpload = (files) => {
-    Array.from(files).forEach(file => {
+const handleImageUpload = (event) => {
+    console.log('handleImageUpload called with event:', event)
+    console.log('Event type:', event.type)
+    console.log('Event target:', event.target)
+    console.log('Event target type:', event.target?.type)
+    
+    // Ensure reviewForm.value.images is an array at the beginning
+    if (!Array.isArray(reviewForm.value.images)) {
+        console.log('reviewForm.value.images is not an array at the beginning, initializing...')
+        reviewForm.value.images = []
+    }
+    
+    // Ensure previewImages.value is an array at the beginning
+    if (!Array.isArray(previewImages.value)) {
+        console.log('previewImages.value is not an array at the beginning, initializing...')
+        previewImages.value = []
+    }
+    
+    const files = event.target.files
+    console.log('Files from event:', files)
+
+    if (!files || files.length === 0) {
+        console.log('No files selected')
+        console.log('Files object:', files)
+        console.log('Files type:', typeof files)
+        console.log('Files constructor:', files?.constructor?.name)
+        return
+    }
+
+    console.log('Processing files:', Array.from(files))
+
+    Array.from(files).forEach((file, index) => {
+        console.log(`Processing file ${index}:`, file)
+        console.log(`File type: ${file.type}, size: ${file.size}`)
+
+        // Ensure reviewForm.value.images is an array
+        if (!Array.isArray(reviewForm.value.images)) {
+            console.log('reviewForm.value.images is not an array, initializing...')
+            reviewForm.value.images = []
+        }
+
         reviewForm.value.images.push(file)
+        
+        // Ensure previewImages.value is an array
+        if (!Array.isArray(previewImages.value)) {
+            console.log('previewImages.value is not an array, initializing...')
+            previewImages.value = []
+        }
+        
         const reader = new FileReader()
-        reader.onload = e => previewImages.value.push({ file, url: e.target.result })
+        reader.onload = e => {
+            console.log(`File ${index} loaded, result:`, e.target.result.substring(0, 100) + '...')
+            previewImages.value.push({
+                file,
+                url: e.target.result,
+                existing: false // Thêm thuộc tính existing: false cho ảnh mới
+            })
+        }
         reader.readAsDataURL(file)
     })
+
+    console.log('Final reviewForm.images:', reviewForm.value.images)
+    console.log('Final previewImages:', previewImages.value)
 }
 
 const removeImage = (index) => {
-    if (previewImages.value[index]?.existing && previewImages.value[index]?.id) {
-        deleteImageIds.value.push(previewImages.value[index].id)
+    console.log('Removing image at index:', index)
+    
+    // Ensure previewImages.value is an array
+    if (!Array.isArray(previewImages.value)) {
+        console.log('previewImages.value is not an array, initializing...')
+        previewImages.value = []
+        return
     }
+    
+    console.log('Image to remove:', previewImages.value[index])
+
+    const imageToRemove = previewImages.value[index]
+
+    // Kiểm tra xem ảnh có phải là ảnh cũ không
+    if (imageToRemove?.existing && imageToRemove?.id) {
+        console.log('Removing existing image with ID:', imageToRemove.id)
+        deleteImageIds.value.push(imageToRemove.id)
+        console.log('Added to deleteImageIds:', deleteImageIds.value)
+    } else {
+        // Nếu là ảnh mới, xóa khỏi reviewForm.images
+        console.log('Removing new image file')
+        
+        // Ensure reviewForm.value.images is an array
+        if (!Array.isArray(reviewForm.value.images)) {
+            console.log('reviewForm.value.images is not an array, initializing...')
+            reviewForm.value.images = []
+        }
+        
+        const fileIndex = reviewForm.value.images.findIndex(img => img === imageToRemove.file)
+        console.log('File index in reviewForm.images:', fileIndex)
+        if (fileIndex !== -1) {
+            reviewForm.value.images.splice(fileIndex, 1)
+            console.log('File removed from reviewForm.images')
+        }
+    }
+
+    // Xóa ảnh khỏi previewImages
     previewImages.value.splice(index, 1)
-    reviewForm.value.images.splice(index, 1)
+    console.log('Image removed from previewImages')
+    console.log('Updated reviewForm.images:', reviewForm.value.images)
+    console.log('Updated previewImages:', previewImages.value)
 }
 
 const submitReview = async () => {
     if (!product.value || !isAuthenticated.value || !reviewForm.value.content.trim()) return
     isSubmitting.value = true
+    // Ensure reviewForm.value.images is an array
+    if (!Array.isArray(reviewForm.value.images)) {
+        console.log('reviewForm.value.images is not an array in submitReview, initializing...')
+        reviewForm.value.images = []
+    }
+    
     const payload = {
         user_id: user.value.id,
         product_slug: product.value.slug,
@@ -168,42 +266,118 @@ const submitReview = async () => {
         ...(editingReviewId.value && { delete_image_ids: deleteImageIds.value })
     }
 
+    console.log('Submitting review with payload:', payload)
+    console.log('Images in payload:', payload.images)
+    console.log('Delete image IDs:', deleteImageIds.value)
+    console.log('Editing review ID:', editingReviewId.value)
+
     try {
         if (editingReviewId.value) {
             await updateReview(editingReviewId.value, payload)
         } else {
             await addReview(payload)
         }
+        
+        console.log('Review submitted successfully')
+        
+        // Reset form only on success
         reviewForm.value = { rating: 5, content: '', images: [] }
         editingReviewId.value = null
         previewImages.value = []
         deleteImageIds.value = []
         showReviewForm.value = false
+        
+        // Ensure reviewForm.value.images is an array after reset
+        if (!Array.isArray(reviewForm.value.images)) {
+            console.log('reviewForm.value.images is not an array after reset, initializing...')
+            reviewForm.value.images = []
+        }
+        
+        // Ensure previewImages.value is an array after reset
+        if (!Array.isArray(previewImages.value)) {
+            console.log('previewImages.value is not an array after reset, initializing...')
+            previewImages.value = []
+        }
+        
+        console.log('Reset deleteImageIds after successful submission:', deleteImageIds.value)
         await fetchReviews(1)
     } catch (e) {
         console.error('Lỗi khi gửi đánh giá:', e)
+        console.error('Error details:', e.response?.data)
+        console.error('Error status:', e.response?.status)
+        console.error('Error headers:', e.response?.headers)
+        console.error('Full error object:', e)
+        // Don't reset form on error - let user retry
     } finally {
         isSubmitting.value = false
     }
 }
 
 const editReview = (review) => {
+    console.log('Editing review:', review)
+    console.log('Review images:', review.images)
+
     editingReviewId.value = review.id
-    reviewForm.value = { rating: review.rating, content: review.content, images: [] }
+    reviewForm.value = {
+        rating: review.rating,
+        content: review.content,
+        images: [] // Array rỗng cho ảnh mới
+    }
+    
+    // Reset deleteImageIds when editing
+    deleteImageIds.value = []
+    console.log('Reset deleteImageIds for editing:', deleteImageIds.value)
+
+    // Ensure reviewForm.value.images is an array
+    if (!Array.isArray(reviewForm.value.images)) {
+        console.log('reviewForm.value.images is not an array in editReview, initializing...')
+        reviewForm.value.images = []
+    }
+
+    // Ensure previewImages.value is an array
+    if (!Array.isArray(previewImages.value)) {
+        console.log('previewImages.value is not an array in editReview, initializing...')
+        previewImages.value = []
+    }
+
+    // Xử lý ảnh cũ
     previewImages.value = review.images.map(img => ({
         url: `${import.meta.env.VITE_API_BASE_URL}/storage/${img.image_path}`,
         id: img.id,
-        existing: true
+        existing: true,
+        file: null // Không có file cho ảnh cũ
     }))
+
+    console.log('Updated reviewForm:', reviewForm.value)
+    console.log('Updated previewImages:', previewImages.value)
+
     showReviewForm.value = true
 }
 
 const cancelEdit = () => {
+    console.log('Canceling edit, resetting form state')
+    
     editingReviewId.value = null
     reviewForm.value = { rating: 5, content: '', images: [] }
     previewImages.value = []
     deleteImageIds.value = []
     showReviewForm.value = false
+    
+    // Ensure reviewForm.value.images is an array
+    if (!Array.isArray(reviewForm.value.images)) {
+        console.log('reviewForm.value.images is not an array in cancelEdit, initializing...')
+        reviewForm.value.images = []
+    }
+    
+    // Ensure previewImages.value is an array
+    if (!Array.isArray(previewImages.value)) {
+        console.log('previewImages.value is not an array in cancelEdit, initializing...')
+        previewImages.value = []
+    }
+    
+    console.log('Reset deleteImageIds in cancelEdit:', deleteImageIds.value)
+    
+    console.log('Form state reset completed')
 }
 
 const removeReview = async (id) => {

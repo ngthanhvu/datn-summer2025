@@ -84,24 +84,24 @@
                         chọn)</label>
                     <div
                         class="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-4 text-center transition-colors hover:border-[#81AACC] cursor-pointer relative">
-                        <input type="file" @change="$emit('handleImageUpload', $event)" accept="image/*" multiple
+                        <input type="file" @change="handleImageChange" accept="image/*" multiple
                             class="absolute inset-0 opacity-0 cursor-pointer">
                         <i class="bi bi-cloud-arrow-up text-2xl sm:text-3xl text-gray-400 mb-2"></i>
                         <p class="text-gray-500 text-sm sm:text-base">Kéo thả hoặc nhấp để tải lên hình ảnh</p>
                         <p class="text-xs text-gray-400 mt-1">Hỗ trợ JPG, PNG, GIF</p>
                     </div>
 
+
+
                     <!-- Image Previews -->
-                    <div v-if="previewImages.length > 0" class="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
+                    <div v-if="Array.isArray(previewImages) && previewImages.length > 0" class="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
                         <div v-for="(image, index) in previewImages" :key="index"
                             class="relative w-20 h-20 sm:w-24 sm:h-24 group overflow-hidden rounded-lg shadow-sm">
                             <img :src="image.url"
                                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
-                            <div
-                                class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300">
-                            </div>
+                          
                             <button type="button" @click="$emit('removeImage', index)"
-                                class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:w-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <i class="bi bi-x text-xs sm:text-sm"></i>
                             </button>
                         </div>
@@ -178,7 +178,7 @@
                     <div
                         class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0 mb-3 sm:mb-4">
                         <div class="flex items-start gap-3">
-                            <img :src="review.user?.avatar ? (review.user.avatar.startsWith('http') ? review.user.avatar : '/storage/avatars/' + review.user.avatar.split('/').pop()) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
+                            <img :src="review.user?.avatar ? (review.user.avatar.startsWith('http') ? review.user.avatar : `${apiBaseUrl}/storage/avatars/` + review.user.avatar.split('/').pop()) : 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
                                 :alt="review.user?.name"
                                 class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-gray-200 flex-shrink-0" />
                             <div class="flex-1 min-w-0">
@@ -232,16 +232,15 @@
                     <!-- Hiển thị hình ảnh đánh giá -->
                     <div v-if="review.images && review.images.length > 0"
                         class="mt-3 sm:mt-4 flex flex-wrap gap-2 sm:gap-3">
-                        <div v-for="image in review.images" :key="image.id"
+
+                        <div v-for="image in review.images" :key="`${image.id}-${apiBaseUrl}`"
                             class="relative group overflow-hidden rounded-lg shadow-sm">
-                            <img :src="'/storage/' + image.image_path" :alt="'Hình ảnh đánh giá'"
+                            <img :src="getImageUrlWithTimestamp(image.image_path)" :alt="'Hình ảnh đánh giá'"
                                 class="w-20 h-20 sm:w-24 sm:h-24 object-cover cursor-pointer transition-transform duration-300 group-hover:scale-110"
-                                @click="$emit('openImageModal', '/storage/' + image.image_path)" />
-                            <div
-                                class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                                <i
-                                    class="bi bi-zoom-in text-white opacity-0 group-hover:opacity-100 text-lg sm:text-xl transition-opacity duration-300"></i>
-                            </div>
+                                @click="$emit('openImageModal', getImageUrlWithTimestamp(image.image_path))"
+                                @error="console.error('Image failed to load:', getImageUrlWithTimestamp(image.image_path)); $event.target.src = 'https://via.placeholder.com/100x100?text=Error'"
+                                @load="console.log('Image loaded successfully:', getImageUrlWithTimestamp(image.image_path))" />
+                            
                         </div>
                     </div>
 
@@ -252,7 +251,7 @@
                         <div v-for="reply in review.replies" :key="reply.id"
                             class="bg-gray-50 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3">
                             <div class="flex items-start gap-2 sm:gap-3">
-                                <img :src="reply.user?.avatar ? (reply.user.avatar.startsWith('http') ? reply.user.avatar : '/storage/avatars/' + reply.user.avatar.split('/').pop()) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
+                                <img :src="reply.user?.avatar ? (reply.user.avatar.startsWith('http') ? reply.user.avatar : `${apiBaseUrl}/storage/avatars/` + reply.user.avatar.split('/').pop()) : 'https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg'"
                                     :alt="reply.user?.name"
                                     class="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border border-gray-200 flex-shrink-0" />
                                 <div class="flex-1 min-w-0">
@@ -273,14 +272,12 @@
                                         class="mt-2 flex flex-wrap gap-1 sm:gap-2">
                                         <div v-for="image in reply.images" :key="image.id"
                                             class="relative group overflow-hidden rounded-lg shadow-sm">
-                                            <img :src="'/storage/' + image.image_path" :alt="'Hình ảnh phản hồi'"
+                                            <img :src="getImageUrlWithTimestamp(image.image_path)" :alt="'Hình ảnh phản hồi'"
                                                 class="w-12 h-12 sm:w-16 sm:h-16 object-cover cursor-pointer transition-transform duration-300 group-hover:scale-110"
-                                                @click="$emit('openImageModal', '/storage/' + image.image_path)" />
-                                            <div
-                                                class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                                                <i
-                                                    class="bi bi-zoom-in text-white opacity-0 group-hover:opacity-100 text-sm sm:text-xl transition-opacity duration-300"></i>
-                                            </div>
+                                                @click="$emit('openImageModal', getImageUrlWithTimestamp(image.image_path))"
+                                                @error="console.error('Reply image failed to load:', getImageUrlWithTimestamp(image.image_path))"
+                                                @load="console.log('Reply image loaded successfully:', getImageUrlWithTimestamp(image.image_path))" />
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -327,10 +324,32 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 // Bỏ useRuntimeConfig, không dùng Nuxt
 // const runtimeConfig = useRuntimeConfig()
+
+// Tạo ref để lưu trữ API base URL
+const apiBaseUrl = ref(import.meta.env.VITE_API_BASE_URL)
+
+// Debug: Log API base URL
+console.log('API Base URL:', apiBaseUrl.value)
+
+// Function để tạo URL hình ảnh
+const getImageUrl = (imagePath) => {
+    const url = `${apiBaseUrl.value}/storage/${imagePath}`
+    console.log('Generated image URL:', url)
+    return url
+}
+
+// Function để tạo URL cho một image cụ thể
+const getImageUrlWithTimestamp = (imagePath) => {
+    const url = `${apiBaseUrl.value}/storage/${imagePath}?t=${Date.now()}`
+    console.log('Generated image URL with timestamp:', url)
+    return url
+}
+
+
 
 const props = defineProps({
     reviewStats: {
@@ -415,6 +434,29 @@ const emit = defineEmits([
     'openImageModal',
     'handleReviewPageChange'
 ])
+
+const handleImageChange = (event) => {
+    console.log('Image change event:', event)
+    console.log('Event type:', event.type)
+    console.log('Event target:', event.target)
+    console.log('Files:', event.target.files)
+    console.log('Files length:', event.target.files?.length)
+    
+    if (event.target.files && event.target.files.length > 0) {
+        Array.from(event.target.files).forEach((file, index) => {
+            console.log(`File ${index}:`, {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                lastModified: file.lastModified
+            })
+        })
+    }
+    
+    console.log('Emitting handleImageUpload event')
+    emit('handleImageUpload', event)
+    console.log('Event emitted successfully')
+}
 
 const canModifyReview = (review) => {
     return props.isAuthenticated && props.user && review.user_id === props.user.id
