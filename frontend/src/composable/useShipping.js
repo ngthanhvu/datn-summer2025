@@ -81,19 +81,19 @@ const getDistrictAndWardFromAddress = async (address) => {
 const callGHNShippingAPI = async (address, cartItems) => {
   const totalWeight = cartItems.reduce((t, i) => t + (500 * i.quantity), 0);
   const totalValue = cartItems.reduce((t, i) => t + (i.price * i.quantity), 0);
+  
   const shopLocation = await getShopLocation();
+  
   if (!shopInfo.value) await fetchShopInfo();
   const ghnConfig = shopInfo.value || {
     base_url: 'https://online-gateway.ghn.vn/shiip/public-api/v2',
     token: '', shop_id: ''
   };
-  let toDistrictId = address.district_id;
-  let toWardCode = address.ward_code;
-  if (!toDistrictId || !toWardCode) {
-    const loc = await getDistrictAndWardFromAddress(address);
-    toDistrictId = loc.district_id;
-    toWardCode = loc.ward_code;
-  }
+  
+  const loc = await getDistrictAndWardFromAddress(address);
+  const toDistrictId = loc.district_id;
+  const toWardCode = loc.ward_code;
+  
   if (!toDistrictId || !toWardCode) return { success: false, message: 'Thiếu district_id hoặc ward_code' };
   if (!shopLocation.districtId || !shopLocation.wardCode) return { success: false, message: 'Không thể lấy thông tin shop từ GHN API' };
   const shippingData = {
@@ -107,6 +107,7 @@ const callGHNShippingAPI = async (address, cartItems) => {
     insurance_value: totalValue, cod_value: 0
   };
   try {
+    console.log('Sending shipping data to GHN:', shippingData);
     const res = await axios.post(`${ghnConfig.base_url}/shipping-order/fee`, shippingData, {
       headers: {
         'Content-Type': 'application/json',
@@ -114,9 +115,11 @@ const callGHNShippingAPI = async (address, cartItems) => {
         'ShopId': ghnConfig.shop_id,
       }
     });
+    console.log('GHN API response:', res.data);
     if (res.data.code === 200) return { success: true, data: res.data.data };
     return { success: false, message: res.data.message || 'Có lỗi khi tính phí' };
   } catch (error) {
+    console.error('GHN API error:', error.response?.data || error.message);
     return { success: false, message: error.response?.data?.message || error.message || 'Không thể kết nối GHN API' };
   }
 };

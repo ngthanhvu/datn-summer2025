@@ -18,16 +18,18 @@
                 <!-- Product Images Section -->
                 <div class="w-full lg:w-auto lg:flex-shrink-0">
                     <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product?.name"
+                        :selected-size="props.selectedSize" :selected-color="props.selectedColor" :product="product"
                         @update:main-image="$emit('update:mainImage', $event)" />
                 </div>
 
                 <!-- Product Info -->
-                <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"
+                <ProductInfo :product="product" :selected-size="props.selectedSize" :selected-color="props.selectedColor"
                     :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
                     :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName"
                     :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime"
                     :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
                     :flash-sale-percent="flashSalePercent" :product-inventory="productInventory"
+                    @variant-change="$emit('variantChange', $event)"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
@@ -91,7 +93,7 @@ import ProductReviews from './ProductsReview.vue'
 import PreservationInformation from './ProductPreservation.vue';
 import ShippingReturn from './ProductShippingReturn.vue'
 import RelatedProducts from './RelatedProducts.vue'
-import { toRef } from 'vue'
+import { toRef, watch } from 'vue'
 const props = defineProps({
     product: {
         type: Object,
@@ -245,7 +247,8 @@ const emit = defineEmits([
     'removeReview',
     'openImageModal',
     'handleReviewPageChange',
-    'update:mainImage'
+    'update:mainImage',
+    'variantChange'
 ])
 
 const tabs = [
@@ -255,6 +258,6 @@ const tabs = [
     { id: 'shipping-return', name: 'Giao hàng & Đổi trả' }
 ]
 
-const selectedSize = toRef(props, 'selectedSize')
-const selectedColor = toRef(props, 'selectedColor')
+watch(() => [props.selectedSize, props.selectedColor], ([newSize, newColor]) => {
+}, { deep: true })
 </script>
