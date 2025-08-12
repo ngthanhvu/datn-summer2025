@@ -10,12 +10,10 @@ import 'notivue/animations.css'
 import App from './App.vue'
 import router from './router'
 
-// Configure axios
-axios.defaults.baseURL = 'http://localhost:8000'
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 axios.defaults.headers.common['Accept'] = 'application/json'
 
-// Add request interceptor to include auth token
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')

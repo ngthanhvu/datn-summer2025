@@ -45,7 +45,7 @@ class ShippingController extends Controller
         }
     }
 
-    
+
     public function calculateCartShippingFee(Request $request): JsonResponse
     {
         $request->validate([
@@ -64,9 +64,9 @@ class ShippingController extends Controller
         foreach ($request->cart_items as $item) {
             $product = \App\Models\Products::find($item['product_id']);
             if ($product) {
-                $weight = $product->weight ?? 500; 
+                $weight = $product->weight ?? 500;
                 $quantity = $item['quantity'];
-                
+
                 $totalWeight += $weight * $quantity;
                 $totalValue += $product->price * $quantity;
 
@@ -122,11 +122,11 @@ class ShippingController extends Controller
         }
     }
 
- 
+
     private function getEstimatedDelivery(array $shippingData): array
     {
         $total = $shippingData['total'] ?? 0;
-        
+
         if ($total <= 20000) {
             return [
                 'min_days' => 1,
@@ -148,12 +148,12 @@ class ShippingController extends Controller
         }
     }
 
-  
+
     public function getShopInfo(): JsonResponse
     {
         try {
             $shopId = config('services.ghn.shop_id');
-            
+
             if (!$shopId) {
                 return response()->json([
                     'success' => false,
@@ -196,7 +196,6 @@ class ShippingController extends Controller
                 'success' => false,
                 'message' => 'Không thể lấy thông tin shop từ GHN: ' . $response->body()
             ], 400);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -210,7 +209,7 @@ class ShippingController extends Controller
     {
         try {
             $shopInfo = $this->getShopInfoFromGHN();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -228,12 +227,12 @@ class ShippingController extends Controller
         }
     }
 
-  
+
     private function getShopInfoFromGHN(): ?array
     {
         try {
-            $shopId = config('services.ghn.shop_id'); 
-            
+            $shopId = config('services.ghn.shop_id');
+
             $response = Http::withHeaders([
                 'Token' => config('services.ghn.api_token'),
                 'ShopId' => $shopId,
@@ -260,13 +259,12 @@ class ShippingController extends Controller
             }
 
             return null;
-
         } catch (\Exception $e) {
             return null;
         }
     }
 
- 
+
     public function getProvinces(): JsonResponse
     {
         try {
@@ -288,7 +286,6 @@ class ShippingController extends Controller
                 'success' => false,
                 'message' => 'Không thể lấy danh sách tỉnh từ GHN: ' . $response->body()
             ], 400);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -297,12 +294,12 @@ class ShippingController extends Controller
         }
     }
 
-  
+
     public function getDistricts(Request $request): JsonResponse
     {
         try {
             $provinceId = $request->input('province_id');
-            
+
             if (!$provinceId) {
                 return response()->json([
                     'success' => false,
@@ -330,7 +327,6 @@ class ShippingController extends Controller
                 'success' => false,
                 'message' => 'Không thể lấy danh sách huyện từ GHN: ' . $response->body()
             ], 400);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -344,7 +340,7 @@ class ShippingController extends Controller
     {
         try {
             $districtId = $request->input('district_id');
-            
+
             if (!$districtId) {
                 return response()->json([
                     'success' => false,
@@ -372,7 +368,6 @@ class ShippingController extends Controller
                 'success' => false,
                 'message' => 'Không thể lấy danh sách xã từ GHN: ' . $response->body()
             ], 400);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

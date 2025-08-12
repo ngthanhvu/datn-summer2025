@@ -1,26 +1,46 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import axios from 'axios'
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+import { useProducts } from '../composable/useProducts'
 
 export const useProductStore = defineStore('product', () => {
     const products = ref([])
     const loading = ref(false)
     const error = ref(null)
-
-    const API = axios.create({
-        baseURL: apiBaseUrl,
+    const pagination = ref({
+        current_page: 1,
+        last_page: 1,
+        per_page: 8,
+        total: 0,
+        from: null,
+        to: null,
+        next_page_url: null,
+        prev_page_url: null,
+        links: []
     })
 
-    const fetchProducts = async (filters = {}) => {
+    const { getProducts, searchProducts } = useProducts()
+
+    const fetchProducts = async (filters = {}, page = 1) => {
         loading.value = true
         error.value = null
         try {
-            const params = new URLSearchParams()
-            // (Có thể thêm filter nếu cần)
-            const response = await API.get(`/api/products?${params.toString()}`)
-            products.value = response.data
+            const result = await getProducts(filters, page)
+            products.value = result.products
+            pagination.value = result.pagination
+        } catch (err) {
+            error.value = err
+        } finally {
+            loading.value = false
+        }
+    }
+
+    const searchProductsAction = async (query, filters = {}, page = 1) => {
+        loading.value = true
+        error.value = null
+        try {
+            const result = await searchProducts(query, filters, page)
+            products.value = result.products
+            pagination.value = result.pagination
         } catch (err) {
             error.value = err
         } finally {
@@ -32,6 +52,8 @@ export const useProductStore = defineStore('product', () => {
         products,
         loading,
         error,
-        fetchProducts
+        pagination,
+        fetchProducts,
+        searchProductsAction
     }
 })

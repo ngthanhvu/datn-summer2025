@@ -74,11 +74,13 @@
         <!-- Thông tin vận chuyển -->
         <div class="mb-6">
             <ShippingSection 
+                ref="shippingSectionRef"
                 :cart-items="cartItems" 
                 :selected-address="selectedAddress"
                 @shipping-calculated="handleShippingCalculated" 
             />
         </div>
+
         <div class="space-y-3 border-t border-gray-300 pt-4">
             <div class="flex justify-between">
                 <span>Tạm tính</span>
@@ -86,7 +88,11 @@
             </div>
             <div class="flex justify-between">
                 <span>Phí vận chuyển <span v-if="shippingZone" class="text-xs text-gray-500">({{ shippingZone }})</span></span>
-                <span>{{ formatPrice(shipping) }}</span>
+                <span v-if="shippingLoading" class="flex items-center">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    Đang tính...
+                </span>
+                <span v-else>{{ formatPrice(shipping) }}</span>
             </div>
             <div class="flex justify-between">
                 <span>Giảm giá</span>
@@ -137,6 +143,10 @@ const props = defineProps({
     cartItems: {
         type: Array,
         required: true
+    },
+    shippingLoading: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -145,8 +155,8 @@ const emit = defineEmits(['apply-coupon', 'place-order', 'shipping-calculated'])
 const couponCode = ref('')
 const availableCoupons = ref([])
 const couponService = useCoupon()
+const shippingSectionRef = ref(null)
 
-// ⚠️ Tự khai báo base URL (lấy từ .env qua Vite)
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || ''
 
 const total = computed(() => props.subtotal + props.shipping - props.discount)
@@ -173,6 +183,16 @@ const handleShippingCalculated = (shippingData) => {
     emit('shipping-calculated', shippingData)
 }
 
+const forceShippingCalculation = () => {
+    if (shippingSectionRef.value) {
+        shippingSectionRef.value.handleShippingCalculation()
+    }
+}
+
+defineExpose({
+    forceShippingCalculation
+})
+
 const fetchAvailableCoupons = async () => {
     try {
         const myCouponsData = await couponService.getMyCoupons()
@@ -192,7 +212,6 @@ const fetchAvailableCoupons = async () => {
             )
         })
     } catch (error) {
-        // Handle error silently
     }
 }
 

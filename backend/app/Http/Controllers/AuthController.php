@@ -14,7 +14,6 @@ use App\Mail\WelcomeEmail;
 use App\Mail\OtpEmail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
@@ -160,6 +159,7 @@ class AuthController extends Controller
                 'status' => $user->status,
                 'gender' => $user->gender,
                 'dateOfBirth' => $user->dateOfBirth,
+                'note' => $user->note,
             ];
         });
 
@@ -397,6 +397,7 @@ class AuthController extends Controller
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|min:6',
             'status' => 'required|in:0,1',
+            'note' => 'nullable|string|max:500',
         ], [
             'username.required' => 'Tên người dùng là bắt buộc',
             'username.string' => 'Tên người dùng phải là chuỗi',
@@ -408,6 +409,7 @@ class AuthController extends Controller
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
             'status.required' => 'Trạng thái là bắt buộc',
             'status.in' => 'Trạng thái không hợp lệ',
+            'note.max' => 'Lý do ban không được quá 500 ký tự',
         ]);
 
         if ($validator->fails()) {
@@ -423,6 +425,20 @@ class AuthController extends Controller
                 'phone' => $request->phone,
                 'status' => $request->status,
             ];
+
+            // Nếu ban user (status = 0) thì bắt buộc phải có lý do
+            if ($request->status == 0 && empty($request->note)) {
+                return response()->json([
+                    'error' => 'Vui lòng nhập lý do khi khóa tài khoản'
+                ], 422);
+            }
+
+            // Nếu mở khóa user (status = 1) thì xóa lý do ban
+            if ($request->status == 1) {
+                $updateData['note'] = null;
+            } else {
+                $updateData['note'] = $request->note;
+            }
 
             if ($request->filled('password')) {
                 $updateData['password'] = bcrypt($request->password);
@@ -442,6 +458,7 @@ class AuthController extends Controller
                     'status' => $user->status,
                     'gender' => $user->gender,
                     'dateOfBirth' => $user->dateOfBirth,
+                    'note' => $user->note,
                 ]
             ], 200);
         } catch (\Exception $e) {

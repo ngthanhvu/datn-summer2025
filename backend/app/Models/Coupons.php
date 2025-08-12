@@ -29,9 +29,9 @@ class Coupons extends Model
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
-        'min_order_value' => 'decimal:2',
-        'max_discount_value' => 'decimal:2',
-        'value' => 'decimal:2',
+        'min_order_value' => 'integer',
+        'max_discount_value' => 'integer',
+        'value' => 'integer',
         'is_active' => 'boolean'
     ];
 

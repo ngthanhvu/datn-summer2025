@@ -15,13 +15,13 @@
       <span>Bạn cần hỗ trợ gì?</span>
     </div>
 
-    <div v-if="isOpen" class="bg-white rounded-lg shadow-2xl w-96 h-[500px] flex flex-col overflow-hidden">
+    <div v-if="isOpen" class="bg-white rounded-lg shadow-2xl w-96 h-[500px] flex flex-col overflow-hidden chat-panel">
       <!-- Header -->
       <div class="chat-header text-white p-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <i class="fas fa-headset text-sm"></i>
-          </div>
+          <img src="https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg"
+               alt="Avatar"
+               class="w-8 h-8 rounded-full object-cover border-2 border-white/50" />
           <div>
             <h3 class="font-semibold">Hỗ trợ khách hàng</h3>
             <p class="text-xs opacity-90">Chat với admin</p>
@@ -95,7 +95,7 @@
         </div>
 
         <!-- Messages -->
-        <div class="flex-1 overflow-y-auto p-3 space-y-3" ref="messagesContainer">
+        <div class="flex-1 overflow-y-auto p-3 space-y-3 messages-area mobile-space" ref="messagesContainer">
           <div v-if="messages.length === 0" class="text-center py-8 text-gray-500">
             <i class="fas fa-comment-dots text-3xl mb-2"></i>
             <div class="font-medium mb-1">Chào mừng bạn đến với hỗ trợ khách hàng!</div>
@@ -147,7 +147,7 @@
         </div>
 
         <!-- Message Input -->
-        <div class="p-3 border-t border-gray-300">
+        <div class="p-3 border-t border-gray-300 input-area">
           <form @submit.prevent="sendMessage" class="flex gap-2">
             <div class="flex-1 relative">
               <input v-model="newMessage" type="text" placeholder="Nhập tin nhắn..."
@@ -374,7 +374,17 @@ watch([isOpen, currentAdmin], ([open, admin]) => {
   }
 })
 
-onUnmounted(() => stopPolling())
+// Toggle a global class to hide AI floating button when this widget is open
+watch(isOpen, (open) => {
+  const root = document.documentElement
+  if (open) root.classList.add('chatwidget-open')
+  else root.classList.remove('chatwidget-open')
+})
+
+onUnmounted(() => {
+  stopPolling()
+  document.documentElement.classList.remove('chatwidget-open')
+})
 
 // Lắng nghe BroadcastChannel để nhận tin nhắn mới từ admin
 const chatChannel = new BroadcastChannel('chat_channel')
@@ -445,4 +455,20 @@ chatChannel.onmessage = (event) => {
   z-index: 1001;
   white-space: nowrap;
 }
+
+/* Responsive (mobile) */
+@media (max-width: 480px) {
+  .chat-button { width: 56px; height: 56px; }
+  .support-hint { padding: 8px 12px; font-size: 13px; }
+  .chat-panel {
+    width: calc(100vw - 20px);
+    height: calc(100vh - 100px);
+  }
+  .chat-header { padding: 12px; }
+  .chat-header h3 { font-size: 14px; }
+  .messages-area { padding: 8px !important; }
+  .mobile-space > * + * { margin-top: 8px !important; }
+  .input-area { padding: 8px !important; }
+}
+
 </style>

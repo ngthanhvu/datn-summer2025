@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use App\Models\Products;
+use App\Models\Categories;
+use App\Models\Images;
+use Illuminate\Support\Str;
 
 class ProductImportController extends Controller
 {
@@ -16,7 +19,8 @@ class ProductImportController extends Controller
             'message' => 'Product Import API ready',
             'supported_formats' => ['xlsx', 'xls'],
             'max_file_size' => '10MB',
-            'total_products' => Products::count()
+            'total_products' => Products::count(),
+            'required_fields' => ['name', 'description', 'price', 'category', 'image_url']
         ]);
     }
 
@@ -27,19 +31,6 @@ class ProductImportController extends Controller
         ]);
 
         $initialCount = Products::count();
-
-        function utf8ize(
-            $mixed
-        ) {
-            if (is_array($mixed)) {
-                foreach ($mixed as $key => $value) {
-                    $mixed[$key] = utf8ize($value);
-                }
-            } elseif (is_string($mixed)) {
-                return mb_convert_encoding($mixed, 'UTF-8', 'auto');
-            }
-            return $mixed;
-        }
 
         try {
             DB::beginTransaction();
@@ -78,17 +69,14 @@ class ProductImportController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Có lỗi validation trong file Excel',
-                'errors' => utf8ize($errors)
+                'errors' => $errors
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
-            $message = $e->getMessage();
-            if (!mb_check_encoding($message, 'UTF-8')) {
-                $message = mb_convert_encoding($message, 'UTF-8', 'auto');
-            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi import: ' . $message
+                'message' => 'Có lỗi xảy ra khi import: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -99,48 +87,38 @@ class ProductImportController extends Controller
             'name',
             'description',
             'price',
-            'original_price',
-            'discount_price',
             'category',
-            'brand',
-            'is_active',
-            'variant_color',
-            'variant_size',
-            'variant_price',
-            'variant_quantity',
             'image_url'
         ];
 
         $sampleData = [
             [
                 'iPhone 14 Pro',
-                'Điện thoại thông minh cao cấp từ Apple',
+                'Điện thoại thông minh cao cấp từ Apple với chip A16 Bionic',
                 25000000,
-                27000000,
-                null,
                 'Điện thoại',
-                'Apple',
-                1,
-                'Đen',
-                '128GB',
-                25000000,
-                10,
-                'https://placehold.co/100?text=so1|https://placehold.co/100?text=so2'
+                'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400'
             ],
             [
                 'Samsung Galaxy S23',
-                'Flagship Android phone',
+                'Flagship Android phone với camera 200MP và chip Snapdragon 8 Gen 2',
                 20000000,
-                22000000,
-                19000000,
                 'Điện thoại',
-                'Samsung',
-                1,
-                'Xanh',
-                '256GB',
-                20000000,
-                5,
-                'https://placehold.co/100?text=so3'
+                'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400'
+            ],
+            [
+                'MacBook Pro M2',
+                'Laptop cao cấp với chip M2, màn hình Retina 14 inch',
+                35000000,
+                'Laptop',
+                'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400'
+            ],
+            [
+                'Nike Air Max 270',
+                'Giày thể thao với đế Air Max thoải mái, phù hợp cho mọi hoạt động',
+                3500000,
+                'Giày dép',
+                'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400'
             ]
         ];
 
@@ -163,7 +141,7 @@ class ProductImportController extends Controller
 
     public function getImportHistory()
     {
-        $recentProducts = Products::with(['categories', 'brand', 'images'])
+        $recentProducts = Products::with(['categories', 'images'])
             ->orderBy('created_at', 'desc')
             ->limit(20)
             ->get();

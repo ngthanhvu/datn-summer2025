@@ -18,23 +18,25 @@
                 <!-- Product Images Section -->
                 <div class="w-full lg:w-auto lg:flex-shrink-0">
                     <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product?.name"
+                        :selected-size="props.selectedSize" :selected-color="props.selectedColor" :product="product"
                         @update:main-image="$emit('update:mainImage', $event)" />
                 </div>
 
                 <!-- Product Info -->
-                <ProductInfo :product="product" :selected-size="selectedSize" :selected-color="selectedColor"
+                <ProductInfo :product="product" :selected-size="props.selectedSize" :selected-color="props.selectedColor"
                     :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
                     :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName"
                     :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime"
                     :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
                     :flash-sale-percent="flashSalePercent" :product-inventory="productInventory"
+                    @variant-change="$emit('variantChange', $event)"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
             </div>
         </div>
 
-        <!-- Description & Reviews -->
+        <!-- FB: Hoài Lý -->
         <div class="max-w-7xl mx-auto mb-5">
             <div class="pt-2 bg-white p-3 sm:p-8 rounded-[10px] border border-gray-200">
                 <div class="flex flex-wrap gap-2 sm:gap-8 mb-4 sm:mb-8 justify-start">
@@ -91,7 +93,7 @@ import ProductReviews from './ProductsReview.vue'
 import PreservationInformation from './ProductPreservation.vue';
 import ShippingReturn from './ProductShippingReturn.vue'
 import RelatedProducts from './RelatedProducts.vue'
-import { toRef } from 'vue'
+import { toRef, watch } from 'vue'
 const props = defineProps({
     product: {
         type: Object,
@@ -245,7 +247,8 @@ const emit = defineEmits([
     'removeReview',
     'openImageModal',
     'handleReviewPageChange',
-    'update:mainImage'
+    'update:mainImage',
+    'variantChange'
 ])
 
 const tabs = [
@@ -255,6 +258,6 @@ const tabs = [
     { id: 'shipping-return', name: 'Giao hàng & Đổi trả' }
 ]
 
-const selectedSize = toRef(props, 'selectedSize')
-const selectedColor = toRef(props, 'selectedColor')
+watch(() => [props.selectedSize, props.selectedColor], ([newSize, newColor]) => {
+}, { deep: true })
 </script>

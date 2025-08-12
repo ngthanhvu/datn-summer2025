@@ -27,15 +27,17 @@ export const useProducts = () => {
         })
     }
 
-    const getProducts = async (filters = {}) => {
+    const getProducts = async (filters = {}, page = 1) => {
         try {
-            const cacheKey = `products_${JSON.stringify(filters)}`
+            const cacheKey = `products_${JSON.stringify(filters)}_page_${page}`
             const cached = getCachedData(cacheKey)
             if (cached) {
                 return cached
             }
 
             const params = new URLSearchParams()
+
+            params.append('page', page)
 
             if (filters.color) {
                 params.append('color', filters.color)
@@ -57,7 +59,7 @@ export const useProducts = () => {
                 if (Array.isArray(filters.brand)) {
                     filters.brand.forEach(id => params.append('brand[]', id))
                 } else {
-                    params.append('brand', filters.brand)
+                    params.append('category', filters.brand)
                 }
             }
             if (filters.sort_by) {
@@ -66,8 +68,21 @@ export const useProducts = () => {
             }
 
             const response = await API.get(`/api/products?${params.toString()}`)
-            setCachedData(cacheKey, response.data)
-            return response.data
+
+            const result = {
+                products: response.data.data,
+                pagination: {
+                    current_page: response.data.current_page,
+                    last_page: response.data.last_page,
+                    per_page: response.data.per_page,
+                    total: response.data.total,
+                    from: response.data.from,
+                    to: response.data.to
+                }
+            }
+
+            setCachedData(cacheKey, result)
+            return result
         } catch (error) {
             console.error('Error getting products:', error)
             throw error
@@ -389,7 +404,7 @@ export const useProducts = () => {
                 }
             })
             setCachedData(cacheKey, response.data)
-            return response.data
+            return response.data.data
         } catch (error) {
             console.error('Error getting new products:', error)
             return []

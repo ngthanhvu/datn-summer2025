@@ -116,6 +116,19 @@
                             </label>
                         </div>
                     </div>
+
+                    <!-- Note - Only show when status is 0 (banned) -->
+                    <div v-if="formData.status === 0">
+                        <label for="note" class="block text-sm font-medium text-gray-700 mb-1">
+                            Lý do khóa tài khoản <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="note" v-model="formData.note" rows="3" required
+                            placeholder="Nhập lý do khóa tài khoản..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                            :class="{ 'border-red-500': errors.note }"></textarea>
+                        <p v-if="errors.note" class="text-red-500 text-xs mt-1">{{ errors.note }}</p>
+                        <p class="text-gray-500 text-xs mt-1">Lý do khóa tài khoản là bắt buộc</p>
+                    </div>
                 </div>
 
                 <!-- Actions -->
@@ -162,14 +175,16 @@ const formData = reactive({
     phone: '',
     password: '',
     status: 1, // 1 = active, 0 = inactive
-    avatar: ''
+    avatar: '',
+    note: '' // Added for note field
 })
 
 const errors = reactive({
     username: '',
     email: '',
     phone: '',
-    password: ''
+    password: '',
+    note: ''
 })
 
 // Watch for customer changes to populate form
@@ -181,6 +196,7 @@ watch(() => props.customer, (newCustomer) => {
         formData.status = newCustomer.status !== undefined ? newCustomer.status : 1
         formData.avatar = newCustomer.avatar || ''
         formData.password = '' // Reset password field
+        formData.note = newCustomer.note || '' // Populate note field
     }
 }, { immediate: true })
 
@@ -196,6 +212,7 @@ const resetForm = () => {
         }
     })
     formData.status = 1
+    formData.note = '' // Reset note field
     Object.keys(errors).forEach(key => {
         errors[key] = ''
     })
@@ -250,6 +267,12 @@ const validateForm = () => {
         isValid = false
     }
 
+    // Validate note (only if status is 0)
+    if (formData.status === 0 && !formData.note.trim()) {
+        errors.note = 'Lý do khóa tài khoản là bắt buộc'
+        isValid = false
+    }
+
     return isValid
 }
 
@@ -267,7 +290,12 @@ const handleSubmit = async () => {
             username: formData.username.trim(),
             email: formData.email.trim(),
             phone: formData.phone.trim() || null,
-            status: formData.status
+            status: formData.status,
+        }
+
+        // Only include note if status is 0 (banned)
+        if (formData.status === 0) {
+            updateData.note = formData.note.trim()
         }
 
         // Only include password if it's provided

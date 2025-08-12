@@ -421,22 +421,14 @@ const formErrors = ref({
 
 onMounted(async () => {
     try {
-        console.log('Starting onMounted...');
 
-        // Load categories and brands first
         if (!categoryStore.categories.length) {
-            console.log('Loading categories...');
             await categoryStore.fetchCategories();
         }
         if (!brandStore.brands.length) {
-            console.log('Loading brands...');
             await brandStore.fetchBrands();
         }
 
-        console.log('Categories loaded:', categoryStore.categories);
-        console.log('Brands loaded:', brandStore.brands);
-
-        // Set up options for dropdowns
         const catOptions = categoryStore.categories.map(cat => ({ value: String(cat.id), label: cat.name }));
         const categoryField = basicFields.value.find(f => f.name === 'category');
         if (categoryField) {
@@ -449,19 +441,9 @@ onMounted(async () => {
             brandField.options = brandOptions;
         }
 
-        console.log('Category options:', catOptions);
-        console.log('Brand options:', brandOptions);
-
-        // Now load product data if in edit mode
         if (isEditMode.value) {
             try {
-                console.log('Loading product with ID:', route.params.id);
                 const product = await getProductById(route.params.id);
-                console.log('Product data:', product);
-                console.log('Product category_id:', product.category_id);
-                console.log('Product categories_id:', product.categories_id);
-                console.log('Product brand_id:', product.brand_id);
-                console.log('Product variants:', product.variants);
 
                 formData.value = {
                     name: product.name || '',
@@ -478,7 +460,6 @@ onMounted(async () => {
                     variants: product.variants || []
                 };
 
-                // Add base URL to images if they don't have full URL
                 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
                 if (formData.value.mainImagePreview && !formData.value.mainImagePreview.startsWith('http')) {
                     formData.value.mainImagePreview = `${apiBaseUrl}${formData.value.mainImagePreview}`;
@@ -492,11 +473,9 @@ onMounted(async () => {
                     });
                 }
 
-                // Show variants section if product has variants
                 if (product.variants && product.variants.length > 0) {
                     showVariants.value = true;
 
-                    // Map variants data to the correct structure
                     formData.value.variants = product.variants.map(variant => ({
                         colorName: variant.color || '',
                         sizes: [{
@@ -508,7 +487,6 @@ onMounted(async () => {
                         imagesPreview: []
                     }));
 
-                    // Initialize form errors for variants
                     formErrors.value.variants = formData.value.variants.map(() => ({
                         color: '',
                         sizes: [{
@@ -519,12 +497,6 @@ onMounted(async () => {
                     }));
                 }
 
-                console.log('Form data after mapping:', formData.value);
-                console.log('Category selected:', formData.value.category);
-                console.log('Brand selected:', formData.value.brand);
-                console.log('Main image preview:', formData.value.mainImagePreview);
-                console.log('Additional images:', formData.value.additionalImagePreviews);
-                console.log('Variants:', formData.value.variants);
             } catch (err) {
                 console.error('Error loading product:', err);
                 push.error("Không tìm thấy sản phẩm");
@@ -533,7 +505,6 @@ onMounted(async () => {
         }
 
         isDataLoaded.value = true;
-        console.log('onMounted completed');
     } catch (err) {
         console.error('Không thể tải danh mục/thương hiệu', err);
         push.error("Có lỗi khi tải dữ liệu");
@@ -810,17 +781,13 @@ const handleSubmit = async () => {
             data.append("image_path[]", img);
         });
 
-        // Gửi variants nếu có
         formData.value.variants.forEach((variant, vIdx) => {
-            // Gửi color cho variant
             data.append(`variants[${vIdx}][color]`, variant.colorName);
-            // Gửi ảnh cho variant
             if (variant.images && variant.images.length > 0) {
                 variant.images.forEach(imgFile => {
                     data.append(`variants[${vIdx}][images][]`, imgFile);
                 });
             }
-            // Gửi từng size cho variant
             variant.sizes.forEach((sizeObj, sIdx) => {
                 data.append(`variants[${vIdx}][sizes][${sIdx}][size]`, sizeObj.size);
                 data.append(`variants[${vIdx}][sizes][${sIdx}][price]`, sizeObj.price);

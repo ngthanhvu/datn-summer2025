@@ -20,6 +20,20 @@
             </div>
         </div>
 
+        <!-- Danh mục -->
+        <div class="mb-6">
+            <h4 class="font-medium mb-2 text-sm">Danh mục</h4>
+            <div class="flex flex-wrap gap-2">
+                <button v-for="category in filterOptions.categories" :key="category.id"
+                    @click="toggleFilter('category', category.id)" :class="[
+                        'px-3 py-1 text-xs font-medium border rounded cursor-pointer transition-colors',
+                        filters.category.includes(category.id) ? 'bg-[#81aacc] text-white' : 'bg-white text-black hover:bg-gray-50'
+                    ]">
+                    {{ category.name }}
+                </button>
+            </div>
+        </div>
+
         <!-- Thương hiệu -->
         <div class="mb-6">
             <h4 class="font-medium mb-2 text-sm">Thương hiệu</h4>
@@ -75,14 +89,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useProducts } from "../../composable/useProducts";
 
 const emit = defineEmits(["filter"]);
 
 const initialFilters = {
-    min_price: 0,
-    max_price: 1000000,
+    min_price: null,
+    max_price: null,
+    category: [],
     brand: [],
     color: [],
     size: [],
@@ -91,6 +106,7 @@ const initialFilters = {
 const filters = ref({ ...initialFilters });
 
 const filterOptions = ref({
+    categories: [],
     brands: [],
     colors: [],
     sizes: [],
@@ -102,6 +118,7 @@ onMounted(async () => {
     try {
         const options = await getFilterOptions();
         filterOptions.value = {
+            categories: options.categories || [],
             brands: options.brands || [],
             colors: options.colors || [],
             sizes: options.sizes || [],
@@ -128,11 +145,51 @@ const toggleFilter = (key, value) => {
 };
 
 const clearFilters = () => {
+    // Reset về trạng thái ban đầu
     filters.value = { ...initialFilters };
+    // Emit với filters rỗng để hiển thị tất cả sản phẩm
     emit("filter", { ...initialFilters });
 };
 
 const applyFilters = () => {
-    emit("filter", { ...filters.value });
+    // Chỉ emit những filter có giá trị
+    const activeFilters = {};
+
+    if (filters.value.min_price !== null && filters.value.min_price !== '') {
+        activeFilters.min_price = filters.value.min_price;
+    }
+    if (filters.value.max_price !== null && filters.value.max_price !== '') {
+        activeFilters.max_price = filters.value.max_price;
+    }
+    if (filters.value.category.length > 0) {
+        activeFilters.category = filters.value.category;
+    }
+    if (filters.value.brand.length > 0) {
+        activeFilters.brand = filters.value.brand;
+    }
+    if (filters.value.color.length > 0) {
+        activeFilters.color = filters.value.color;
+    }
+    if (filters.value.size.length > 0) {
+        activeFilters.size = filters.value.size;
+    }
+
+    emit("filter", activeFilters);
 };
+
+// Watch để tự động áp dụng filter khi thay đổi
+watch(filters, (newFilters) => {
+    // Chỉ áp dụng filter khi có thay đổi thực sự
+    const hasActiveFilters = Object.values(newFilters).some(value => {
+        if (Array.isArray(value)) {
+            return value.length > 0;
+        }
+        return value !== null && value !== '';
+    });
+
+    if (!hasActiveFilters) {
+        // Nếu không có filter nào active, hiển thị tất cả sản phẩm
+        emit("filter", {});
+    }
+}, { deep: true });
 </script>

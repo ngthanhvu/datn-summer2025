@@ -25,6 +25,13 @@ use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\PagesController;
+use App\Http\Controllers\AIChatController;
+
+// AI Chatbot routes
+Route::post('/ai/chat', [AIChatController::class, 'chat']);
+Route::get('/ai/search-products', [AIChatController::class, 'searchProducts']);
+Route::get('/ai/coupons', [AIChatController::class, 'getAvailableCoupons']);
+Route::get('/ai/flash-sales', [AIChatController::class, 'getActiveFlashSales']);
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -207,6 +214,7 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/customers', [DashboardController::class, 'getCustomersStats']);
     Route::get('/products', [DashboardController::class, 'getProductsStats']);
     Route::get('/recent-orders', [DashboardController::class, 'getRecentOrders']);
+    Route::get('/top-selling', [DashboardController::class, 'getTopSelling']);
 });
 
 Route::get('/stock-movement', [StockMovementController::class, 'index']);
