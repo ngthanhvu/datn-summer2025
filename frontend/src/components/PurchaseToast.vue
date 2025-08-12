@@ -1,5 +1,4 @@
 <template>
-    <!-- đặt ở góc phải/dưới, đổi bằng prop position -->
     <div :class="['fixed z-[1000] pointer-events-none', positionClass]">
         <Transition enter-active-class="transform transition duration-300" enter-from-class="translate-y-3 opacity-0"
             enter-to-class="translate-y-0 opacity-100" leave-active-class="transform transition duration-300"
