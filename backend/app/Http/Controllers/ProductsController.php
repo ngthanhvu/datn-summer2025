@@ -7,34 +7,33 @@ use App\Models\Images;
 use App\Models\Categories;
 use App\Models\Brands;
 use App\Models\Variants;
-use App\Models\ProductImages;
-use App\Models\ProductVariants;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Schema;
 
 class ProductsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Products::with(['images' => function ($query) {
-            $query->select('id', 'image_path', 'is_main', 'product_id');
-        }, 'variants' => function ($query) {
-            $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
-        }])
-            ->select(
-                'id',
-                'name',
-                'description',
-                'price',
-                'discount_price',
-                'slug',
-                'categories_id',
-                'brand_id',
-                'is_active'
-            );
+        $query = Products::with([
+            'images' => function ($query) {
+                $query->select('id', 'image_path', 'is_main', 'product_id');
+            },
+            'variants' => function ($query) {
+                $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
+            }
+        ])->select(
+            'id',
+            'name',
+            'description',
+            'price',
+            'discount_price',
+            'slug',
+            'categories_id',
+            'brand_id',
+            'is_active'
+        );
+
         if ($request->has('min_price')) {
             $query->where('price', '>=', $request->min_price);
         }
@@ -42,7 +41,6 @@ class ProductsController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-        // Ưu tiên filter theo category_id nếu có
         if ($request->has('category_id') && !empty($request->category_id)) {
             $categoryIds = is_array($request->category_id) ? array_filter($request->category_id) : [$request->category_id];
             $query->whereIn('categories_id', $categoryIds);
@@ -54,17 +52,12 @@ class ProductsController extends Controller
                     $categoryIds[] = $cat;
                 } else {
                     $catModel = \App\Models\Categories::where('slug', $cat)->first();
-                    if ($catModel) {
-                        $categoryIds[] = $catModel->id;
-                    }
+                    if ($catModel) $categoryIds[] = $catModel->id;
                 }
             }
-            if (!empty($categoryIds)) {
-                $query->whereIn('categories_id', $categoryIds);
-            }
+            if (!empty($categoryIds)) $query->whereIn('categories_id', $categoryIds);
         }
 
-        // Ưu tiên filter theo brand_id nếu có
         if ($request->has('brand_id') && !empty($request->brand_id)) {
             $brandIds = is_array($request->brand_id) ? array_filter($request->brand_id) : [$request->brand_id];
             $query->whereIn('brand_id', $brandIds);
@@ -76,14 +69,10 @@ class ProductsController extends Controller
                     $brandIds[] = $b;
                 } else {
                     $brandModel = \App\Models\Brands::where('slug', $b)->first();
-                    if ($brandModel) {
-                        $brandIds[] = $brandModel->id;
-                    }
+                    if ($brandModel) $brandIds[] = $brandModel->id;
                 }
             }
-            if (!empty($brandIds)) {
-                $query->whereIn('brand_id', $brandIds);
-            }
+            if (!empty($brandIds)) $query->whereIn('brand_id', $brandIds);
         }
 
         if ($request->has('color') && !empty($request->color)) {
@@ -108,11 +97,17 @@ class ProductsController extends Controller
             $sortField = $request->sort_by;
             $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'asc';
             $query->orderBy($sortField, $sortDirection);
+        } else {
+            $query->orderBy('id', 'asc');
         }
 
-        $products = $query->get();
+        $perPage = (int) $request->input('per_page', 8);
+        $perPage = max(1, min($perPage, 100));
 
-        $products->transform(function ($product) {
+        $products = $query->paginate($perPage, ['*'], 'page')
+            ->appends($request->query());
+
+        $products->getCollection()->transform(function ($product) {
             $product->images->transform(function ($image) {
                 $image->image_path = url('storage/' . $image->image_path);
                 return $image;

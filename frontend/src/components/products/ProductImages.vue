@@ -21,38 +21,31 @@
         </div>
 
         <!-- Thumbnails -->
-        <div class="flex flex-row gap-3 items-center justify-start flex-nowrap overflow-x-auto thumbnail-container pb-2" 
-             style="max-width: 100%;"
-             @mousedown="startDrag"
-             @mousemove="onDrag"
-             @mouseup="stopDrag"
-             @mouseleave="stopDrag"
-             @touchstart="startDrag"
-             @touchmove="onDrag"
-             @touchend="stopDrag">
+        <div class="flex flex-row gap-3 items-center justify-start flex-nowrap overflow-x-auto thumbnail-container pb-2"
+            style="max-width: 100%;" @mousedown="startDrag" @mousemove="onDrag" @mouseup="stopDrag"
+            @mouseleave="stopDrag" @touchstart="startDrag" @touchmove="onDrag" @touchend="stopDrag">
             <div v-for="(img, idx) in displayImages || []" :key="`img-${idx}-${getImgSrc(img)}`"
                 class="thumbnail-item flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-lg border-2 bg-white cursor-pointer transition-all hover:scale-105 flex items-center justify-center relative overflow-hidden shadow-sm hover:shadow-md"
                 :class="{
                     'ring-2 ring-blue-400 border-blue-400': getImgSrc(img) === currentMainImage,
                     'border-gray-200 hover:border-gray-300': getImgSrc(img) !== currentMainImage
                 }" @click="selectImage(getImgSrc(img))">
-                
+
                 <!-- Loading state -->
                 <div v-if="!img.image_path" class="w-full h-full bg-gray-100 animate-pulse rounded"></div>
-                
+
                 <!-- Image with error handling -->
-                <img v-else
-                    :src="getImgSrc(img)" 
-                    :alt="`${productName} - Image ${idx + 1}`" 
-                    class="w-full h-full object-cover rounded"
-                    @load="handleImageLoad(getImgSrc(img))"
-                    @error="handleImageError(getImgSrc(img))"
-                    loading="lazy" />
-                
+                <img v-else :src="getImgSrc(img)" :alt="`${productName} - Image ${idx + 1}`"
+                    class="w-full h-full object-cover rounded" @load="handleImageLoad(getImgSrc(img))"
+                    @error="handleImageError(getImgSrc(img))" loading="lazy" />
+
                 <!-- Error state -->
-                <div v-if="hasImageError(getImgSrc(img))" class="absolute inset-0 bg-gray-100 flex items-center justify-center rounded">
+                <div v-if="hasImageError(getImgSrc(img))"
+                    class="absolute inset-0 bg-gray-100 flex items-center justify-center rounded">
                     <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
                     </svg>
                 </div>
             </div>
@@ -119,104 +112,104 @@ const props = defineProps({
 
 const emit = defineEmits(['update:mainImage'])
 
-onMounted(() => {
-    console.log('ProductImages component mounted with props:', {
-        productImages: props.productImages,
-        mainImage: props.mainImage,
-        selectedColor: props.selectedColor,
-        product: props.product
-    })
-})
+// onMounted(() => {
+//     console.log('ProductImages component mounted with props:', {
+//         productImages: props.productImages,
+//         mainImage: props.mainImage,
+//         selectedColor: props.selectedColor,
+//         product: props.product
+//     })
+// })
 
-onUnmounted(() => {
-    console.log('ProductImages component unmounted')
-})
+// onUnmounted(() => {
+//     console.log('ProductImages component unmounted')
+// })
 
 const currentImages = computed(() => {
-    console.log('Current images computed:', props.productImages)
+    // console.log('Current images computed:', props.productImages)
     return Array.isArray(props.productImages) ? props.productImages : []
 })
 
 const currentImagesCount = computed(() => {
     const count = displayImages.value.length
-    console.log('Current images count:', count)
+    // console.log('Current images count:', count)
     return count
 })
 
 const currentMainImage = computed(() => {
     if (!props.mainImage) return ''
-    
+
     const exists = displayImages.value.some(img => getImgSrc(img) === props.mainImage)
-    
+
     if (!exists && displayImages.value.length > 0) {
         const firstMainImage = displayImages.value.find(img => img.type === 'main')
         if (firstMainImage) {
-            console.log('Main image not found, using first main image:', getImgSrc(firstMainImage))
+            // console.log('Main image not found, using first main image:', getImgSrc(firstMainImage))
             return getImgSrc(firstMainImage)
         }
-        
-        console.log('No main image found, using first image:', getImgSrc(displayImages.value[0]))
+
+        // console.log('No main image found, using first image:', getImgSrc(displayImages.value[0]))
         return getImgSrc(displayImages.value[0])
     }
-    
-    console.log('Current main image:', props.mainImage)
+
+    // console.log('Current main image:', props.mainImage)
     return props.mainImage
 })
 
 const filteredImagesByColor = computed(() => {
-    console.log('Showing all images to avoid bugs:', currentImages.value)
+    // console.log('Showing all images to avoid bugs:', currentImages.value)
     return currentImages.value
 })
 
 const displayImages = computed(() => {
-    console.log('Display images computed:', filteredImagesByColor.value)
+    // console.log('Display images computed:', filteredImagesByColor.value)
     return filteredImagesByColor.value
 })
 
 watch(displayImages, (newImages, oldImages) => {
-    console.log('Display images changed:', newImages)
+    // console.log('Display images changed:', newImages)
     if (newImages && newImages.length > 0) {
         modalIndex.value = 0
     }
 }, { deep: true })
 
 watch(currentMainImage, (newMainImage) => {
-    console.log('Current main image changed:', newMainImage)
+    // console.log('Current main image changed:', newMainImage)
     if (newMainImage && newMainImage !== props.mainImage) {
         emit('update:mainImage', newMainImage)
     }
 })
 
-watch(() => props.productImages, (newImages, oldImages) => {
-    console.log('ProductImages prop changed:', { newImages, oldImages })
-}, { deep: true })
+// watch(() => props.productImages, (newImages, oldImages) => {
+//     console.log('ProductImages prop changed:', { newImages, oldImages })
+// }, { deep: true })
 
-watch(() => props.selectedColor, (newColor, oldColor) => {
-    console.log('SelectedColor prop changed:', { newColor, oldColor })
-}, { deep: true })
+// watch(() => props.selectedColor, (newColor, oldColor) => {
+//     console.log('SelectedColor prop changed:', { newColor, oldColor })
+// }, { deep: true })
 
-watch(() => props.mainImage, (newImage, oldImage) => {
-    console.log('MainImage prop changed:', { newImage, oldImage })
-}, { deep: true })
+// watch(() => props.mainImage, (newImage, oldImage) => {
+//     console.log('MainImage prop changed:', { newImage, oldImage })
+// }, { deep: true })
 
-watch(() => [props.productImages, props.selectedColor, props.mainImage], ([newImages, newColor, newImage], [oldImages, oldColor, oldImage]) => {
-    console.log('ProductImages component updated:', {
-        images: { new: newImages, old: oldImages },
-        color: { new: newColor, old: oldColor },
-        image: { new: newImage, old: oldImage }
-    })
-}, { deep: true })
+// watch(() => [props.productImages, props.selectedColor, props.mainImage], ([newImages, newColor, newImage], [oldImages, oldColor, oldImage]) => {
+//     console.log('ProductImages component updated:', {
+//         images: { new: newImages, old: oldImages },
+//         color: { new: newColor, old: oldColor },
+//         image: { new: newImage, old: oldImage }
+//     })
+// }, { deep: true })
 
 watch(() => props.selectedColor, (newColor, oldColor) => {
     if (newColor?.name && oldColor?.name && newColor.name !== oldColor.name) {
-        console.log('Color changed by user:', newColor.name)
-        
-        const colorVariant = props.product?.variants?.find(v => 
+        // console.log('Color changed by user:', newColor.name)
+
+        const colorVariant = props.product?.variants?.find(v =>
             String(v.color) === String(newColor.name)
         )
-        
+
         if (colorVariant?.images && colorVariant.images.length > 0) {
-            console.log('Found color variant images:', colorVariant.images)
+            // console.log('Found color variant images:', colorVariant.images)
             emit('update:mainImage', colorVariant.images[0].image_path)
         } else {
             console.log('No images found for color:', newColor.name)
@@ -270,24 +263,24 @@ function getImgSrc(img) {
     if (!img) return ''
     if (typeof img === 'string') return img
     if (typeof img === 'object' && img.image_path) return img.image_path
-    console.log('Invalid image object:', img)
+    // console.log('Invalid image object:', img)
     return ''
 }
 
 const currentIndex = computed(() => {
     if (!displayImages.value || displayImages.value.length === 0) return -1
-    
+
     const index = displayImages.value.findIndex(img => getImgSrc(img) === props.mainImage)
-    console.log('Current index computed:', index, 'for main image:', props.mainImage)
+    // console.log('Current index computed:', index, 'for main image:', props.mainImage)
     return index
 })
 
 function openModal() {
-    console.log('Opening modal with display images:', displayImages.value)
+    // console.log('Opening modal with display images:', displayImages.value)
     if (displayImages.value && displayImages.value.length > 0) {
         modalIndex.value = currentIndex.value !== -1 ? currentIndex.value : 0
         modalIndex.value = Math.min(modalIndex.value, displayImages.value.length - 1)
-        console.log('Modal index set to:', modalIndex.value)
+        // console.log('Modal index set to:', modalIndex.value)
     } else {
         modalIndex.value = 0
     }
@@ -338,7 +331,7 @@ function prevModalImage() {
     if (displayImages.value && displayImages.value.length > 1) {
         modalIndex.value =
             modalIndex.value <= 0 ? displayImages.value.length - 1 : modalIndex.value - 1
-        console.log('Previous modal image, new index:', modalIndex.value)
+        // console.log('Previous modal image, new index:', modalIndex.value)
         resetZoom()
     }
 }
@@ -347,35 +340,35 @@ function nextModalImage() {
     if (displayImages.value && displayImages.value.length > 1) {
         modalIndex.value =
             modalIndex.value >= displayImages.value.length - 1 ? 0 : modalIndex.value + 1
-        console.log('Next modal image, new index:', modalIndex.value)
+        // console.log('Next modal image, new index:', modalIndex.value)
         resetZoom()
     }
 }
 
 function previousImage() {
     if (!displayImages.value || displayImages.value.length === 0) return
-    
+
     const newIndex =
         currentIndex.value <= 0
             ? displayImages.value.length - 1
             : currentIndex.value - 1
-    console.log('Previous image, new index:', newIndex)
+    // console.log('Previous image, new index:', newIndex)
     emit('update:mainImage', getImgSrc(displayImages.value[newIndex]))
 }
 
 function nextImage() {
     if (!displayImages.value || displayImages.value.length === 0) return
-    
+
     const newIndex =
         currentIndex.value >= displayImages.value.length - 1
             ? 0
             : currentIndex.value + 1
-    console.log('Next image, new index:', newIndex)
+    // console.log('Next image, new index:', newIndex)
     emit('update:mainImage', getImgSrc(displayImages.value[newIndex]))
 }
 
 const selectImage = (imagePath) => {
-    console.log('Selecting image:', imagePath)
+    // console.log('Selecting image:', imagePath)
     emit('update:mainImage', imagePath)
 }
 
@@ -392,10 +385,10 @@ const startDrag = (e) => {
 const onDrag = (e) => {
     if (!isDragging.value) return
     e.preventDefault()
-    
+
     const container = e.currentTarget
     const x = e.type === 'mousemove' ? e.pageX - container.offsetLeft : e.touches[0].pageX - container.offsetLeft
-    const walk = (x - startX.value) * 2 
+    const walk = (x - startX.value) * 2
     container.scrollLeft = scrollLeft.value - walk
 }
 
@@ -458,7 +451,7 @@ img {
     overflow-y: hidden;
     max-width: 100%;
     scrollbar-gutter: stable;
-    width: calc(5 * 80px + 4 * 12px + 24px); 
+    width: calc(5 * 80px + 4 * 12px + 24px);
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -552,14 +545,14 @@ img {
 /* Responsive container sizing */
 @media (min-width: 640px) {
     .thumbnail-container {
-        max-width: calc(5 * 96px + 4 * 12px + 24px); 
+        max-width: calc(5 * 96px + 4 * 12px + 24px);
         width: calc(5 * 96px + 4 * 12px + 24px);
     }
 }
 
 @media (min-width: 1024px) {
     .thumbnail-container {
-        max-width: calc(5 * 112px + 4 * 12px + 24px); 
+        max-width: calc(5 * 112px + 4 * 12px + 24px);
         width: calc(5 * 112px + 4 * 12px + 24px);
     }
 }

@@ -137,7 +137,7 @@
                                     <div class="skeleton-loader"></div>
                                 </td>
                             </tr>
-                            <tr v-else v-for="(item, index) in paginatedData" :key="index"
+                            <tr v-else v-for="(item, index) in filteredData" :key="index"
                                 class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="px-3 py-2">
                                     <input type="checkbox" :checked="selectedRows.includes(item.id)"
@@ -204,7 +204,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-if="!props.isLoading && paginatedData.length === 0">
+                            <tr v-if="!props.isLoading && filteredData.length === 0">
                                 <td :colspan="columns.length + 3" class="px-3 py-2 text-center text-gray-500">
                                     Không có dữ liệu
                                 </td>
@@ -221,7 +221,7 @@
                         <div class="skeleton-loader"></div>
                     </div>
                 </div>
-                <div v-else v-for="(item, index) in paginatedData" :key="'mobile-' + index" class="mobile-card">
+                <div v-else v-for="(item, index) in filteredData" :key="'mobile-' + index" class="mobile-card">
                     <div class="card-header">
                         <div class="card-checkbox">
                             <input type="checkbox" :checked="selectedRows.includes(item.id)"
@@ -274,7 +274,7 @@
                     </div>
                 </div>
 
-                <div v-if="!props.isLoading && paginatedData.length === 0" class="empty-state">
+                <div v-if="!props.isLoading && filteredData.length === 0" class="empty-state">
                     <i class="fas fa-box-open text-gray-400 text-4xl mb-2"></i>
                     <p class="text-gray-500">Không có dữ liệu</p>
                 </div>
@@ -284,16 +284,19 @@
         <!-- Pagination -->
         <div class="pagination-section">
             <div class="pagination-info">
-                Hiển thị {{ paginatedData.length }} trên tổng số {{ filteredData.length }} bản ghi
+                Hiển thị {{ paginationInfo.from || 0 }} - {{ paginationInfo.to || 0 }} trên tổng số {{
+                    paginationInfo.total || 0
+                }} bản ghi
             </div>
             <div class="pagination-controls">
-                <button :disabled="currentPage === 1" @click="currentPage--" class="pagination-btn">
+                <button :disabled="currentPage === 1" @click="handlePageChange(currentPage - 1)" class="pagination-btn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <span class="pagination-text">
                     Trang {{ currentPage }} / {{ totalPages }}
                 </span>
-                <button :disabled="currentPage === totalPages" @click="currentPage++" class="pagination-btn">
+                <button :disabled="currentPage === totalPages" @click="handlePageChange(currentPage + 1)"
+                    class="pagination-btn">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
@@ -336,16 +339,30 @@ const props = defineProps({
     isLoading: {
         type: Boolean,
         default: false
+    },
+    pagination: {
+        type: Object,
+        default: () => ({
+            current_page: 1,
+            last_page: 1,
+            per_page: 10,
+            total: 0,
+            from: null,
+            to: null
+        })
+    },
+    currentPage: {
+        type: Number,
+        default: 1
     }
 })
 
-const emit = defineEmits(['delete', 'filter-change', 'refresh'])
+const emit = defineEmits(['delete', 'filter-change', 'refresh', 'page-change'])
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const selectedBrand = ref('')
 const selectedStatus = ref('')
-const currentPage = ref(1)
 const sortKey = ref('')
 const sortOrder = ref('asc')
 
@@ -355,6 +372,10 @@ const fileInput = ref(null)
 const isLoading = ref(false)
 
 const selectedRows = ref([])
+
+// Computed properties for pagination
+const totalPages = computed(() => props.pagination.last_page || 1)
+const paginationInfo = computed(() => props.pagination)
 
 const filteredData = computed(() => {
     let result = [...props.data]
@@ -394,18 +415,9 @@ const filteredData = computed(() => {
     return result
 })
 
-const totalPages = computed(() =>
-    Math.ceil(filteredData.value.length / props.itemsPerPage)
-)
-
-const paginatedData = computed(() => {
-    const start = (currentPage.value - 1) * props.itemsPerPage
-    const end = start + props.itemsPerPage
-    return filteredData.value.slice(start, end)
-})
-
 const handleSearch = () => {
-    currentPage.value = 1
+    // Reset to page 1 when searching
+    emit('page-change', 1)
 }
 
 const sortBy = (key) => {
@@ -417,8 +429,13 @@ const sortBy = (key) => {
     }
 }
 
+const handlePageChange = (page) => {
+    emit('page-change', page)
+}
+
 watch([selectedCategory, selectedBrand, selectedStatus], () => {
-    currentPage.value = 1
+    // Reset to page 1 when filters change
+    emit('page-change', 1)
     emit('filter-change', {
         category: selectedCategory.value,
         brand: selectedBrand.value,
@@ -491,7 +508,6 @@ const handleImport = async () => {
         selectedFile.value = null
         showImportModal.value = false
         push.success("Import sản phẩm thành công")
-        await getProducts()
         emit('refresh')
     } catch (error) {
         console.error('Error importing file:', error)
@@ -501,14 +517,14 @@ const handleImport = async () => {
 }
 
 const isAllSelected = computed(() => {
-    return paginatedData.value.length > 0 && paginatedData.value.every(item => selectedRows.value.includes(item.id))
+    return filteredData.value.length > 0 && filteredData.value.every(item => selectedRows.value.includes(item.id))
 })
 
 const toggleSelectAll = () => {
     if (isAllSelected.value) {
         selectedRows.value = []
     } else {
-        selectedRows.value = paginatedData.value.map(item => item.id)
+        selectedRows.value = filteredData.value.map(item => item.id)
     }
 }
 
@@ -537,7 +553,6 @@ const handleBulkDelete = async () => {
         await bulkDeleteProducts(selectedRows.value)
         push.success('Xoá sản phẩm thành công')
         selectedRows.value = []
-        await getProducts()
         emit('refresh')
     } catch (e) {
         push.error('Xoá sản phẩm thất bại')

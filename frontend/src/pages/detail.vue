@@ -15,7 +15,7 @@
         @update:showReviewForm="val => showReviewForm = val" @update:reviewForm="val => reviewForm = val"
         @removeImage="removeImage" @handleImageUpload="handleImageUpload" @add-to-cart="handleAddToCart"
         @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
-        @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts" 
+        @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts"
         @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
     <div v-else class="text-center py-10 mt-10">Đang tải sản phẩm...</div>
 </template>
@@ -144,15 +144,15 @@ const fetchReviews = async (page = 1) => {
 }
 
 const handleImageUpload = (event) => {
-    
+
     if (!Array.isArray(reviewForm.value.images)) {
         reviewForm.value.images = []
     }
-    
+
     if (!Array.isArray(previewImages.value)) {
         previewImages.value = []
     }
-    
+
     const files = event.target.files
 
     if (!files || files.length === 0) {
@@ -160,19 +160,19 @@ const handleImageUpload = (event) => {
     }
 
     Array.from(files).forEach((file, index) => {
-        
+
         reviewForm.value.images.push(file)
-        
+
         if (!Array.isArray(previewImages.value)) {
             previewImages.value = []
         }
-        
+
         const reader = new FileReader()
         reader.onload = e => {
             previewImages.value.push({
                 file,
                 url: e.target.result,
-                existing: false 
+                existing: false
             })
         }
         reader.readAsDataURL(file)
@@ -181,12 +181,12 @@ const handleImageUpload = (event) => {
 }
 
 const removeImage = (index) => {
-    
+
     if (!Array.isArray(previewImages.value)) {
         previewImages.value = []
         return
     }
-    
+
     const imageToRemove = previewImages.value[index]
 
     if (imageToRemove?.existing && imageToRemove?.id) {
@@ -195,7 +195,7 @@ const removeImage = (index) => {
         if (!Array.isArray(reviewForm.value.images)) {
             reviewForm.value.images = []
         }
-        
+
         const fileIndex = reviewForm.value.images.findIndex(img => img === imageToRemove.file)
         if (fileIndex !== -1) {
             reviewForm.value.images.splice(fileIndex, 1)
@@ -211,7 +211,7 @@ const submitReview = async () => {
     if (!Array.isArray(reviewForm.value.images)) {
         reviewForm.value.images = []
     }
-    
+
     const payload = {
         user_id: user.value.id,
         product_slug: product.value.slug,
@@ -227,21 +227,21 @@ const submitReview = async () => {
         } else {
             await addReview(payload)
         }
-        
+
         reviewForm.value = { rating: 5, content: '', images: [] }
         editingReviewId.value = null
         previewImages.value = []
         deleteImageIds.value = []
         showReviewForm.value = false
-        
+
         if (!Array.isArray(reviewForm.value.images)) {
             reviewForm.value.images = []
         }
-        
+
         if (!Array.isArray(previewImages.value)) {
             previewImages.value = []
         }
-        
+
         await fetchReviews(1)
     } catch (e) {
         console.error('Lỗi khi gửi đánh giá:', e)
@@ -255,14 +255,14 @@ const submitReview = async () => {
 }
 
 const editReview = (review) => {
-    
+
     editingReviewId.value = review.id
     reviewForm.value = {
         rating: review.rating,
         content: review.content,
-        images: [] 
+        images: []
     }
-    
+
     deleteImageIds.value = []
 
     if (!Array.isArray(reviewForm.value.images)) {
@@ -277,28 +277,28 @@ const editReview = (review) => {
         url: `${import.meta.env.VITE_API_BASE_URL}/storage/${img.image_path}`,
         id: img.id,
         existing: true,
-        file: null 
+        file: null
     }))
 
     showReviewForm.value = true
 }
 
 const cancelEdit = () => {
-    
+
     editingReviewId.value = null
     reviewForm.value = { rating: 5, content: '', images: [] }
     previewImages.value = []
     deleteImageIds.value = []
     showReviewForm.value = false
-    
+
     if (!Array.isArray(reviewForm.value.images)) {
         reviewForm.value.images = []
     }
-    
+
     if (!Array.isArray(previewImages.value)) {
         previewImages.value = []
     }
-    
+
 }
 
 const removeReview = async (id) => {
@@ -315,7 +315,7 @@ const handleReviewPageChange = (page) => {
 
 const handleAddToCart = async () => {
     try {
-        
+
         const selectedVariant = product.value.variants?.find(v =>
             String(v.size) === String(selectedSize.value) &&
             String(v.color) === String(selectedColor.value?.name)
@@ -348,82 +348,73 @@ const handleAddToCart = async () => {
 }
 
 const handleVariantChange = (variantData) => {
-  const { size, color } = variantData
-  
-  selectedSize.value = size
-  selectedColor.value = { name: color }
-  
-  const foundVariant = product.value.variants.find(v =>
-    v.size === size && v.color === color
-  )
-  
-  if (foundVariant) {
-    displayPrice.value = foundVariant.price
-    const inventory = productInventory.value.find(inv =>
-      (inv.variant_id && inv.variant_id === foundVariant.id) ||
-      (inv.size === foundVariant.size && inv.color === foundVariant.color)
+    const { size, color } = variantData
+
+    selectedSize.value = size
+    selectedColor.value = { name: color }
+
+    const foundVariant = product.value.variants.find(v =>
+        v.size === size && v.color === color
     )
-    selectedVariantStock.value = inventory ? inventory.quantity : 0
-    
-    // KHÔNG tự động đổi ảnh chính khi thay đổi biến thể
-    // Chỉ cập nhật giá và stock
-  } else {
-    const sizeOnlyVariant = product.value.variants.find(v => v.size === size)
-    if (sizeOnlyVariant) {
-      displayPrice.value = sizeOnlyVariant.price
-      const inventory = productInventory.value.find(inv =>
-        (inv.variant_id && inv.variant_id === sizeOnlyVariant.id) ||
-        (inv.size === sizeOnlyVariant.size && inv.color === sizeOnlyVariant.color)
-      )
-      selectedVariantStock.value = inventory ? inventory.quantity : 0
+
+    if (foundVariant) {
+        displayPrice.value = foundVariant.price
+        const inventory = productInventory.value.find(inv =>
+            (inv.variant_id && inv.variant_id === foundVariant.id) ||
+            (inv.size === foundVariant.size && inv.color === foundVariant.color)
+        )
+        selectedVariantStock.value = inventory ? inventory.quantity : 0
+
+    } else {
+        const sizeOnlyVariant = product.value.variants.find(v => v.size === size)
+        if (sizeOnlyVariant) {
+            displayPrice.value = sizeOnlyVariant.price
+            const inventory = productInventory.value.find(inv =>
+                (inv.variant_id && inv.variant_id === sizeOnlyVariant.id) ||
+                (inv.size === sizeOnlyVariant.size && inv.color === sizeOnlyVariant.color)
+            )
+            selectedVariantStock.value = inventory ? inventory.quantity : 0
+        }
     }
-    
-    // KHÔNG tự động đổi ảnh chính
-  }
-  
-  quantity.value = 1
+
+    quantity.value = 1
 };
 
-// Thêm hàm để tạo danh sách tất cả ảnh
 const generateAllProductImages = () => {
-  if (!product.value) return []
-  
-  const images = []
-  
-  // Thêm ảnh chính của sản phẩm TRƯỚC TIÊN
-  if (product.value.images && product.value.images.length > 0) {
-    images.push(...product.value.images.map(img => ({
-      ...img,
-      type: 'main',
-      source: 'product'
-    })))
-  }
-  
-  // Thêm ảnh của các biến thể SAU ĐÓ
-  if (product.value.variants && product.value.variants.length > 0) {
-    product.value.variants.forEach(variant => {
-      if (variant.images && variant.images.length > 0) {
-        variant.images.forEach(img => {
-          // Kiểm tra xem ảnh đã tồn tại chưa để tránh trùng lặp
-          const exists = images.some(existingImg => 
-            existingImg.image_path === img.image_path
-          )
-          if (!exists) {
-            images.push({
-              ...img,
-              type: 'variant',
-              source: 'variant',
-              variantSize: variant.size,
-              variantColor: variant.color
-            })
-          }
+    if (!product.value) return []
+
+    const images = []
+
+    if (product.value.images && product.value.images.length > 0) {
+        images.push(...product.value.images.map(img => ({
+            ...img,
+            type: 'main',
+            source: 'product'
+        })))
+    }
+
+    if (product.value.variants && product.value.variants.length > 0) {
+        product.value.variants.forEach(variant => {
+            if (variant.images && variant.images.length > 0) {
+                variant.images.forEach(img => {
+                    const exists = images.some(existingImg =>
+                        existingImg.image_path === img.image_path
+                    )
+                    if (!exists) {
+                        images.push({
+                            ...img,
+                            type: 'variant',
+                            source: 'variant',
+                            variantSize: variant.size,
+                            variantColor: variant.color
+                        })
+                    }
+                })
+            }
         })
-      }
-    })
-  }
-  
-  console.log('Generated all product images:', images)
-  return images
+    }
+
+    return images
 }
 
 const relatedProducts = ref([])
@@ -446,31 +437,28 @@ onMounted(async () => {
     if (!slug) return
     try {
         const data = await getProductBySlug(slug)
-        
+
         product.value = data
-        
-        // Luôn hiển thị ảnh chính đầu tiên
+
         mainImage.value = data.images?.[0]?.image_path || ''
         displayPrice.value = data.price
 
         if (data.variants && data.variants.length > 0) {
             const firstVariant = data.variants[0]
-            
+
             selectedSize.value = firstVariant.size
             selectedColor.value = { name: firstVariant.color }
-            
+
             displayPrice.value = firstVariant.price
             const inventory = await getInventories({ product_id: data.id })
             productInventory.value = inventory
-            
+
             const firstInventory = inventory.find(inv =>
                 (inv.variant_id && inv.variant_id === firstVariant.id) ||
                 (inv.size === firstVariant.size && inv.color === firstVariant.color)
             )
             selectedVariantStock.value = firstInventory ? firstInventory.quantity : 0
-            
-            // KHÔNG cập nhật ảnh chính sang ảnh biến thể khi khởi tạo
-            // Chỉ cập nhật khi người dùng thay đổi màu sắc
+
             nextTick(() => {
                 handleVariantChange({ size: firstVariant.size, color: firstVariant.color })
             })
@@ -479,7 +467,6 @@ onMounted(async () => {
             productInventory.value = inventories
         }
 
-        // Tạo danh sách tất cả ảnh sau khi đã set product và variants
         allProductImages.value = generateAllProductImages()
 
         if (route.query.flashsale) {
@@ -500,7 +487,7 @@ onMounted(async () => {
 
         await fetchReviews()
         await fetchRelatedProducts()
-        
+
     } catch (err) {
         console.error('Lỗi khi tải sản phẩm:', err)
     }
