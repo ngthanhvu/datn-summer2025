@@ -21,7 +21,15 @@
         </div>
 
         <!-- Thumbnails -->
-        <div class="flex flex-row gap-3 items-center justify-start flex-nowrap overflow-x-auto thumbnail-container pb-2" style="max-width: 100%;">
+        <div class="flex flex-row gap-3 items-center justify-start flex-nowrap overflow-x-auto thumbnail-container pb-2" 
+             style="max-width: 100%;"
+             @mousedown="startDrag"
+             @mousemove="onDrag"
+             @mouseup="stopDrag"
+             @mouseleave="stopDrag"
+             @touchstart="startDrag"
+             @touchmove="onDrag"
+             @touchend="stopDrag">
             <div v-for="(img, idx) in displayImages || []" :key="`img-${idx}-${getImgSrc(img)}`"
                 class="thumbnail-item flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-lg border-2 bg-white cursor-pointer transition-all hover:scale-105 flex items-center justify-center relative overflow-hidden shadow-sm hover:shadow-md"
                 :class="{
@@ -40,7 +48,6 @@
                     @load="handleImageLoad(getImgSrc(img))"
                     @error="handleImageError(getImgSrc(img))"
                     loading="lazy" />
-                
                 
                 <!-- Error state -->
                 <div v-if="hasImageError(getImgSrc(img))" class="absolute inset-0 bg-gray-100 flex items-center justify-center rounded">
@@ -226,8 +233,15 @@ const isPanning = ref(false)
 const lastPanX = ref(0)
 const lastPanY = ref(0)
 
+// Thêm state để quản lý loading và error
 const imageLoading = ref({})
 const imageError = ref({})
+
+// Thêm state để quản lý drag-to-scroll
+const isDragging = ref(false)
+const startX = ref(0)
+const scrollLeft = ref(0)
+const thumbnailContainer = ref(null)
 
 const handleImageLoad = (imagePath) => {
     imageLoading.value[imagePath] = false
@@ -364,6 +378,35 @@ const selectImage = (imagePath) => {
     console.log('Selecting image:', imagePath)
     emit('update:mainImage', imagePath)
 }
+
+const startDrag = (e) => {
+    isDragging.value = true
+    const container = e.currentTarget
+    startX.value = e.type === 'mousedown' ? e.pageX - container.offsetLeft : e.touches[0].pageX - container.offsetLeft
+    scrollLeft.value = container.scrollLeft
+    container.style.cursor = 'grabbing'
+    container.style.userSelect = 'none'
+    container.classList.add('dragging')
+}
+
+const onDrag = (e) => {
+    if (!isDragging.value) return
+    e.preventDefault()
+    
+    const container = e.currentTarget
+    const x = e.type === 'mousemove' ? e.pageX - container.offsetLeft : e.touches[0].pageX - container.offsetLeft
+    const walk = (x - startX.value) * 2 
+    container.scrollLeft = scrollLeft.value - walk
+}
+
+const stopDrag = (e) => {
+    if (!isDragging.value) return
+    isDragging.value = false
+    const container = e.currentTarget
+    container.style.cursor = 'grab'
+    container.style.userSelect = 'auto'
+    container.classList.remove('dragging')
+}
 </script>
 
 <style scoped>
@@ -416,6 +459,19 @@ img {
     max-width: 100%;
     scrollbar-gutter: stable;
     width: calc(5 * 80px + 4 * 12px + 24px); 
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.thumbnail-container:active {
+    cursor: grabbing;
+}
+
+.thumbnail-container.dragging {
+    cursor: grabbing !important;
 }
 
 /* Hiển thị thanh cuộn cho desktop */
@@ -435,7 +491,7 @@ img {
 }
 
 .thumbnail-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #9b9b9b;
 }
 
 .thumbnail-item {
@@ -510,14 +566,14 @@ img {
 
 .thumbnail-container {
     scrollbar-width: thin;
-    scrollbar-color: #888 #f1f1f1;
+    scrollbar-color: #e7e7e7 #f1f1f1;
     -ms-overflow-style: auto;
     scrollbar-gutter: stable;
 }
 
 .thumbnail-container {
     scrollbar-width: thin;
-    scrollbar-color: #888 #f1f1f1;
+    scrollbar-color: #c9c9c9 #f1f1f1;
 }
 
 .thumbnail-container::-webkit-scrollbar {
