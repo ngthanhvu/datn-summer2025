@@ -4,7 +4,7 @@ import { useAuth } from './useAuth'
 export function useAIChat() {
   const { user } = useAuth()
   
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
   
   // State
   const isOpen = ref(false)
@@ -50,15 +50,39 @@ export function useAIChat() {
 
   // Helper methods để lọc sản phẩm
   const isSpecificProductQuestion = (message) => {
-    const specificKeywords = ['váy', 'áo', 'quần', 'giày', 'túi', 'đầm', 'sơ mi', 'polo', 'khoác']
-    return specificKeywords.some(keyword => message.includes(keyword))
+    const messageLower = message.toLowerCase()
+    
+    // Các từ khóa sản phẩm chính
+    const productKeywords = [
+      'váy', 'áo', 'quần', 'giày', 'túi', 'đầm', 'sơ mi', 'polo', 'khoác',
+      'shirt', 'pants', 'dress', 'shoes', 'bag', 'jacket', 'coat', 'blazer'
+    ]
+    
+    // Các từ khóa hành động liên quan đến sản phẩm
+    const actionKeywords = [
+      'mua', 'tìm', 'cần', 'muốn', 'thích', 'xem', 'cho', 'với', 'giá', 'giá bao nhiêu',
+      'có không', 'còn không', 'màu gì', 'size nào', 'kiểu dáng', 'chất liệu'
+    ]
+    
+    // Kiểm tra xem có từ khóa sản phẩm không
+    const hasProductKeyword = productKeywords.some(keyword => messageLower.includes(keyword))
+    
+    // Kiểm tra xem có từ khóa hành động không
+    const hasActionKeyword = actionKeywords.some(keyword => messageLower.includes(keyword))
+    
+    // Chỉ coi là câu hỏi sản phẩm cụ thể khi có cả từ khóa sản phẩm và hành động
+    // hoặc có từ khóa sản phẩm rất cụ thể
+    const specificProductKeywords = ['sơ mi', 'polo', 'khoác', 'đầm', 'giày', 'túi']
+    const hasSpecificProduct = specificProductKeywords.some(keyword => messageLower.includes(keyword))
+    
+    return (hasProductKeyword && hasActionKeyword) || hasSpecificProduct
   }
 
   const filterProductsByQuery = (products, query) => {
     if (!products || products.length === 0) return []
     
     const queryLower = query.toLowerCase()
-    const stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi']
+    const stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi', 'cho', 'với', 'trong', 'ngoài', 'trên', 'dưới', 'bên', 'của', 'là', 'thì', 'mà', 'nhưng', 'hoặc', 'vì', 'nên', 'để', 'từ', 'đến', 'tại', 'về', 'theo', 'cùng', 'cả', 'mỗi', 'mọi', 'mấy', 'bao', 'nhiêu', 'mấy', 'bao', 'nhiêu', 'mấy', 'bao', 'nhiêu']
     
     // Loại bỏ stop words và lấy từ khóa chính
     let keywords = queryLower.split(' ')
@@ -67,98 +91,127 @@ export function useAIChat() {
     console.log('Filtering products for query:', queryLower)
     console.log('Keywords after filtering:', keywords)
     
-    if (keywords.length === 0) return products
+    if (keywords.length === 0) return []
     
-    // Lọc sản phẩm theo từ khóa với logic chính xác hơn
-    // ƯU TIÊN các từ khóa cụ thể trước (áo sơ mi, áo polo, áo khoác) trước từ khóa chung (áo)
+    // Định nghĩa các từ khóa sản phẩm chính
+    const productKeywords = {
+      'áo': ['áo', 'shirt', 'top', 'blouse'],
+      'quần': ['quần', 'pants', 'trousers', 'jeans'],
+      'váy': ['váy', 'dress', 'skirt'],
+      'giày': ['giày', 'shoes', 'sneakers', 'boots'],
+      'túi': ['túi', 'bag', 'handbag', 'backpack'],
+      'đầm': ['đầm', 'dress', 'gown'],
+      'sơ mi': ['sơ mi', 'shirt', 'formal'],
+      'polo': ['polo', 'polo shirt'],
+      'khoác': ['khoác', 'jacket', 'coat', 'blazer']
+    }
+    
+    // Tìm từ khóa sản phẩm trong câu hỏi
+    let foundProductType = null
+    let foundSpecificType = null
+    
+    for (const [mainType, synonyms] of Object.entries(productKeywords)) {
+      if (queryLower.includes(mainType)) {
+        foundProductType = mainType
+        break
+      }
+      for (const synonym of synonyms) {
+        if (queryLower.includes(synonym)) {
+          foundProductType = mainType
+          break
+        }
+      }
+      if (foundProductType) break
+    }
+    
+    // Tìm từ khóa cụ thể
+    if (queryLower.includes('sơ mi')) foundSpecificType = 'sơ mi'
+    if (queryLower.includes('polo')) foundSpecificType = 'polo'
+    if (queryLower.includes('khoác')) foundSpecificType = 'khoác'
+    
+    console.log('Found product type:', foundProductType)
+    console.log('Found specific type:', foundSpecificType)
+    
+    // Lọc sản phẩm dựa trên từ khóa tìm được
     const result = products.filter(product => {
       const productName = (product.name || '').toLowerCase()
       const categoryName = (product.categories?.name || '').toLowerCase()
+      const productDescription = (product.description || '').toLowerCase()
       
-      // ---- KIỂM TRA CÁC TỪ KHÓA CỤ THỂ TRƯỚC ----
-      
-      // Nếu có từ khóa "áo sơ mi", chỉ hiển thị sản phẩm có "sơ mi" trong tên hoặc danh mục
-      if (queryLower.includes('áo sơ mi') || queryLower.includes('sơ mi')) {
-        return productName.includes('sơ mi') || categoryName.includes('sơ mi')
-      }
-      
-      // Nếu có từ khóa "áo polo", chỉ hiển thị sản phẩm có "polo" trong tên hoặc danh mục
-      if (queryLower.includes('áo polo') || queryLower.includes('polo')) {
-        return productName.includes('polo') || categoryName.includes('polo')
-      }
-      
-      // Nếu có từ khóa "áo khoác", chỉ hiển thị sản phẩm có "khoác" trong tên hoặc danh mục
-      if (queryLower.includes('áo khoác') || queryLower.includes('khoác')) {
-        return productName.includes('khoác') || categoryName.includes('khoác')
-      }
-      
-      // ---- KIỂM TRA CÁC TỪ KHÓA CHUNG ----
-      
-      // Nếu có từ khóa "váy", chỉ hiển thị sản phẩm có "váy" trong tên hoặc danh mục
-      if (queryLower.includes('váy')) {
-        return productName.includes('váy') || categoryName.includes('váy')
-      }
-      
-      // Nếu có từ khóa "áo" (chung), hiển thị sản phẩm có "áo" trong tên hoặc danh mục
-      if (queryLower.includes('áo')) {
-        return productName.includes('áo') || categoryName.includes('áo')
-      }
-      
-      // Nếu có từ khóa "quần", chỉ hiển thị sản phẩm có "quần" trong tên hoặc danh mục
-      if (queryLower.includes('quần')) {
-        return productName.includes('quần') || categoryName.includes('quần')
-      }
-      
-      // Nếu có từ khóa "giày", chỉ hiển thị sản phẩm có "giày" trong tên hoặc danh mục
-      if (queryLower.includes('giày')) {
-        return productName.includes('giày') || categoryName.includes('giày')
-      }
-      
-      // Nếu có từ khóa "túi", chỉ hiển thị sản phẩm có "túi" trong tên hoặc danh mục
-      if (queryLower.includes('túi')) {
-        return productName.includes('túi') || categoryName.includes('túi')
-      }
-      
-      // Nếu có từ khóa "đầm", chỉ hiển thị sản phẩm có "đầm" trong tên hoặc danh mục
-      if (queryLower.includes('đầm')) {
-        return productName.includes('đầm') || categoryName.includes('đầm')
-      }
-      
-      // Xử lý trường hợp "mua" - ưu tiên từ khóa cụ thể trước
-      if (queryLower.includes('mua')) {
-        // Kiểm tra từ khóa cụ thể trước
-        if (queryLower.includes('áo sơ mi') || queryLower.includes('sơ mi')) {
-          return productName.includes('sơ mi') || categoryName.includes('sơ mi')
+      // Nếu có từ khóa cụ thể, ưu tiên tìm kiếm chính xác
+      if (foundSpecificType) {
+        if (foundSpecificType === 'sơ mi') {
+          return productName.includes('sơ mi') || categoryName.includes('sơ mi') || productDescription.includes('sơ mi')
         }
-        if (queryLower.includes('áo polo') || queryLower.includes('polo')) {
-          return productName.includes('polo') || categoryName.includes('polo')
+        if (foundSpecificType === 'polo') {
+          return productName.includes('polo') || categoryName.includes('polo') || productDescription.includes('polo')
         }
-        if (queryLower.includes('áo khoác') || queryLower.includes('khoác')) {
-          return productName.includes('khoác') || categoryName.includes('khoác')
+        if (foundSpecificType === 'khoác') {
+          return productName.includes('khoác') || categoryName.includes('khoác') || productDescription.includes('khoác')
         }
+      }
+      
+      // Nếu có từ khóa sản phẩm chính
+      if (foundProductType) {
+        const synonyms = productKeywords[foundProductType]
+        const hasMatchingType = synonyms.some(synonym => 
+          productName.includes(synonym) || 
+          categoryName.includes(synonym) || 
+          productDescription.includes(synonym)
+        )
         
-        // Sau đó mới kiểm tra từ khóa chung
-        const productKeywords = ['váy', 'áo', 'quần', 'giày', 'túi', 'đầm']
-        const foundKeyword = productKeywords.find(keyword => queryLower.includes(keyword))
-        
-        if (foundKeyword) {
-          return productName.includes(foundKeyword) || categoryName.includes(foundKeyword)
+        if (hasMatchingType) {
+          // Kiểm tra thêm các từ khóa khác trong câu hỏi để tăng độ chính xác
+          const otherKeywords = keywords.filter(keyword => 
+            !synonyms.includes(keyword) && 
+            !Object.values(productKeywords).flat().includes(keyword)
+          )
+          
+          if (otherKeywords.length === 0) {
+            return true // Chỉ có từ khóa sản phẩm, trả về tất cả sản phẩm loại đó
+          }
+          
+          // Kiểm tra xem có từ khóa khác nào khớp không
+          const hasOtherKeyword = otherKeywords.some(keyword => 
+            productName.includes(keyword) || 
+            categoryName.includes(keyword) || 
+            productDescription.includes(keyword)
+          )
+          
+          return hasOtherKeyword
         }
       }
       
-      // Nếu không có từ khóa cụ thể, sử dụng logic cũ
-      const hasMatchingKeyword = keywords.some(keyword => 
-        productName.includes(keyword) || categoryName.includes(keyword)
+      // Nếu không có từ khóa sản phẩm rõ ràng, sử dụng logic tìm kiếm chung
+      // Nhưng yêu cầu ít nhất 2 từ khóa khớp để tăng độ chính xác
+      const matchingKeywords = keywords.filter(keyword => 
+        productName.includes(keyword) || 
+        categoryName.includes(keyword) || 
+        productDescription.includes(keyword)
       )
-      return hasMatchingKeyword
+      
+      return matchingKeywords.length >= 2
     })
     
     console.log('Filtered products count:', result.length)
-    return result
+    console.log('Filtered products:', result.map(p => p.name))
+    
+    // Giới hạn kết quả trả về để tránh spam
+    return result.slice(0, 6)
   }
 
   const sendMessage = async (message) => {
     if (!message.trim() || isTyping.value) return
+
+    // Kiểm tra tin nhắn quá ngắn hoặc spam
+    if (message.trim().length < 2) {
+      messages.value.push({
+        text: 'Vui lòng nhập tin nhắn rõ ràng hơn để tôi có thể hỗ trợ bạn tốt nhất.',
+        isUser: false,
+        timestamp: new Date()
+      })
+      return
+    }
 
     messages.value.push({
       text: message,
@@ -201,7 +254,10 @@ export function useAIChat() {
         const userJustGreeted = isGreeting(message)
 
         if (userJustGreeted) {
-          aiMessage.text = 'Chào bạn! Rất vui được hỗ trợ bạn hôm nay. Bạn cần tìm gì ạ?'
+          aiMessage.text = 'Chào bạn! Rất vui được hỗ trợ bạn hôm nay. Bạn cần tìm gì ạ?\n\nTôi có thể giúp bạn:\n• Tìm kiếm sản phẩm cụ thể\n• Xem mã giảm giá và khuyến mãi\n• Thông tin flash sale\n• Hướng dẫn mua hàng'
+          // Không hiển thị sản phẩm cho tin nhắn chào hỏi
+          messages.value.push(aiMessage)
+          return
         }
 
         // Chỉ hiển thị dữ liệu phù hợp với loại câu hỏi
@@ -218,21 +274,48 @@ export function useAIChat() {
               console.log('Original products:', data.context.products.length)
               console.log('Filtered products:', filteredProducts.length)
               console.log('Query:', userMessageLower)
-              if (filteredProducts.length > 0) {
+              
+              // Chỉ hiển thị sản phẩm nếu có kết quả lọc được và số lượng hợp lý
+              if (filteredProducts.length > 0 && filteredProducts.length <= 6) {
                 aiMessage.products = filteredProducts
+              } else if (filteredProducts.length > 6) {
+                // Nếu quá nhiều kết quả, chỉ hiển thị 6 sản phẩm đầu tiên
+                aiMessage.products = filteredProducts.slice(0, 6)
+              } else {
+                // Nếu không tìm thấy sản phẩm phù hợp, thông báo cho người dùng
+                aiMessage.text += '\n\nXin lỗi, tôi không tìm thấy sản phẩm phù hợp với yêu cầu của bạn. Bạn có thể thử tìm kiếm với từ khóa khác hoặc xem các sản phẩm liên quan.'
               }
+              // Nếu không có kết quả lọc được, không hiển thị sản phẩm
             } else {
-              // Nếu là câu hỏi chung, hiển thị tất cả sản phẩm
-              aiMessage.products = data.context.products
+              // Nếu là câu hỏi chung, chỉ hiển thị sản phẩm nếu người dùng yêu cầu cụ thể
+              const generalProductRequests = ['sản phẩm', 'hàng', 'đồ', 'quần áo', 'thời trang']
+              const hasGeneralRequest = generalProductRequests.some(keyword => userMessageLower.includes(keyword))
+              
+              if (hasGeneralRequest) {
+                // Chỉ hiển thị tối đa 3 sản phẩm cho câu hỏi chung
+                aiMessage.products = data.context.products.slice(0, 3)
+              }
             }
           }
           
+          // Chỉ hiển thị coupon khi người dùng hỏi cụ thể
           if (data.context.coupons && data.context.coupons.length > 0) {
-            aiMessage.coupons = data.context.coupons
+            const couponKeywords = ['mã giảm giá', 'coupon', 'khuyến mãi', 'giảm giá', 'discount']
+            const hasCouponRequest = couponKeywords.some(keyword => message.toLowerCase().includes(keyword))
+            
+            if (hasCouponRequest) {
+              aiMessage.coupons = data.context.coupons.slice(0, 3) // Giới hạn 3 coupon
+            }
           }
           
+          // Chỉ hiển thị flash sale khi người dùng hỏi cụ thể
           if (data.context.flash_sales && data.context.flash_sales.length > 0) {
-            aiMessage.flashSales = data.context.flash_sales
+            const flashSaleKeywords = ['flash sale', 'khuyến mãi', 'giảm giá', 'hot', 'nóng']
+            const hasFlashSaleRequest = flashSaleKeywords.some(keyword => message.toLowerCase().includes(keyword))
+            
+            if (hasFlashSaleRequest) {
+              aiMessage.flashSales = data.context.flash_sales.slice(0, 3) // Giới hạn 3 flash sale
+            }
           }
         }
 
