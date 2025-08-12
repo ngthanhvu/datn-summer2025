@@ -1,5 +1,5 @@
 <template>
-    <ProductsDetail v-if="product" :product="product" :product-images="product.images || []" :main-image="mainImage"
+    <ProductsDetail v-if="product" :product="product" :product-images="allProductImages" :main-image="mainImage"
         :selected-size="selectedSize" :selected-color="selectedColor" v-model:quantity="quantity"
         :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
         :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice"
@@ -48,6 +48,9 @@ const quantity = ref(1)
 const selectedVariantStock = ref(0)
 const displayPrice = ref(0)
 const showOriginalPrice = ref(false)
+
+// Thêm biến để lưu tất cả ảnh sản phẩm
+const allProductImages = ref([])
 
 const flashSaleName = ref('')
 const flashSalePrice = ref(0)
@@ -361,6 +364,9 @@ const handleVariantChange = (variantData) => {
       (inv.size === foundVariant.size && inv.color === foundVariant.color)
     )
     selectedVariantStock.value = inventory ? inventory.quantity : 0
+    
+    // KHÔNG tự động đổi ảnh chính khi thay đổi biến thể
+    // Chỉ cập nhật giá và stock
   } else {
     const sizeOnlyVariant = product.value.variants.find(v => v.size === size)
     if (sizeOnlyVariant) {
@@ -372,22 +378,53 @@ const handleVariantChange = (variantData) => {
       selectedVariantStock.value = inventory ? inventory.quantity : 0
     }
     
-    const colorOnlyVariant = product.value.variants.find(v => v.color === color)
-    
-    if (colorOnlyVariant && colorOnlyVariant.images && colorOnlyVariant.images.length > 0) {
-      mainImage.value = colorOnlyVariant.images[0].image_path
-    } else if (foundVariant && foundVariant.images && foundVariant.images.length > 0) {
-      mainImage.value = foundVariant.images[0].image_path
-    } else if (product.value.images && product.value.images.length > 0) {
-      mainImage.value = product.value.images[0].image_path
-    } else {
-      mainImage.value = ''
-    }
+    // KHÔNG tự động đổi ảnh chính
   }
   
   quantity.value = 1
 };
 
+// Thêm hàm để tạo danh sách tất cả ảnh
+const generateAllProductImages = () => {
+  if (!product.value) return []
+  
+  const images = []
+  
+  // Thêm ảnh chính của sản phẩm TRƯỚC TIÊN
+  if (product.value.images && product.value.images.length > 0) {
+    images.push(...product.value.images.map(img => ({
+      ...img,
+      type: 'main',
+      source: 'product'
+    })))
+  }
+  
+  // Thêm ảnh của các biến thể SAU ĐÓ
+  if (product.value.variants && product.value.variants.length > 0) {
+    product.value.variants.forEach(variant => {
+      if (variant.images && variant.images.length > 0) {
+        variant.images.forEach(img => {
+          // Kiểm tra xem ảnh đã tồn tại chưa để tránh trùng lặp
+          const exists = images.some(existingImg => 
+            existingImg.image_path === img.image_path
+          )
+          if (!exists) {
+            images.push({
+              ...img,
+              type: 'variant',
+              source: 'variant',
+              variantSize: variant.size,
+              variantColor: variant.color
+            })
+          }
+        })
+      }
+    })
+  }
+  
+  console.log('Generated all product images:', images)
+  return images
+}
 
 const relatedProducts = ref([])
 const fetchRelatedProducts = async () => {
@@ -411,6 +448,8 @@ onMounted(async () => {
         const data = await getProductBySlug(slug)
         
         product.value = data
+        
+        // Luôn hiển thị ảnh chính đầu tiên
         mainImage.value = data.images?.[0]?.image_path || ''
         displayPrice.value = data.price
 
@@ -430,6 +469,8 @@ onMounted(async () => {
             )
             selectedVariantStock.value = firstInventory ? firstInventory.quantity : 0
             
+            // KHÔNG cập nhật ảnh chính sang ảnh biến thể khi khởi tạo
+            // Chỉ cập nhật khi người dùng thay đổi màu sắc
             nextTick(() => {
                 handleVariantChange({ size: firstVariant.size, color: firstVariant.color })
             })
@@ -437,6 +478,9 @@ onMounted(async () => {
             const inventories = await getInventories({ product_id: data.id })
             productInventory.value = inventories
         }
+
+        // Tạo danh sách tất cả ảnh sau khi đã set product và variants
+        allProductImages.value = generateAllProductImages()
 
         if (route.query.flashsale) {
             flashSaleName.value = route.query.flashsale

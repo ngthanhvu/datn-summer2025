@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        <!-- Description & Reviews -->
+        <!-- FB: Hoài Lý -->
         <div class="max-w-7xl mx-auto mb-5">
             <div class="pt-2 bg-white p-3 sm:p-8 rounded-[10px] border border-gray-200">
                 <div class="flex flex-wrap gap-2 sm:gap-8 mb-4 sm:mb-8 justify-start">
