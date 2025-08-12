@@ -63,7 +63,7 @@
                         style="min-width: 180px;" @click="addToCart">
                         Thêm vào giỏ hàng
                     </button>
-                    <a v-if="product.slug" :href="`/chi-tiet/${product.slug}`"
+                    <a v-if="product.slug" :href="`/san-pham/${product.slug}`"
                         class="text-[#81AACC] underline text-base hover:text-[#6B8BA3]">Xem chi tiết »</a>
                 </div>
             </div>

@@ -201,6 +201,7 @@
 import { ref, computed } from 'vue'
 import CustomerEditModal from './CustomerEditModal.vue'
 import { useAuth } from '../../../composable/useAuth'
+import Swal from 'sweetalert2'
 
 const { updateCustomerStatus } = useAuth()
 
@@ -269,9 +270,24 @@ const goToPage = (page) => {
     }
 }
 
-const handleDelete = (customer) => {
-    if (confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
-        emit('delete', customer)
+const handleDelete = async (customer) => {
+    try {
+        const result = await Swal.fire({
+            title: 'Bạn có chắc chắn?',
+            text: `Bạn có muốn xóa khách hàng "${customer.username || customer.email}" không?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        })
+
+        if (result.isConfirmed) {
+            emit('delete', customer)
+        }
+    } catch (error) {
+        console.error('Lỗi khi hiển thị dialog xác nhận:', error)
     }
 }
 
@@ -279,13 +295,10 @@ const toggleStatus = async (customer) => {
     const newStatus = customer.status === 1 ? 0 : 1
     try {
         emit('toggle-status', customer)
-        // Nếu có notyf hoặc emit refresh thì gọi ở đây
     } catch (e) {
-        // Nếu có notyf thì báo lỗi ở đây
     }
 }
 
-// Modal functions
 const openEditModal = (customer) => {
     selectedCustomer.value = { ...customer }
     isEditModalVisible.value = true
@@ -298,17 +311,13 @@ const closeEditModal = () => {
 
 const handleSaveCustomer = async (customerData) => {
     try {
-        // Emit event to parent component to handle API call
         emit('update-customer', customerData)
 
-        // Close modal after successful save
         closeEditModal()
 
-        // You can add success notification here
         console.log('Customer updated successfully:', customerData)
     } catch (error) {
         console.error('Error updating customer:', error)
-        // You can add error notification here
     }
 }
 </script>

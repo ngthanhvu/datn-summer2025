@@ -27,8 +27,9 @@ import { ref, onMounted } from 'vue'
 import CustomersTable from './CustomersTable.vue'
 import { useAuth } from '../../../composable/useAuth'
 import { push } from 'notivue'
+import Swal from 'sweetalert2'
 
-const { getListUser, updateUserByAdmin, updateCustomerStatus } = useAuth()
+const { getListUser, updateUserByAdmin, updateCustomerStatus, deleteUser } = useAuth()
 const customers = ref([])
 const isLoading = ref(true)
 
@@ -51,11 +52,20 @@ onMounted(async () => {
     }
 })
 
-const handleDelete = (customer) => {
-    const index = customers.value.findIndex(c => c.id === customer.id)
-    if (index !== -1) {
-        customers.value.splice(index, 1)
-        totalItems.value = customers.value.length
+const handleDelete = async (customer) => {
+    try {
+        await deleteUser(customer.id)
+
+        const index = customers.value.findIndex(c => c.id === customer.id)
+        if (index !== -1) {
+            customers.value.splice(index, 1)
+            totalItems.value = customers.value.length
+        }
+
+        push.success('Xóa khách hàng thành công')
+    } catch (error) {
+        console.error('Lỗi khi xóa khách hàng:', error)
+        push.error('Có lỗi xảy ra khi xóa khách hàng')
     }
 }
 

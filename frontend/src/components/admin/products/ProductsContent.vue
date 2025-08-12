@@ -106,9 +106,8 @@
         <!-- Products Table -->
         <div v-else>
             <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands"
-                :isLoading="isLoading" :itemsPerPage="10" :pagination="productStore.pagination"
-                :currentPage="currentPage" @delete="handleDelete" @refresh="handleRefresh"
-                @page-change="handlePageChange" />
+                :isLoading="isLoading" :itemsPerPage="10" :pagination="pagination" :currentPage="currentPage"
+                @delete="handleDelete" @refresh="handleRefresh" @page-change="handlePageChange" />
         </div>
     </div>
 </template>
@@ -116,18 +115,28 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import ProductsTable from './ProductsTable.vue'
-import { useProductStore } from '../../../stores/products'
+import { useProducts } from '../../../composable/useProducts'
 import { useCategoryStore } from '../../../stores/categories'
 import { useBrandStore } from '../../../stores/brands'
 import { push } from 'notivue'
+import Swal from 'sweetalert2'
 
-const productStore = useProductStore()
 const categoryStore = useCategoryStore()
 const brandStore = useBrandStore()
+
+const { getProducts, deleteProduct } = useProducts()
 
 const categories = ref([])
 const brands = ref([])
 const currentPage = ref(1)
+const products = ref([])
+const isLoading = ref(false)
+const pagination = ref({
+    current_page: 1,
+    last_page: 1,
+    per_page: 10,
+    total: 0
+})
 
 const columns = [
     { key: 'main_image', label: 'Ảnh chính', type: 'main_image' },
@@ -141,30 +150,47 @@ const columns = [
     { key: 'is_active', label: 'Trạng thái', type: 'status' }
 ]
 
-const products = ref([])
-const isLoading = ref(false)
-
-const loadData = async (page = 1) => {
+const loadData = async (page = 1, forceRefresh = false) => {
     isLoading.value = true
     try {
+        const params = forceRefresh ? { page, _t: Date.now() } : { page }
+
+        const [productsResponse] = await Promise.all([
+            getProducts(params, page)
+        ])
+
         await Promise.all([
-            productStore.fetchProducts({}, page), // Thêm page parameter
             categoryStore.fetchCategories(),
             brandStore.fetchBrands()
         ])
 
-        const rawProducts = productStore.products
-        const categoriesData = categoryStore.categories
-        const brandsData = brandStore.brands
+        if (productsResponse) {
+            pagination.value = {
+                current_page: productsResponse.pagination?.current_page || 1,
+                last_page: productsResponse.pagination?.last_page || 1,
+                per_page: productsResponse.pagination?.per_page || 10,
+                total: productsResponse.pagination?.total || 0,
+                from: productsResponse.pagination?.from || 0,
+                to: productsResponse.pagination?.to || 0,
+                next_page_url: productsResponse.pagination?.next_page_url,
+                prev_page_url: productsResponse.pagination?.prev_page_url,
+                links: productsResponse.pagination?.links || []
+            }
+        }
 
-        categories.value = categoriesData
-        brands.value = brandsData
+        const rawProducts = productsResponse.products || []
+
+        const finalCategories = categoryStore.categories || []
+        const finalBrands = brandStore.brands || []
+
+        categories.value = finalCategories
+        brands.value = finalBrands
 
         products.value = rawProducts.map(p => {
-            const mainImage = p.images.find(img => img.is_main === 1)?.image_path || ''
-            const subImages = p.images.filter(img => img.is_main === 0).map(img => img.image_path)
-            const category = categoriesData.find(c => c.id === p.categories_id)?.name || ''
-            const brand = brandsData.find(b => b.id === p.brand_id)?.name || ''
+            const mainImage = p.images?.find(img => img.is_main === 1)?.image_path || ''
+            const subImages = p.images?.filter(img => img.is_main === 0).map(img => img.image_path) || []
+            const category = (finalCategories || []).find(c => c.id === p.categories_id)?.name || ''
+            const brand = (finalBrands || []).find(b => b.id === p.brand_id)?.name || ''
 
             return {
                 ...p,
@@ -187,26 +213,48 @@ onMounted(() => {
 })
 
 const handleDelete = async (product) => {
-    if (confirm(`Xoá sản phẩm: ${product.name}?`)) {
-        try {
-            await productStore.deleteProduct(product.id)
-            // Reload current page after deletion
-            await loadData(currentPage.value)
-            push.success('Đã xoá sản phẩm.')
-        } catch (error) {
-            push.error('Có lỗi khi xoá sản phẩm')
+    const result = await Swal.fire({
+        title: 'Xác nhận xoá?',
+        html: `Bạn có chắc muốn xoá sản phẩm <b>${product.name}</b>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xoá',
+        cancelButtonText: 'Huỷ',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+        await deleteProduct(product.id)
+
+        const currentPageItemCount = products.value.length
+        if (currentPageItemCount === 1 && currentPage.value > 1) {
+            currentPage.value = currentPage.value - 1
         }
+
+        await loadData(currentPage.value, true)
+
+        push.success('Xoá sản phẩm thành công')
+    } catch (error) {
+        console.error('Error deleting product:', error)
+        Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: 'Có lỗi khi xoá sản phẩm'
+        })
     }
 }
 
 const handleRefresh = async () => {
-    await loadData(currentPage.value)
+    await loadData(currentPage.value, true)
     push.success('Đã tải lại dữ liệu')
 }
 
 const handlePageChange = async (page) => {
     currentPage.value = page
-    await loadData(page)
+    await loadData(page, true)
 }
 </script>
 

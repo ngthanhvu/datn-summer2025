@@ -20,8 +20,7 @@
       <div class="chat-header text-white p-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
           <img src="https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg"
-               alt="Avatar"
-               class="w-8 h-8 rounded-full object-cover border-2 border-white/50" />
+            alt="Avatar" class="w-8 h-8 rounded-full object-cover border-2 border-white/50" />
           <div>
             <h3 class="font-semibold">Hỗ trợ khách hàng</h3>
             <p class="text-xs opacity-90">Chat với admin</p>
@@ -35,21 +34,21 @@
       <!-- Admin Selection or Chat -->
       <div v-if="!currentAdmin" class="flex-1 overflow-hidden flex flex-col">
         <!-- Admin List -->
-        <div class="p-4">
-          <div class="text-center mb-4">
+        <div class="p-4 flex-1 overflow-hidden flex flex-col">
+          <div class="text-center mb-4 flex-shrink-0">
             <i class="fas fa-user-tie text-4xl text-gray-400 mb-2"></i>
             <h4 class="font-medium text-gray-700">Chọn admin để hỗ trợ</h4>
             <p class="text-sm text-gray-500">Chúng tôi luôn sẵn sàng hỗ trợ bạn</p>
           </div>
 
           <!-- Loading State -->
-          <div v-if="loadingAdmins" class="text-center py-8">
+          <div v-if="loadingAdmins" class="text-center py-8 flex-shrink-0">
             <i class="fas fa-spinner animate-spin text-2xl text-gray-400 mb-2"></i>
             <div class="text-gray-500">Đang tải...</div>
           </div>
 
-          <!-- Admin List -->
-          <div v-else-if="admins.length > 0" class="space-y-3">
+          <!-- Admin List with Scroll -->
+          <div v-else-if="admins.length > 0" class="flex-1 overflow-y-auto space-y-3 pr-1">
             <div v-for="admin in admins" :key="admin.id" @click="selectAdmin(admin)"
               class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary cursor-pointer transition-all hover:shadow-sm">
               <img src="https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg"
@@ -66,7 +65,7 @@
           </div>
 
           <!-- No Admin State -->
-          <div v-else class="text-center py-8 text-gray-500">
+          <div v-else class="text-center py-8 text-gray-500 flex-shrink-0">
             <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
             <div>Hiện tại không có admin trực tuyến</div>
             <button @click="loadAdmins" class="mt-2 btn-primary text-white px-4 py-2 rounded-lg text-sm">
@@ -113,8 +112,7 @@
             ]">
               <!-- Attachment -->
               <div v-if="message.attachment" class="mb-2">
-                <img v-if="isImage(message.attachment)"
-                  :src="apiBaseUrl + '/storage/' + message.attachment"
+                <img v-if="isImage(message.attachment)" :src="apiBaseUrl + '/storage/' + message.attachment"
                   class="max-w-full rounded cursor-pointer"
                   @click="openImage(apiBaseUrl + '/storage/' + message.attachment)">
                 <a v-else :href="apiBaseUrl + '/storage/' + message.attachment" target="_blank"
@@ -458,17 +456,39 @@ chatChannel.onmessage = (event) => {
 
 /* Responsive (mobile) */
 @media (max-width: 480px) {
-  .chat-button { width: 56px; height: 56px; }
-  .support-hint { padding: 8px 12px; font-size: 13px; }
+  .chat-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .support-hint {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
   .chat-panel {
     width: calc(100vw - 20px);
     height: calc(100vh - 100px);
   }
-  .chat-header { padding: 12px; }
-  .chat-header h3 { font-size: 14px; }
-  .messages-area { padding: 8px !important; }
-  .mobile-space > * + * { margin-top: 8px !important; }
-  .input-area { padding: 8px !important; }
-}
 
+  .chat-header {
+    padding: 12px;
+  }
+
+  .chat-header h3 {
+    font-size: 14px;
+  }
+
+  .messages-area {
+    padding: 8px !important;
+  }
+
+  .mobile-space>*+* {
+    margin-top: 8px !important;
+  }
+
+  .input-area {
+    padding: 8px !important;
+  }
+}
 </style>

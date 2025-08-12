@@ -46,6 +46,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/admin/user', [AuthController::class, 'listUser']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
+    Route::delete('/admin/user/{id}', [AuthController::class, 'destroy']);
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
 
     Route::get('/inventory', [InventoryController::class, 'index']);
