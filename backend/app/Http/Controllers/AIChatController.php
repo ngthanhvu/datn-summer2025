@@ -32,10 +32,8 @@ class AIChatController extends Controller
             $contextHints = $request->input('context', []);
             $relevantContext = $this->getRelevantContext($userMessage, $contextHints);
 
-            // === XỬ LÝ LOGIC HIỂN THỊ DỰA TRÊN LOẠI CÂU HỎI ===
             $lowerMsg = strtolower($userMessage);
             
-            // Kiểm tra câu hỏi chung chung (KHÔNG liên quan đến sản phẩm)
             $generalInfoKeywords = [
                 'cách thanh toán', 'thanh toán', 'payment', 'hướng dẫn', 'hướng dẫn mua hàng',
                 'quy trình', 'quy trình mua hàng', 'mua hàng như thế nào', 'đặt hàng',
@@ -43,7 +41,8 @@ class AIChatController extends Controller
                 'chính sách', 'chính sách đổi trả', 'đổi trả', 'hoàn tiền',
                 'vận chuyển', 'shipping', 'phí vận chuyển', 'thời gian giao hàng',
                 'liên hệ', 'hotline', 'email', 'địa chỉ', 'giờ làm việc',
-                'bảo mật', 'quyền riêng tư', 'điều khoản', 'điều kiện sử dụng'
+                'bảo mật', 'quyền riêng tư', 'điều khoản', 'điều kiện sử dụng',
+                'cod', 'vnpay', 'momo', 'phí ship', 'cước phí'
             ];
             
             $isGeneralInfoQuestion = false;
@@ -54,104 +53,45 @@ class AIChatController extends Controller
                 }
             }
 
-            // Nếu là câu hỏi thông tin chung, KHÔNG hiển thị sản phẩm
             if ($isGeneralInfoQuestion) {
                 $filteredContext = [
                     'products' => collect([]),
                     'coupons' => collect([]),
                     'flash_sales' => collect([]),
                     'categories' => collect([]),
-                    'brands' => collect([])
+                    'brands' => collect([]),
+                    'payment_methods' => collect([]),
+                    'shipping_info' => collect([])
                 ];
             } else {
-                // Xử lý các loại câu hỏi khác
-                $flashSaleKeywords = ['flash sale', 'flashsale', 'khuyến mãi', 'sale', 'khuyến mãi gì', 'có sale không', 'có khuyến mãi không', 'flash sale nào', 'sale gì'];
-                $couponKeywords = ['mã giảm', 'coupon', 'mã khuyến mãi', 'mã giảm giá', 'có mã giảm không', 'mã giảm nào', 'coupon nào', 'mã khuyến mãi nào'];
-                $productKeywords = ['tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 'mua gì', 'tìm gì', 'có gì', 'bán gì', 'shop có gì', 'áo', 'quần', 'váy', 'giày', 'túi', 'đầm', 'áo polo', 'áo khoác', 'áo sơ mi', 'quần jean', 'quần tây', 'váy đầm', 'giày nam', 'giày nữ', 'túi xách'];
-
-                $isFlashSaleQuestion = false;
-                foreach ($flashSaleKeywords as $kw) {
-                    if (strpos($lowerMsg, $kw) !== false) {
-                        $isFlashSaleQuestion = true;
-                        break;
-                    }
-                }
-                $isCouponQuestion = false;
-                foreach ($couponKeywords as $kw) {
-                    if (strpos($lowerMsg, $kw) !== false) {
-                        $isCouponQuestion = true;
-                        break;
-                    }
-                }
-                $isProductQuestion = false;
-                foreach ($productKeywords as $kw) {
-                    if (strpos($lowerMsg, $kw) !== false) {
-                        $isProductQuestion = true;
-                        break;
-                    }
-                }
-
-                // Lọc context dựa trên loại câu hỏi
-                $filteredContext = [];
-
-                if ($isFlashSaleQuestion) {
-                    // Chỉ hiển thị flash sale khi hỏi về flash sale
-                    if (isset($relevantContext['flash_sales'])) {
-                        $filteredContext['flash_sales'] = $relevantContext['flash_sales'];
-                    }
-                    // Đảm bảo KHÔNG có coupons và products trong context khi hỏi về flash sale
-                    $filteredContext['coupons'] = collect([]);
-                    $filteredContext['products'] = collect([]);
-                } elseif ($isCouponQuestion) {
-                    // Chỉ hiển thị mã giảm giá khi hỏi về mã giảm giá
-                    if (isset($relevantContext['coupons'])) {
-                        $filteredContext['coupons'] = $relevantContext['coupons'];
-                    }
-                    // Đảm bảo KHÔNG có flash_sales và products trong context khi hỏi về mã giảm giá
-                    $filteredContext['flash_sales'] = collect([]);
-                    $filteredContext['products'] = collect([]);
-                } elseif ($isProductQuestion) {
-                    // Chỉ hiển thị sản phẩm khi hỏi về sản phẩm
-                    if (isset($relevantContext['products'])) {
-                        $filteredContext['products'] = $relevantContext['products'];
-                    }
-                    // Đảm bảo KHÔNG có flash_sales và coupons trong context khi hỏi về sản phẩm
-                    $filteredContext['flash_sales'] = collect([]);
-                    $filteredContext['coupons'] = collect([]);
-                } else {
-                    // Nếu không phải câu hỏi cụ thể, KHÔNG hiển thị gì
-                    $filteredContext['products'] = collect([]);
-                    $filteredContext['coupons'] = collect([]);
-                    $filteredContext['flash_sales'] = collect([]);
-                }
+                $filteredContext = $relevantContext;
             }
 
-            // Gọi AI với context đã được lọc
+            \Log::info('Context before AI processing:', [
+                'products_count' => $filteredContext['products']->count() ?? 0,
+                'coupons_count' => $filteredContext['coupons']->count() ?? 0,
+                'flash_sales_count' => $filteredContext['flash_sales']->count() ?? 0,
+                'user_message' => $userMessage
+            ]);
+
             $prompt = $this->buildPrompt($userMessage, $filteredContext);
             $response = $this->callGeminiAPI($prompt);
-            $aiResponse = $this->processAIResponse($response, $userMessage);
+            $aiResponse = $this->processAIResponse($response, $userMessage, $filteredContext);
 
-            // Sử dụng context đã lọc cho frontend
             $finalContext = $filteredContext;
             
-            // Đảm bảo chỉ hiển thị sản phẩm thực sự có trong database
-            if (isset($finalContext['products']) && $finalContext['products']->count() > 0) {
-                // Kiểm tra xem sản phẩm có thực sự tồn tại trong database không
-                $validProductIds = $finalContext['products']->pluck('id')->toArray();
-                $validProducts = Products::whereIn('id', $validProductIds)
-                    ->where('is_active', true)
-                    ->with(['categories', 'brand', 'mainImage', 'variants.inventory', 'images'])
-                    ->get();
-                
-                if ($validProducts->count() > 0) {
-                    $finalContext['products'] = $validProducts;
-                } else {
-                    // Nếu không có sản phẩm hợp lệ, xóa context sản phẩm
-                    $finalContext['products'] = collect([]);
-                }
-            }
+            \Log::info('Final context after AI processing:', [
+                'products_count' => $finalContext['products']->count() ?? 0,
+                'coupons_count' => $finalContext['coupons']->count() ?? 0,
+                'flash_sales_count' => $finalContext['flash_sales']->count() ?? 0
+            ]);
             
             $this->processProductImages($finalContext);
+
+            \Log::info('Final context after image processing:', [
+                'products_count' => $finalContext['products']->count() ?? 0,
+                'products_names' => $finalContext['products']->pluck('name')->toArray() ?? []
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -247,12 +187,66 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
 - Nếu không có flash sale nào, hãy nói: \"Hiện tại cửa hàng chưa có chương trình flash sale nào.\"
 
 **KHI KHÁCH HÀNG HỎI VỀ MÃ GIẢM GIÁ:**
-- CHỈ hiển thị thông tin về mã giảm giá (coupons) có sẵn trong database
+- **QUAN TRỌNG NHẤT: CHỈ hiển thị mã giảm giá có sẵn trong context, KHÔNG BAO GIỜ tự bịa ra mã giảm giá**
+- Nếu context KHÔNG có mã giảm giá (coupons trống), hãy nói: \"Hiện tại cửa hàng chưa có mã giảm giá nào.\"
+- Nếu context có mã giảm giá, chỉ hiển thị thông tin CHÍNH XÁC từ database
 - KHÔNG hiển thị sản phẩm hoặc flash sale
-- KHÔNG BAO GIỜ tự bịa ra mã giảm giá không có trong database
-- Tập trung vào mã code, giá trị giảm, điều kiện sử dụng
-- Trả lời: \"Chào bạn! Hiện tại cửa hàng đang có các mã giảm giá sau:\" rồi liệt kê CHÍNH XÁC các mã giảm giá có sẵn trong database của cửa hàng.
-- Nếu không có mã giảm giá nào, hãy nói: \"Hiện tại cửa hàng chưa có mã giảm giá nào.\" 
+- Tập trung vào thông tin mã giảm giá: mã code, giá trị giảm, điều kiện sử dụng
+
+**KHI KHÁCH HÀNG HỎI VỀ THÔNG TIN THANH TOÁN VÀ VẬN CHUYỂN:**
+- **HƯỚNG DẪN CHI TIẾT cách thanh toán cho từng phương thức**
+- **KHÔNG hardcode phí vận chuyển** vì sử dụng API bên thứ 3
+- Tập trung vào hướng dẫn quy trình thanh toán và vận chuyển
+
+**HƯỚNG DẪN THANH TOÁN CHI TIẾT:**
+
+**1. Thanh toán khi nhận hàng (COD):**
+- Khách hàng chọn sản phẩm và đặt hàng
+- Nhân viên gọi điện xác nhận đơn hàng
+- Giao hàng đến địa chỉ khách hàng
+- Khách hàng kiểm tra hàng và thanh toán tiền mặt
+- Nhận hóa đơn và phiếu bảo hành
+
+**2. Thanh toán qua VnPay:**
+- Khách hàng chọn sản phẩm và đặt hàng
+- Chọn phương thức thanh toán VnPay
+- Hệ thống chuyển hướng đến trang thanh toán VnPay
+- Khách hàng nhập thông tin thẻ ngân hàng
+- Xác nhận thanh toán và nhận mã giao dịch
+- Hàng được giao sau khi xác nhận thanh toán thành công
+
+**3. Thanh toán qua Momo:**
+- Khách hàng chọn sản phẩm và đặt hàng
+- Chọn phương thức thanh toán Momo
+- Quét mã QR hoặc nhập số điện thoại
+- Xác nhận thanh toán qua ứng dụng Momo
+- Nhận thông báo xác nhận và mã giao dịch
+- Hàng được giao sau khi xác nhận thanh toán thành công
+
+**VỀ PHÍ VẬN CHUYỂN:**
+- **KHÔNG hardcode phí vận chuyển** vì sử dụng API bên thứ 3
+- Phí vận chuyển được tính toán dựa trên:
+  + Địa chỉ giao hàng
+  + Trọng lượng và kích thước sản phẩm
+  + Thời gian giao hàng (giao thường, giao nhanh)
+- Khách hàng sẽ thấy phí vận chuyển chính xác khi đặt hàng
+- Hướng dẫn khách hàng sử dụng công cụ tính phí ship trên website
+
+**KHI KHÁCH HÀNG HỎI VỀ PHÍ SHIP:**
+- Không đưa ra con số cụ thể
+- Hướng dẫn: Phí vận chuyển được tính toán dựa trên địa chỉ giao hàng và loại sản phẩm. Bạn có thể sử dụng công cụ tính phí ship trên website hoặc liên hệ với chúng tôi để được tư vấn cụ thể.
+
+**XỬ LÝ TRƯỜNG HỢP KHÔNG CÓ MÃ GIẢM GIÁ:**
+- Nếu khách hàng hỏi về mã giảm giá mà context không có:
+  + Hãy nói rõ ràng: \"Hiện tại cửa hàng chưa có mã giảm giá nào.\"
+  + KHÔNG tự bịa ra mã giảm giá
+  + Có thể gợi ý: \"Bạn có thể theo dõi trang web hoặc fanpage để cập nhật mã giảm giá mới.\"
+
+**XỬ LÝ TRƯỜNG HỢP KHÔNG CÓ THÔNG TIN THANH TOÁN:**
+- Nếu khách hàng hỏi về thanh toán mà context không có thông tin:
+  + Hãy nói: \"Tôi không có thông tin chi tiết về phương thức thanh toán trong cơ sở dữ liệu.\"
+  + KHÔNG tự bịa ra thông tin thanh toán
+  + Có thể gợi ý: \"Bạn có thể liên hệ với chúng tôi để được tư vấn chi tiết.\"
 
 **KHI KHÁCH HÀNG HỎI VỀ SẢN PHẨM:**
 - **QUAN TRỌNG NHẤT: CHỈ hiển thị sản phẩm có sẵn trong context, KHÔNG BAO GIỜ tự bịa ra thông tin sản phẩm**
@@ -263,20 +257,22 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
 
 **QUAN TRỌNG VỀ TÌM KIẾM SẢN PHẨM:**
 
-1. **Khi khách hàng hỏi chung chung như 'tìm sản phẩm', 'mua sản phẩm', 'có gì bán'**: 
+1. **Khi khách hàng hỏi về sản phẩm cụ thể**: 
    - **CHỈ hiển thị sản phẩm có sẵn trong context**
-   - Nếu context không có sản phẩm, hãy nói: \"Hiện tại cửa hàng chưa có sản phẩm nào.\"
-   - KHÔNG tự bịa ra thông tin sản phẩm
-
-2. **Khi khách hàng nói cụ thể như 'áo polo vải mềm', 'áo khoác nam', 'quần jean nữ'**: 
-   - **CHỈ HIỂN THỊ** sản phẩm có sẵn trong context phù hợp với yêu cầu
-   - Nếu context không có sản phẩm phù hợp, hãy nói: \"Xin lỗi, hiện tại cửa hàng chưa có sản phẩm này.\"
-   - **KHÔNG** hiển thị sản phẩm không có trong context
-
-3. **Khi khách hàng nói chung như 'áo khoác', 'áo polo', 'quần jean'**: 
-   - **CHỈ hiển thị sản phẩm có sẵn trong context**
+   - Trả lời tự nhiên và trực tiếp về sản phẩm được hỏi
    - Nếu context không có sản phẩm, hãy nói: \"Xin lỗi, hiện tại cửa hàng chưa có sản phẩm này.\"
    - KHÔNG tự bịa ra thông tin sản phẩm
+
+2. **Khi khách hàng hỏi về thông tin cụ thể (màu sắc, size, tồn kho)**: 
+   - **CHỈ HIỂN THỊ** thông tin có sẵn trong context
+   - Trả lời trực tiếp về thông tin được hỏi
+   - Nếu không có thông tin, hãy nói rõ ràng: \"Tôi không có thông tin về [thông tin được hỏi] trong cơ sở dữ liệu.\"
+
+3. **Cách trả lời tự nhiên cho sản phẩm**:
+   - Trả lời trực tiếp và tự nhiên về sản phẩm được hỏi
+   - Sử dụng thông tin CHÍNH XÁC từ database
+   - Không cần format cứng nhắc, hãy trả lời như một người thật
+   - Tập trung vào thông tin người dùng thực sự cần
 
 4. **QUAN TRỌNG VỀ HIỂN THỊ SẢN PHẨM**:
    - **CHỈ hiển thị sản phẩm có sẵn trong context**
@@ -284,31 +280,31 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
    - Nếu context trống hoặc không có sản phẩm, hãy nói rõ ràng: \"Hiện tại cửa hàng chưa có sản phẩm này.\"
    - Nếu context có sản phẩm, chỉ hiển thị thông tin CHÍNH XÁC từ database
 
-5. **Cách trả lời mẫu cho sản phẩm**:
-   'Tôi tìm thấy [số lượng] sản phẩm phù hợp với yêu cầu của bạn:
-
-   📦 [Tên sản phẩm - CHÍNH XÁC từ database]
-   💰 Giá: [Giá gốc - CHÍNH XÁC từ database] VNĐ
-   🏷️ Giảm giá: [Giá khuyến mãi - CHÍNH XÁC từ database] VNĐ (nếu có)
-   📂 Danh mục: [Tên danh mục - CHÍNH XÁC từ database]
-   📏 Size: [Các size có sẵn - CHÍNH XÁC từ database]
-   🎨 Màu: [Các màu có sẵn - CHÍNH XÁC từ database]
-   📦 Tình trạng: [Còn hàng/Hết hàng] ([Số lượng - CHÍNH XÁC từ database] sản phẩm)
-   📊 Chi tiết tồn kho: [Size (Màu): Số lượng - CHÍNH XÁC từ database] (nếu có)
-   📝 Mô tả: [Mô tả - CHÍNH XÁC từ database]'
-
-6. **LƯU Ý QUAN TRỌNG**:
+5. **LƯU Ý QUAN TRỌNG**:
    - **KHÔNG BAO GIỜ tự bịa ra thông tin sản phẩm không có trong context**
    - **CHỈ sử dụng thông tin có sẵn trong context**
    - Nếu context trống, hãy nói rõ ràng: \"Hiện tại cửa hàng chưa có sản phẩm này.\"
    - **KHÔNG hiển thị URL hình ảnh trong text trả lời**
    - Hình ảnh sẽ được hiển thị tự động bên dưới thông qua ProductCard
 
-7. **XỬ LÝ TRƯỜNG HỢP KHÔNG CÓ SẢN PHẨM**:
+6. **XỬ LÝ TRƯỜNG HỢP KHÔNG CÓ SẢN PHẨM**:
    - Nếu khách hàng hỏi về sản phẩm cụ thể mà context không có:
      + Hãy nói: \"Xin lỗi, hiện tại cửa hàng chưa có sản phẩm này.\"
      + KHÔNG tự bịa ra thông tin sản phẩm
-     + Có thể gợi ý: \"Bạn có thể xem các sản phẩm khác có sẵn hoặc liên hệ với chúng tôi để được tư vấn thêm.\"";
+     + Có thể gợi ý: \"Bạn có thể xem các sản phẩm khác có sẵn hoặc liên hệ với chúng tôi để được tư vấn thêm.\"
+
+7. **TRẢ LỜI TỰ NHIÊN**:
+   - Hãy trả lời như một người thật, không cần format cứng nhắc
+   - Sử dụng ngôn ngữ tự nhiên, thân thiện
+   - Tập trung vào việc giải đáp thắc mắc của khách hàng
+   - Không cần phải liệt kê tất cả thông tin nếu không cần thiết
+
+8. **XỬ LÝ SẢN PHẨM HẾT HÀNG**:
+   - Nếu sản phẩm được hỏi đã hết hàng:
+     + Hãy nói rõ ràng: \"Sản phẩm này đã hết hàng rồi ạ.\"
+     + Có thể gợi ý: \"Bạn có thể tham khảo một số sản phẩm tương tự còn hàng.\"
+     + CHỈ hiển thị sản phẩm tương tự nếu có trong context
+     + KHÔNG tự bịa ra sản phẩm tương tự không có trong database";
 
         $contextData = $this->formatContextForPrompt($context, $userMessage);
 
@@ -320,14 +316,42 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
         $contextInstruction .= "Khi hỏi về flash sale, CHỈ liệt kê các chương trình có sẵn trong context, không tự tạo thông tin mới.\n";
         $contextInstruction .= "Nếu context không có thông tin về mã giảm giá hoặc flash sale, hãy nói rõ ràng: 'Hiện tại cửa hàng chưa có...'\n";
         $contextInstruction .= "KHÔNG BAO GIỜ tự bịa ra mã giảm giá, tên sản phẩm, hoặc thông tin khuyến mãi không có trong context.\n";
-        $contextInstruction .= "Ví dụ: Nếu context chỉ có mã 'GIAM10', thì CHỈ liệt kê mã 'GIAM10', không tự tạo mã 'NEWBIE50' hoặc 'FREESHIP20'.\n";
-        $contextInstruction .= "Ví dụ: Nếu context chỉ có flash sale 'Sale vui tháng 8', thì CHỈ liệt kê 'Sale vui tháng 8', không tự tạo flash sale khác.\n";
         $contextInstruction .= "\n**QUAN TRỌNG VỀ HIỂN THỊ SẢN PHẨM:**\n";
-        $contextInstruction .= "Khi khách hàng hỏi về sản phẩm cụ thể (ví dụ: 'váy', 'áo polo'), CHỈ hiển thị sản phẩm thực sự liên quan.\n";
-        $contextInstruction .= "Nếu hỏi về 'váy', CHỈ hiển thị váy, không hiển thị áo, quần, giày.\n";
-        $contextInstruction .= "Nếu hỏi về 'áo', CHỈ hiển thị áo, không hiển thị váy, quần, giày.\n";
+        $contextInstruction .= "Khi khách hàng hỏi về sản phẩm cụ thể, CHỈ hiển thị sản phẩm thực sự liên quan.\n";
         $contextInstruction .= "KHÔNG BAO GIỜ hiển thị sản phẩm không liên quan đến câu hỏi của khách hàng.\n";
         $contextInstruction .= "Nếu context không có sản phẩm phù hợp, hãy nói: 'Xin lỗi, hiện tại cửa hàng chưa có sản phẩm này.'\n";
+        $contextInstruction .= "CHỈ hiển thị thông tin sản phẩm thực sự có trong database, KHÔNG BAO GIỜ tự tạo ra thông tin mới\n";
+        $contextInstruction .= "\n**QUY TẮC VÀNG - KHÔNG BAO GIỜ VI PHẠM:**\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự tạo ra tên sản phẩm mới không có trong context\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự tạo ra giá cả mới không có trong context\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự tạo ra thông tin size, màu sắc mới không có trong context\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự tạo ra thông tin tồn kho mới không có trong context\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự tạo ra thông tin thương hiệu mới không có trong context\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự tạo ra mô tả sản phẩm mới không có trong context\n";
+        $contextInstruction .= "CHỈ sử dụng thông tin có sẵn trong context từ database\n";
+        $contextInstruction .= "Nếu context trống, hãy nói rõ ràng: 'Hiện tại cửa hàng chưa có sản phẩm này.'\n";
+        $contextInstruction .= "\n**QUY TẮC HIỂN THỊ SẢN PHẨM:**\n";
+        $contextInstruction .= "Khi khách hàng hỏi về sản phẩm cụ thể, CHỈ hiển thị sản phẩm phù hợp nhất\n";
+        $contextInstruction .= "Tập trung vào sản phẩm được hỏi, không hiển thị sản phẩm khác\n";
+        $contextInstruction .= "Trả lời ngắn gọn và tập trung vào thông tin cần thiết\n";
+        $contextInstruction .= "\n**QUAN TRỌNG VỀ TRẢ LỜI:**\n";
+        $contextInstruction .= "Khi context có sản phẩm phù hợp, hãy trả lời TỰ NHIÊN và TRỰC TIẾP về sản phẩm đó\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ nói 'không tìm thấy' khi context có sản phẩm\n";
+        $contextInstruction .= "Nếu context có sản phẩm, hãy mô tả sản phẩm một cách tự nhiên và hữu ích\n";
+        $contextInstruction .= "Sử dụng thông tin CHÍNH XÁC từ context để trả lời khách hàng\n";
+        $contextInstruction .= "\n**QUY TẮC NGHIÊM NGẶT VỀ THÔNG TIN SẢN PHẨM:**\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự bịa ra thông tin về thương hiệu (Nike, Adidas, v.v.)\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự bịa ra thông tin về size, màu sắc cụ thể\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự bịa ra thông tin về tồn kho cụ thể\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ tự bịa ra thông tin về giá cả cụ thể\n";
+        $contextInstruction .= "CHỈ sử dụng thông tin có sẵn trong context từ database\n";
+        $contextInstruction .= "Nếu context không có thông tin, hãy nói rõ ràng: 'Tôi không có thông tin về [thông tin được hỏi]'\n";
+        $contextInstruction .= "\n**QUY TẮC HIỂN THỊ SẢN PHẨM CHÍNH XÁC:**\n";
+        $contextInstruction .= "Khi khách hàng hỏi về sản phẩm cụ thể (ví dụ: 'áo polo vải mềm'), CHỈ hiển thị sản phẩm đó\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ hiển thị sản phẩm khác không liên quan (ví dụ: áo polo nam khi hỏi áo polo vải mềm)\n";
+        $contextInstruction .= "Nếu context chỉ có 1 sản phẩm phù hợp, CHỈ hiển thị sản phẩm đó\n";
+        $contextInstruction .= "Nếu context có nhiều sản phẩm, chỉ hiển thị sản phẩm có tên CHÍNH XÁC nhất với câu hỏi\n";
+        $contextInstruction .= "KHÔNG BAO GIỜ hiển thị sản phẩm 'tương tự' hoặc 'liên quan' nếu không được yêu cầu cụ thể\n";
 
         return $systemPrompt . "\n\n" . $contextInstruction . $contextData . "\n\nKhách hàng: " . $userMessage . "\n\nTrợ lý AI:";
     }
@@ -534,7 +558,7 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
         throw new \Exception('Gemini API error: ' . $response->body());
     }
 
-    private function processAIResponse($aiResponse, $userMessage)
+    private function processAIResponse($aiResponse, $userMessage, $context)
     {
         $response = trim($aiResponse);
 
@@ -578,10 +602,10 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
 
+        // Xử lý câu hỏi về sản phẩm
         $productKeywords = [
-            'tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 'mua gì', 'tìm gì', 'có gì',
-            'bán gì', 'shop có gì', 'áo', 'quần', 'váy', 'giày', 'túi', 'đầm', 'áo polo', 'áo khoác',
-            'áo sơ mi', 'quần jean', 'quần tây', 'váy đầm', 'giày nam', 'giày nữ', 'túi xách'
+            'áo', 'quần', 'váy', 'đầm', 'giày', 'dép', 'túi', 'polo', 'sơ mi', 'áo khoác',
+            'mua', 'tìm', 'cần', 'muốn', 'có', 'sản phẩm', 'hàng'
         ];
         $isProductQuestion = false;
         foreach ($productKeywords as $keyword) {
@@ -591,66 +615,125 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
         }
 
-        // Kiểm tra xem AI có tự bịa ra thông tin sản phẩm không
-        if ($isProductQuestion) {
-            // Nếu AI trả lời quá ngắn hoặc có vẻ không chính xác, thêm cảnh báo
-            if (strlen($response) < 100) {
-                $response .= "\n\n**Lưu ý:** Tôi chỉ hiển thị thông tin sản phẩm có sẵn trong cơ sở dữ liệu. Nếu không có sản phẩm nào phù hợp, điều đó có nghĩa là cửa hàng hiện tại chưa có sản phẩm này.";
-            }
-            
-            // Kiểm tra xem AI có tự bịa ra thông tin không
-            $suspiciousPatterns = [
-                'áo polo nam cotton usa basic',
-                'áo polo nữ form rộng basic', 
-                'áo polo thể thao nam coolmax',
-                '399,000 vnđ',
-                '299,000 vnđ',
-                '349,000 vnđ',
-                '449,000 vnđ'
-            ];
-            
-            $hasSuspiciousInfo = false;
-            foreach ($suspiciousPatterns as $pattern) {
-                if (stripos($response, $pattern) !== false) {
-                    $hasSuspiciousInfo = true;
-                    break;
-                }
-            }
-            
-            if ($hasSuspiciousInfo) {
-                $response = "Xin lỗi, tôi không thể tìm thấy sản phẩm áo polo phù hợp với yêu cầu của bạn trong cơ sở dữ liệu hiện tại.\n\n";
-                $response .= "**Lưu ý quan trọng:** Tôi chỉ hiển thị thông tin sản phẩm thực sự có trong cơ sở dữ liệu của cửa hàng. Tôi không tự bịa ra thông tin sản phẩm.\n\n";
-                $response .= "Bạn có thể:\n";
-                $response .= "• Xem các sản phẩm khác có sẵn\n";
-                $response .= "• Liên hệ với chúng tôi để được tư vấn thêm\n";
-                $response .= "• Kiểm tra lại sau khi cửa hàng cập nhật sản phẩm mới";
-            }
-        }
-
-        if ($isFlashSaleQuestion && (strlen($response) < 100 || strpos($response, 'không biết') !== false)) {
-            $response = "⚡ Flash Sale đang diễn ra:\n\n";
-            $response .= "🔥 Nhiều khuyến mãi hấp dẫn\n";
-            $response .= "⏰ Thời gian có hạn\n";
-            $response .= "💰 Giá cả cực tốt\n\n";
-            $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
-        }
-
-        if ($isCouponQuestion && (strlen($response) < 100 || strpos($response, 'không biết') !== false)) {
-            $response = "🎫 Mã giảm giá hiện có:\n\n";
-            $response .= "💎 Nhiều mã giảm giá hấp dẫn\n";
-            $response .= "💰 Tiết kiệm đáng kể\n";
-            $response .= "📱 Dễ dàng sử dụng\n\n";
-            $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
-        }
-
+        // Nếu AI response quá ngắn hoặc không rõ ràng, hãy bổ sung thông tin
         if (strlen($response) < 50) {
-            if ($isFlashSaleQuestion) {
-                $response .= "\n\nBạn có thể hỏi tôi về:\n- Flash sale cụ thể\n- Thời gian khuyến mãi\n- Mô tả chi tiết";
+            if ($isProductQuestion && isset($context['products']) && $context['products']->count() > 0) {
+                $productCount = $context['products']->count();
+                if ($productCount === 1) {
+                    $product = $context['products']->first();
+                    $response = "Tôi đã tìm thấy sản phẩm phù hợp với yêu cầu của bạn:\n\n";
+                    $response .= "📦 **{$product->name}**\n";
+                    if (isset($product->categories) && $product->categories->name) {
+                        $response .= "📂 Danh mục: {$product->categories->name}\n";
+                    }
+                    if (isset($product->price)) {
+                        $response .= "💰 Giá: " . number_format($product->price) . " VNĐ\n";
+                    }
+                    if (isset($product->discount_price) && $product->discount_price) {
+                        $discountPercent = round((($product->price - $product->discount_price) / $product->price) * 100);
+                        $response .= "🏷️ Giảm giá: {$discountPercent}% - " . number_format($product->discount_price) . " VNĐ\n";
+                    }
+                    $response .= "\n✨ Sản phẩm đã được hiển thị bên dưới để bạn xem chi tiết!";
+                } else {
+                    $response = "Tôi đã tìm thấy {$productCount} sản phẩm phù hợp với yêu cầu của bạn:\n\n";
+                    $response .= "✨ Các sản phẩm đã được hiển thị bên dưới\n";
+                    $response .= "💡 Bạn có thể xem chi tiết và đặt hàng\n";
+                    $response .= "🔍 Cần tìm sản phẩm khác? Hãy cho tôi biết nhé!";
+                }
+            } elseif ($isProductQuestion && (!isset($context['products']) || $context['products']->count() === 0)) {
+                $response = "😔 Xin lỗi, hiện tại cửa hàng chưa có sản phẩm phù hợp với yêu cầu của bạn.\n\n";
+                $response .= "💡 Bạn có thể:\n";
+                $response .= "• Thử tìm kiếm với từ khóa khác\n";
+                $response .= "• Xem các sản phẩm khác có sẵn\n";
+                $response .= "• Liên hệ với chúng tôi để được tư vấn thêm";
+            } elseif ($isFlashSaleQuestion) {
+                if (isset($context['flash_sales']) && $context['flash_sales']->count() > 0) {
+                    $response = "⚡ Flash Sale đang diễn ra:\n\n";
+                    $response .= "🔥 Nhiều khuyến mãi hấp dẫn\n";
+                    $response .= "⏰ Thời gian có hạn\n";
+                    $response .= "💰 Giá cả cực tốt\n\n";
+                    $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
+                } else {
+                    $response = "Hiện tại cửa hàng chưa có chương trình flash sale nào.\n\n";
+                    $response .= "Bạn có thể theo dõi trang web hoặc fanpage để cập nhật thông tin mới.";
+                }
             } elseif ($isCouponQuestion) {
-                $response .= "\n\nBạn có thể hỏi tôi về:\n- Mã giảm giá cụ thể\n- Điều kiện sử dụng\n- Giá trị giảm";
+                if (isset($context['coupons']) && $context['coupons']->count() > 0) {
+                    $response = "🎫 Mã giảm giá hiện có:\n\n";
+                    $response .= "💎 Nhiều mã giảm giá hấp dẫn\n";
+                    $response .= "💰 Tiết kiệm đáng kể\n";
+                    $response .= "📱 Dễ dàng sử dụng\n\n";
+                    $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
+                } else {
+                    $response = "Hiện tại cửa hàng chưa có mã giảm giá nào.\n\n";
+                    $response .= "Bạn có thể theo dõi trang web hoặc fanpage để cập nhật mã giảm giá mới.";
+                }
             } else {
                 $response .= "\n\nBạn có thể hỏi tôi về:\n- Sản phẩm cụ thể\n- Mã giảm giá\n- Flash sale\n- Quy trình thanh toán\n- Danh mục sản phẩm\n- Tình trạng tồn kho";
             }
+        }
+
+        $paymentKeywords = [
+            'thanh toán', 'payment', 'cod', 'vnpay', 'momo', 'phí ship', 'vận chuyển', 'shipping'
+        ];
+        $isPaymentQuestion = false;
+        foreach ($paymentKeywords as $keyword) {
+            if (strpos($message, $keyword) !== false) {
+                $isPaymentQuestion = true;
+                break;
+            }
+        }
+
+        if ($isPaymentQuestion && (strlen($response) < 100 || strpos($response, 'không biết') !== false)) {
+            $response = "💳 **HƯỚNG DẪN THANH TOÁN CHI TIẾT:**\n\n";
+            
+            $response .= "**1. Thanh toán khi nhận hàng (COD):**\n";
+            $response .= "• Chọn sản phẩm và đặt hàng\n";
+            $response .= "• Nhân viên gọi điện xác nhận đơn hàng\n";
+            $response .= "• Giao hàng đến địa chỉ của bạn\n";
+            $response .= "• Kiểm tra hàng và thanh toán tiền mặt\n";
+            $response .= "• Nhận hóa đơn và phiếu bảo hành\n\n";
+            
+            $response .= "**2. Thanh toán qua VnPay:**\n";
+            $response .= "• Chọn sản phẩm và đặt hàng\n";
+            $response .= "• Chọn phương thức thanh toán VnPay\n";
+            $response .= "• Hệ thống chuyển hướng đến trang thanh toán VnPay\n";
+            $response .= "• Nhập thông tin thẻ ngân hàng\n";
+            $response .= "• Xác nhận thanh toán và nhận mã giao dịch\n";
+            $response .= "• Hàng được giao sau khi xác nhận thanh toán thành công\n\n";
+            
+            $response .= "**3. Thanh toán qua Momo:**\n";
+            $response .= "• Chọn sản phẩm và đặt hàng\n";
+            $response .= "• Chọn phương thức thanh toán Momo\n";
+            $response .= "• Quét mã QR hoặc nhập số điện thoại\n";
+            $response .= "• Xác nhận thanh toán qua ứng dụng Momo\n";
+            $response .= "• Nhận thông báo xác nhận và mã giao dịch\n";
+            $response .= "• Hàng được giao sau khi xác nhận thanh toán thành công\n\n";
+            
+            $response .= "**📞 Liên hệ hỗ trợ:** Nếu cần tư vấn thêm, vui lòng liên hệ với chúng tôi!";
+        }
+
+        $shippingKeywords = [
+            'phí ship', 'phí vận chuyển', 'shipping', 'giao hàng', 'cước phí', 'tiền ship'
+        ];
+        $isShippingQuestion = false;
+        foreach ($shippingKeywords as $keyword) {
+            if (strpos($message, $keyword) !== false) {
+                $isShippingQuestion = true;
+                break;
+            }
+        }
+
+        if ($isShippingQuestion && (strlen($response) < 100 || strpos($response, 'không biết') !== false)) {
+            $response = "🚚 **THÔNG TIN VỀ PHÍ VẬN CHUYỂN:**\n\n";
+            $response .= "**Phí vận chuyển được tính toán dựa trên:**\n";
+            $response .= "• Địa chỉ giao hàng cụ thể\n";
+            $response .= "• Trọng lượng và kích thước sản phẩm\n";
+            $response .= "• Thời gian giao hàng (giao thường, giao nhanh)\n\n";
+            $response .= "**💡 Cách biết phí ship chính xác:**\n";
+            $response .= "• Sử dụng công cụ tính phí ship trên website\n";
+            $response .= "• Hoặc liên hệ với chúng tôi để được tư vấn cụ thể\n\n";
+            $response .= "**📞 Liên hệ hỗ trợ:** Để biết phí ship chính xác cho địa chỉ của bạn!";
         }
 
         return $response;
@@ -665,7 +748,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             $productQuery = Products::with(['categories', 'brand', 'mainImage', 'variants.inventory', 'images'])
                 ->where('is_active', true);
 
-            // === XỬ LÝ CÁC CÂU HỎI CHUNG CHUNG - KHÔNG LIÊN QUAN ĐẾN SẢN PHẨM ===
             $generalInfoKeywords = [
                 'cách thanh toán', 'thanh toán', 'payment', 'hướng dẫn', 'hướng dẫn mua hàng',
                 'quy trình', 'quy trình mua hàng', 'mua hàng như thế nào', 'đặt hàng',
@@ -673,7 +755,8 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 'chính sách', 'chính sách đổi trả', 'đổi trả', 'hoàn tiền',
                 'vận chuyển', 'shipping', 'phí vận chuyển', 'thời gian giao hàng',
                 'liên hệ', 'hotline', 'email', 'địa chỉ', 'giờ làm việc',
-                'bảo mật', 'quyền riêng tư', 'điều khoản', 'điều kiện sử dụng'
+                'bảo mật', 'quyền riêng tư', 'điều khoản', 'điều kiện sử dụng',
+                'cod', 'vnpay', 'momo', 'phí ship', 'cước phí'
             ];
             
             $isGeneralInfoQuestion = false;
@@ -685,14 +768,21 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
 
             if ($isGeneralInfoQuestion) {
-                // KHÔNG hiển thị sản phẩm, coupons, flash sales khi hỏi thông tin chung
                 $context['products'] = collect([]);
                 $context['coupons'] = collect([]);
                 $context['flash_sales'] = collect([]);
+                
+                $databaseContext = $this->getDatabaseContext();
+                if (isset($databaseContext['payment_methods'])) {
+                    $context['payment_methods'] = collect($databaseContext['payment_methods']);
+                }
+                if (isset($databaseContext['shipping_info'])) {
+                    $context['shipping_info'] = collect($databaseContext['shipping_info']);
+                }
+                
                 return $context;
             }
 
-            // === XỬ LÝ FLASH SALE ===
             $flashSaleKeywords = [
                 'flash sale',
                 'flashsale',
@@ -718,13 +808,11 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                     ->where('end_time', '>', now())
                     ->orderBy('created_at', 'desc')
                     ->take(5)->get();
-                // Đảm bảo KHÔNG có coupons và products trong context khi hỏi về flash sale
                 $context['coupons'] = collect([]);
                 $context['products'] = collect([]);
                 return $context;
             }
 
-            // === XỬ LÝ COUPON ===
             $couponKeywords = [
                 'mã giảm',
                 'coupon',
@@ -745,64 +833,158 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             }
 
             if ($isCouponQuestion) {
-                $context['coupons'] = Coupons::where('is_active', true)
+                $availableCoupons = Coupons::where('is_active', true)
                     ->where('end_date', '>', now())
                     ->where(function ($query) {
                         $query->whereNull('usage_limit')
                             ->orWhereRaw('used_count < usage_limit');
                     })
                     ->orderBy('created_at', 'desc')
-                    ->take(5)->get();
-                // Đảm bảo KHÔNG có flash_sales và products trong context khi hỏi về mã giảm giá
-                $context['flash_sales'] = collect([]);
-                $context['products'] = collect([]);
-                return $context;
-            }
-
-            // === XỬ LÝ CÂU HỎI VỀ SẢN PHẨM ===
-            $productKeywords = [
-                'tìm sản phẩm', 'mua sản phẩm', 'có gì bán', 'sản phẩm nào', 'mua gì', 'tìm gì', 'có gì',
-                'bán gì', 'shop có gì', 'áo', 'quần', 'váy', 'giày', 'túi', 'đầm', 'áo polo', 'áo khoác',
-                'áo sơ mi', 'quần jean', 'quần tây', 'váy đầm', 'giày nam', 'giày nữ', 'túi xách'
-            ];
-            
-            $isProductQuestion = false;
-            foreach ($productKeywords as $keyword) {
-                if (strpos($message, $keyword) !== false) {
-                    $isProductQuestion = true;
-                    break;
+                    ->get();
+                
+                if ($availableCoupons->count() > 0) {
+                    $context['coupons'] = $availableCoupons->take(5);
+                } else {
+                    $context['coupons'] = collect([]);
                 }
-            }
-
-            // Nếu KHÔNG phải câu hỏi về sản phẩm, KHÔNG hiển thị sản phẩm
-            if (!$isProductQuestion) {
-                $context['products'] = collect([]);
-                $context['coupons'] = collect([]);
+                
                 $context['flash_sales'] = collect([]);
+                $context['products'] = collect([]);
                 return $context;
             }
 
-            // Tìm kiếm sản phẩm cụ thể theo từ khóa
             $specificProducts = $this->searchBySpecificProduct($message, (clone $productQuery));
             
             if ($specificProducts && $specificProducts->count() > 0) {
-                // Chỉ hiển thị sản phẩm thực sự tìm thấy trong database
-                $context['products'] = $specificProducts;
-                $context['coupons'] = collect([]);
-                $context['flash_sales'] = collect([]);
-                return $context;
+                $relevantProducts = $this->filterRelevantProducts($specificProducts, $message);
+                
+                if ($relevantProducts->count() > 0) {
+                    $context['products'] = $relevantProducts;
+                    $context['coupons'] = collect([]);
+                    $context['flash_sales'] = collect([]);
+                    
+                    \Log::info('Found relevant specific products for query: ' . $message, [
+                        'count' => $relevantProducts->count(),
+                        'products' => $relevantProducts->pluck('name')->toArray(),
+                        'query' => $message
+                    ]);
+                    
+                    return $context;
+                }
             }
 
-            // Nếu không tìm thấy sản phẩm cụ thể, KHÔNG hiển thị gì
+            $categoryProducts = $this->searchByCategory($message, (clone $productQuery));
+            if ($categoryProducts && $categoryProducts->count() > 0) {
+                $relevantProducts = $this->filterRelevantProducts($categoryProducts, $message);
+                
+                if ($relevantProducts->count() > 0) {
+                    $context['products'] = $relevantProducts;
+                    $context['coupons'] = collect([]);
+                    $context['flash_sales'] = collect([]);
+                    
+                    \Log::info('Found relevant category products for query: ' . $message, [
+                        'count' => $relevantProducts->count(),
+                        'products' => $relevantProducts->pluck('name')->toArray(),
+                        'query' => $message
+                    ]);
+                    
+                    return $context;
+                }
+            }
+
             $context['products'] = collect([]);
             $context['coupons'] = collect([]);
             $context['flash_sales'] = collect([]);
-            return $context;
             
+            \Log::info('No products found for query: ' . $message, [
+                'query' => $message,
+                'keywords' => $this->extractKeywords($message)
+            ]);
+            
+            return $context;
+
         } catch (\Exception $e) {
             \Log::error('getRelevantContext Error: ' . $e->getMessage());
             return [];
         }
+    }
+
+    private function filterRelevantProducts($products, $userMessage)
+    {
+        $message = strtolower($userMessage);
+        $words = explode(' ', $message);
+        
+        $stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi', 'cho', 'với', 'trong', 'ngoài', 'trên', 'dưới', 'bên', 'của', 'là', 'thì', 'mà', 'nhưng', 'hoặc', 'vì', 'nên', 'để', 'từ', 'đến', 'tại', 'về', 'theo', 'cùng', 'cả', 'mỗi', 'mọi', 'mấy', 'bao', 'nhiêu', 'có', 'màu', 'gì', 'size', 'giá', 'bao', 'nhiêu'];
+        $keywords = array_diff($words, $stopWords);
+        $keywords = array_filter($keywords, function($keyword) {
+            return strlen(trim($keyword)) >= 2;
+        });
+        
+        $phrase = implode(' ', $keywords);
+        
+        \Log::info("Filtering products for relevance:", [
+            'message' => $userMessage,
+            'keywords' => $keywords,
+            'phrase' => $phrase,
+            'total_products' => $products->count()
+        ]);
+        
+        $exactMatches = $products->filter(function ($product) use ($phrase) {
+            $productName = strtolower($product->name);
+            return strpos($productName, $phrase) !== false;
+        });
+        
+        if ($exactMatches->count() > 0) {
+            \Log::info("Found exact phrase matches:", [
+                'count' => $exactMatches->count(),
+                'products' => $exactMatches->pluck('name')->toArray()
+            ]);
+            return $exactMatches->take(1); 
+        }
+        
+        $relevantProducts = $products->filter(function ($product) use ($keywords, $phrase, $message) {
+            $productName = strtolower($product->name);
+            $categoryName = strtolower($product->categories->name ?? '');
+            
+            if (strpos($productName, $phrase) !== false) {
+                \Log::info("Product {$product->name} is relevant (contains phrase: {$phrase})");
+                return true;
+            }
+            
+            $keywordMatches = 0;
+            foreach ($keywords as $keyword) {
+                if (strpos($productName, $keyword) !== false || strpos($categoryName, $keyword) !== false) {
+                    $keywordMatches++;
+                }
+            }
+            
+            if ($keywordMatches >= 2) {
+                \Log::info("Product {$product->name} is relevant (matches {$keywordMatches} keywords)");
+                return true;
+            }
+            
+            \Log::info("Product {$product->name} is NOT relevant (insufficient keyword matches)");
+            return false;
+        });
+        
+        \Log::info("Filtered products result:", [
+            'original_count' => $products->count(),
+            'relevant_count' => $relevantProducts->count(),
+            'relevant_products' => $relevantProducts->pluck('name')->toArray()
+        ]);
+        
+        return $relevantProducts->take(1); 
+    }
+
+    private function extractKeywords($message)
+    {
+        $words = explode(' ', strtolower($message));
+        $stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi', 'cho', 'với', 'trong', 'ngoài', 'trên', 'dưới', 'bên', 'của', 'là', 'thì', 'mà', 'nhưng', 'hoặc', 'vì', 'nên', 'để', 'từ', 'đến', 'tại', 'về', 'theo', 'cùng', 'cả', 'mỗi', 'mọi', 'mấy', 'bao', 'nhiêu', 'có', 'màu', 'gì', 'size', 'giá', 'bao', 'nhiêu'];
+        $keywords = array_diff($words, $stopWords);
+        
+        return array_filter($keywords, function($keyword) {
+            return strlen(trim($keyword)) >= 2;
+        });
     }
 
     private function isSimpleStockQuestion($userMessage)
@@ -822,6 +1004,8 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
     private function processProductImages(&$context)
     {
         if (isset($context['products']) && $context['products']->count() > 0) {
+            \Log::info('Processing product images for ' . $context['products']->count() . ' products');
+            
             $context['products']->each(function ($product) {
                 if ($product->mainImage && $product->mainImage->image_path) {
                     $imagePath = $product->mainImage->image_path;
@@ -829,17 +1013,32 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                         $imagePath = 'storage/' . ltrim($imagePath, '/');
                     }
                     $product->mainImage->image_url = url($imagePath);
+                    \Log::info('Set image URL for product: ' . $product->name . ' - ' . $product->mainImage->image_url);
+                } else {
+                    \Log::info('No main image found for product: ' . $product->name);
                 }
             });
 
             $context['products'] = $context['products']->map(function ($product) {
                 $productArray = $product->toArray();
+                
                 if (isset($productArray['main_image'])) {
                     $productArray['mainImage'] = $productArray['main_image'];
                     unset($productArray['main_image']);
                 }
+                
+                if (!isset($productArray['mainImage'])) {
+                    $productArray['mainImage'] = null;
+                }
+                
+                \Log::info('Processed product: ' . $productArray['name'] . ' with mainImage: ' . ($productArray['mainImage'] ? 'yes' : 'no'));
+                
                 return $productArray;
             });
+            
+            \Log::info('Finished processing ' . $context['products']->count() . ' products');
+        } else {
+            \Log::info('No products to process images for');
         }
     }
 
@@ -847,133 +1046,216 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
     {
         $words = explode(' ', strtolower($message));
 
-        $stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi', 'cho', 'với', 'trong', 'ngoài', 'trên', 'dưới', 'bên', 'của', 'là', 'thì', 'mà', 'nhưng', 'hoặc', 'vì', 'nên', 'để', 'từ', 'đến', 'tại', 'về', 'theo', 'cùng', 'cả', 'mỗi', 'mọi', 'mấy', 'bao', 'nhiêu'];
+        $stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi', 'cho', 'với', 'trong', 'ngoài', 'trên', 'dưới', 'bên', 'của', 'là', 'thì', 'mà', 'nhưng', 'hoặc', 'vì', 'nên', 'để', 'từ', 'đến', 'tại', 'về', 'theo', 'cùng', 'cả', 'mỗi', 'mọi', 'mấy', 'bao', 'nhiêu', 'có', 'màu', 'gì', 'size', 'giá', 'bao', 'nhiêu'];
         $keywords = array_diff($words, $stopWords);
-        
-        // Lọc từ khóa có ý nghĩa (độ dài >= 2)
+
+        if (empty($keywords)) {
+            \Log::info('No keywords found after filtering stop words');
+            return null;
+        }
+
         $keywords = array_filter($keywords, function($keyword) {
             return strlen(trim($keyword)) >= 2;
         });
 
-        // Nếu không có từ khóa có ý nghĩa, không tìm kiếm
-        if (empty($keywords)) {
-            return null;
-        }
+        \Log::info('Search keywords:', $keywords);
 
-        // Tìm kiếm sản phẩm theo từ khóa chính xác
         $foundProducts = collect();
+        $phrase = implode(' ', $keywords);
 
-        foreach ($keywords as $keyword) {
-            $keyword = trim($keyword);
+        \Log::info("First trying to search with phrase: {$phrase}");
+        
+        $productsByPhrase = (clone $productQuery)->where('name', 'like', "%{$phrase}%")->get();
+        if ($productsByPhrase->count() > 0) {
+            $foundProducts = $foundProducts->merge($productsByPhrase);
+            \Log::info("Found {$productsByPhrase->count()} products by phrase in name: {$phrase}", [
+                'products' => $productsByPhrase->pluck('name')->toArray()
+            ]);
+        }
+        
+        $productsByCategoryPhrase = (clone $productQuery)->whereHas('categories', function ($q) use ($phrase) {
+            $q->where('name', 'like', "%{$phrase}%");
+        })->get();
+        if ($productsByCategoryPhrase->count() > 0) {
+            $foundProducts = $foundProducts->merge($productsByCategoryPhrase);
+            \Log::info("Found {$productsByCategoryPhrase->count()} products by category phrase: {$phrase}", [
+                'products' => $productsByCategoryPhrase->pluck('name')->toArray()
+            ]);
+        }
+
+        if ($foundProducts->count() === 0) {
+            \Log::info("No products found with phrase, trying individual keywords");
             
-            // Tìm kiếm theo tên sản phẩm
-            $productsByName = (clone $productQuery)->where('name', 'like', "%{$keyword}%")->get();
-            if ($productsByName->count() > 0) {
-                $foundProducts = $foundProducts->merge($productsByName);
-            }
+            foreach ($keywords as $keyword) {
+                $keyword = trim($keyword);
+                
+                $productsByName = (clone $productQuery)->where('name', 'like', "%{$keyword}%")->get();
+                if ($productsByName->count() > 0) {
+                    $foundProducts = $foundProducts->merge($productsByName);
+                    \Log::info("Found {$productsByName->count()} products by name with keyword: {$keyword}", [
+                        'products' => $productsByName->pluck('name')->toArray()
+                    ]);
+                }
 
-            // Tìm kiếm theo danh mục
-            $productsByCategory = (clone $productQuery)->whereHas('categories', function ($q) use ($keyword) {
-                $q->where('name', 'like', "%{$keyword}%");
-            })->get();
-            if ($productsByCategory->count() > 0) {
-                $foundProducts = $foundProducts->merge($productsByCategory);
-            }
-
-            // Tìm kiếm theo mô tả (nếu có)
-            $productsByDescription = (clone $productQuery)->where('description', 'like', "%{$keyword}%")->get();
-            if ($productsByDescription->count() > 0) {
-                $foundProducts = $foundProducts->merge($productsByDescription);
+                $productsByCategory = (clone $productQuery)->whereHas('categories', function ($q) use ($keyword) {
+                    $q->where('name', 'like', "%{$keyword}%");
+                })->get();
+                if ($productsByCategory->count() > 0) {
+                    $foundProducts = $foundProducts->merge($productsByCategory);
+                    \Log::info("Found {$productsByCategory->count()} products by category with keyword: {$keyword}", [
+                        'products' => $productsByCategory->pluck('name')->toArray()
+                    ]);
+                }
             }
         }
 
-        // Loại bỏ sản phẩm trùng lặp và chỉ trả về sản phẩm thực sự liên quan
         if ($foundProducts->count() > 0) {
             $uniqueProducts = $foundProducts->unique('id');
+            \Log::info("Total unique products found: {$uniqueProducts->count()}", [
+                'total_found' => $foundProducts->count(),
+                'unique_count' => $uniqueProducts->count(),
+                'all_products' => $uniqueProducts->pluck('name')->toArray()
+            ]);
             
-            // Sắp xếp theo độ liên quan (sản phẩm có nhiều từ khóa khớp sẽ được ưu tiên)
-            $scoredProducts = $uniqueProducts->map(function ($product) use ($keywords) {
+            $scoredProducts = $uniqueProducts->map(function ($product) use ($keywords, $phrase, $message) {
                 $score = 0;
                 $productName = strtolower($product->name);
                 $categoryName = strtolower($product->categories->name ?? '');
-                $description = strtolower($product->description ?? '');
+                $productDescription = strtolower($product->description ?? '');
+                
+                if (strpos($productName, $phrase) !== false) {
+                    $score += 100; 
+                    \Log::info("Product {$product->name} got +100 points for phrase match in name");
+                }
+                if (strpos($categoryName, $phrase) !== false) {
+                    $score += 80; 
+                    \Log::info("Product {$product->name} got +80 points for phrase match in category");
+                }
                 
                 foreach ($keywords as $keyword) {
                     if (strpos($productName, $keyword) !== false) {
-                        $score += 3; // Tên sản phẩm có trọng số cao nhất
+                        $score += 30;
+                        \Log::info("Product {$product->name} got +30 points for keyword '{$keyword}' in name");
                     }
                     if (strpos($categoryName, $keyword) !== false) {
-                        $score += 2; // Danh mục có trọng số trung bình
-                    }
-                    if (strpos($description, $keyword) !== false) {
-                        $score += 1; // Mô tả có trọng số thấp nhất
+                        $score += 20; 
+                        \Log::info("Product {$product->name} got +20 points for keyword '{$keyword}' in category");
                     }
                 }
+                
+                \Log::info("Product: {$product->name}, Final Score: {$score}");
                 
                 return ['product' => $product, 'score' => $score];
             });
             
-            // Sắp xếp theo điểm số giảm dần và chỉ trả về sản phẩm có điểm > 0
             $relevantProducts = $scoredProducts
                 ->filter(function ($item) {
-                    return $item['score'] > 0;
+                    return $item['score'] >= 50; 
                 })
                 ->sortByDesc('score')
-                ->pluck('product')
-                ->take(5); // Giới hạn tối đa 5 sản phẩm
+                ->pluck('product');
             
-            return $relevantProducts;
+            \Log::info("Relevant products after scoring: {$relevantProducts->count()}", [
+                'total_scored' => $scoredProducts->count(),
+                'filtered_count' => $relevantProducts->count(),
+                'products_with_scores' => $scoredProducts->map(function($item) {
+                    return ['name' => $item['product']->name, 'score' => $item['score']];
+                })->toArray()
+            ]);
+            
+            if ($relevantProducts->count() > 0) {
+                $topProduct = $relevantProducts->first();
+                \Log::info("Top product: {$topProduct->name} with score: " . $scoredProducts->first()['score']);
+                
+                // Kiểm tra tồn kho nếu cần
+                if (strpos(strtolower($message), 'còn hàng') !== false || 
+                    strpos(strtolower($message), 'có hàng') !== false ||
+                    strpos(strtolower($message), 'tồn kho') !== false) {
+                    if ($topProduct->variants && $topProduct->variants->count() > 0) {
+                        $totalStock = 0;
+                        foreach ($topProduct->variants as $variant) {
+                            if ($variant->inventory) {
+                                $totalStock += $variant->inventory->quantity ?? 0;
+                            }
+                        }
+                        if ($totalStock === 0) {
+                            \Log::info("Product {$topProduct->name} is out of stock");
+                            return collect([]);
+                        }
+                    }
+                }
+                
+                // Chỉ trả về sản phẩm có điểm cao nhất (liên quan nhất)
+                $topProducts = $relevantProducts->take(2); // Giới hạn chỉ 2 sản phẩm tốt nhất
+                \Log::info("Returning top relevant products:", [
+                    'count' => $topProducts->count(),
+                    'products' => $topProducts->pluck('name')->toArray()
+                ]);
+                return $topProducts;
+            } else {
+                \Log::info("No products with score >= 50 found");
+            }
         }
 
+        \Log::info("No products found for message: {$message}", [
+            'message' => $message,
+            'keywords' => $keywords,
+            'phrase' => $phrase,
+            'found_products_count' => $foundProducts->count()
+        ]);
         return null;
     }
 
     private function searchByCategory($message, $productQuery)
     {
         $message = strtolower($message);
+        \Log::info("Searching by category for message: {$message}");
 
-        // Tìm kiếm theo danh mục cụ thể
-        if (strpos($message, 'áo khoác') !== false) {
-            return $productQuery->whereHas('categories', function ($q) {
-                $q->where('name', 'like', '%áo khoác%');
-            })->take(3)->get();
-        } elseif (strpos($message, 'áo polo') !== false) {
-            return $productQuery->where('name', 'like', '%áo polo%')->take(3)->get();
-        } elseif (strpos($message, 'sơ mi') !== false) {
-            return $productQuery->where('name', 'like', '%sơ mi%')
-                ->orWhereHas('categories', function ($q) {
-                    $q->where('name', 'like', '%sơ mi%');
-                })->take(3)->get();
-        } elseif (strpos($message, 'váy') !== false) {
-            return $productQuery->whereHas('categories', function ($q) {
-                $q->where('name', 'like', '%váy%');
-            })->take(3)->get();
-        } elseif (strpos($message, 'đầm') !== false) {
-            return $productQuery->whereHas('categories', function ($q) {
-                $q->where('name', 'like', '%đầm%');
-            })->take(3)->get();
-        } elseif (strpos($message, 'quần') !== false) {
-            return $productQuery->whereHas('categories', function ($q) {
-                $q->where('name', 'like', '%quần%');
-            })->take(3)->get();
-        } elseif (strpos($message, 'giày') !== false) {
-            return $productQuery->whereHas('categories', function ($q) {
-                $q->where('name', 'like', '%giày%');
-            })->take(3)->get();
-        } elseif (strpos($message, 'dép') !== false) {
-            return $productQuery->whereHas('categories', function ($q) {
-                $q->where('name', 'like', '%dép%');
-            })->take(3)->get();
-        } elseif (strpos($message, 'túi') !== false) {
-            return $productQuery->whereHas('categories', function ($q) {
-                $q->where('name', 'like', '%túi%');
-            })->take(3)->get();
-        } elseif (strpos($message, 'áo') !== false && !strpos($message, 'áo khoác') && !strpos($message, 'áo polo') && !strpos($message, 'sơ mi')) {
-            return $productQuery->whereHas('categories', function ($q) {
-                $q->where('name', 'like', '%áo%');
-            })->take(3)->get();
+        // Tìm kiếm động dựa trên từ khóa trong message
+        $words = explode(' ', $message);
+        $stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi', 'cho', 'với', 'trong', 'ngoài', 'trên', 'dưới', 'bên', 'của', 'là', 'thì', 'mà', 'nhưng', 'hoặc', 'vì', 'nên', 'để', 'từ', 'đến', 'tại', 'về', 'theo', 'cùng', 'cả', 'mỗi', 'mọi', 'mấy', 'bao', 'nhiêu', 'có', 'màu', 'gì', 'size', 'giá', 'bao', 'nhiêu'];
+        $keywords = array_diff($words, $stopWords);
+        
+        $keywords = array_filter($keywords, function($keyword) {
+            return strlen(trim($keyword)) >= 2;
+        });
+
+        if (empty($keywords)) {
+            \Log::info("No keywords found for category search");
+            return null;
         }
 
+        \Log::info("Category search keywords:", $keywords);
+
+        $foundProducts = collect();
+
+        foreach ($keywords as $keyword) {
+            $keyword = trim($keyword);
+            
+            // Tìm theo danh mục (chỉ khi từ khóa xuất hiện trong danh mục)
+            $productsByCategory = (clone $productQuery)->whereHas('categories', function ($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%");
+            })->get();
+            
+            if ($productsByCategory->count() > 0) {
+                $foundProducts = $foundProducts->merge($productsByCategory);
+                \Log::info("Found {$productsByCategory->count()} products by category keyword: {$keyword}", [
+                    'products' => $productsByCategory->pluck('name')->toArray()
+                ]);
+            }
+        }
+
+        if ($foundProducts->count() > 0) {
+            $uniqueProducts = $foundProducts->unique('id')->take(2); // Giới hạn chỉ 2 sản phẩm
+            \Log::info("Returning {$uniqueProducts->count()} category products", [
+                'total_found' => $foundProducts->count(),
+                'unique_count' => $uniqueProducts->count(),
+                'products' => $uniqueProducts->pluck('name')->toArray()
+            ]);
+            return $uniqueProducts;
+        }
+
+        \Log::info("No category products found for keywords:", $keywords);
         return null;
     }
 
@@ -982,9 +1264,11 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
         $query = $request->input('query');
 
         $products = Products::with(['categories', 'brand', 'mainImage'])
-            ->where('name', 'like', "%{$query}%")
-            ->orWhere('description', 'like', "%{$query}%")
             ->where('is_active', true)
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%");
+            })
             ->take(10)
             ->get();
 
@@ -1024,4 +1308,6 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
             'flash_sales' => $flashSales
         ]);
     }
+
 }
+
