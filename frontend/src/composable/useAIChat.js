@@ -263,11 +263,18 @@ export function useAIChat() {
   }
 
   const toggleChat = () => {
+    console.log('AIChatbot toggleChat called, current state:', isOpen.value)
     isOpen.value = !isOpen.value
     if (isOpen.value) {
       hasUnreadMessages.value = false
       unreadCount.value = 0
+      // Thêm class để ẩn ChatWidget khi AIChatbot mở
+      document.documentElement.classList.add('ai-chatbot-open')
+    } else {
+      // Xóa class khi AIChatbot đóng
+      document.documentElement.classList.remove('ai-chatbot-open')
     }
+    console.log('AIChatbot new state:', isOpen.value)
   }
 
   const addWelcomeMessage = () => {
@@ -342,6 +349,12 @@ export function useAIChat() {
     window.open(`/san-pham/${product.slug}`, '_blank')
   }
   
+  // Cleanup function
+  const cleanup = () => {
+    document.documentElement.classList.remove('ai-chatbot-open')
+    document.documentElement.classList.remove('chatwidget-open')
+  }
+  
   return {
     isOpen,
     isTyping,
@@ -359,15 +372,11 @@ export function useAIChat() {
     getActiveFlashSales,
     formatMessage,
     formatTime,
-    
     formatPrice,
     calculateDiscountPercentage,
-    getPlaceholderImage,
     getImageUrl,
     handleImageError,
     viewProduct,
-    
-    isSpecificProductQuestion,
-    filterProductsByQuery
+    cleanup
   }
 }

@@ -648,22 +648,22 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
                 $response .= "• Liên hệ với chúng tôi để được tư vấn thêm";
             } elseif ($isFlashSaleQuestion) {
                 if (isset($context['flash_sales']) && $context['flash_sales']->count() > 0) {
-                    $response = "⚡ Flash Sale đang diễn ra:\n\n";
-                    $response .= "🔥 Nhiều khuyến mãi hấp dẫn\n";
-                    $response .= "⏰ Thời gian có hạn\n";
-                    $response .= "💰 Giá cả cực tốt\n\n";
-                    $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
+            $response = "⚡ Flash Sale đang diễn ra:\n\n";
+            $response .= "🔥 Nhiều khuyến mãi hấp dẫn\n";
+            $response .= "⏰ Thời gian có hạn\n";
+            $response .= "💰 Giá cả cực tốt\n\n";
+            $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
                 } else {
                     $response = "Hiện tại cửa hàng chưa có chương trình flash sale nào.\n\n";
                     $response .= "Bạn có thể theo dõi trang web hoặc fanpage để cập nhật thông tin mới.";
-                }
+        }
             } elseif ($isCouponQuestion) {
                 if (isset($context['coupons']) && $context['coupons']->count() > 0) {
-                    $response = "🎫 Mã giảm giá hiện có:\n\n";
-                    $response .= "💎 Nhiều mã giảm giá hấp dẫn\n";
-                    $response .= "💰 Tiết kiệm đáng kể\n";
-                    $response .= "📱 Dễ dàng sử dụng\n\n";
-                    $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
+            $response = "🎫 Mã giảm giá hiện có:\n\n";
+            $response .= "💎 Nhiều mã giảm giá hấp dẫn\n";
+            $response .= "💰 Tiết kiệm đáng kể\n";
+            $response .= "📱 Dễ dàng sử dụng\n\n";
+            $response .= "Thông tin chi tiết đã được hiển thị bên dưới!";
                 } else {
                     $response = "Hiện tại cửa hàng chưa có mã giảm giá nào.\n\n";
                     $response .= "Bạn có thể theo dõi trang web hoặc fanpage để cập nhật mã giảm giá mới.";
@@ -1085,9 +1085,9 @@ Hãy trả lời bằng tiếng Việt một cách thân thiện và hữu ích.
 
         if ($foundProducts->count() === 0) {
             \Log::info("No products found with phrase, trying individual keywords");
-            
-            foreach ($keywords as $keyword) {
-                $keyword = trim($keyword);
+
+        foreach ($keywords as $keyword) {
+            $keyword = trim($keyword);
                 
                 $productsByName = (clone $productQuery)->where('name', 'like', "%{$keyword}%")->get();
                 if ($productsByName->count() > 0) {

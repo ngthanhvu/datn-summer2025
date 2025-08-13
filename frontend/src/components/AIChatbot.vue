@@ -30,7 +30,7 @@
             </span>
           </div>
         </div>
-        <button @click="toggleChat" class="close-btn">
+        <button @click="toggleChat" class="close-btn" type="button" aria-label="Đóng chatbot">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
@@ -137,7 +137,8 @@ export default {
       addWelcomeMessage,
       formatMessage,
       formatTime,
-      viewProduct
+      viewProduct,
+      cleanup
     } = useAIChat()
 
     const isOnline = ref(true)
@@ -242,6 +243,7 @@ export default {
     onUnmounted(() => {
       window.removeEventListener('scroll', handleScrollShowHint)
       if (scrollHintTimer) clearTimeout(scrollHintTimer)
+      cleanup()
     })
 
     return {
@@ -276,15 +278,23 @@ export default {
   position: fixed;
   bottom: 90px;
   right: 20px;
-  z-index: 10;
+  z-index: 9999;
   font-family: 'Inter', sans-serif;
   max-width: 100vw;
   max-height: 100vh;
   overflow: hidden;
 }
 
-:root.chatwidget-open .ai-chatbot .chat-widget-button {
-  display: none;
+:root.chatwidget-open .ai-chatbot .chat-widget-button { 
+  display: none; 
+}
+
+:root.chatwidget-open .ai-chatbot .chat-window { 
+  display: none; 
+}
+
+:root.chatwidget-open .ai-chatbot .widget-hint { 
+  display: none; 
 }
 
 .chat-widget-button {
@@ -300,6 +310,7 @@ export default {
   transition: all 0.3s ease;
   position: relative;
   border: none;
+  z-index: 9999;
 }
 
 .chat-widget-button:hover {
@@ -318,10 +329,8 @@ export default {
   height: 100%;
   object-fit: contain;
   border-radius: 0;
-  /* keep original PNG edges */
   display: block;
   pointer-events: none;
-  /* ensure clicks pass to button */
 }
 
 .chat-badge {
@@ -338,6 +347,7 @@ export default {
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
+  z-index: 10000;
 }
 
 .chat-window {
@@ -354,6 +364,8 @@ export default {
   backdrop-filter: blur(20px);
   max-width: 100vw;
   max-height: 100vh;
+  z-index: 9999;
+  position: relative;
 }
 
 .chat-header {
@@ -365,6 +377,7 @@ export default {
   justify-content: space-between;
   position: relative;
   overflow: hidden;
+  z-index: 10000;
 }
 
 .chat-header::before {
@@ -407,17 +420,39 @@ export default {
 }
 
 .close-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   cursor: pointer;
-  padding: 8px;
+  padding: 10px;
   border-radius: 50%;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  outline: none;
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn:active {
+  transform: scale(0.95);
+}
+
+.close-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
 }
 
 .chat-title h3 {
@@ -702,94 +737,111 @@ export default {
   transform: scale(0.95);
 }
 
-/* Simple text formatting for chat messages */
 .message-text strong {
   font-weight: 600;
   color: #2d3748;
 }
 
-/* Responsive */
 @media (max-width: 480px) {
+  .ai-chatbot {
+    bottom: 90px;
+    right: 20px;
+    z-index: 9999;
+  }
+
   .chat-window {
     width: calc(100vw - 20px);
-    height: calc(100vh - 100px);
+    height: calc(100vh - 120px);
     position: fixed;
-    top: 10px;
+    top: 80px;
     left: 10px;
     right: 10px;
-    bottom: 10px;
+    bottom: 20px;
     max-width: 100vw;
     max-height: 100vh;
     overflow: hidden;
+    border-radius: 24px;
+    z-index: 9999;
   }
-
+  
   .chat-widget-button {
     width: 56px;
     height: 56px;
+    z-index: 9999;
   }
-
+  
   .messages-container {
-    padding: 10px;
-    gap: 10px;
+    padding: 16px;
+    gap: 12px;
   }
 
   .message-text {
-    padding: 10px 12px;
-    border-radius: 14px;
+    padding: 14px 16px;
+    border-radius: 18px;
     font-size: 13px;
     line-height: 1.5;
   }
 
   .message-avatar {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .chat-title h3 { font-size: 18px; }
+  .status { font-size: 13px; }
+
+  .quick-actions { padding: 16px; gap: 10px; }
+  .quick-action-btn { padding: 10px 16px; font-size: 12px; }
+
+  .input-area { padding: 20px; }
+  .input-container { gap: 12px; }
+  .message-input { padding: 12px 18px; font-size: 13px; }
+  .send-btn { width: 42px; height: 42px; }
+
+  .close-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    z-index: 10000;
+  }
+
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+
+  .close-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .chat-header {
+    padding: 20px 16px 16px;
+    z-index: 10000;
+    position: relative;
+  }
+
+  .chat-header-info {
+    gap: 10px;
+  }
+
+  .ai-avatar {
+    width: 40px;
+    height: 40px;
   }
 
   .chat-title h3 {
     font-size: 16px;
+    line-height: 1.2;
   }
 
   .status {
     font-size: 12px;
   }
-
-  .quick-actions {
-    padding: 12px;
-    gap: 8px;
-  }
-
-  .quick-action-btn {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  .input-area {
-    padding: 14px;
-  }
-
-  .input-container {
-    gap: 8px;
-  }
-
-  .message-input {
-    padding: 10px 14px;
-    font-size: 13px;
-  }
-
-  .send-btn {
-    width: 38px;
-    height: 38px;
-  }
-
-  /* On very small screens, keep it stacked above ChatWidget */
-  .ai-chatbot {
-    bottom: 90px;
-    right: 20px;
-  }
-
 }
 
-/* Scroll hint bubble next to widget */
 .widget-hint {
   position: fixed;
   right: 110px;
@@ -801,7 +853,7 @@ export default {
   padding: 10px 14px;
   border-radius: 14px;
   font-size: 13px;
-  z-index: 1001;
+  z-index: 9999;
   animation: fadeInUp 300ms ease;
 }
 
@@ -816,5 +868,87 @@ export default {
   border-left: 1px solid rgba(226, 232, 240, 0.9);
   border-bottom: 1px solid rgba(226, 232, 240, 0.9);
   transform: rotate(-45deg);
+}
+
+@media (max-width: 360px) {
+  .chat-window {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 140px);
+    top: 100px;
+    left: 8px;
+    right: 8px;
+    bottom: 20px;
+  }
+
+  .chat-header {
+    padding: 16px 12px 12px;
+  }
+
+  .chat-title h3 {
+    font-size: 14px;
+  }
+
+  .status {
+    font-size: 11px;
+  }
+
+  .ai-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .close-btn {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 10px;
+  }
+
+  .close-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) and (orientation: landscape) {
+  .chat-window {
+    height: calc(100vh - 80px);
+    top: 60px;
+    bottom: 20px;
+  }
+
+  .chat-header {
+    padding: 16px 20px;
+  }
+
+  .messages-container {
+    padding: 12px 16px;
+  }
+
+  .input-area {
+    padding: 16px 20px;
+  }
+}
+
+@media (max-height: 600px) {
+  .chat-window {
+    height: calc(100vh - 100px);
+    top: 60px;
+  }
+
+  .chat-header {
+    padding: 16px 20px;
+  }
+
+  .messages-container {
+    padding: 12px 16px;
+  }
+
+  .quick-actions {
+    padding: 12px 16px;
+  }
+
+  .input-area {
+    padding: 16px 20px;
+  }
 }
 </style>
