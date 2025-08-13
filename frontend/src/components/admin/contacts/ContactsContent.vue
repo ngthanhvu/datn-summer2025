@@ -5,6 +5,95 @@
             <p class="text-gray-600">Quản lý các liên hệ khách hàng gửi về hệ thống</p>
         </div>
 
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Tổng cộng</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.total || 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-yellow-100 rounded-lg">
+                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Chưa trả lời</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.unreplied || 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Đã trả lời</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.replied || 0 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div class="flex flex-col lg:flex-row gap-4">
+                <!-- Search Input -->
+                <div class="flex-1">
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input v-model="searchQuery" @input="handleSearch" type="text"
+                            placeholder="Tìm kiếm theo tên, email, số điện thoại..."
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="flex-shrink-0">
+                    <select v-model="statusFilter" @change="handleFilter"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="unreplied">Chưa trả lời</option>
+                        <option value="replied">Đã trả lời</option>
+                    </select>
+                </div>
+
+                <!-- Per Page -->
+                <div class="flex-shrink-0">
+                    <select v-model="perPage" @change="handlePerPageChange"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="15">15/trang</option>
+                        <option value="25">25/trang</option>
+                        <option value="50">50/trang</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <!-- loading -->
         <div class="space-y-4">
             <div v-if="loading" class="bg-white rounded-xl shadow-sm p-8 text-center">
@@ -139,6 +228,39 @@
             </div>
         </div>
 
+        <!-- Pagination -->
+        <div v-if="pagination.last_page > 1" class="mt-8 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Hiển thị {{ (pagination.current_page - 1) * pagination.per_page + 1 }} đến
+                {{ Math.min(pagination.current_page * pagination.per_page, pagination.total) }}
+                trong tổng số {{ pagination.total }} liên hệ
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button @click="changePage(pagination.current_page - 1)" :disabled="pagination.current_page === 1"
+                    class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Trước
+                </button>
+
+                <div class="flex items-center space-x-1">
+                    <button v-for="page in getPageNumbers()" :key="page" @click="changePage(page)" :class="[
+                        'px-3 py-2 text-sm font-medium rounded-lg',
+                        page === pagination.current_page
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                    ]">
+                        {{ page }}
+                    </button>
+                </div>
+
+                <button @click="changePage(pagination.current_page + 1)"
+                    :disabled="pagination.current_page === pagination.last_page"
+                    class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Sau
+                </button>
+            </div>
+        </div>
+
         <!-- Modal xem/trả lời -->
         <div v-if="selectedContact"
             class="fixed inset-0 bg-gray-900/75 bg-opacity-50 flex items-center justify-center z-50 p-4"
@@ -162,8 +284,7 @@
                         <h4 class="text-lg font-medium text-gray-900 mb-4">Thông tin khách hàng</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Họ
-                                    tên</label>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Họ tên</label>
                                 <p class="text-gray-900 font-medium">{{ selectedContact.name }}</p>
                             </div>
                             <div>
@@ -171,13 +292,11 @@
                                 <p class="text-gray-900">{{ selectedContact.email }}</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Số điện
-                                    thoại</label>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Số điện thoại</label>
                                 <p class="text-gray-900">{{ selectedContact.phone }}</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Thời gian
-                                    gửi</label>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Thời gian gửi</label>
                                 <p class="text-gray-900">{{ formatDate(selectedContact.created_at) }}</p>
                             </div>
                         </div>
@@ -203,7 +322,7 @@
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-sm font-medium text-green-800">Đã phản hồi</span>
                                     <span class="text-sm text-green-600">{{ formatDate(selectedContact.replied_at)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">{{
                                     selectedContact.admin_reply }}</p>
@@ -266,12 +385,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useContact } from '../../../composable/useContact'
 import Swal from 'sweetalert2'
 import { push } from 'notivue'
 
-const { fetchContacts, fetchContactDetail, replyContact, deleteContact } = useContact()
+const {
+    fetchContacts,
+    fetchContactDetail,
+    replyContact,
+    deleteContact,
+    getContactStats,
+    pagination
+} = useContact()
+
 const contacts = ref([])
 const selectedContact = ref(null)
 const reply = ref('')
@@ -279,14 +406,115 @@ const loading = ref(false)
 const replyLoading = ref(false)
 const deleteLoading = ref(null)
 const isEditing = ref(false)
+const stats = ref({})
+
+// Search and filter states
+const searchQuery = ref('')
+const statusFilter = ref('')
+const sortBy = ref('created_at')
+const sortOrder = ref('desc')
+const perPage = ref(15)
+const currentPage = ref(1)
+
+// Debounce search
+let searchTimeout = null
 
 const loadContacts = async () => {
     loading.value = true
     try {
-        contacts.value = await fetchContacts()
+        const params = {
+            search: searchQuery.value,
+            status: statusFilter.value,
+            sort_by: sortBy.value,
+            sort_order: sortOrder.value,
+            per_page: perPage.value,
+            page: currentPage.value
+        }
+        const result = await fetchContacts(params)
+        // Đảm bảo contacts được gán đúng
+        if (result && result.data) {
+            contacts.value = result.data
+        }
+        console.log('Loaded contacts:', contacts.value) // Debug log
+    } catch (error) {
+        console.error('Error loading contacts:', error)
     } finally {
         loading.value = false
     }
+}
+
+const loadStats = async () => {
+    try {
+        stats.value = await getContactStats()
+    } catch (error) {
+        console.error('Error loading stats:', error)
+    }
+}
+
+const handleSearch = () => {
+    clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(() => {
+        currentPage.value = 1
+        loadContacts()
+    }, 500)
+}
+
+const handleFilter = () => {
+    currentPage.value = 1
+    loadContacts()
+}
+
+const handleSort = () => {
+    currentPage.value = 1
+    loadContacts()
+}
+
+const handlePerPageChange = () => {
+    currentPage.value = 1
+    loadContacts()
+}
+
+const changePage = (page) => {
+    if (page >= 1 && page <= pagination.value.last_page) {
+        currentPage.value = page
+        loadContacts()
+    }
+}
+
+const getPageNumbers = () => {
+    const pages = []
+    const current = pagination.value.current_page
+    const last = pagination.value.last_page
+
+    if (last <= 7) {
+        for (let i = 1; i <= last; i++) {
+            pages.push(i)
+        }
+    } else {
+        if (current <= 4) {
+            for (let i = 1; i <= 5; i++) {
+                pages.push(i)
+            }
+            pages.push('...')
+            pages.push(last)
+        } else if (current >= last - 3) {
+            pages.push(1)
+            pages.push('...')
+            for (let i = last - 4; i <= last; i++) {
+                pages.push(i)
+            }
+        } else {
+            pages.push(1)
+            pages.push('...')
+            for (let i = current - 1; i <= current + 1; i++) {
+                pages.push(i)
+            }
+            pages.push('...')
+            pages.push(last)
+        }
+    }
+
+    return pages.filter(page => page !== '...')
 }
 
 const openDetail = async (contact) => {
@@ -319,7 +547,6 @@ const cancelEdit = () => {
 
 const sendReply = async () => {
     if (!reply.value.trim()) {
-        // Swal.fire('Lỗi', 'Vui lòng nhập nội dung phản hồi', 'warning')
         push.error('Vui lòng nhập nội dung phản hồi')
         return
     }
@@ -329,11 +556,11 @@ const sendReply = async () => {
         await replyContact(selectedContact.value.id, reply.value)
 
         const message = isEditing.value ? 'Đã cập nhật phản hồi!' : 'Đã gửi phản hồi!'
-        // await Swal.fire('Thành công', message, 'success')
         push.success(message)
 
         closeDetail()
         await loadContacts()
+        await loadStats()
     } catch (err) {
         Swal.fire('Lỗi', err.response?.data?.message || 'Gửi phản hồi thất bại', 'error')
     } finally {
@@ -364,6 +591,7 @@ const deleteContactItem = async (contact) => {
         await deleteContact(contact.id)
         await Swal.fire('Thành công', 'Đã xóa liên hệ thành công!', 'success')
         await loadContacts()
+        await loadStats()
     } catch (err) {
         Swal.fire('Lỗi', err.response?.data?.message || 'Xóa liên hệ thất bại', 'error')
     } finally {
@@ -386,7 +614,10 @@ const formatDate = (dateString) => {
     }
 }
 
-onMounted(loadContacts)
+onMounted(async () => {
+    await loadStats()
+    await loadContacts()
+})
 </script>
 
 <style scoped>

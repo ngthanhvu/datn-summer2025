@@ -85,7 +85,7 @@
                 <RouterLink to="/admin/contacts" class="nav-item">
                     <i class="fas fa-address-book"></i>
                     <span>Liên hệ</span>
-                    <span v-if="unreadContacts > 0" class="badge">{{ unreadContacts }}</span>
+                    <span v-if="contactStats.unreplied > 0" class="badge">{{ contactStats.unreplied }}</span>
                 </RouterLink>
                 <RouterLink to="/admin/pages" class="nav-item">
                     <i class="fas fa-file-alt"></i>
@@ -106,15 +106,51 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useContact } from '../../../composable/useContact'
 
 const showProductsMenu = ref(false)
 const showInventoryMenu = ref(false)
 const unreadMessages = ref(0)
 const unapprovedReviews = ref(0)
-const unreadContacts = ref(0)
 
-// Gắn dữ liệu thực tế sau nếu cần
+const { getContactStats } = useContact()
+const contactStats = ref({
+    total: 0,
+    replied: 0,
+    unreplied: 0
+})
+
+const loadContactStats = async () => {
+    try {
+        const stats = await getContactStats()
+        contactStats.value = stats
+    } catch (error) {
+        console.error('Error loading contact stats:', error)
+        contactStats.value = {
+            total: 0,
+            replied: 0,
+            unreplied: 0
+        }
+    }
+}
+
+let statsInterval = null
+
+onMounted(() => {
+    loadContactStats()
+
+    statsInterval = setInterval(() => {
+        loadContactStats()
+    }, 30000)
+})
+
+onUnmounted(() => {
+    if (statsInterval) {
+        clearInterval(statsInterval)
+    }
+})
+
 unreadMessages.value = 3
 unapprovedReviews.value = 2
 </script>
@@ -258,6 +294,13 @@ unapprovedReviews.value = 2
     border-radius: 10px;
     font-size: 0.75rem;
     margin-left: auto;
+    min-width: 18px;
+    text-align: center;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 18px;
 }
 
 .nav-item.router-link-exact-active {

@@ -8,13 +8,33 @@ export function useContact() {
     const contactDetail = ref(null)
     const loading = ref(false)
     const error = ref(null)
+    const pagination = ref({
+        current_page: 1,
+        last_page: 1,
+        per_page: 15,
+        total: 0
+    })
 
-    const fetchContacts = async () => {
+    const fetchContacts = async (params = {}) => {
         loading.value = true
         error.value = null
         try {
-            const res = await axios.get(`${apiBaseUrl}/api/contacts`)
-            contacts.value = res.data
+            const queryParams = new URLSearchParams()
+
+            // Thêm các tham số tìm kiếm và lọc
+            if (params.search) queryParams.append('search', params.search)
+            if (params.status) queryParams.append('status', params.status)
+            if (params.per_page) queryParams.append('per_page', params.per_page)
+            if (params.page) queryParams.append('page', params.page)
+
+            const res = await axios.get(`${apiBaseUrl}/api/contacts?${queryParams.toString()}`)
+            contacts.value = res.data.data
+            pagination.value = {
+                current_page: res.data.current_page,
+                last_page: res.data.last_page,
+                per_page: res.data.per_page,
+                total: res.data.total
+            }
             return res.data
         } catch (err) {
             error.value = err
@@ -59,6 +79,16 @@ export function useContact() {
         }
     }
 
+    const getContactStats = async () => {
+        try {
+            const res = await axios.get(`${apiBaseUrl}/api/contacts/stats`)
+            return res.data
+        } catch (err) {
+            error.value = err
+            throw err
+        }
+    }
+
     const sendContact = async (form) => {
         try {
             const res = await axios.post(`${apiBaseUrl}/api/contacts`, form)
@@ -74,10 +104,12 @@ export function useContact() {
         contactDetail,
         loading,
         error,
+        pagination,
         fetchContacts,
         fetchContactDetail,
         replyContact,
         deleteContact,
+        getContactStats,
         sendContact
     }
 }

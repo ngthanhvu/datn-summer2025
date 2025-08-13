@@ -10,8 +10,8 @@ return new class extends Migration {
         Schema::create('flash_sales', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->timestamp('start_time');
-            $table->timestamp('end_time');
+            $table->timestamp('start_time')->nullable();
+            $table->timestamp('end_time')->nullable();
             $table->boolean('repeat')->default(false);
             $table->integer('repeat_minutes')->nullable();
             $table->boolean('auto_increase')->default(false);
@@ -24,4 +24,4 @@ return new class extends Migration {
     {
         Schema::dropIfExists('flash_sales');
     }
-}; 
+};

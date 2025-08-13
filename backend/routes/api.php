@@ -231,6 +231,7 @@ Route::get('flash-sales/{id}', [FlashSaleController::class, 'show']);
 
 // Contact
 Route::get('/contacts', [ContactController::class, 'index']);
+Route::get('/contacts/stats', [ContactController::class, 'stats']);
 Route::get('/contacts/{id}', [ContactController::class, 'show']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::post('/contacts/{id}/reply', [ContactController::class, 'reply']);
