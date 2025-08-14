@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Helpers\EnvHelper;
+use Illuminate\Support\Facades\Cache;
 
 class SettingController extends Controller
 {
     public function index()
     {
-        return response()->json(Setting::all()->pluck('value', 'key'));
+        $settings = Cache::tags(['settings'])->remember('settings_all', 86400, function () {
+            return Setting::all()->pluck('value', 'key');
+        });
+
+        return response()->json($settings);
     }
 
     public function update(Request $request)
@@ -22,6 +27,8 @@ class SettingController extends Controller
             foreach ($data as $key => $value) {
                 Setting::setValue($key, is_array($value) ? json_encode($value) : $value);
             }
+
+            Cache::tags(['settings'])->flush();
 
             $envFields = [
                 'smtpHost'        => 'MAIL_HOST',

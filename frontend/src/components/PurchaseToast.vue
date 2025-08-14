@@ -1,5 +1,5 @@
 <template>
-    <div :class="['fixed z-[1000] pointer-events-none', positionClass]">
+    <div :class="['fixed z-[10] pointer-events-none', positionClass]">
         <Transition enter-active-class="transform transition duration-300" enter-from-class="translate-y-3 opacity-0"
             enter-to-class="translate-y-0 opacity-100" leave-active-class="transform transition duration-300"
             leave-from-class="translate-y-0 opacity-100" leave-to-class="translate-y-3 opacity-0">
@@ -28,7 +28,7 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const props = defineProps({
-    intervalMs: { type: Number, default: 30000 },   // bao lâu thì pop cái mới
+    intervalMs: { type: Number, default: 60000 },   // bao lâu thì pop cái mới
     durationMs: { type: Number, default: 10000 },   // hiển thị trong bao lâu
     position: { type: String, default: 'bottom-left' }, // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
 })

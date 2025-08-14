@@ -6,7 +6,7 @@ export const useProducts = () => {
 
     const API = axios.create({
         baseURL: apiBaseUrl,
-        timeout: 10000
+        timeout: 30000 // Tăng timeout lên 30 giây
     })
 
     const cache = new Map()
@@ -59,7 +59,7 @@ export const useProducts = () => {
                 if (Array.isArray(filters.brand)) {
                     filters.brand.forEach(id => params.append('brand[]', id))
                 } else {
-                    params.append('category', filters.brand)
+                    params.append('brand', filters.brand)
                 }
             }
             if (filters.sort_by) {
@@ -314,11 +314,14 @@ export const useProducts = () => {
         }
     }
 
-    const searchProducts = async (query, filters = {}) => {
+    const searchProducts = async (query, filters = {}, page = 1) => {
         try {
             const params = new URLSearchParams()
             if (query) {
                 params.append('q', query)
+            }
+            if (page) {
+                params.append('page', page)
             }
             if (filters.color && filters.color.length > 0) {
                 if (Array.isArray(filters.color)) {
@@ -355,11 +358,64 @@ export const useProducts = () => {
                 }
             }
 
+            if (filters.sort_by) {
+                params.append('sort_by', filters.sort_by)
+                params.append('sort_direction', filters.sort_direction || 'asc')
+            }
+
             const response = await API.get(`/api/products/search?${params.toString()}`)
-            return Array.isArray(response.data) ? response.data : []
+
+            if (response.data && response.data.data) {
+                return {
+                    products: response.data.data,
+                    pagination: {
+                        current_page: response.data.current_page || 1,
+                        last_page: response.data.last_page || 1,
+                        per_page: response.data.per_page || 8,
+                        total: response.data.total || 0,
+                        from: response.data.from || null,
+                        to: response.data.to || null
+                    }
+                }
+            } else if (Array.isArray(response.data)) {
+                return {
+                    products: response.data,
+                    pagination: {
+                        current_page: 1,
+                        last_page: 1,
+                        per_page: response.data.length,
+                        total: response.data.length,
+                        from: 1,
+                        to: response.data.length
+                    }
+                }
+            } else {
+                console.log('Using empty structure - no valid data found')
+                return {
+                    products: [],
+                    pagination: {
+                        current_page: 1,
+                        last_page: 1,
+                        per_page: 8,
+                        total: 0,
+                        from: null,
+                        to: null
+                    }
+                }
+            }
         } catch (error) {
             console.error('Error searching products:', error)
-            return []
+            return {
+                products: [],
+                pagination: {
+                    current_page: 1,
+                    last_page: 1,
+                    per_page: 8,
+                    total: 0,
+                    from: null,
+                    to: null
+                }
+            }
         }
     }
 

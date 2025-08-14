@@ -46,6 +46,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/admin/user', [AuthController::class, 'listUser']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
+    Route::delete('/admin/user/{id}', [AuthController::class, 'destroy']);
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
 
     Route::get('/inventory', [InventoryController::class, 'index']);
@@ -128,6 +129,7 @@ Route::get('/brands', [BrandsController::class, 'index']);
 Route::get('/brands/{id}', [BrandsController::class, 'show']);
 Route::post('/brands', [BrandsController::class, 'store']);
 Route::put('/brands/{id}', [BrandsController::class, 'update']);
+Route::patch('/brands/{id}/status', [BrandsController::class, 'updateStatus']);
 Route::delete('/brands/{id}', [BrandsController::class, 'destroy']);
 Route::post('/brands/bulk-delete', [BrandsController::class, 'bulkDestroy']);
 
@@ -136,6 +138,7 @@ Route::get('/categories', [CategoriesController::class, 'index']);
 Route::get('/categories/{id}', [CategoriesController::class, 'show']);
 Route::post('/categories', [CategoriesController::class, 'store']);
 Route::put('/categories/{id}', [CategoriesController::class, 'update']);
+Route::patch('/categories/{id}/status', [CategoriesController::class, 'updateStatus']);
 Route::delete('/categories/{id}', [CategoriesController::class, 'destroy']);
 Route::post('/categories/bulk-delete', [CategoriesController::class, 'bulkDestroy']);
 
@@ -230,6 +233,7 @@ Route::get('flash-sales/{id}', [FlashSaleController::class, 'show']);
 
 // Contact
 Route::get('/contacts', [ContactController::class, 'index']);
+Route::get('/contacts/stats', [ContactController::class, 'stats']);
 Route::get('/contacts/{id}', [ContactController::class, 'show']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::post('/contacts/{id}/reply', [ContactController::class, 'reply']);

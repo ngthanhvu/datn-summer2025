@@ -27,7 +27,8 @@
 
         <!-- <BrandsTable :brands="brands" :isLoading="isLoading" @delete="handleDelete" @bulk-delete="handleBulkDelete" /> -->
         <BrandsTable :brands="brands" :is-loading="isLoading" :current-page="currentPage" :items-per-page="itemsPerPage"
-            @update:currentPage="currentPage = $event" @delete="handleDelete" @bulk-delete="handleBulkDelete" />
+            @update:currentPage="currentPage = $event" @delete="handleDelete" @bulk-delete="handleBulkDelete"
+            @refresh="handleRefresh" />
 
     </div>
 </template>
@@ -35,8 +36,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useBrandStore } from '../../../stores/brands'
+import { useBrand } from '../../../composable/useBrand'
+import { push } from 'notivue'
 import BrandsTable from './BrandsTable.vue'
 
+const { deleteBrand, bulkDeleteBrands } = useBrand()
 const brandStore = useBrandStore()
 
 const currentPage = ref(1)
@@ -45,8 +49,32 @@ const itemsPerPage = 10
 const brands = computed(() => brandStore.brands)
 const isLoading = computed(() => brandStore.loading)
 
-const handleDelete = async (brand) => { }
-const handleBulkDelete = async (selectedBrands) => { }
+const handleDelete = async (brand) => {
+    try {
+        await deleteBrand(brand.id)
+        push.success('Xoá thương hiệu thành công')
+        // Cập nhật store để UI tự động refresh
+        await brandStore.fetchBrands()
+    } catch (error) {
+        console.error('Failed to delete brand:', error)
+        push.error('Xoá thương hiệu thất bại')
+    }
+}
+
+const handleBulkDelete = async (selectedBrands) => {
+    try {
+        // Convert Set to Array
+        const ids = Array.from(selectedBrands)
+        await bulkDeleteBrands(ids)
+        push.success('Xoá thương hiệu hàng loạt thành công')
+        // Cập nhật store
+        await brandStore.fetchBrands()
+    } catch (error) {
+        console.error('Failed to bulk delete brands:', error)
+        push.error('Xoá thương hiệu hàng loạt thất bại')
+    }
+}
+
 const handleRefresh = async () => {
     await brandStore.fetchBrands()
 }

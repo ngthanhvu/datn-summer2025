@@ -207,6 +207,16 @@ const updateUserByAdmin = async (data) => {
     }
 }
 
+const deleteUser = async (id) => {
+    try {
+        const res = await API.delete(`/api/admin/user/${id}`)
+        return res.data
+    } catch (err) {
+        console.error('Delete user error:', err.response?.data || err.message)
+        throw err
+    }
+}
+
 const getToken = () => token.value
 
 export const useAuth = () => {
@@ -229,6 +239,7 @@ export const useAuth = () => {
         updateUser,
         getToken,
         updateUserByAdmin,
-        updateCustomerStatus
+        updateCustomerStatus,
+        deleteUser
     }
 }

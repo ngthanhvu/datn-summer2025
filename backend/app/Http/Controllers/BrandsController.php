@@ -6,18 +6,26 @@ use App\Models\Brands;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class BrandsController extends Controller
 {
     public function index()
     {
-        $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id', 'is_active')
-            ->withCount('products')
-            ->get();
+        $cacheKey = 'brands_index';
+        $cacheTTL = 3600; // 1 tiếng
 
-        $brands->transform(function ($brand) {
-            $brand->image = $brand->image ? url('storage/' . $brand->image) : null;
-            return $brand;
+        $brands = Cache::tags(['brands'])->remember($cacheKey, $cacheTTL, function () {
+            $brands = Brands::select('id', 'name', 'description', 'image', 'slug', 'parent_id', 'is_active')
+                ->withCount('products')
+                ->get();
+
+            $brands->transform(function ($brand) {
+                $brand->image = $brand->image ? url('storage/' . $brand->image) : null;
+                return $brand;
+            });
+
+            return $brands;
         });
 
         return response()->json($brands);
@@ -25,14 +33,18 @@ class BrandsController extends Controller
 
     public function show($id)
     {
-        try {
+        $cacheKey = "brand_show_{$id}";
+        $cacheTTL = 3600; // 1 tiếng
+
+        $brand = Cache::tags(['brands'])->remember($cacheKey, $cacheTTL, function () use ($id) {
             $brand = Brands::findOrFail($id);
-            $brand->image = url('storage/' . $brand->image);
-            return response()->json($brand);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Brand not found'], 404);
-        }
+            $brand->image = $brand->image ? url('storage/' . $brand->image) : null;
+            return $brand;
+        });
+
+        return response()->json($brand);
     }
+
 
     public function store(Request $request)
     {
@@ -61,6 +73,7 @@ class BrandsController extends Controller
                 'parent_id' => $request->parent_id ?: null,
                 'is_active' => $request->has('is_active') ? (bool) $request->is_active : true,
             ]);
+            Cache::tags(['brands'])->flush();
             return response()->json($brand, 201);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -116,6 +129,7 @@ class BrandsController extends Controller
             ]);
 
             $brand->image = $brand->image ? url('storage/' . $brand->image) : null;
+            Cache::tags(['brands'])->flush();
             return response()->json($brand);
         } catch (\Exception $e) {
             \Log::error('Error updating brand:', [
@@ -132,6 +146,7 @@ class BrandsController extends Controller
         try {
             $brand = Brands::findOrFail($id);
             $brand->delete();
+            Cache::tags(['brands'])->flush();
             return response()->json(['message' => 'Brand deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -148,22 +163,45 @@ class BrandsController extends Controller
                 return response()->json(['message' => 'No brand ids provided'], 400);
             }
 
-            // Lấy danh sách brand cần xoá
             $brands = Brands::whereIn('id', $ids)->get();
 
             foreach ($brands as $brand) {
-                // Xoá ảnh nếu có
                 if ($brand->image && Storage::disk('public')->exists($brand->image)) {
                     Storage::disk('public')->delete($brand->image);
                 }
                 $brand->delete();
             }
-
+            Cache::tags(['brands'])->flush();
             return response()->json(['message' => 'Brands deleted successfully'], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Bulk delete failed',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateStatus($id, Request $request)
+    {
+        try {
+            $request->validate([
+                'is_active' => 'required|boolean'
+            ]);
+
+            $brand = Brands::findOrFail($id);
+            $brand->is_active = $request->boolean('is_active');
+            $brand->save();
+
+            Cache::tags(['brands'])->flush();
+
+            return response()->json([
+                'message' => 'Brand status updated successfully',
+                'brand' => $brand
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update brand status',
+                'error' => $e->getMessage()
             ], 500);
         }
     }

@@ -6,8 +6,9 @@ use App\Models\Contact;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class ContactDeleted extends Mailable
+class ContactDeleted extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

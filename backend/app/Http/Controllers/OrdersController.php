@@ -175,7 +175,7 @@ class OrdersController extends Controller
                     ->delete();
                 $user = Auth::user();
                 if ($user && !empty($user->email)) {
-                    Mail::to($user->email)->send(new PaymentConfirmation($order));
+                    Mail::to($user->email)->queue(new PaymentConfirmation($order));
                 }
                 $admin = \App\Models\User::where('role', 'admin')->first();
                 if ($admin) {
@@ -443,7 +443,7 @@ class OrdersController extends Controller
 
             $user = User::find($userId);
             if ($user && !empty($user->email)) {
-                Mail::to($user->email)->send(new PaymentConfirmation($order));
+                Mail::to($user->email)->queue(new PaymentConfirmation($order));
             }
 
             DB::commit();
@@ -548,7 +548,7 @@ class OrdersController extends Controller
         }
 
         if ($order->user && $order->user->email) {
-            Mail::to($order->user->email)->send(new \App\Mail\ReturnApproved($order));
+            Mail::to($order->user->email)->queue(new \App\Mail\ReturnApproved($order));
         }
 
         return response()->json(['message' => 'Đã duyệt hoàn hàng']);
@@ -580,7 +580,7 @@ class OrdersController extends Controller
 
         if ($order->user && $order->user->email) {
             // Mail::to($order->user->email)->send(new \App\Mail\ReturnRejected($order, $request->reject_reason));
-            Mail::to($order->user->email)->send(new ReturnRejected($order, $request->reject_reason));
+            Mail::to($order->user->email)->queue(new ReturnRejected($order, $request->reject_reason));
         }
 
         return response()->json(['message' => 'Đã từ chối hoàn hàng']);

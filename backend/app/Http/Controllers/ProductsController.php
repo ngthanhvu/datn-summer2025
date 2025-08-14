@@ -10,122 +10,24 @@ use App\Models\Variants;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class ProductsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Products::with([
-            'images' => function ($query) {
-                $query->select('id', 'image_path', 'is_main', 'product_id');
-            },
-            'variants' => function ($query) {
-                $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
-            }
-        ])->select(
-            'id',
-            'name',
-            'description',
-            'price',
-            'discount_price',
-            'slug',
-            'categories_id',
-            'brand_id',
-            'is_active'
-        );
+        $cacheKey = 'products_index_' . md5(json_encode($request->query()));
+        $cacheTTL = 3600; // thời gian cache (giây)
 
-        if ($request->has('min_price')) {
-            $query->where('price', '>=', $request->min_price);
-        }
-        if ($request->has('max_price')) {
-            $query->where('price', '<=', $request->max_price);
-        }
-
-        if ($request->has('category_id') && !empty($request->category_id)) {
-            $categoryIds = is_array($request->category_id) ? array_filter($request->category_id) : [$request->category_id];
-            $query->whereIn('categories_id', $categoryIds);
-        } else if ($request->has('category') && !empty($request->category)) {
-            $categories = is_array($request->category) ? array_filter($request->category) : [$request->category];
-            $categoryIds = [];
-            foreach ($categories as $cat) {
-                if (is_numeric($cat)) {
-                    $categoryIds[] = $cat;
-                } else {
-                    $catModel = \App\Models\Categories::where('slug', $cat)->first();
-                    if ($catModel) $categoryIds[] = $catModel->id;
+        $products = Cache::tags(['products'])->remember($cacheKey, $cacheTTL, function () use ($request) {
+            $query = Products::with([
+                'images' => function ($query) {
+                    $query->select('id', 'image_path', 'is_main', 'product_id');
+                },
+                'variants' => function ($query) {
+                    $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
                 }
-            }
-            if (!empty($categoryIds)) $query->whereIn('categories_id', $categoryIds);
-        }
-
-        if ($request->has('brand_id') && !empty($request->brand_id)) {
-            $brandIds = is_array($request->brand_id) ? array_filter($request->brand_id) : [$request->brand_id];
-            $query->whereIn('brand_id', $brandIds);
-        } else if ($request->has('brand') && !empty($request->brand)) {
-            $brands = is_array($request->brand) ? array_filter($request->brand) : [$request->brand];
-            $brandIds = [];
-            foreach ($brands as $b) {
-                if (is_numeric($b)) {
-                    $brandIds[] = $b;
-                } else {
-                    $brandModel = \App\Models\Brands::where('slug', $b)->first();
-                    if ($brandModel) $brandIds[] = $brandModel->id;
-                }
-            }
-            if (!empty($brandIds)) $query->whereIn('brand_id', $brandIds);
-        }
-
-        if ($request->has('color') && !empty($request->color)) {
-            $colors = is_array($request->color) ? array_filter($request->color) : [$request->color];
-            if (!empty($colors)) {
-                $query->whereHas('variants', function ($q) use ($colors) {
-                    $q->whereIn('color', $colors);
-                });
-            }
-        }
-
-        if ($request->has('size') && !empty($request->size)) {
-            $sizes = is_array($request->size) ? array_filter($request->size) : [$request->size];
-            if (!empty($sizes)) {
-                $query->whereHas('variants', function ($q) use ($sizes) {
-                    $q->whereIn('size', $sizes);
-                });
-            }
-        }
-
-        if ($request->has('sort_by')) {
-            $sortField = $request->sort_by;
-            $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'asc';
-            $query->orderBy($sortField, $sortDirection);
-        } else {
-            $query->orderBy('id', 'asc');
-        }
-
-        $perPage = (int) $request->input('per_page', 8);
-        $perPage = max(1, min($perPage, 100));
-
-        $products = $query->paginate($perPage, ['*'], 'page')
-            ->appends($request->query());
-
-        $products->getCollection()->transform(function ($product) {
-            $product->images->transform(function ($image) {
-                $image->image_path = url('storage/' . $image->image_path);
-                return $image;
-            });
-            return $product;
-        });
-
-        return response()->json($products);
-    }
-
-    public function getProductById($id)
-    {
-        $product = Products::with(['images' => function ($query) {
-            $query->select('id', 'image_path', 'is_main', 'product_id');
-        }, 'variants' => function ($query) {
-            $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
-        }])
-            ->select(
+            ])->select(
                 'id',
                 'name',
                 'description',
@@ -135,44 +37,173 @@ class ProductsController extends Controller
                 'categories_id',
                 'brand_id',
                 'is_active'
-            )
-            ->findOrFail($id);
+            );
 
-        if ($product && $product->images) {
-            $product->images->transform(function ($image) {
-                $image->image_path = url('storage/' . $image->image_path);
-                return $image;
+            if ($request->has('min_price')) {
+                $query->where('price', '>=', $request->min_price);
+            }
+            if ($request->has('max_price')) {
+                $query->where('price', '<=', $request->max_price);
+            }
+
+            if ($request->has('category_id') && !empty($request->category_id)) {
+                $categoryIds = is_array($request->category_id) ? array_filter($request->category_id) : [$request->category_id];
+                $query->whereIn('categories_id', $categoryIds);
+            } else if ($request->has('category') && !empty($request->category)) {
+                $categories = is_array($request->category) ? array_filter($request->category) : [$request->category];
+                $categoryIds = [];
+                foreach ($categories as $cat) {
+                    if (is_numeric($cat)) {
+                        $categoryIds[] = $cat;
+                    } else {
+                        $catModel = \App\Models\Categories::where('slug', $cat)->first();
+                        if ($catModel) $categoryIds[] = $catModel->id;
+                    }
+                }
+                if (!empty($categoryIds)) $query->whereIn('categories_id', $categoryIds);
+            }
+
+            if ($request->has('brand_id') && !empty($request->brand_id)) {
+                $brandIds = is_array($request->brand_id) ? array_filter($request->brand_id) : [$request->brand_id];
+                $query->whereIn('brand_id', $brandIds);
+            } else if ($request->has('brand') && !empty($request->brand)) {
+                $brands = is_array($request->brand) ? array_filter($request->brand) : [$request->brand];
+                $brandIds = [];
+                foreach ($brands as $b) {
+                    if (is_numeric($b)) {
+                        $brandIds[] = $b;
+                    } else {
+                        $brandModel = \App\Models\Brands::where('slug', $b)->first();
+                        if ($brandModel) $brandIds[] = $brandModel->id;
+                    }
+                }
+                if (!empty($brandIds)) $query->whereIn('brand_id', $brandIds);
+            }
+
+            if ($request->has('color') && !empty($request->color)) {
+                $colors = is_array($request->color) ? array_filter($request->color) : [$request->color];
+                if (!empty($colors)) {
+                    $query->whereHas('variants', function ($q) use ($colors) {
+                        $q->whereIn('color', $colors);
+                    });
+                }
+            }
+
+            if ($request->has('size') && !empty($request->size)) {
+                $sizes = is_array($request->size) ? array_filter($request->size) : [$request->size];
+                if (!empty($sizes)) {
+                    $query->whereHas('variants', function ($q) use ($sizes) {
+                        $q->whereIn('size', $sizes);
+                    });
+                }
+            }
+
+            if ($request->has('sort_by')) {
+                $sortField = $request->sort_by;
+                $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'asc';
+                $query->orderBy($sortField, $sortDirection);
+            } else {
+                $query->orderBy('id', 'asc');
+            }
+
+            $perPage = (int) $request->input('per_page', 8);
+            $perPage = max(1, min($perPage, 100));
+
+            $products = $query->paginate($perPage, ['*'], 'page')
+                ->appends($request->query());
+
+            $products->getCollection()->transform(function ($product) {
+                $product->images->transform(function ($image) {
+                    $image->image_path = url('storage/' . $image->image_path);
+                    return $image;
+                });
+                return $product;
             });
-        }
+
+            return $products;
+        });
+
+        return response()->json($products);
+    }
+
+    public function getProductById($id)
+    {
+        $cacheKey = "product_detail_{$id}";
+        $cacheTTL = 3600; // giây
+
+        $product = Cache::tags(['products'])->remember($cacheKey, $cacheTTL, function () use ($id) {
+            $product = Products::with([
+                'images' => function ($query) {
+                    $query->select('id', 'image_path', 'is_main', 'product_id');
+                },
+                'variants' => function ($query) {
+                    $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
+                }
+            ])
+                ->select(
+                    'id',
+                    'name',
+                    'description',
+                    'price',
+                    'discount_price',
+                    'slug',
+                    'categories_id',
+                    'brand_id',
+                    'is_active'
+                )
+                ->findOrFail($id);
+
+            if ($product && $product->images) {
+                $product->images->transform(function ($image) {
+                    $image->image_path = url('storage/' . $image->image_path);
+                    return $image;
+                });
+            }
+
+            return $product;
+        });
 
         return response()->json($product);
     }
 
     public function getProductBySlug($slug)
     {
+        $cacheKey = "product_detail_slug_{$slug}";
+        $cacheTTL = 3600;
+
         try {
-            $product = Products::with(['images' => function ($query) {
-                $query->select('id', 'image_path', 'is_main', 'product_id', 'variant_id');
-            }, 'variants' => function ($query) {
-                $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
-            }, 'variants.images', 'categories', 'brand'])
-                ->where('slug', $slug)
-                ->firstOrFail();
+            $product = Cache::tags(['products'])->remember($cacheKey, $cacheTTL, function () use ($slug) {
+                $product = Products::with([
+                    'images' => function ($query) {
+                        $query->select('id', 'image_path', 'is_main', 'product_id', 'variant_id');
+                    },
+                    'variants' => function ($query) {
+                        $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
+                    },
+                    'variants.images',
+                    'categories',
+                    'brand'
+                ])
+                    ->where('slug', $slug)
+                    ->firstOrFail();
 
-            $product->images->transform(function ($image) {
-                $image->image_path = url('storage/' . $image->image_path);
-                return $image;
-            });
+                $product->images->transform(function ($image) {
+                    $image->image_path = url('storage/' . $image->image_path);
+                    return $image;
+                });
 
-            if ($product->variants) {
-                foreach ($product->variants as $variant) {
-                    if ($variant->images) {
-                        foreach ($variant->images as $img) {
-                            $img->image_path = url('storage/' . $img->image_path);
+                if ($product->variants) {
+                    foreach ($product->variants as $variant) {
+                        if ($variant->images) {
+                            foreach ($variant->images as $img) {
+                                $img->image_path = url('storage/' . $img->image_path);
+                            }
                         }
                     }
                 }
-            }
+
+                return $product;
+            });
 
             return response()->json($product);
         } catch (\Exception $e) {
@@ -265,6 +296,9 @@ class ProductsController extends Controller
                     }
                 }
             }
+
+            Cache::tags(['products'])->flush();
+            Cache::tags(['filters'])->flush();
 
             return response()->json([
                 'message' => 'Product created successfully',
@@ -431,6 +465,9 @@ class ProductsController extends Controller
 
             \Log::info('🔥 Product updated successfully', ['product_id' => $product->id]);
 
+            Cache::tags(['products'])->flush();
+            Cache::tags(['filters'])->flush();
+
             return response()->json([
                 'message' => 'Product updated successfully',
                 'product' => $product->fresh(),
@@ -454,6 +491,10 @@ class ProductsController extends Controller
         try {
             $products = Products::findOrFail($id);
             $products->delete();
+
+            Cache::tags(['products'])->flush();
+            Cache::tags(['filters'])->flush();
+
             return response()->json([
                 'message' => 'Product deleted successfully',
             ], 200);
@@ -474,6 +515,10 @@ class ProductsController extends Controller
                 return response()->json(['message' => 'No product ids provided'], 400);
             }
             Products::whereIn('id', $ids)->delete();
+
+            Cache::tags(['products'])->flush();
+            Cache::tags(['filters'])->flush();
+
             return response()->json(['message' => 'Products deleted successfully'], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -491,61 +536,73 @@ class ProductsController extends Controller
             return response()->json([], 200);
         }
 
-        $products = Products::with(['images' => function ($query) {
-            $query->select('id', 'image_path', 'is_main', 'product_id');
-        }])
-            ->select('id', 'name', 'price', 'discount_price', 'slug', 'categories_id')
-            ->where('name', 'like', "%{$q}%")
-            ->get();
+        $cacheKey = "search_" . md5($q);
+        $cacheTTL = 3600;
 
-        $products->transform(function ($product) {
-            $product->images->transform(function ($image) {
-                $image->image_path = url('storage/' . $image->image_path);
-                return $image;
-            });
-            return $product;
+        $products = Cache::tags(['products'])->remember($cacheKey, $cacheTTL, function () use ($q) {
+            return Products::with(['images' => function ($query) {
+                $query->select('id', 'image_path', 'is_main', 'product_id');
+            }])
+                ->select('id', 'name', 'price', 'discount_price', 'slug', 'categories_id')
+                ->where('name', 'like', "%{$q}%")
+                ->get()
+                ->transform(function ($product) {
+                    $product->images->transform(function ($image) {
+                        $image->image_path = url('storage/' . $image->image_path);
+                        return $image;
+                    });
+                    return $product;
+                });
         });
 
         return response()->json($products);
     }
 
+
     public function getFilterOptions()
     {
         try {
-            $colors = Variants::select('color')
-                ->join('products', 'variants.product_id', '=', 'products.id')
-                ->where('products.is_active', true)
-                ->whereNotNull('color')
-                ->where('color', '!=', '')
-                ->distinct()
-                ->pluck('color')
-                ->toArray();
+            $cacheKey = 'filter_options';
+            $cacheTTL = 3600; // 1 tiếng
 
-            $sizes = Variants::select('size')
-                ->join('products', 'variants.product_id', '=', 'products.id')
-                ->where('products.is_active', true)
-                ->whereNotNull('size')
-                ->where('size', '!=', '')
-                ->distinct()
-                ->pluck('size')
-                ->toArray();
+            $data = Cache::tags(['filters', 'products'])->remember($cacheKey, $cacheTTL, function () {
+                $colors = Variants::select('color')
+                    ->join('products', 'variants.product_id', '=', 'products.id')
+                    ->where('products.is_active', true)
+                    ->whereNotNull('color')
+                    ->where('color', '!=', '')
+                    ->distinct()
+                    ->pluck('color')
+                    ->toArray();
 
-            $categories = Categories::select('id', 'name')
-                ->where('is_active', true)
-                ->get()
-                ->toArray();
+                $sizes = Variants::select('size')
+                    ->join('products', 'variants.product_id', '=', 'products.id')
+                    ->where('products.is_active', true)
+                    ->whereNotNull('size')
+                    ->where('size', '!=', '')
+                    ->distinct()
+                    ->pluck('size')
+                    ->toArray();
 
-            $brands = Brands::select('id', 'name')
-                ->where('is_active', true)
-                ->get()
-                ->toArray();
+                $categories = Categories::select('id', 'name')
+                    ->where('is_active', true)
+                    ->get()
+                    ->toArray();
 
-            return response()->json([
-                'colors' => $colors,
-                'sizes' => $sizes,
-                'categories' => $categories,
-                'brands' => $brands
-            ]);
+                $brands = Brands::select('id', 'name')
+                    ->where('is_active', true)
+                    ->get()
+                    ->toArray();
+
+                return [
+                    'colors' => $colors,
+                    'sizes' => $sizes,
+                    'categories' => $categories,
+                    'brands' => $brands
+                ];
+            });
+
+            return response()->json($data);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to get filter options',
@@ -553,7 +610,6 @@ class ProductsController extends Controller
             ], 500);
         }
     }
-
     public function favorite($id)
     {
         return response()->json([

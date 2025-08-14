@@ -14,6 +14,7 @@ use App\Mail\WelcomeEmail;
 use App\Mail\OtpEmail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -37,7 +38,7 @@ class AuthController extends Controller
         Log::info('Request IP: ' . request()->ip());
         Log::info('X-Forwarded-For: ' . request()->header('X-Forwarded-For'));
 
-        Mail::to($user->email)->send(new WelcomeEmail($user));
+        Mail::to($user->email)->queue(new WelcomeEmail($user));
 
         $token = JWTAuth::fromUser($user);
 
@@ -124,7 +125,7 @@ class AuthController extends Controller
             );
 
             if ($user->wasRecentlyCreated) {
-                Mail::to($user->email)->send(new WelcomeEmail($user));
+                Mail::to($user->email)->queue(new WelcomeEmail($user));
             }
 
             $token = JWTAuth::fromUser($user);
@@ -185,7 +186,7 @@ class AuthController extends Controller
 
             $user->setOtp($otp, 10);
 
-            Mail::to($user->email)->send(new OtpEmail($otp, $user));
+            Mail::to($user->email)->queue(new OtpEmail($otp, $user));
 
             return response()->json([
                 'message' => 'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.',
@@ -466,6 +467,34 @@ class AuthController extends Controller
             return response()->json([
                 'error' => 'Có lỗi xảy ra khi cập nhật người dùng. Vui lòng thử lại.'
             ], 500);
+        }
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if ((int) $id === (int) Auth::id()) {
+            return response()->json(['error' => 'Không thể tự xoá tài khoản của chính bạn'], 422);
+        }
+
+        $user = User::findOrFail($id);
+
+        try {
+            DB::transaction(function () use ($user) {
+                if ($user->avatar && Storage::exists('public/avatars/' . basename($user->avatar))) {
+                    Storage::delete('public/avatars/' . basename($user->avatar));
+                }
+
+                $user->delete();
+            });
+
+            return response()->json(['message' => 'Đã xoá người dùng thành công'], 200);
+        } catch (\Exception $e) {
+            Log::error('Delete user failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Có lỗi khi xoá người dùng'], 500);
         }
     }
 }

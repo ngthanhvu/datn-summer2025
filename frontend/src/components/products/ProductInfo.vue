@@ -103,7 +103,7 @@
                 <div class="flex gap-2">
                     <button v-for="size in sizes" :key="size" @click="handleSizeChange(size)"
                         @mouseenter="hoveredSize = size" @mouseleave="hoveredSize = ''" :class="[
-                            'px-3 sm:px-4 py-2 border rounded-md transition-colors text-sm sm:text-base',
+                            'px-3 sm:px-4 py-2 border rounded-md transition-colors text-sm sm:text-base cursor-pointer',
                             hoveredSize === size
                                 ? 'bg-[#e0f2fe] border-[#81AACC] text-[#0369a1]'
                                 : selectedSize === size
@@ -121,7 +121,7 @@
                 <div class="flex gap-2">
                     <button v-for="color in colors" :key="color.name" @click="handleColorChange(color)"
                         @mouseenter="hoveredColor = color" @mouseleave="hoveredColor = null" :class="[
-                            'w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-colors',
+                            'w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-colors cursor-pointer',
                             hoveredColor && hoveredColor.name === color.name
                                 ? 'border-[#38bdf8] ring-2 ring-[#38bdf8]'
                                 : selectedColor && selectedColor.name === color.name
@@ -139,12 +139,12 @@
             <div class="flex items-center gap-4">
                 <div class="flex items-center border border-gray-300 rounded-md">
                     <button @click="$emit('update:quantity', Math.max(1, quantity - 1))"
-                        class="px-2 sm:px-3 py-2 hover:bg-gray-100">-</button>
+                        class="px-2 sm:px-3 py-2 hover:bg-gray-100 cursor-pointer">-</button>
                     <input type="number" :value="quantity"
                         @input="$emit('update:quantity', Math.max(1, parseInt($event.target.value) || 1))" min="1"
                         class="w-16 sm:w-20 text-center border-x border-gray-300 py-3 text-sm sm:text-[16px]" />
                     <button @click="$emit('update:quantity', quantity + 1)"
-                        class="px-2 sm:px-3 py-2 hover:bg-gray-100">+</button>
+                        class="px-2 sm:px-3 py-2 hover:bg-gray-100 cursor-pointer">+</button>
                 </div>
                 <span class="text-xs sm:text-sm text-gray-500">
                     Còn lại: {{ flashSalePrice ? flashSaleQuantity : selectedVariantInventory }} sản phẩm
@@ -158,7 +158,7 @@
         <!-- Actions -->
         <div class="flex gap-4">
             <button
-                class="flex-1 bg-[#81AACC] text-white py-2 text-base sm:text-[18px] rounded-md hover:bg-[#6B8BA3] transition-colors"
+                class="flex-1 bg-[#81AACC] text-white py-2 text-base sm:text-[18px] rounded-md hover:bg-[#6B8BA3] transition-colors cursor-pointer"
                 @click="$emit('addToCart')">
                 Thêm vào giỏ hàng
             </button>

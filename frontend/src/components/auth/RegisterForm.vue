@@ -30,7 +30,7 @@
                         placeholder="Nhập mật khẩu"
                         class="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:outline-none focus:border-[#81aacc] focus:ring-1 focus:ring-[#81aacc]" />
                     <button type="button" @click="showPassword = !showPassword"
-                        class="absolute top-1/2 right-3 -translate-y-1/2 text-[#81aacc]">
+                        class="absolute top-1/2 right-3 -translate-y-1/2 text-[#81aacc]" tabindex="-1">
                         <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
@@ -45,7 +45,7 @@
                         id="confirmPassword" placeholder="Xác nhận mật khẩu"
                         class="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:outline-none focus:border-[#81aacc] focus:ring-1 focus:ring-[#81aacc]" />
                     <button type="button" @click="showConfirmPassword = !showConfirmPassword"
-                        class="absolute top-1/2 right-3 -translate-y-1/2 text-[#81aacc]">
+                        class="absolute top-1/2 right-3 -translate-y-1/2 text-[#81aacc]" tabindex="-1">
                         <i :class="showConfirmPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>

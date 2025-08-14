@@ -52,6 +52,16 @@ export const useBrand = () => {
         }
     }
 
+    const updateBrandStatus = async (id, status) => {
+        try {
+            const response = await API.patch(`/api/brands/${id}/status`, { is_active: status })
+            return response.data
+        } catch (error) {
+            console.error('Error updating brand status:', error)
+            throw error
+        }
+    }
+
     const deleteBrand = async (id) => {
         try {
             const response = await API.delete(`/api/brands/${id}`)
@@ -79,6 +89,7 @@ export const useBrand = () => {
         getBrandById,
         createBrand,
         updateBrand,
+        updateBrandStatus,
         deleteBrand,
         bulkDeleteBrands
     }

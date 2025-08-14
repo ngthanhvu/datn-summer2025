@@ -6,12 +6,21 @@ use App\Models\Coupons;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class CouponsController extends Controller
 {
     public function index()
     {
-        $coupons = Coupons::orderBy('created_at', 'desc')->get()->makeHidden(['created_at', 'updated_at']);
+        $cacheKey = 'coupons_index';
+        $cacheTTL = 3600; // 1 giờ
+
+        $coupons = Cache::tags(['coupons'])->remember($cacheKey, $cacheTTL, function () {
+            return Coupons::orderBy('created_at', 'desc')
+                ->get()
+                ->makeHidden(['created_at', 'updated_at']);
+        });
+
         return response()->json($coupons);
     }
 
@@ -36,6 +45,7 @@ class CouponsController extends Controller
         }
 
         $coupon = Coupons::create($request->all());
+        Cache::tags(['coupons'])->flush();
         return response()->json(['coupon' => $coupon, 'message' => 'Mã giảm giá đã được tạo thành công'], 201);
     }
 
@@ -62,12 +72,23 @@ class CouponsController extends Controller
         }
 
         $coupon->update($request->all());
+        Cache::tags(['coupons'])->flush();
         return response()->json(['coupon' => $coupon, 'message' => 'Mã giảm giá đã được cập nhật thành công']);
     }
 
     public function show($id)
     {
-        $coupon = Coupons::findOrFail($id);
+        $cacheKey = "coupon_show_{$id}";
+        $cacheTTL = 3600;
+
+        $coupon = Cache::tags(['coupons'])->remember($cacheKey, $cacheTTL, function () use ($id) {
+            return Coupons::find($id);
+        });
+
+        if (!$coupon) {
+            return response()->json(['error' => 'Coupon not found'], 404);
+        }
+
         return response()->json($coupon);
     }
 
@@ -97,6 +118,7 @@ class CouponsController extends Controller
         $discount = $coupon->type === 'percent'
             ? min(($request->total_amount * $coupon->value / 100), $coupon->max_discount_value ?? PHP_FLOAT_MAX)
             : $coupon->value;
+        Cache::tags(['coupons'])->flush();
 
         return response()->json([
             'discount' => $discount,
@@ -108,6 +130,7 @@ class CouponsController extends Controller
     {
         $coupon = Coupons::findOrFail($id);
         $coupon->delete();
+        Cache::tags(['coupons'])->flush();
         return response()->json(['message' => 'Mã giảm giá đã được xóa thành công']);
     }
 
@@ -129,6 +152,7 @@ class CouponsController extends Controller
             'claimed_at' => now(),
             'status' => 'claimed'
         ]);
+        Cache::tags(['coupons'])->flush();
 
         return response()->json([
             'status' => true,
@@ -172,6 +196,7 @@ class CouponsController extends Controller
             'used_at' => now(),
             'status' => 'used'
         ]);
+        Cache::tags(['coupons'])->flush();
 
         return response()->json([
             'status' => true,
@@ -192,6 +217,7 @@ class CouponsController extends Controller
         $user = Auth::user();
 
         $coupons = $user->coupons()->withPivot('status', 'claimed_at', 'used_at')->get();
+        Cache::tags(['coupons'])->flush();
 
         return response()->json([
             'status' => true,

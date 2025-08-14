@@ -20,14 +20,13 @@
       <div class="chat-header text-white p-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
           <img src="https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg"
-               alt="Avatar"
-               class="w-8 h-8 rounded-full object-cover border-2 border-white/50" />
+            alt="Avatar" class="w-8 h-8 rounded-full object-cover border-2 border-white/50" />
           <div>
             <h3 class="font-semibold">Hỗ trợ khách hàng</h3>
             <p class="text-xs opacity-90">Chat với admin</p>
           </div>
         </div>
-        <button @click="toggleChat" class="text-white hover:text-gray-200 transition-colors">
+        <button @click="toggleChat" class="close-btn" type="button" aria-label="Đóng chat">
           <i class="fas fa-times text-lg"></i>
         </button>
       </div>
@@ -35,25 +34,25 @@
       <!-- Admin Selection or Chat -->
       <div v-if="!currentAdmin" class="flex-1 overflow-hidden flex flex-col">
         <!-- Admin List -->
-        <div class="p-4">
-          <div class="text-center mb-4">
+        <div class="p-4 flex-1 overflow-hidden flex flex-col">
+          <div class="text-center mb-4 flex-shrink-0">
             <i class="fas fa-user-tie text-4xl text-gray-400 mb-2"></i>
             <h4 class="font-medium text-gray-700">Chọn admin để hỗ trợ</h4>
             <p class="text-sm text-gray-500">Chúng tôi luôn sẵn sàng hỗ trợ bạn</p>
           </div>
 
           <!-- Loading State -->
-          <div v-if="loadingAdmins" class="text-center py-8">
+          <div v-if="loadingAdmins" class="text-center py-8 flex-shrink-0">
             <i class="fas fa-spinner animate-spin text-2xl text-gray-400 mb-2"></i>
             <div class="text-gray-500">Đang tải...</div>
           </div>
 
-          <!-- Admin List -->
-          <div v-else-if="admins.length > 0" class="space-y-3">
+          <!-- Admin List with Scroll -->
+          <div v-else-if="admins.length > 0" class="flex-1 overflow-y-auto space-y-3 pr-1">
             <div v-for="admin in admins" :key="admin.id" @click="selectAdmin(admin)"
-              class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary cursor-pointer transition-all hover:shadow-sm">
+              class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary cursor-pointer transition-all hover:shadow-sm admin-list-item">
               <img src="https://cdn-img.upanhlaylink.com/img/image_202505261a100993dadd1e94d860ec123578e3cf.jpg"
-                :alt="admin.name" class="w-12 h-12 rounded-full object-cover border-2 border-primary">
+                :alt="admin.name" class="w-12 h-12 rounded-full object-cover border-2 border-primary admin-avatar">
               <div class="flex-1">
                 <div class="font-medium text-gray-800">{{ admin.name || admin.username }}</div>
                 <div class="text-sm text-gray-500 flex items-center gap-1">
@@ -66,7 +65,7 @@
           </div>
 
           <!-- No Admin State -->
-          <div v-else class="text-center py-8 text-gray-500">
+          <div v-else class="text-center py-8 text-gray-500 flex-shrink-0">
             <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
             <div>Hiện tại không có admin trực tuyến</div>
             <button @click="loadAdmins" class="mt-2 btn-primary text-white px-4 py-2 rounded-lg text-sm">
@@ -106,15 +105,14 @@
             message.sender_id === user?.id ? 'justify-end' : 'justify-start'
           ]">
             <div :class="[
-              'max-w-xs p-3 rounded-lg relative group',
+              'message-bubble',
               message.sender_id === user?.id
-                ? 'message-sent text-white'
-                : 'bg-gray-100 text-gray-900'
+                ? 'message-sent'
+                : 'message-received'
             ]">
               <!-- Attachment -->
-              <div v-if="message.attachment" class="mb-2">
-                <img v-if="isImage(message.attachment)"
-                  :src="apiBaseUrl + '/storage/' + message.attachment"
+              <div v-if="message.attachment" class="file-attachment">
+                <img v-if="isImage(message.attachment)" :src="apiBaseUrl + '/storage/' + message.attachment"
                   class="max-w-full rounded cursor-pointer"
                   @click="openImage(apiBaseUrl + '/storage/' + message.attachment)">
                 <a v-else :href="apiBaseUrl + '/storage/' + message.attachment" target="_blank"
@@ -129,7 +127,7 @@
 
               <!-- Time -->
               <div :class="[
-                'text-xs mt-1',
+                'text-xs mt-2',
                 message.sender_id === user?.id ? 'text-blue-100' : 'text-gray-500'
               ]">
                 {{ formatTime(message.sent_at) }}
@@ -151,7 +149,7 @@
           <form @submit.prevent="sendMessage" class="flex gap-2">
             <div class="flex-1 relative">
               <input v-model="newMessage" type="text" placeholder="Nhập tin nhắn..."
-                class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
+                class="w-full pr-10 pl-4 py-2 message-input rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
                 :disabled="sending">
               <label
                 class="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600">
@@ -161,14 +159,14 @@
               </label>
             </div>
             <button type="submit" :disabled="(!newMessage.trim() && !selectedFile) || sending"
-              class="btn-primary text-white px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              class="send-btn transition-all disabled:opacity-50 disabled:cursor-not-allowed">
               <i v-if="sending" class="fas fa-spinner animate-spin"></i>
               <i v-else class="fas fa-paper-plane"></i>
             </button>
           </form>
 
           <!-- Selected File Preview -->
-          <div v-if="selectedFile" class="mt-2 flex items-center gap-2 p-2 bg-gray-100 rounded">
+          <div v-if="selectedFile" class="mt-2 flex items-center gap-2 p-2 bg-gray-100 rounded file-attachment">
             <i class="fas fa-file text-gray-600"></i>
             <span class="text-sm flex-1">{{ selectedFile.name }}</span>
             <button @click="removeFile" class="text-red-500 hover:text-red-700">
@@ -180,7 +178,7 @@
     </div>
 
     <!-- Image Modal -->
-    <div v-if="showImageModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+    <div v-if="showImageModal" class="fixed inset-0 image-modal flex items-center justify-center z-50"
       @click="closeImageModal">
       <img :src="modalImage" class="max-w-[90%] max-h-[90%] object-contain">
     </div>
@@ -225,11 +223,18 @@ const loadingAdmins = ref(false)
 const pollingInterval = ref(null)
 
 const toggleChat = () => {
+  console.log('ChatWidget toggleChat called, current state:', isOpen.value)
   isOpen.value = !isOpen.value
   if (isOpen.value && props.isAuthenticated) {
     loadAdmins()
     loadUnreadCount()
+    // Thêm class để ẩn AIChatbot khi ChatWidget mở
+    document.documentElement.classList.add('chatwidget-open')
+  } else {
+    // Xóa class khi ChatWidget đóng
+    document.documentElement.classList.remove('chatwidget-open')
   }
+  console.log('ChatWidget new state:', isOpen.value)
 }
 
 const loadAdmins = async () => {
@@ -383,7 +388,9 @@ watch(isOpen, (open) => {
 
 onUnmounted(() => {
   stopPolling()
+  // Cleanup classes khi component unmount
   document.documentElement.classList.remove('chatwidget-open')
+  document.documentElement.classList.remove('ai-chatbot-open')
 })
 
 // Lắng nghe BroadcastChannel để nhận tin nhắn mới từ admin
@@ -401,18 +408,36 @@ chatChannel.onmessage = (event) => {
 .chat-button {
   background-color: #81AACC;
   border: 2px solid #fff;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.chat-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(129, 170, 204, 0.4);
 }
 
 .chat-header {
   background-color: #81AACC;
+  border-radius: 16px 16px 0 0;
 }
 
 .btn-primary {
   background-color: #81AACC;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
   background-color: #6d92b3;
+  transform: translateY(-1px);
 }
 
 .border-primary {
@@ -421,6 +446,11 @@ chatChannel.onmessage = (event) => {
 
 .message-sent {
   background-color: #81AACC;
+  color: white;
+  border-radius: 16px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  word-wrap: break-word;
 }
 
 .focus\:ring-primary:focus {
@@ -442,10 +472,9 @@ chatChannel.onmessage = (event) => {
 }
 
 .support-hint {
-  position: absolute;
-  right: 100%;
-  bottom: 0;
-  margin-right: 16px;
+  position: fixed;
+  right: 80px;
+  bottom: 20px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -454,21 +483,345 @@ chatChannel.onmessage = (event) => {
   color: #333;
   z-index: 1001;
   white-space: nowrap;
+  border: 1px solid rgba(129, 170, 204, 0.2);
+}
+
+.chat-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(129, 170, 204, 0.2);
+}
+
+/* Message styling */
+.message-bubble {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+.message-sent {
+  background-color: #81AACC;
+  color: white;
+  margin-left: auto;
+}
+
+.message-received {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+/* Input styling */
+.message-input {
+  border: 2px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 12px 16px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.message-input:focus {
+  border-color: #81AACC;
+  box-shadow: 0 0 0 3px rgba(129, 170, 204, 0.1);
+  outline: none;
+}
+
+/* Send button */
+.send-btn {
+  background-color: #81AACC;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.send-btn:hover:not(:disabled) {
+  background-color: #6d92b3;
+  transform: scale(1.05);
+}
+
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* File attachment */
+.file-attachment {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+/* Image modal */
+.image-modal {
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.image-modal img {
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive (mobile) */
 @media (max-width: 480px) {
-  .chat-button { width: 56px; height: 56px; }
-  .support-hint { padding: 8px 12px; font-size: 13px; }
+  .chat-button {
+    width: 56px;
+    height: 56px;
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .support-hint {
+    padding: 8px 12px;
+    font-size: 13px;
+    right: 80px;
+    bottom: 20px;
+    margin-right: 0;
+  }
+
   .chat-panel {
     width: calc(100vw - 20px);
     height: calc(100vh - 100px);
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    max-width: 100vw;
+    max-height: 100vh;
+    overflow: hidden;
+    border-radius: 16px;
   }
-  .chat-header { padding: 12px; }
-  .chat-header h3 { font-size: 14px; }
-  .messages-area { padding: 8px !important; }
-  .mobile-space > * + * { margin-top: 8px !important; }
-  .input-area { padding: 8px !important; }
+
+  .chat-header {
+    padding: 16px 12px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .chat-header h3 {
+    font-size: 16px;
+  }
+
+  .chat-header p {
+    font-size: 11px;
+  }
+
+  .messages-area {
+    padding: 12px 8px !important;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .mobile-space>*+* {
+    margin-top: 8px !important;
+  }
+
+  .input-area {
+    padding: 12px 8px !important;
+    border-radius: 0 0 16px 16px;
+  }
+
+  .input-container {
+    gap: 8px;
+  }
+
+  .message-input {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 20px;
+  }
+
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  /* Admin list mobile improvements */
+  .admin-list-item {
+    padding: 12px 8px;
+    margin-bottom: 8px;
+  }
+
+  .admin-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Message bubbles mobile */
+  .message-bubble {
+    max-width: 85%;
+    padding: 10px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* File attachment mobile */
+  .file-attachment {
+    max-width: 100%;
+    padding: 8px;
+  }
+
+  /* Image modal mobile */
+  .image-modal img {
+    max-width: 95%;
+    max-height: 80vh;
+  }
+
+  /* Mobile close button improvements */
+  .close-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+
+  .close-btn i {
+    font-size: 16px;
+  }
 }
 
+/* Extra small screens */
+@media (max-width: 360px) {
+  .chat-panel {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 80px);
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+
+  .chat-button {
+    width: 48px;
+    height: 48px;
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .support-hint {
+    right: 70px;
+    bottom: 16px;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .chat-header {
+    padding: 12px 8px;
+  }
+
+  .chat-header h3 {
+    font-size: 14px;
+  }
+
+  .messages-area {
+    padding: 8px 6px !important;
+  }
+
+  .input-area {
+    padding: 8px 6px !important;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 480px) and (orientation: landscape) {
+  .chat-panel {
+    height: calc(100vh - 40px);
+    top: 20px;
+    bottom: 20px;
+  }
+
+  .chat-header {
+    padding: 12px 16px;
+  }
+
+  .messages-area {
+    padding: 8px 12px !important;
+  }
+
+  .input-area {
+    padding: 8px 12px !important;
+  }
+}
+
+/* High DPI screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .chat-button {
+    border-width: 1px;
+  }
+
+  .chat-panel {
+    border-width: 1px;
+  }
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  outline: none;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn:active {
+  transform: scale(0.95);
+}
+
+.close-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Hide ChatWidget when AIChatbot is open */
+:root.ai-chatbot-open .chat-button { 
+  display: none; 
+}
+
+:root.ai-chatbot-open .support-hint { 
+  display: none; 
+}
+
+:root.ai-chatbot-open .chat-panel { 
+  display: none; 
+}
 </style>

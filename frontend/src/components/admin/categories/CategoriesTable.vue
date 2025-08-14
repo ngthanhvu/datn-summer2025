@@ -203,6 +203,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
+import { useCategories } from '../../../composable/useCategories'
+import { push } from 'notivue'
+
+const { updateCategoryStatus } = useCategories()
+
 const props = defineProps({
     categories: {
         type: Array,
@@ -247,7 +252,7 @@ const toggleSelect = (categoryId) => {
     }
 }
 
-const emit = defineEmits(['delete', 'bulkDelete', 'update:currentPage'])
+const emit = defineEmits(['delete', 'bulkDelete', 'update:currentPage', 'refresh'])
 
 const handleDelete = async (category) => {
     Swal.fire({
@@ -270,9 +275,11 @@ const toggleStatus = async (category) => {
     try {
         await updateCategoryStatus(category.id, newStatus)
         category.is_active = newStatus
-        // Nếu có notyf hoặc emit refresh thì gọi ở đây
+        push.success('Cập nhật trạng thái thành công')
+        // Emit event để parent component refresh data
+        emit('refresh')
     } catch (e) {
-        // Nếu có notyf thì báo lỗi ở đây
+        push.error('Cập nhật trạng thái thất bại')
     }
 }
 
@@ -293,12 +300,6 @@ const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value) {
         emit('update:currentPage', page)
     }
-}
-
-// Hàm giả lập gọi API cập nhật trạng thái
-const updateCategoryStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
 }
 </script>
 

@@ -27,7 +27,7 @@
 
         <CategoriesTable :categories="categories" :is-loading="isLoading" :current-page="currentPage"
             :items-per-page="itemsPerPage" @update:currentPage="currentPage = $event" @delete="handleDelete"
-            @bulk-delete="handleBulkDelete" />
+            @bulk-delete="handleBulkDelete" @refresh="handleRefresh" />
     </div>
 </template>
 
@@ -35,16 +35,36 @@
 import { ref, onMounted, computed } from 'vue'
 import CategoriesTable from './CategoriesTable.vue'
 import { useCategoryStore } from '../../../stores/categories'
+import { useCategories } from '../../../composable/useCategories'
+import { push } from 'notivue'
 
+const { deleteCategory, getCategories, bulkDeleteCategories } = useCategories()
 const categoryStore = useCategoryStore()
 const isLoading = ref(true)
 const currentPage = ref(1) // Sửa từ 10 thành 1
 const itemsPerPage = 10 // Sửa từ 1 thành 10
 
 const handleDelete = async (category) => {
+    try {
+        await deleteCategory(category.id)
+        push.success('Xoá danh mục thành công')
+        await categoryStore.fetchCategories()
+    } catch (error) {
+        console.error('Failed to delete category:', error)
+        push.error('Xoá danh mục thất bại')
+    }
 }
 
 const handleBulkDelete = async (selectedCategories) => {
+    try {
+        const ids = Array.from(selectedCategories)
+        await bulkDeleteCategories(ids)
+        push.success('Xoá danh mục hàng loạt thành công')
+        await categoryStore.fetchCategories()
+    } catch (error) {
+        console.error('Failed to bulk delete categories:', error)
+        push.error('Xoá danh mục hàng loạt thất bại')
+    }
 }
 
 const handleRefresh = async () => {

@@ -28,16 +28,55 @@ class ContactController extends Controller
         $validated = $request->validate([
             'admin_reply' => 'required|string',
         ]);
+
         $contact->admin_reply = $validated['admin_reply'];
         $contact->replied_at = now();
         $contact->save();
-        Mail::to($contact->email)->send(new ContactReply($contact, $validated['admin_reply']));
+
+        // Gửi mail bất đồng bộ
+        Mail::to($contact->email)->queue(new ContactReply($contact, $validated['admin_reply']));
+
         return response()->json(['message' => 'Đã gửi phản hồi cho người dùng!']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $contacts = Contact::orderBy('created_at', 'desc')->get();
+        $query = Contact::query();
+
+        if ($request->has('search') && $request->search && trim($request->search) !== '') {
+            $query->search(trim($request->search));
+        }
+
+        if ($request->has('status') && $request->status) {
+            switch ($request->status) {
+                case 'replied':
+                    $query->whereNotNull('admin_reply');
+                    break;
+                case 'unreplied':
+                    $query->whereNull('admin_reply');
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+
+        $allowedSortFields = ['created_at', 'name', 'email'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'created_at';
+        }
+
+        if (!in_array($sortOrder, ['asc', 'desc'])) {
+            $sortOrder = 'desc';
+        }
+
+        $query->orderBy($sortBy, $sortOrder);
+
+        $perPage = $request->get('per_page', 15);
+        $contacts = $query->paginate($perPage);
+
         return response()->json($contacts);
     }
 
@@ -54,8 +93,21 @@ class ContactController extends Controller
         $contact->delete();
 
         if (!$hasReply) {
-            Mail::to($contact->email)->send(new ContactDeleted($contact));
+            // Gửi mail bất đồng bộ
+            Mail::to($contact->email)->queue(new ContactDeleted($contact));
         }
+
         return response()->json(['message' => 'Đã xóa liên hệ thành công!']);
+    }
+
+    public function stats()
+    {
+        $stats = [
+            'total' => Contact::count(),
+            'replied' => Contact::whereNotNull('admin_reply')->count(),
+            'unreplied' => Contact::whereNull('admin_reply')->count()
+        ];
+
+        return response()->json($stats);
     }
 }
