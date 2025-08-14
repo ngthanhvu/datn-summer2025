@@ -196,7 +196,7 @@ const applyCoupon = async (code) => {
         if (result.discount !== undefined) {
             appliedCoupon.value = result.coupon
             discount.value = Math.round(result.discount)
-            error.value = null 
+            error.value = null
         } else {
             error.value = 'Mã giảm giá không hợp lệ'
         }
@@ -244,7 +244,7 @@ const handleShippingCalculated = (shippingData) => {
     if (shippingData.loading !== undefined) {
         shippingLoading.value = shippingData.loading;
     }
-    
+
     if (shippingData.shippingFee) {
         shipping.value = shippingData.shippingFee?.total || 0;
         shippingZone.value = shippingData.zone || '';
@@ -375,62 +375,11 @@ onMounted(async () => {
     <div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
         <h1 class="text-2xl font-bold mb-8">Thanh toán</h1>
 
-        <div v-if="isLoading" class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-pulse">
-            <!-- Cột trái -->
-            <div class="space-y-8">
-                <div class="bg-white p-6 rounded-lg shadow-sm space-y-6">
-                    <!-- Skeleton địa chỉ giao hàng -->
-                    <div>
-                        <div class="h-5 bg-gray-200 rounded w-1/3 mb-4"></div>
-                        <div class="space-y-4">
-                            <div class="border border-gray-300 rounded-lg p-4">
-                                <div class="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                                <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                            </div>
-                            <div class="border border-gray-300 rounded-lg p-4">
-                                <div class="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                                <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                            </div>
-                            <div class="h-10 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                    </div>
-
-                    <!-- Skeleton phương thức thanh toán -->
-                    <div>
-                        <div class="h-5 bg-gray-200 rounded w-1/3 mb-4"></div>
-                        <div class="space-y-3">
-                            <div class="h-10 bg-gray-200 rounded"></div>
-                            <div class="h-10 bg-gray-200 rounded"></div>
-                            <div class="h-10 bg-gray-200 rounded"></div>
-                            <div class="h-10 bg-gray-200 rounded"></div>
-                        </div>
-                    </div>
-                </div>
+        <div v-if="isLoading" class="flex flex-col items-center justify-center py-16">
+            <div class="mb-4">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#81AACC]"></div>
             </div>
-
-            <!-- Cột phải -->
-            <div class="space-y-8">
-                <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <div class="h-5 bg-gray-200 rounded w-1/3 mb-6"></div>
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="h-20 w-20 bg-gray-200 rounded"></div>
-                        <div class="flex-1 space-y-2">
-                            <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                    </div>
-
-                    <div class="h-10 bg-gray-200 rounded mb-4"></div>
-
-                    <div class="space-y-3 mb-6">
-                        <div class="h-4 bg-gray-200 rounded w-full"></div>
-                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                    </div>
-
-                    <div class="h-10 bg-gray-300 rounded w-full"></div>
-                </div>
-            </div>
+            <p class="text-gray-600 text-lg">Đang tải trang thanh toán...</p>
         </div>
 
         <!-- Error -->
@@ -445,43 +394,48 @@ onMounted(async () => {
         </div>
 
         <!-- Empty Cart -->
-        <div v-else-if="cartItems.length === 0" class="bg-blue-50 p-4 rounded-md text-blue-600 mb-6">
-            <p>Giỏ hàng trống. <router-link to="/products" class="underline font-medium">Tiếp tục mua sắm</router-link>
-            </p>
+        <div v-else-if="cartItems.length === 0"
+            class="p-6 rounded-md text-gray-600 mb-6 flex flex-col items-center justify-center text-center">
+            <i class="fa-solid fa-cart-shopping text-4xl mb-3"></i>
+            <p class="mb-2">Giỏ hàng đang trống, tiếp tục mua hàng để thanh toán !!</p>
+            <router-link to="/san-pham"
+                class="px-4 py-2 bg-[#81AACC] text-white rounded-md hover:bg-[#6387A6] cursor-pointer transition">
+                Tiếp tục mua sắm
+            </router-link>
         </div>
+
 
         <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="space-y-8">
                 <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <div class="mb-6">                        
+                    <div class="mb-6">
                         <div v-if="addresses.length > 0">
                             <AddressList :addresses="addresses" :selected-address="selectedAddress"
                                 @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
                                 @add="openAddressModal" />
                         </div>
-                        
-                         <div v-else class="text-center">
-                             <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                                 <p class="text-gray-500 mb-4">Bạn chưa có địa chỉ giao hàng</p>
-                                 <button @click="openAddressModal()" 
-                                     class="bg-[#81AACC] text-white px-4 py-2 rounded-lg hover:bg-[#81AACC]/80 transition-colors">
-                                     + Thêm địa chỉ mới
-                                 </button>
-                             </div>
-                         </div>
+
+                        <div v-else class="text-center">
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                                <p class="text-gray-500 mb-4">Bạn chưa có địa chỉ giao hàng</p>
+                                <button @click="openAddressModal()"
+                                    class="bg-[#81AACC] text-white px-4 py-2 rounded-lg hover:bg-[#81AACC]/80 transition-colors">
+                                    + Thêm địa chỉ mới
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    
+
                     <PaymentMethods :methods="paymentMethods" :selected-method="selectedPaymentMethod"
                         @select="selectedPaymentMethod = $event" />
                 </div>
             </div>
 
             <div class="space-y-8">
-                <OrderSummary ref="orderSummaryRef" :items="cartItems" :subtotal="subtotal" :shipping="shipping" :discount="discount"
-                    :shipping-zone="shippingZone" :shipping-loading="shippingLoading"
-                    :selected-address="currentSelectedAddress"
-                    :cart-items="cartItems" @place-order="placeOrder" @apply-coupon="applyCoupon" 
-                    @shipping-calculated="handleShippingCalculated" />
+                <OrderSummary ref="orderSummaryRef" :items="cartItems" :subtotal="subtotal" :shipping="shipping"
+                    :discount="discount" :shipping-zone="shippingZone" :shipping-loading="shippingLoading"
+                    :selected-address="currentSelectedAddress" :cart-items="cartItems" @place-order="placeOrder"
+                    @apply-coupon="applyCoupon" @shipping-calculated="handleShippingCalculated" />
             </div>
         </div>
 

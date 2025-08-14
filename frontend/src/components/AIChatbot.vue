@@ -278,23 +278,23 @@ export default {
   position: fixed;
   bottom: 90px;
   right: 20px;
-  z-index: 9999;
+  z-index: 10;
   font-family: 'Inter', sans-serif;
   max-width: 100vw;
   max-height: 100vh;
   overflow: hidden;
 }
 
-:root.chatwidget-open .ai-chatbot .chat-widget-button { 
-  display: none; 
+:root.chatwidget-open .ai-chatbot .chat-widget-button {
+  display: none;
 }
 
-:root.chatwidget-open .ai-chatbot .chat-window { 
-  display: none; 
+:root.chatwidget-open .ai-chatbot .chat-window {
+  display: none;
 }
 
-:root.chatwidget-open .ai-chatbot .widget-hint { 
-  display: none; 
+:root.chatwidget-open .ai-chatbot .widget-hint {
+  display: none;
 }
 
 .chat-widget-button {
@@ -763,13 +763,13 @@ export default {
     border-radius: 24px;
     z-index: 9999;
   }
-  
+
   .chat-widget-button {
     width: 56px;
     height: 56px;
     z-index: 9999;
   }
-  
+
   .messages-container {
     padding: 16px;
     gap: 12px;
@@ -787,16 +787,41 @@ export default {
     height: 32px;
   }
 
-  .chat-title h3 { font-size: 18px; }
-  .status { font-size: 13px; }
+  .chat-title h3 {
+    font-size: 18px;
+  }
 
-  .quick-actions { padding: 16px; gap: 10px; }
-  .quick-action-btn { padding: 10px 16px; font-size: 12px; }
+  .status {
+    font-size: 13px;
+  }
 
-  .input-area { padding: 20px; }
-  .input-container { gap: 12px; }
-  .message-input { padding: 12px 18px; font-size: 13px; }
-  .send-btn { width: 42px; height: 42px; }
+  .quick-actions {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .quick-action-btn {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .input-area {
+    padding: 20px;
+  }
+
+  .input-container {
+    gap: 12px;
+  }
+
+  .message-input {
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+
+  .send-btn {
+    width: 42px;
+    height: 42px;
+  }
 
   .close-btn {
     min-width: 44px;

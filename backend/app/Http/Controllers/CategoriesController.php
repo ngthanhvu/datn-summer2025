@@ -6,31 +6,43 @@ use App\Models\Categories;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class CategoriesController extends Controller
 {
     public function index()
     {
-        $categories = Categories::select('id', 'name', 'slug', 'description', 'image', 'is_active', 'parent_id')
-            ->withCount('products')
-            ->get();
+        $cacheKey = 'categories_index';
+        $cacheTTL = 3600; // 1 tiếng
 
-        $categories->transform(function ($category) {
-            $category->image = $category->image ? url('storage/' . $category->image) : null;
-            return $category;
+        $categories = Cache::tags(['categories'])->remember($cacheKey, $cacheTTL, function () {
+            $categories = Categories::select('id', 'name', 'slug', 'description', 'image', 'is_active', 'parent_id')
+                ->withCount('products')
+                ->get();
+
+            $categories->transform(function ($category) {
+                $category->image = $category->image ? url('storage/' . $category->image) : null;
+                return $category;
+            });
+
+            return $categories;
         });
+
         return response()->json($categories);
     }
 
     public function show($id)
     {
-        try {
+        $cacheKey = "category_show_{$id}";
+        $cacheTTL = 3600; // 1 tiếng
+
+        $category = Cache::tags(['categories'])->remember($cacheKey, $cacheTTL, function () use ($id) {
             $category = Categories::findOrFail($id);
             $category->image = $category->image ? url('storage/' . $category->image) : null;
-            return response()->json($category);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Category not found'], 404);
-        }
+            return $category;
+        });
+
+        return response()->json($category);
     }
 
     public function store(Request $request)
@@ -67,6 +79,7 @@ class CategoriesController extends Controller
             ]);
 
             $category->image = $imagePath ? url('storage/' . $imagePath) : null;
+            Cache::tags(['categories'])->flush();
             return response()->json($category, 201);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -123,6 +136,7 @@ class CategoriesController extends Controller
             ]);
 
             $category->image = $category->image ? url('storage/' . $category->image) : null;
+            Cache::tags(['categories'])->flush();
             return response()->json($category);
         } catch (\Exception $e) {
             \Log::error('Error updating category:', [
@@ -142,6 +156,7 @@ class CategoriesController extends Controller
                 Storage::disk('public')->delete($category->image);
             }
             $category->delete();
+            Cache::tags(['categories'])->flush();
             return response()->json(['message' => 'Category deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -165,12 +180,37 @@ class CategoriesController extends Controller
                 }
                 $category->delete();
             }
-
+            Cache::tags(['categories'])->flush();
             return response()->json(['message' => 'Categories deleted successfully'], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Bulk delete failed',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateStatus($id, Request $request)
+    {
+        try {
+            $request->validate([
+                'is_active' => 'required|boolean'
+            ]);
+
+            $category = Categories::findOrFail($id);
+            $category->is_active = $request->boolean('is_active');
+            $category->save();
+
+            Cache::tags(['categories'])->flush();
+
+            return response()->json([
+                'message' => 'Category status updated successfully',
+                'category' => $category
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update category status',
+                'error' => $e->getMessage()
             ], 500);
         }
     }

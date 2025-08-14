@@ -4,33 +4,36 @@ namespace App\Http\Controllers;
 
 use App\Models\FlashSale;
 use App\Models\FlashSaleProduct;
-use App\Models\StockMovement;
-use App\Models\StockMovementItem;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class FlashSaleController extends Controller
 {
     public function index()
     {
-        $flashSales = FlashSale::with([
-            'products.product.mainImage',
-            'products.product.categories',
-            'products.product.brand',
-            'products.product.variants',
-        ])->get();
+        $cacheKey = 'flash_sales_index';
+        $cacheTTL = 300; // 5 phút
 
-        foreach ($flashSales as $fs) {
-            foreach ($fs->products as $p) {
-                if ($p->product) {
-                    $p->product->flash_sale_quantity = $p->quantity;
-                    $p->product->flash_sale_sold = $p->sold;
-                    $p->product->flash_price = $p->flash_price;
+        $flashSales = Cache::tags(['flash_sales'])->remember($cacheKey, $cacheTTL, function () {
+            $data = FlashSale::with([
+                'products.product.mainImage',
+                'products.product.categories',
+                'products.product.brand',
+                'products.product.variants',
+            ])->get();
+
+            foreach ($data as $fs) {
+                foreach ($fs->products as $p) {
+                    if ($p->product) {
+                        $p->product->flash_sale_quantity = $p->quantity;
+                        $p->product->flash_sale_sold = $p->sold;
+                        $p->product->flash_price = $p->flash_price;
+                    }
                 }
             }
-        }
+            return $data;
+        });
 
         return response()->json($flashSales);
     }
@@ -64,6 +67,7 @@ class FlashSaleController extends Controller
                 ]);
             }
             DB::commit();
+            Cache::tags(['flash_sales'])->flush();
             return response()->json(['success' => true, 'flash_sale' => $flashSale->load('products.product')]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -102,6 +106,7 @@ class FlashSaleController extends Controller
                 ]);
             }
             DB::commit();
+            Cache::tags(['flash_sales'])->flush();
             return response()->json(['success' => true, 'flash_sale' => $flashSale->load('products.product')]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -117,6 +122,7 @@ class FlashSaleController extends Controller
             $flashSale->products()->delete();
             $flashSale->delete();
             DB::commit();
+            Cache::tags(['flash_sales'])->flush();
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -126,19 +132,27 @@ class FlashSaleController extends Controller
 
     public function show($id)
     {
-        $flashSale = FlashSale::with([
-            'products.product.mainImage',
-            'products.product.categories',
-            'products.product.brand',
-            'products.product.variants',
-        ])->findOrFail($id);
-        foreach ($flashSale->products as $p) {
-            if ($p->product) {
-                $p->product->flash_sale_quantity = $p->quantity;
-                $p->product->flash_sale_sold = $p->sold;
-                $p->product->flash_price = $p->flash_price;
+        $cacheKey = "flash_sale_show_{$id}";
+        $cacheTTL = 300; // 5 phút
+
+        $flashSale = Cache::tags(['flash_sales'])->remember($cacheKey, $cacheTTL, function () use ($id) {
+            $fs = FlashSale::with([
+                'products.product.mainImage',
+                'products.product.categories',
+                'products.product.brand',
+                'products.product.variants',
+            ])->findOrFail($id);
+
+            foreach ($fs->products as $p) {
+                if ($p->product) {
+                    $p->product->flash_sale_quantity = $p->quantity;
+                    $p->product->flash_sale_sold = $p->sold;
+                    $p->product->flash_price = $p->flash_price;
+                }
             }
-        }
+            return $fs;
+        });
+
         return response()->json($flashSale);
     }
-} 
+}

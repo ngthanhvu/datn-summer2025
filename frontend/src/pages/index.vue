@@ -4,40 +4,58 @@
         <ServiceFeatures />
         <CategoriesList />
 
-        <div class="mt-3" v-if="showFlashSale">
-            <!-- <div class="bg-[#e6f0fa] p-8 rounded-[5px] shadow-md relative overflow-hidden"> -->
-            <!-- <Snowfall /> -->
-            <FlashSale @has-flash-sale="handleFlashSaleStatus" />
-            <!-- </div> -->
-        </div>
-
-        <div class="mt-3">
-            <Trending />
-        </div>
-
-        <div class="mt-3">
-            <div class="bg-white p-5 rounded-[5px]">
-                <CouponList />
+        <LazyLoader @visible="loadFlashSale">
+            <div class="mt-3" v-if="showFlashSale">
+                <FlashSale @has-flash-sale="handleFlashSaleStatus" />
             </div>
-        </div>
+        </LazyLoader>
 
-        <div class="mt-3">
-            <NewProducts />
-        </div>
-        <div class="mt-3">
-            <Banner />
-        </div>
+        <LazyLoader @visible="loadTrending">
+            <div class="mt-3">
+                <Trending />
+            </div>
+        </LazyLoader>
 
-        <CategoriesProducts />
-        <HotBrands />
-        <ReviewLatest />
-        <FeaturedBlogs />
+        <LazyLoader @visible="loadCoupons">
+            <div class="mt-3">
+                <div class="bg-white p-5 rounded-[5px]">
+                    <CouponList />
+                </div>
+            </div>
+        </LazyLoader>
+
+        <LazyLoader @visible="loadNewProducts">
+            <div class="mt-3">
+                <NewProducts />
+            </div>
+        </LazyLoader>
+
+        <LazyLoader @visible="loadBanner">
+            <div class="mt-3">
+                <Banner />
+            </div>
+        </LazyLoader>
+
+        <LazyLoader @visible="loadCategoriesProducts">
+            <CategoriesProducts />
+        </LazyLoader>
+
+        <LazyLoader @visible="loadHotBrands">
+            <HotBrands />
+        </LazyLoader>
+
+        <LazyLoader @visible="loadReviewLatest">
+            <ReviewLatest />
+        </LazyLoader>
+
+        <LazyLoader @visible="loadFeaturedBlogs">
+            <FeaturedBlogs />
+        </LazyLoader>
     </div>
-
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useHead } from '@vueuse/head';
 import Banner from '../components/home/Banner.vue';
 import SwiperSlider from '../components/home/SwiperSlider.vue';
@@ -50,8 +68,10 @@ import HotBrands from '../components/home/HotBrands.vue';
 import ReviewLatest from '../components/home/ReviewLatest.vue';
 import FeaturedBlogs from '../components/home/FeaturedBlogs.vue';
 import FlashSale from '../components/home/FlashSale.vue';
-import Snowfall from '../components/common/Snowfall.vue';
 import Trending from '../components/home/Trending.vue';
+import LazyLoader from '../components/common/LazyLoader.vue';
+import { useLazyLoading } from '../composable/useLazyLoading';
+
 useHead({
     title: "Trang chủ | DEVGANG",
     meta: [
@@ -65,6 +85,78 @@ useHead({
 const showFlashSale = ref(true);
 const handleFlashSaleStatus = (status) => {
     showFlashSale.value = status
+}
+
+const {
+    loadingStates,
+    loadedStates,
+    data,
+    loadComponentData,
+    isComponentLoaded,
+    isComponentLoading
+} = useLazyLoading()
+
+const loadFlashSale = async () => {
+    if (!isComponentLoaded('flashSale')) {
+        await loadComponentData('flashSale', async () => {
+        })
+    }
+}
+
+const loadTrending = async () => {
+    if (!isComponentLoaded('trending')) {
+        await loadComponentData('trending', async () => {
+        })
+    }
+}
+
+const loadCoupons = async () => {
+    if (!isComponentLoaded('coupons')) {
+        await loadComponentData('coupons', async () => {
+        })
+    }
+}
+
+const loadNewProducts = async () => {
+    if (!isComponentLoaded('newProducts')) {
+        await loadComponentData('newProducts', async () => {
+        })
+    }
+}
+
+const loadBanner = async () => {
+    if (!isComponentLoaded('banner')) {
+        await loadComponentData('banner', async () => {
+        })
+    }
+}
+
+const loadCategoriesProducts = async () => {
+    if (!isComponentLoaded('categoriesProducts')) {
+        await loadComponentData('categoriesProducts', async () => {
+        })
+    }
+}
+
+const loadHotBrands = async () => {
+    if (!isComponentLoaded('hotBrands')) {
+        await loadComponentData('hotBrands', async () => {
+        })
+    }
+}
+
+const loadReviewLatest = async () => {
+    if (!isComponentLoaded('reviewLatest')) {
+        await loadComponentData('reviewLatest', async () => {
+        })
+    }
+}
+
+const loadFeaturedBlogs = async () => {
+    if (!isComponentLoaded('featuredBlogs')) {
+        await loadComponentData('featuredBlogs', async () => {
+        })
+    }
 }
 </script>
 

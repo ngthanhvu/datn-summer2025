@@ -202,6 +202,12 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import Swal from 'sweetalert2'
+import { useBrand } from '../../../composable/useBrand'
+import { push } from 'notivue'
+
+const { updateBrandStatus } = useBrand()
+
 const props = defineProps({
     brands: {
         type: Array,
@@ -280,7 +286,7 @@ const paginatedBrands = computed(() => {
 
 const totalPages = computed(() => Math.ceil(props.brands.length / props.itemsPerPage))
 
-const emit = defineEmits(['update:currentPage', 'delete', 'bulkDelete'])
+const emit = defineEmits(['update:currentPage', 'delete', 'bulkDelete', 'refresh'])
 
 const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value) {
@@ -293,16 +299,12 @@ const toggleStatus = async (brand) => {
     try {
         await updateBrandStatus(brand.id, newStatus)
         brand.is_active = newStatus
-        // Nếu có notyf hoặc emit refresh thì gọi ở đây
+        push.success('Cập nhật trạng thái thành công')
+        // Emit event để parent component refresh data
+        emit('refresh')
     } catch (e) {
-        // Nếu có notyf thì báo lỗi ở đây
+        push.error('Cập nhật trạng thái thất bại')
     }
-}
-
-// Hàm giả lập gọi API cập nhật trạng thái
-const updateBrandStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
 }
 </script>
 

@@ -57,6 +57,16 @@ export const useCategories = () => {
         }
     }
 
+    const updateCategoryStatus = async (id, status) => {
+        try {
+            const response = await API.patch(`/api/categories/${id}/status`, { is_active: status })
+            return response.data
+        } catch (error) {
+            console.error('❌ Error updating category status:', error)
+            throw error
+        }
+    }
+
     const deleteCategory = async (id) => {
         try {
             const response = await API.delete(`/api/categories/${id}`)
@@ -108,6 +118,7 @@ export const useCategories = () => {
         getCategoryById,
         createCategory,
         updateCategory,
+        updateCategoryStatus,
         deleteCategory,
         bulkDeleteCategories,
         logCategoryStats

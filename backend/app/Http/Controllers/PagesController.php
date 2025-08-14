@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class PagesController extends Controller
 {
@@ -15,21 +16,26 @@ class PagesController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Pages::with(['creator', 'updater']);
+        $cacheKey = 'pages_index_' . md5(json_encode($request->all()));
+        $cacheTTL = 3600; // 1 tiếng
 
-        if ($request->has('type') && $request->type) {
-            $query->where('type', $request->type);
-        }
+        $pages = Cache::tags(['pages'])->remember($cacheKey, $cacheTTL, function () use ($request) {
+            $query = Pages::with(['creator', 'updater']);
 
-        if ($request->has('status') && $request->status !== '') {
-            $query->where('status', $request->status);
-        }
+            if ($request->has('type') && $request->type) {
+                $query->where('type', $request->type);
+            }
 
-        if ($request->has('search') && $request->search) {
-            $query->where('title', 'like', '%' . $request->search . '%');
-        }
+            if ($request->has('status') && $request->status !== '') {
+                $query->where('status', $request->status);
+            }
 
-        $pages = $query->ordered()->paginate(10);
+            if ($request->has('search') && $request->search) {
+                $query->where('title', 'like', '%' . $request->search . '%');
+            }
+
+            return $query->ordered()->paginate(10);
+        });
 
         return response()->json([
             'success' => true,
@@ -82,6 +88,7 @@ class PagesController extends Controller
             'created_by' => Auth::id(),
             'updated_by' => Auth::id()
         ]);
+        Cache::tags(['pages'])->flush();
 
         return response()->json([
             'success' => true,
@@ -95,7 +102,12 @@ class PagesController extends Controller
      */
     public function show($id)
     {
-        $page = Pages::with(['creator', 'updater'])->find($id);
+        $cacheKey = "page_show_{$id}";
+        $cacheTTL = 3600;
+
+        $page = Cache::tags(['pages'])->remember($cacheKey, $cacheTTL, function () use ($id) {
+            return Pages::with(['creator', 'updater'])->find($id);
+        });
 
         if (!$page) {
             return response()->json([
@@ -166,6 +178,7 @@ class PagesController extends Controller
             'sort_order' => $request->sort_order,
             'updated_by' => Auth::id()
         ]);
+        Cache::tags(['pages'])->flush();
 
         return response()->json([
             'success' => true,
@@ -189,7 +202,7 @@ class PagesController extends Controller
         }
 
         $page->delete();
-
+        Cache::tags(['pages'])->flush();
         return response()->json([
             'success' => true,
             'message' => 'Page deleted successfully'
@@ -201,10 +214,15 @@ class PagesController extends Controller
      */
     public function getByType($type)
     {
-        $pages = Pages::where('type', $type)
-            ->where('status', true)
-            ->ordered()
-            ->get();
+        $cacheKey = "pages_type_{$type}";
+        $cacheTTL = 3600;
+
+        $pages = Cache::tags(['pages'])->remember($cacheKey, $cacheTTL, function () use ($type) {
+            return Pages::where('type', $type)
+                ->where('status', true)
+                ->ordered()
+                ->get();
+        });
 
         return response()->json([
             'success' => true,
@@ -218,9 +236,14 @@ class PagesController extends Controller
      */
     public function getBySlug($slug)
     {
-        $page = Pages::where('slug', $slug)
-            ->where('status', true)
-            ->first();
+        $cacheKey = "page_slug_{$slug}";
+        $cacheTTL = 3600;
+
+        $page = Cache::tags(['pages'])->remember($cacheKey, $cacheTTL, function () use ($slug) {
+            return Pages::where('slug', $slug)
+                ->where('status', true)
+                ->first();
+        });
 
         if (!$page) {
             return response()->json([
@@ -266,6 +289,7 @@ class PagesController extends Controller
             'status' => $request->status,
             'updated_by' => Auth::id()
         ]);
+        Cache::tags(['pages'])->flush();
 
         return response()->json([
             'success' => true,

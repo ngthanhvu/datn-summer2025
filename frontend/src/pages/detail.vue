@@ -17,7 +17,13 @@
         @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
         @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts"
         @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
-    <div v-else class="text-center py-10 mt-10">Đang tải sản phẩm...</div>
+    <div v-else class="flex flex-col items-center justify-center h-screen">
+        <div class="mb-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#81AACC]"></div>
+        </div>
+        <p class="text-gray-600 text-lg">Đang tải sản phẩm...</p>
+    </div>
+
 </template>
 
 <script setup>
@@ -421,11 +427,11 @@ const relatedProducts = ref([])
 const fetchRelatedProducts = async () => {
     if (product.value?.categories_id) {
         try {
-            const products = await getProducts()
+            const result = await getProducts()
+            const products = result.products || []
             relatedProducts.value = products
                 .filter(p => p.categories_id === product.value.categories_id && p.id !== product.value.id)
                 .slice(0, 5)
-
         } catch (error) {
             console.error('Error fetching related products:', error)
         }
@@ -493,5 +499,3 @@ onMounted(async () => {
     }
 })
 </script>
-
-<style scoped lang="scss"></style>

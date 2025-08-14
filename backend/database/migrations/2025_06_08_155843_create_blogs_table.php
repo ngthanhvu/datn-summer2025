@@ -18,7 +18,7 @@ return new class extends Migration
             $table->longText('content');
             $table->string('slug')->unique();
             $table->string('image')->nullable();
-            $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+            $table->enum('status', ['draft', 'published'])->default('published');
             $table->timestamp('published_at')->nullable();
             $table->unsignedBigInteger('author_id');
             $table->timestamps();
