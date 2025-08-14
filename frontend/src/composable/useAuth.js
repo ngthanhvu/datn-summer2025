@@ -1,7 +1,8 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import Swal from 'sweetalert2'
 
 const token = ref(Cookies.get('token') || null)
 const userInfo = ref(Cookies.get('user') ? JSON.parse(Cookies.get('user')) : null)
@@ -217,6 +218,57 @@ const deleteUser = async (id) => {
     }
 }
 
+const googleLogin = async () => {
+    try {
+        const res = await API.get('/api/google')
+        if (res.data.url) {
+            window.location.href = res.data.url
+        } else {
+            throw new Error('Không lấy được Google login URL')
+        }
+    } catch (err) {
+        console.error('Google login error:', err.response?.data || err.message)
+        throw err
+    }
+}
+
+const handleGoogleCallback = async (tokenFromQuery, userFromQuery, error) => {
+    try {
+        if (error) {
+            throw new Error(error)
+        }
+        if (!tokenFromQuery || !userFromQuery) {
+            throw new Error('Thiếu token hoặc user từ Google callback')
+        }
+
+        token.value = tokenFromQuery
+        Cookies.set('token', token.value, { expires: 1 })
+
+        const parsedUser = JSON.parse(decodeURIComponent(userFromQuery))
+        userInfo.value = parsedUser
+        user.value = parsedUser
+        Cookies.set('user', JSON.stringify(parsedUser), { expires: 1 })
+
+        isAuthenticated.value = true
+        isAdmin.value = user.value?.role === 'admin'
+
+        Swal.fire({
+            toast: true,
+            icon: 'success',
+            title: 'Đăng nhập thành công!',
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        })
+
+        return true
+    } catch (err) {
+        console.error('Google callback error:', err.response?.data || err.message)
+        throw err
+    }
+}
+
 const getToken = () => token.value
 
 export const useAuth = () => {
@@ -240,6 +292,8 @@ export const useAuth = () => {
         getToken,
         updateUserByAdmin,
         updateCustomerStatus,
-        deleteUser
+        deleteUser,
+        googleLogin,
+        handleGoogleCallback
     }
 }

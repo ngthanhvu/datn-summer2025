@@ -7,6 +7,7 @@ import ProductsPage from '../pages/products.vue';
 import ProducDetail from '../pages/detail.vue';
 import LoginPage from '../pages/auth/login.vue';
 import RegisterPage from '../pages/auth/register.vue';
+import GoogleCallback from '../pages/auth/googleCallback.vue';
 import ForgotPasswordPage from '../pages/forgotPassword.vue'
 import ResetPasswordPage from '../pages/resetPassword.vue'
 import ProfilePage from '../pages/profile.vue';
@@ -79,6 +80,11 @@ const routes = [
             {
                 path: '/register',
                 component: RegisterPage,
+                meta: { guestOnly: true }
+            },
+            {
+                path: '/auth/google/callback',
+                component: GoogleCallback,
                 meta: { guestOnly: true }
             },
             {
