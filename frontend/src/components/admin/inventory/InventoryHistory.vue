@@ -453,7 +453,180 @@ const closePrintModal = () => {
 }
 
 const printDocument = () => {
-    window.print()
+    const printWindow = window.open('', '_blank')
+    const receiptContent = document.querySelector('.receipt-content')
+    
+    if (receiptContent && printWindow) {
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Phiếu ${selectedMovement.value?.type === 'import' ? 'Nhập' : 'Xuất'} Kho #${selectedMovement.value?.id}</title>
+                <style>
+                    body {
+                        font-family: 'Times New Roman', serif;
+                        margin: 0;
+                        padding: 20px;
+                        line-height: 1.4;
+                        color: black;
+                    }
+                    .receipt-content {
+                        max-width: 800px;
+                        margin: 0 auto;
+                    }
+                    h1 {
+                        text-align: center;
+                        font-size: 24px;
+                        font-weight: bold;
+                        margin-bottom: 20px;
+                    }
+                    .header-info {
+                        text-align: center;
+                        margin-bottom: 30px;
+                    }
+                    .header-info p {
+                        margin: 5px 0;
+                    }
+                    .info-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 30px;
+                        margin-bottom: 30px;
+                    }
+                    .info-section h3 {
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                    }
+                    .info-section p {
+                        margin: 5px 0;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 30px;
+                    }
+                    th, td {
+                        border: 1px solid #000;
+                        padding: 8px;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #f5f5f5;
+                        font-weight: bold;
+                    }
+                    .text-center {
+                        text-align: center;
+                    }
+                    .text-right {
+                        text-align: right;
+                    }
+                    .signatures {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 30px;
+                        margin-top: 50px;
+                    }
+                    .signature-box {
+                        text-align: center;
+                    }
+                    .signature-line {
+                        border-top: 1px solid #000;
+                        margin-top: 40px;
+                        padding-top: 10px;
+                    }
+                    @media print {
+                        body {
+                            margin: 0;
+                            padding: 15px;
+                        }
+                        .receipt-content {
+                            max-width: none;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-content">
+                    <div class="header-info">
+                        <h1>${selectedMovement.value?.type === 'import' ? 'PHIẾU NHẬP KHO' : 'PHIẾU XUẤT KHO'}</h1>
+                        <p><strong>Số phiếu: #${selectedMovement.value?.id}</strong></p>
+                        <p>Ngày: ${formatDate(selectedMovement.value?.created_at)}</p>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-section">
+                            <h3>Thông tin phiếu:</h3>
+                            <p><strong>Loại:</strong> ${selectedMovement.value?.type === 'import' ? 'Nhập kho' : 'Xuất kho'}</p>
+                            <p><strong>Người tạo:</strong> ${selectedMovement.value?.user?.username || 'N/A'}</p>
+                            <p><strong>Ngày tạo:</strong> ${formatDate(selectedMovement.value?.created_at)}</p>
+                        </div>
+                        <div class="info-section">
+                            <h3>Ghi chú:</h3>
+                            <p>${selectedMovement.value?.note || 'Không có ghi chú'}</p>
+                        </div>
+                    </div>
+
+                    <h3>Danh sách sản phẩm:</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Tên sản phẩm</th>
+                                <th>SKU</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-right">Đơn giá</th>
+                                <th class="text-right">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${selectedMovement.value?.items?.map((item, index) => `
+                                <tr>
+                                    <td class="text-center">${index + 1}</td>
+                                    <td>${item.variant.product.name}</td>
+                                    <td>${item.variant.sku}</td>
+                                    <td class="text-center">${item.quantity}</td>
+                                    <td class="text-right">${formatCurrency(item.unit_price)}</td>
+                                    <td class="text-right">${formatCurrency(item.quantity * item.unit_price)}</td>
+                                </tr>
+                            `).join('') || ''}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>Tổng cộng:</strong></td>
+                                <td class="text-center"><strong>${totalQuantity}</strong></td>
+                                <td class="text-right">-</td>
+                                <td class="text-right"><strong>${formatCurrency(totalAmount)}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="signatures">
+                        <div class="signature-box">
+                            <p class="signature-line"><strong>Người lập phiếu</strong></p>
+                            <p>${selectedMovement.value?.user?.username || 'N/A'}</p>
+                        </div>
+                        <div class="signature-box">
+                            <p class="signature-line"><strong>Thủ kho</strong></p>
+                            <p>_________________</p>
+                        </div>
+                        <div class="signature-box">
+                            <p class="signature-line"><strong>Giám đốc</strong></p>
+                            <p>_________________</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `)
+        
+        printWindow.document.close()
+        printWindow.focus()
+        
+        printWindow.onload = function() {
+            printWindow.print()
+            printWindow.close()
+        }
+    }
 }
 
 onMounted(() => {
@@ -462,72 +635,6 @@ onMounted(() => {
 </script>
 
 <style>
-@media print {
-    .no-print {
-        display: none !important;
-    }
-
-    /* Reset body styles for printing */
-    body {
-        margin: 0;
-        padding: 0;
-        background: white !important;
-    }
-
-    /* Hide all content except the receipt */
-    body * {
-        display: none !important;
-    }
-
-    /* Show only the receipt content */
-    .receipt-content,
-    .receipt-content * {
-        display: block !important;
-        visibility: visible !important;
-    }
-
-    /* Ensure receipt content is properly positioned */
-    .receipt-content {
-        position: relative !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        background: white !important;
-        margin: 0 !important;
-        padding: 20px !important;
-        page-break-inside: avoid;
-    }
-
-    /* Reset modal positioning for print */
-    .fixed {
-        position: static !important;
-        inset: auto !important;
-    }
-
-    /* Ensure table doesn't break across pages */
-    .receipt-content table {
-        page-break-inside: avoid;
-        width: 100% !important;
-    }
-
-    /* Ensure text is visible */
-    .receipt-content h1,
-    .receipt-content h3,
-    .receipt-content p,
-    .receipt-content span,
-    .receipt-content td,
-    .receipt-content th {
-        color: #000 !important;
-        visibility: visible !important;
-    }
-
-    /* Remove any background colors that might interfere */
-    .bg-gray-50,
-    .bg-white {
-        background: transparent !important;
-    }
-}
-
 .receipt-content {
     font-family: 'Times New Roman', serif;
     line-height: 1.4;
