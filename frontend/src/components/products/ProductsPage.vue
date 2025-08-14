@@ -45,13 +45,15 @@
                         </button>
                         <div class="relative w-full md:w-64">
                             <input type="text" v-model="searchQuery" @input="handleSearch"
-                                placeholder="Tìm kiếm sản phẩm..."
-                                :class="[
+                                placeholder="Tìm kiếm sản phẩm..." :class="[
                                     'w-full px-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
                                     productStore.loading ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
                                 ]" />
-                            <div v-if="productStore.loading" class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <div class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                            <div v-if="productStore.loading"
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <div
+                                    class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full">
+                                </div>
                             </div>
                             <svg v-else xmlns="http://www.w3.org/2000/svg"
                                 class="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -103,7 +105,7 @@
                         </div>
                     </div>
                 </div>
-              
+
                 <!-- Products Grid -->
                 <div v-if="filteredProducts && filteredProducts.length > 0"
                     class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 bg-white p-4 md:p-6 rounded-lg shadow-sm">
@@ -125,13 +127,14 @@
                                 {{ searchQuery.trim() ? 'Không tìm thấy sản phẩm phù hợp' : 'Không có sản phẩm nào' }}
                             </h3>
                             <p class="text-gray-500">
-                                {{ searchQuery.trim() 
-                                    ? `Không có sản phẩm nào phù hợp với từ khóa "${searchQuery}". Vui lòng thử từ khóa khác hoặc điều chỉnh bộ lọc.`
+                                {{ searchQuery.trim()
+                                    ? `Không có sản phẩm nào phù hợp với từ khóa "${searchQuery}". Vui lòng thử từ khóa khác
+                                hoặc điều chỉnh bộ lọc.`
                                     : 'Không có sản phẩm nào phù hợp với bộ lọc hiện tại. Vui lòng thử điều chỉnh bộ lọc.'
                                 }}
                             </p>
                             <div v-if="searchQuery.trim()" class="mt-4">
-                                <button @click="clearSearch" 
+                                <button @click="clearSearch"
                                     class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
                                     Xóa từ khóa tìm kiếm
                                 </button>
@@ -171,7 +174,6 @@ import QuickView from '../products/Quick-view.vue'
 
 const productStore = useProductStore()
 
-// Ensure store is properly initialized with default values
 if (!productStore.products) {
     productStore.products = []
 }
@@ -190,27 +192,17 @@ if (!productStore.pagination) {
 }
 
 onMounted(() => {
-    console.log('Component mounted, store state:', {
-        products: productStore.products,
-        loading: productStore.loading,
-        pagination: productStore.pagination
-    })
-    
-    // Ensure store is initialized before fetching products
     if (productStore) {
-        // Apply current sorting
         const [field, direction] = sortOption.value.split('_')
         const sortFilters = {
             ...filters.value,
             sort_by: field,
             sort_direction: direction
         }
-        console.log('Fetching products with filters:', sortFilters)
         productStore.fetchProducts(sortFilters, currentPage.value)
     }
 })
 
-// Cleanup timeout when component unmounts
 onUnmounted(() => {
     if (searchTimeout.value) {
         clearTimeout(searchTimeout.value)
@@ -220,7 +212,7 @@ onUnmounted(() => {
 const showFilter = ref(false)
 const searchQuery = ref('')
 const currentPage = ref(1)
-const searchTimeout = ref(null) // Thêm timeout cho debounce
+const searchTimeout = ref(null)
 
 const sortOption = ref('name_asc')
 
@@ -248,15 +240,14 @@ function closeQuickView() {
 const handleFilter = (newFilter) => {
     filters.value = { ...filters.value, ...newFilter }
     currentPage.value = 1
-    
-    // Apply current sorting
+
     const [field, direction] = sortOption.value.split('_')
     const sortFilters = {
         ...filters.value,
         sort_by: field,
         sort_direction: direction
     }
-    
+
     if (productStore) {
         if (searchQuery.value.trim()) {
             productStore.searchProductsAction(searchQuery.value, sortFilters, currentPage.value)
@@ -270,12 +261,10 @@ const handleFilter = (newFilter) => {
 }
 
 const handleSearch = () => {
-    // Clear previous timeout
     if (searchTimeout.value) {
         clearTimeout(searchTimeout.value)
     }
-    
-    // Set new timeout for debounce (500ms)
+
     searchTimeout.value = setTimeout(() => {
         performSearch()
     }, 500)
@@ -283,27 +272,18 @@ const handleSearch = () => {
 
 const performSearch = () => {
     currentPage.value = 1
-    
-    // Apply current sorting
+
     const [field, direction] = sortOption.value.split('_')
     const sortFilters = {
         ...filters.value,
         sort_by: field,
         sort_direction: direction
     }
-    
-    console.log('Component: Performing search with query:', searchQuery.value, 'and filters:', sortFilters)
-    console.log('Component: Current store state before search:', {
-        products: productStore.products,
-        loading: productStore.loading
-    })
-    
+
     if (productStore) {
         if (searchQuery.value.trim()) {
-            console.log('Component: Calling searchProductsAction')
             productStore.searchProductsAction(searchQuery.value, sortFilters, currentPage.value)
         } else {
-            console.log('Component: Calling fetchProducts')
             productStore.fetchProducts(sortFilters, currentPage.value)
         }
     }
@@ -311,14 +291,13 @@ const performSearch = () => {
 
 const handleSort = () => {
     currentPage.value = 1
-    // Parse sort option and add to filters
     const [field, direction] = sortOption.value.split('_')
     const sortFilters = {
         ...filters.value,
         sort_by: field,
         sort_direction: direction
     }
-    
+
     if (productStore) {
         if (searchQuery.value.trim()) {
             productStore.searchProductsAction(searchQuery.value, sortFilters, currentPage.value)
@@ -328,23 +307,22 @@ const handleSort = () => {
     }
 }
 
-// Watch for search query changes - chỉ gọi API khi query thay đổi đáng kể
 watch(searchQuery, (newQuery, oldQuery) => {
     if (newQuery !== oldQuery) {
         if (searchTimeout.value) {
             clearTimeout(searchTimeout.value)
         }
-        
+
         searchTimeout.value = setTimeout(() => {
             currentPage.value = 1
-            
+
             const [field, direction] = sortOption.value.split('_')
             const sortFilters = {
                 ...filters.value,
                 sort_by: field,
                 sort_direction: direction
             }
-            
+
             if (productStore) {
                 if (newQuery.trim() === '') {
                     productStore.fetchProducts(sortFilters, currentPage.value)
@@ -356,15 +334,8 @@ watch(searchQuery, (newQuery, oldQuery) => {
     }
 })
 
-// Computed properties sử dụng data từ store
 const filteredProducts = computed(() => {
     const products = productStore.products || []
-    console.log('Computed filteredProducts:', {
-        storeProducts: productStore.products,
-        productsLength: products.length,
-        searchQuery: searchQuery.value,
-        loading: productStore.loading
-    })
     return products
 })
 const totalPages = computed(() => productStore.pagination?.last_page || 1)
@@ -372,15 +343,14 @@ const totalPages = computed(() => productStore.pagination?.last_page || 1)
 const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value && productStore) {
         currentPage.value = page
-        
-        // Apply current sorting
+
         const [field, direction] = sortOption.value.split('_')
         const sortFilters = {
             ...filters.value,
             sort_by: field,
             sort_direction: direction
         }
-        
+
         if (searchQuery.value.trim()) {
             productStore.searchProductsAction(searchQuery.value, sortFilters, page)
         } else {
@@ -392,15 +362,14 @@ const goToPage = (page) => {
 const clearSearch = () => {
     searchQuery.value = ''
     currentPage.value = 1
-    
-    // Apply current sorting
+
     const [field, direction] = sortOption.value.split('_')
     const sortFilters = {
         ...filters.value,
         sort_by: field,
         sort_direction: direction
     }
-    
+
     if (productStore) {
         productStore.fetchProducts(sortFilters, currentPage.value)
     }

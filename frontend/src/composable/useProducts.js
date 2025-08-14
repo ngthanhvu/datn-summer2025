@@ -316,7 +316,6 @@ export const useProducts = () => {
 
     const searchProducts = async (query, filters = {}, page = 1) => {
         try {
-            console.log('Searching products with:', { query, filters, page })
             const params = new URLSearchParams()
             if (query) {
                 params.append('q', query)
@@ -358,21 +357,15 @@ export const useProducts = () => {
                     params.append('size', filters.size);
                 }
             }
-            
-            // Add sorting support
+
             if (filters.sort_by) {
                 params.append('sort_by', filters.sort_by)
                 params.append('sort_direction', filters.sort_direction || 'asc')
             }
 
             const response = await API.get(`/api/products/search?${params.toString()}`)
-            console.log('Search API response:', response.data)
-            console.log('Search API response type:', typeof response.data)
-            console.log('Search API response is array:', Array.isArray(response.data))
-            
-            // Return the same structure as getProducts for consistency
+
             if (response.data && response.data.data) {
-                console.log('Using response.data.data structure')
                 return {
                     products: response.data.data,
                     pagination: {
@@ -385,7 +378,6 @@ export const useProducts = () => {
                     }
                 }
             } else if (Array.isArray(response.data)) {
-                console.log('Using response.data as array structure')
                 return {
                     products: response.data,
                     pagination: {
