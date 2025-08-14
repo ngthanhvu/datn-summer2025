@@ -39,15 +39,21 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                    d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                             Lọc sản phẩm
                         </button>
                         <div class="relative w-full md:w-64">
                             <input type="text" v-model="searchQuery" @input="handleSearch"
                                 placeholder="Tìm kiếm sản phẩm..."
-                                class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                            <svg xmlns="http://www.w3.org/2000/svg"
+                                :class="[
+                                    'w-full px-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
+                                    productStore.loading ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
+                                ]" />
+                            <div v-if="productStore.loading" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <div class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                            </div>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg"
                                 class="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -97,33 +103,45 @@
                         </div>
                     </div>
                 </div>
-
+              
                 <!-- Products Grid -->
-                <div v-else-if="filteredProducts.length > 0"
+                <div v-if="filteredProducts && filteredProducts.length > 0"
                     class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 bg-white p-4 md:p-6 rounded-lg shadow-sm">
                     <Card v-for="product in filteredProducts" :key="product.id" :product="product"
                         @quick-view="openQuickView" />
                 </div>
 
                 <!-- No products found message -->
-                <div v-if="filteredProducts.length === 0 && !productStore.loading"
+                <div v-if="(!filteredProducts || filteredProducts.length === 0) && !productStore.loading"
                     class="bg-white p-8 rounded-lg shadow-sm text-center">
                     <div class="flex flex-col items-center gap-4">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-3.039 0-5.812-1.23-7.834-3.209M15 19.128v-.037c0-2.123-1.152-4.078-3.007-5.085M12 19.128v-.037c0-2.123-1.152-4.078-3.007-5.085M12 19.128v-.037c0-2.123-1.152-4.078-3.007-5.085" />
+                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                         </svg>
                         <div>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
-                            <p class="text-gray-500">Không có sản phẩm nào phù hợp với bộ lọc hiện tại. Vui lòng thử
-                                điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác.</p>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">
+                                {{ searchQuery.trim() ? 'Không tìm thấy sản phẩm phù hợp' : 'Không có sản phẩm nào' }}
+                            </h3>
+                            <p class="text-gray-500">
+                                {{ searchQuery.trim() 
+                                    ? `Không có sản phẩm nào phù hợp với từ khóa "${searchQuery}". Vui lòng thử từ khóa khác hoặc điều chỉnh bộ lọc.`
+                                    : 'Không có sản phẩm nào phù hợp với bộ lọc hiện tại. Vui lòng thử điều chỉnh bộ lọc.'
+                                }}
+                            </p>
+                            <div v-if="searchQuery.trim()" class="mt-4">
+                                <button @click="clearSearch" 
+                                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                                    Xóa từ khóa tìm kiếm
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="totalPages > 1 && productStore.pagination.total > 0"
+                <div v-if="totalPages > 1 && productStore.pagination?.total > 0"
                     class="flex justify-center items-center space-x-1 sm:space-x-2 mt-8">
                     <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
                         class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"><i
@@ -135,7 +153,7 @@
                         }}</button>
 
                     <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
-                        class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:cursor-not-allowed cursor-pointer"><i
+                        class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"><i
                             class="fa-solid fa-angles-right"></i></button>
                 </div>
             </main>
@@ -145,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import Card from '../ui/Card.vue'
 import ProductFilter from './ProductsFillter.vue'
 import { useProductStore } from '../../stores/products'
@@ -153,13 +171,56 @@ import QuickView from '../products/Quick-view.vue'
 
 const productStore = useProductStore()
 
+// Ensure store is properly initialized with default values
+if (!productStore.products) {
+    productStore.products = []
+}
+if (!productStore.pagination) {
+    productStore.pagination = {
+        current_page: 1,
+        last_page: 1,
+        per_page: 8,
+        total: 0,
+        from: null,
+        to: null,
+        next_page_url: null,
+        prev_page_url: null,
+        links: []
+    }
+}
+
 onMounted(() => {
-    productStore.fetchProducts(filters.value, currentPage.value)
+    console.log('Component mounted, store state:', {
+        products: productStore.products,
+        loading: productStore.loading,
+        pagination: productStore.pagination
+    })
+    
+    // Ensure store is initialized before fetching products
+    if (productStore) {
+        // Apply current sorting
+        const [field, direction] = sortOption.value.split('_')
+        const sortFilters = {
+            ...filters.value,
+            sort_by: field,
+            sort_direction: direction
+        }
+        console.log('Fetching products with filters:', sortFilters)
+        productStore.fetchProducts(sortFilters, currentPage.value)
+    }
+})
+
+// Cleanup timeout when component unmounts
+onUnmounted(() => {
+    if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
+    }
 })
 
 const showFilter = ref(false)
 const searchQuery = ref('')
 const currentPage = ref(1)
+const searchTimeout = ref(null) // Thêm timeout cho debounce
 
 const sortOption = ref('name_asc')
 
@@ -187,10 +248,21 @@ function closeQuickView() {
 const handleFilter = (newFilter) => {
     filters.value = { ...filters.value, ...newFilter }
     currentPage.value = 1
-    if (searchQuery.value.trim()) {
-        productStore.searchProductsAction(searchQuery.value, filters.value, currentPage.value)
-    } else {
-        productStore.fetchProducts(filters.value, currentPage.value)
+    
+    // Apply current sorting
+    const [field, direction] = sortOption.value.split('_')
+    const sortFilters = {
+        ...filters.value,
+        sort_by: field,
+        sort_direction: direction
+    }
+    
+    if (productStore) {
+        if (searchQuery.value.trim()) {
+            productStore.searchProductsAction(searchQuery.value, sortFilters, currentPage.value)
+        } else {
+            productStore.fetchProducts(sortFilters, currentPage.value)
+        }
     }
     if (window.innerWidth < 1024) {
         showFilter.value = false
@@ -198,47 +270,139 @@ const handleFilter = (newFilter) => {
 }
 
 const handleSearch = () => {
+    // Clear previous timeout
+    if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
+    }
+    
+    // Set new timeout for debounce (500ms)
+    searchTimeout.value = setTimeout(() => {
+        performSearch()
+    }, 500)
+}
+
+const performSearch = () => {
     currentPage.value = 1
-    if (searchQuery.value.trim()) {
-        productStore.searchProductsAction(searchQuery.value, filters.value, currentPage.value)
-    } else {
-        productStore.fetchProducts(filters.value, currentPage.value)
+    
+    // Apply current sorting
+    const [field, direction] = sortOption.value.split('_')
+    const sortFilters = {
+        ...filters.value,
+        sort_by: field,
+        sort_direction: direction
+    }
+    
+    console.log('Component: Performing search with query:', searchQuery.value, 'and filters:', sortFilters)
+    console.log('Component: Current store state before search:', {
+        products: productStore.products,
+        loading: productStore.loading
+    })
+    
+    if (productStore) {
+        if (searchQuery.value.trim()) {
+            console.log('Component: Calling searchProductsAction')
+            productStore.searchProductsAction(searchQuery.value, sortFilters, currentPage.value)
+        } else {
+            console.log('Component: Calling fetchProducts')
+            productStore.fetchProducts(sortFilters, currentPage.value)
+        }
     }
 }
 
 const handleSort = () => {
     currentPage.value = 1
-    if (searchQuery.value.trim()) {
-        productStore.searchProductsAction(searchQuery.value, filters.value, currentPage.value)
-    } else {
-        productStore.fetchProducts(filters.value, currentPage.value)
+    // Parse sort option and add to filters
+    const [field, direction] = sortOption.value.split('_')
+    const sortFilters = {
+        ...filters.value,
+        sort_by: field,
+        sort_direction: direction
+    }
+    
+    if (productStore) {
+        if (searchQuery.value.trim()) {
+            productStore.searchProductsAction(searchQuery.value, sortFilters, currentPage.value)
+        } else {
+            productStore.fetchProducts(sortFilters, currentPage.value)
+        }
     }
 }
 
-// Watch for search query changes
-watch(searchQuery, (newQuery) => {
-    currentPage.value = 1
-    if (newQuery.trim() === '') {
-        // Nếu search query rỗng, fetch lại products với filters hiện tại
-        productStore.fetchProducts(filters.value, currentPage.value)
-    } else {
-        // Nếu có search query, gọi search API
-        productStore.searchProductsAction(newQuery, filters.value, currentPage.value)
+// Watch for search query changes - chỉ gọi API khi query thay đổi đáng kể
+watch(searchQuery, (newQuery, oldQuery) => {
+    if (newQuery !== oldQuery) {
+        if (searchTimeout.value) {
+            clearTimeout(searchTimeout.value)
+        }
+        
+        searchTimeout.value = setTimeout(() => {
+            currentPage.value = 1
+            
+            const [field, direction] = sortOption.value.split('_')
+            const sortFilters = {
+                ...filters.value,
+                sort_by: field,
+                sort_direction: direction
+            }
+            
+            if (productStore) {
+                if (newQuery.trim() === '') {
+                    productStore.fetchProducts(sortFilters, currentPage.value)
+                } else {
+                    productStore.searchProductsAction(newQuery, sortFilters, currentPage.value)
+                }
+            }
+        }, 500)
     }
 })
 
 // Computed properties sử dụng data từ store
-const filteredProducts = computed(() => productStore.products)
-const totalPages = computed(() => productStore.pagination.last_page || 1)
+const filteredProducts = computed(() => {
+    const products = productStore.products || []
+    console.log('Computed filteredProducts:', {
+        storeProducts: productStore.products,
+        productsLength: products.length,
+        searchQuery: searchQuery.value,
+        loading: productStore.loading
+    })
+    return products
+})
+const totalPages = computed(() => productStore.pagination?.last_page || 1)
 
 const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages.value) {
+    if (page >= 1 && page <= totalPages.value && productStore) {
         currentPage.value = page
-        if (searchQuery.value.trim()) {
-            productStore.searchProductsAction(searchQuery.value, filters.value, page)
-        } else {
-            productStore.fetchProducts(filters.value, page)
+        
+        // Apply current sorting
+        const [field, direction] = sortOption.value.split('_')
+        const sortFilters = {
+            ...filters.value,
+            sort_by: field,
+            sort_direction: direction
         }
+        
+        if (searchQuery.value.trim()) {
+            productStore.searchProductsAction(searchQuery.value, sortFilters, page)
+        } else {
+            productStore.fetchProducts(sortFilters, page)
+        }
+    }
+}
+
+const clearSearch = () => {
+    searchQuery.value = ''
+    currentPage.value = 1
+    
+    // Apply current sorting
+    const [field, direction] = sortOption.value.split('_')
+    const sortFilters = {
+        ...filters.value,
+        sort_by: field,
+        sort_direction: direction
+    }
+    
+    if (productStore) {
+        productStore.fetchProducts(sortFilters, currentPage.value)
     }
 }
 </script>
