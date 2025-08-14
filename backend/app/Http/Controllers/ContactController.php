@@ -28,10 +28,14 @@ class ContactController extends Controller
         $validated = $request->validate([
             'admin_reply' => 'required|string',
         ]);
+
         $contact->admin_reply = $validated['admin_reply'];
         $contact->replied_at = now();
         $contact->save();
-        Mail::to($contact->email)->send(new ContactReply($contact, $validated['admin_reply']));
+
+        // Gửi mail bất đồng bộ
+        Mail::to($contact->email)->queue(new ContactReply($contact, $validated['admin_reply']));
+
         return response()->json(['message' => 'Đã gửi phản hồi cho người dùng!']);
     }
 
@@ -89,8 +93,10 @@ class ContactController extends Controller
         $contact->delete();
 
         if (!$hasReply) {
-            Mail::to($contact->email)->send(new ContactDeleted($contact));
+            // Gửi mail bất đồng bộ
+            Mail::to($contact->email)->queue(new ContactDeleted($contact));
         }
+
         return response()->json(['message' => 'Đã xóa liên hệ thành công!']);
     }
 

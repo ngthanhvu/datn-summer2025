@@ -22,7 +22,7 @@
                         class="form-input w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#81aacc]"
                         id="loginPassword" placeholder="Nhập mật khẩu" />
                     <button type="button" class="absolute top-1/2 right-3 -translate-y-1/2 text-[#81aacc]"
-                        @click="showPassword = !showPassword">
+                        @click="showPassword = !showPassword" tabindex="-1">
                         <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
                     </button>
                 </div>
@@ -34,7 +34,7 @@
                     <input v-model="rememberMe" type="checkbox" class="form-checkbox" />
                     <span class="ml-2">Ghi nhớ tôi</span>
                 </label>
-                <router-link to="/forgot-password" class="text-[#81AACC] hover:underline text-md">
+                <router-link to="/forgot-password" class="text-[#81AACC] hover:underline text-md" tabindex="-1">
                     Quên mật khẩu?
                 </router-link>
             </div>

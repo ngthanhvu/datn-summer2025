@@ -38,7 +38,7 @@ class AuthController extends Controller
         Log::info('Request IP: ' . request()->ip());
         Log::info('X-Forwarded-For: ' . request()->header('X-Forwarded-For'));
 
-        Mail::to($user->email)->send(new WelcomeEmail($user));
+        Mail::to($user->email)->queue(new WelcomeEmail($user));
 
         $token = JWTAuth::fromUser($user);
 
@@ -125,7 +125,7 @@ class AuthController extends Controller
             );
 
             if ($user->wasRecentlyCreated) {
-                Mail::to($user->email)->send(new WelcomeEmail($user));
+                Mail::to($user->email)->queue(new WelcomeEmail($user));
             }
 
             $token = JWTAuth::fromUser($user);
@@ -186,7 +186,7 @@ class AuthController extends Controller
 
             $user->setOtp($otp, 10);
 
-            Mail::to($user->email)->send(new OtpEmail($otp, $user));
+            Mail::to($user->email)->queue(new OtpEmail($otp, $user));
 
             return response()->json([
                 'message' => 'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.',
