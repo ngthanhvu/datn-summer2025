@@ -8,25 +8,46 @@
             </router-link>
         </div>
 
-        <!-- Brands Grid -->
-        <div
-            class="flex gap-3 md:gap-4 overflow-x-auto scroll-smooth md:grid md:grid-cols-2 md:sm:grid-cols-3 md:md:grid-cols-4 md:lg:grid-cols-6">
-            <div v-for="brand in brands" :key="brand.id"
-                class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-3 md:p-4 flex items-center justify-center cursor-pointer group border border-gray-100 flex-shrink-0 w-28 md:w-auto"
-                @click="navigateToBrand(brand.slug || brand.id)">
-                <div class="text-center">
-                    <div class="w-10 h-10 md:w-16 md:h-16 mx-auto mb-1 md:mb-2 flex items-center justify-center">
-                        <img :src="getBrandLogo(brand)" :alt="brand.name"
-                            class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform"
-                            @error="handleImageError" />
+        <!-- Brands Swiper -->
+        <div class="relative">
+            <swiper :modules="[SwiperNavigation, SwiperPagination]" :slides-per-view="2" :space-between="16"
+                :navigation="true" :pagination="{ clickable: true }" :breakpoints="{
+                    640: {
+                        slidesPerView: 3,
+                        spaceBetween: 20
+                    },
+                    768: {
+                        slidesPerView: 4,
+                        spaceBetween: 24
+                    },
+                    1024: {
+                        slidesPerView: 5,
+                        spaceBetween: 24
+                    },
+                    1280: {
+                        slidesPerView: 6,
+                        spaceBetween: 24
+                    }
+                }" class="brands-swiper">
+                <swiper-slide v-for="brand in brands" :key="brand.id">
+                    <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-3 md:p-4 flex items-center justify-center cursor-pointer group border border-gray-100 h-full"
+                        @click="navigateToBrand(brand.slug || brand.id)">
+                        <div class="text-center w-full">
+                            <div
+                                class="w-10 h-10 md:w-16 md:h-16 mx-auto mb-1 md:mb-2 flex items-center justify-center">
+                                <img :src="getBrandLogo(brand)" :alt="brand.name"
+                                    class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform"
+                                    @error="handleImageError" />
+                            </div>
+                            <h3
+                                class="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors line-clamp-2">
+                                {{ brand.name }}
+                            </h3>
+                            <p class="text-xs text-gray-500 mt-1">{{ brand.products_count || 0 }} sản phẩm</p>
+                        </div>
                     </div>
-                    <h3
-                        class="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors line-clamp-2">
-                        {{ brand.name }}
-                    </h3>
-                    <p class="text-xs text-gray-500 mt-1">{{ brand.products_count || 0 }} sản phẩm</p>
-                </div>
-            </div>
+                </swiper-slide>
+            </swiper>
         </div>
 
         <!-- Featured Brand Banner -->
@@ -60,6 +81,13 @@
 <script setup>
 import { onMounted, computed } from 'vue'
 import { useBrandStore } from '../../stores/brands'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Navigation as SwiperNavigation, Pagination as SwiperPagination } from 'swiper/modules'
+
+// Import Swiper styles
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 
 const brandStore = useBrandStore()
 const brands = computed(() => brandStore.brands)
@@ -99,5 +127,39 @@ const navigateToBrand = (brandId) => {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Custom Swiper Styles */
+.brands-swiper {
+    padding-bottom: 40px;
+}
+
+.brands-swiper :deep(.swiper-button-next),
+.brands-swiper :deep(.swiper-button-prev) {
+    color: #3b82f6;
+    background: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.brands-swiper :deep(.swiper-button-next:after),
+.brands-swiper :deep(.swiper-button-prev:after) {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.brands-swiper :deep(.swiper-pagination-bullet) {
+    background: #3b82f6;
+    opacity: 0.3;
+}
+
+.brands-swiper :deep(.swiper-pagination-bullet-active) {
+    opacity: 1;
+}
+
+.brands-swiper :deep(.swiper-slide) {
+    height: auto;
 }
 </style>

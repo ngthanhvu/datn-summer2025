@@ -1,11 +1,15 @@
 import { ref, reactive } from 'vue'
 import { useAuth } from './useAuth'
+import api from '../utils/api'
 
 export function useAIChat() {
   const { user } = useAuth()
-  
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
-  
+
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+
+  // Sử dụng instance axios chung từ utility
+  const API = api
+
   const isOpen = ref(false)
   const isTyping = ref(false)
   const messages = ref([])
@@ -49,51 +53,51 @@ export function useAIChat() {
 
   const isSpecificProductQuestion = (message) => {
     const messageLower = message.toLowerCase()
-    
-    const hasQuestionWord = messageLower.includes('gì') || 
-                           messageLower.includes('nào') || 
-                           messageLower.includes('có') || 
-                           messageLower.includes('không') ||
-                           messageLower.includes('màu') ||
-                           messageLower.includes('size') ||
-                           messageLower.includes('giá') ||
-                           messageLower.includes('còn') ||
-                           messageLower.includes('hàng')
-    
+
+    const hasQuestionWord = messageLower.includes('gì') ||
+      messageLower.includes('nào') ||
+      messageLower.includes('có') ||
+      messageLower.includes('không') ||
+      messageLower.includes('màu') ||
+      messageLower.includes('size') ||
+      messageLower.includes('giá') ||
+      messageLower.includes('còn') ||
+      messageLower.includes('hàng')
+
     return messageLower.split(' ').length >= 3 || hasQuestionWord
   }
 
   const filterProductsByQuery = (products, query) => {
     if (!products || products.length === 0) return []
-    
+
     const queryLower = query.toLowerCase()
     const stopWords = ['tôi', 'muốn', 'mua', 'cần', 'tìm', 'có', 'ạ', 'à', 'và', 'hoặc', 'này', 'đó', 'kia', 'ôi', 'cho', 'với', 'trong', 'ngoài', 'trên', 'dưới', 'bên', 'của', 'là', 'thì', 'mà', 'nhưng', 'hoặc', 'vì', 'nên', 'để', 'từ', 'đến', 'tại', 'về', 'theo', 'cùng', 'cả', 'mỗi', 'mọi', 'mấy', 'bao', 'nhiêu', 'mấy', 'bao', 'nhiêu', 'mấy', 'bao', 'nhiêu']
-    
+
     let keywords = queryLower.split(' ')
     keywords = keywords.filter(word => !stopWords.includes(word) && word.length >= 2)
-    
+
     console.log('Filtering products for query:', queryLower)
     console.log('Keywords after filtering:', keywords)
-    
+
     if (keywords.length === 0) return []
-    
+
     const result = products.filter(product => {
       const productName = (product.name || '').toLowerCase()
       const categoryName = (product.categories?.name || '').toLowerCase()
       const productDescription = (product.description || '').toLowerCase()
-      
-      const matchingKeywords = keywords.filter(keyword => 
-        productName.includes(keyword) || 
-        categoryName.includes(keyword) || 
+
+      const matchingKeywords = keywords.filter(keyword =>
+        productName.includes(keyword) ||
+        categoryName.includes(keyword) ||
         productDescription.includes(keyword)
       )
-      
+
       return matchingKeywords.length >= 1
     })
-    
+
     console.log('Filtered products count:', result.length)
     console.log('Filtered products:', result.map(p => p.name))
-    
+
     return result.slice(0, 6)
   }
 
@@ -118,20 +122,13 @@ export function useAIChat() {
     isTyping.value = true
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/ai/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ 
-          message,
-          context: buildClientContextHint()
-        })
+      const response = await API.post('/ai/chat', {
+        message,
+        context: buildClientContextHint()
       })
 
-      const data = await response.json()
-      
+      const data = response.data
+
       console.log('AI Chat Response:', data)
       if (data.context && data.context.products) {
         console.log('Products in context:', data.context.products)
@@ -162,33 +159,33 @@ export function useAIChat() {
         if (data.context && data.context.products && data.context.products.length > 0) {
           console.log('Context products found:', data.context.products.length)
           console.log('Products:', data.context.products)
-          
+
           // Luôn hiển thị sản phẩm nếu có trong context
           aiMessage.products = data.context.products.slice(0, 6)
           console.log('Setting products from context:', aiMessage.products.length)
         }
-        
+
         // Xử lý context mã giảm giá
         if (data.context && data.context.coupons && data.context.coupons.length > 0) {
-          const hasCouponRequest = message.toLowerCase().includes('mã giảm') || 
-                                 message.toLowerCase().includes('coupon') || 
-                                 message.toLowerCase().includes('khuyến mãi') || 
-                                 message.toLowerCase().includes('giảm giá') || 
-                                 message.toLowerCase().includes('discount')
-          
+          const hasCouponRequest = message.toLowerCase().includes('mã giảm') ||
+            message.toLowerCase().includes('coupon') ||
+            message.toLowerCase().includes('khuyến mãi') ||
+            message.toLowerCase().includes('giảm giá') ||
+            message.toLowerCase().includes('discount')
+
           if (hasCouponRequest) {
             aiMessage.coupons = data.context.coupons.slice(0, 3)
           }
         }
-        
+
         // Xử lý context flash sale
         if (data.context && data.context.flash_sales && data.context.flash_sales.length > 0) {
-          const hasFlashSaleRequest = message.toLowerCase().includes('flash sale') || 
-                                    message.toLowerCase().includes('khuyến mãi') || 
-                                    message.toLowerCase().includes('giảm giá') || 
-                                    message.toLowerCase().includes('hot') || 
-                                    message.toLowerCase().includes('nóng')
-          
+          const hasFlashSaleRequest = message.toLowerCase().includes('flash sale') ||
+            message.toLowerCase().includes('khuyến mãi') ||
+            message.toLowerCase().includes('giảm giá') ||
+            message.toLowerCase().includes('hot') ||
+            message.toLowerCase().includes('nóng')
+
           if (hasFlashSaleRequest) {
             aiMessage.flashSales = data.context.flash_sales.slice(0, 3)
           }
@@ -216,14 +213,8 @@ export function useAIChat() {
 
   const searchProducts = async (query) => {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/ai/search-products?query=${encodeURIComponent(query)}`, {
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-
-      const data = await response.json()
-      return data.success ? data.products : []
+      const response = await API.get(`/ai/search-products?query=${encodeURIComponent(query)}`)
+      return response.data.success ? response.data.products : []
     } catch (error) {
       console.error('Search Products Error:', error)
       return []
@@ -232,14 +223,8 @@ export function useAIChat() {
 
   const getAvailableCoupons = async () => {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/ai/coupons`, {
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-
-      const data = await response.json()
-      return data.success ? data.coupons : []
+      const response = await API.get('/ai/coupons')
+      return response.data.success ? response.data.coupons : []
     } catch (error) {
       console.error('Get Coupons Error:', error)
       return []
@@ -248,14 +233,8 @@ export function useAIChat() {
 
   const getActiveFlashSales = async () => {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/ai/flash-sales`, {
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-
-      const data = await response.json()
-      return data.success ? data.flash_sales : []
+      const response = await API.get('/ai/flash-sales')
+      return response.data.success ? response.data.flash_sales : []
     } catch (error) {
       console.error('Get Flash Sales Error:', error)
       return []
@@ -316,7 +295,7 @@ export function useAIChat() {
     }
     return {}
   }
-  
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -348,13 +327,13 @@ export function useAIChat() {
   const viewProduct = (product) => {
     window.open(`/san-pham/${product.slug}`, '_blank')
   }
-  
+
   // Cleanup function
   const cleanup = () => {
     document.documentElement.classList.remove('ai-chatbot-open')
     document.documentElement.classList.remove('chatwidget-open')
   }
-  
+
   return {
     isOpen,
     isTyping,
@@ -362,7 +341,7 @@ export function useAIChat() {
     currentMessage,
     hasUnreadMessages,
     unreadCount,
-    
+
     sendMessage,
     toggleChat,
     addWelcomeMessage,

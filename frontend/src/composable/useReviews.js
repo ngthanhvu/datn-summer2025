@@ -1,13 +1,12 @@
 import axios from 'axios'
 import { useAuth } from './useAuth'
+import api from '../utils/api'
 
 export const useReviews = () => {
     const { getToken } = useAuth()
 
-    const API = axios.create({
-        baseURL: import.meta.env.VITE_API_BASE_URL,
-        timeout: 10000
-    })
+    // Sử dụng instance axios chung từ utility
+    const API = api
 
     const getReviewsByProductSlug = async (productSlug, page = 1, perPage = 3, userId = null) => {
         try {

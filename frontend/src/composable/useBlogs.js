@@ -1,17 +1,14 @@
 import axios from 'axios'
 import { ref } from 'vue'
 import Cookies from 'js-cookie'
+import api from '../utils/api'
 
 export const useBlog = () => {
     const token = Cookies.get('token')
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
-    const API = axios.create({ baseURL: apiBaseUrl })
-
-    API.interceptors.request.use((req) => {
-        if (token) req.headers.Authorization = `Bearer ${token}`
-        return req
-    })
+    // Sử dụng instance axios chung từ utility
+    const API = api
 
     const blogs = ref([])
     const blog = ref(null)

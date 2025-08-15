@@ -1,13 +1,12 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
+import api from '../utils/api'
 
 export const useProducts = () => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
-    const API = axios.create({
-        baseURL: apiBaseUrl,
-        timeout: 30000 // Tăng timeout lên 30 giây
-    })
+    // Sử dụng instance axios chung từ utility
+    const API = api
 
     const cache = new Map()
     const CACHE_DURATION = 5 * 60 * 1000 // 5 phút

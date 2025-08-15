@@ -3,24 +3,18 @@ import axios from 'axios'
 import Cookies from 'js-cookie'
 import { useRouter, useRoute } from 'vue-router'
 import Swal from 'sweetalert2'
+import api from '../utils/api'
 
-const token = ref(Cookies.get('token') || null)
+// Khởi tạo token từ cả Cookies và localStorage
+const token = ref(Cookies.get('token') || localStorage.getItem('token') || null)
 const userInfo = ref(Cookies.get('user') ? JSON.parse(Cookies.get('user')) : null)
 const user = ref(userInfo.value || null)
 const isAuthenticated = ref(!!user.value)
 const isAdmin = ref(user.value?.role === 'admin')
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL // cấu hình qua .env
 
-const API = axios.create({
-    baseURL: apiBaseUrl,
-})
-
-API.interceptors.request.use((req) => {
-    if (token.value) {
-        req.headers.Authorization = `Bearer ${token.value}`
-    }
-    return req
-})
+// Sử dụng instance axios chung từ utility
+const API = api
 
 const login = async (credentials) => {
     try {
@@ -28,6 +22,8 @@ const login = async (credentials) => {
         if (res.data.token) {
             token.value = res.data.token
             Cookies.set('token', token.value, { expires: 1 })
+            // Lưu token vào localStorage để interceptor có thể đọc
+            localStorage.setItem('token', token.value)
             await getUser()
             if (user.value) {
                 localStorage.setItem("user", JSON.stringify(user.value))
@@ -49,6 +45,8 @@ const register = async (data) => {
         if (res.data.token) {
             token.value = res.data.token
             Cookies.set('token', token.value, { expires: 1 })
+            // Lưu token vào localStorage để interceptor có thể đọc
+            localStorage.setItem('token', token.value)
             if (res.data.user) {
                 userInfo.value = res.data.user
                 Cookies.set('user', JSON.stringify(userInfo.value), { expires: 1 })
@@ -65,15 +63,35 @@ const register = async (data) => {
     }
 }
 
-const logout = () => {
+const logout = (redirectToLogin = false) => {
     Cookies.remove('token')
     Cookies.remove('user')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     token.value = null
     userInfo.value = null
     user.value = null
     isAuthenticated.value = false
     isAdmin.value = false
-    // Không chuyển hướng ở đây
+
+    // Chuyển hướng về trang login nếu cần
+    if (redirectToLogin) {
+        const router = useRouter()
+        router.push('/login')
+    }
+}
+
+// Function để force logout khi token hết hạn (401)
+const forceLogout = () => {
+    Cookies.remove('token')
+    Cookies.remove('user')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    token.value = null
+    userInfo.value = null
+    user.value = null
+    isAuthenticated.value = false
+    isAdmin.value = false
 }
 
 const getUser = async () => {
@@ -87,7 +105,10 @@ const getUser = async () => {
         isAdmin.value = user.value?.role === 'admin'
     } catch (err) {
         console.error('Get user error:', err.response?.data || err.message)
-        logout()
+        // Chỉ logout khi không phải lỗi 401 hoặc khi đã có token hợp lệ
+        if (err.response?.status === 401 && token.value) {
+            forceLogout()
+        }
     }
 }
 
@@ -97,7 +118,7 @@ const checkAuth = async () => {
             await getUser()
             return true
         } catch {
-            logout()
+            forceLogout()
             return false
         }
     }
@@ -288,6 +309,7 @@ export const useAuth = () => {
         login,
         register,
         logout,
+        forceLogout,
         getUser,
         isAuthenticated,
         isAdmin,

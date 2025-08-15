@@ -1,22 +1,12 @@
 // src/composables/useAddress.js
-import axios from "axios";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
+import api from '../utils/api'
 
 export const useAddress = () => {
-    const API = axios.create({
-        baseURL: import.meta.env.VITE_API_BASE_URL,
-    });
-
-    // ✅ Interceptor: tự động thêm token từ cookie vào mọi request
-    API.interceptors.request.use((req) => {
-        const token = Cookies.get("token");
-        if (token) {
-            req.headers.Authorization = `Bearer ${token}`;
-        }
-        return req;
-    });
+    // Sử dụng instance axios chung từ utility
+    const API = api
 
     const form = ref({
         full_name: "",

@@ -26,7 +26,7 @@
                     1024: { slidesPerView: 6, spaceBetween: 8 }
                 }" class="categories-swiper">
                 <swiper-slide v-for="category in categoryStore.categories" :key="category.id">
-                    <router-link :to="`/category/${category.slug}`"
+                    <div
                         class="flex flex-col items-center space-y-3 transition-transform duration-300 hover:scale-90 pb-3">
                         <div
                             class="w-36 h-36 rounded-full border border-gray-200 flex items-center justify-center overflow-hidden">
@@ -34,7 +34,7 @@
                         </div>
                         <p class="text-base font-medium">{{ category.name }}</p>
                         <p class="text-sm text-gray-500">{{ category.products_count }} sản phẩm</p>
-                    </router-link>
+                    </div>
                 </swiper-slide>
             </swiper>
         </div>

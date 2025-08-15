@@ -22,7 +22,7 @@ class OrdersController extends Controller
 {
     public function index()
     {
-        if (Auth::user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
         $query = Orders::with([

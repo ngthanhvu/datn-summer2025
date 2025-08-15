@@ -1,12 +1,10 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import Cookies from 'js-cookie'
+import api from '../utils/api'
 
-const API = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
-    timeout: 10000,
-    withCredentials: true
-})
+// Sử dụng instance axios chung từ utility
+const API = api
 
 // Singleton state
 const cart = ref([])

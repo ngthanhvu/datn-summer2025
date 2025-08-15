@@ -1,11 +1,14 @@
 // src/composables/useCoupon.js
 import axios from 'axios'
 import Cookies from 'js-cookie'
+import api from '../utils/api'
 
-const API = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
-    timeout: 10000
-})
+// const API = axios.create({
+//     baseURL: import.meta.env.VITE_API_BASE_URL,
+//     timeout: 10000
+// })
+
+const API = api;
 
 export const useCoupon = () => {
     const getTokenFromCookie = () => Cookies.get('token') || null
