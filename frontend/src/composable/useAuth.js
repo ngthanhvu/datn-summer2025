@@ -208,6 +208,16 @@ const updateUserByAdmin = async (data) => {
     }
 }
 
+const createUserByAdmin = async (data) => {
+    try {
+        const res = await API.post('/api/admin/user', data)
+        return res.data
+    } catch (err) {
+        console.error('Create user by admin error:', err.response?.data || err.message)
+        throw err
+    }
+}
+
 const deleteUser = async (id) => {
     try {
         const res = await API.delete(`/api/admin/user/${id}`)
@@ -291,6 +301,7 @@ export const useAuth = () => {
         updateUser,
         getToken,
         updateUserByAdmin,
+        createUserByAdmin,
         updateCustomerStatus,
         deleteUser,
         googleLogin,

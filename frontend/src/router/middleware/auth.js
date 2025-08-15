@@ -9,7 +9,7 @@ export function authGuard(to, from, next) {
         if (!user) {
             return next({ path: '/login' })
         }
-        if (to.meta.requiresAdmin && user.role !== 'admin') {
+        if (to.meta.requiresAdmin && user.role !== 'admin' && user.role !== 'master_admin') {
             return next({ path: '/' })
         }
         if (to.meta.requiresUser && user.role !== 'user') {

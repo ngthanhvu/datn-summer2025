@@ -44,7 +44,7 @@ const authStore = useAuthStore()
 const { logout } = useAuth()
 
 const user = authStore.user
-const isAdmin = user && user.role === 'admin'
+const isAdmin = user && (user.role === 'admin' || user.role === 'master_admin');
 
 const handleLogout = async () => {
     logout()

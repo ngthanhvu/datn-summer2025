@@ -140,9 +140,95 @@ class AuthController extends Controller
         }
     }
 
+    public function createUserByAdmin(Request $request)
+    {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'required|min:6',
+            'role' => 'required|in:user,admin,master_admin',
+            'gender' => 'nullable|string|max:10',
+            'dateOfBirth' => 'nullable|date',
+        ], [
+            'username.required' => 'Tên người dùng là bắt buộc',
+            'username.string' => 'Tên người dùng phải là chuỗi',
+            'username.max' => 'Tên người dùng không được quá 255 ký tự',
+            'email.required' => 'Email là bắt buộc',
+            'email.email' => 'Email không đúng định dạng',
+            'email.unique' => 'Email này đã tồn tại trong hệ thống',
+            'phone.string' => 'Số điện thoại phải là chuỗi',
+            'phone.max' => 'Số điện thoại không được quá 20 ký tự',
+            'password.required' => 'Mật khẩu là bắt buộc',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'role.required' => 'Vai trò là bắt buộc',
+            'role.in' => 'Vai trò không hợp lệ',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Kiểm tra quyền tạo role
+        $currentUser = Auth::user();
+        if ($request->role === 'master_admin' && $currentUser->role !== 'master_admin') {
+            return response()->json([
+                'error' => 'Chỉ Master Admin mới có quyền tạo tài khoản Master Admin'
+            ], 403);
+        }
+
+        if ($request->role === 'admin' && $currentUser->role === 'admin') {
+            return response()->json([
+                'error' => 'Admin thường không thể tạo tài khoản Admin khác'
+            ], 403);
+        }
+
+        try {
+            $user = User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'phone' => $request->phone,
+                'role' => $request->role,
+                'gender' => $request->gender,
+                'dateOfBirth' => $request->dateOfBirth,
+                'status' => 1, // Mặc định là hoạt động
+                'ip_user' => $request->ip(),
+            ]);
+
+            // Gửi email chào mừng
+            Mail::to($user->email)->queue(new WelcomeEmail($user));
+
+            return response()->json([
+                'message' => 'Tạo người dùng thành công',
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'avatar' => $user->avatar ? url($user->avatar) : null,
+                    'role' => $user->role,
+                    'status' => $user->status,
+                    'gender' => $user->gender,
+                    'dateOfBirth' => $user->dateOfBirth,
+                    'note' => $user->note,
+                ]
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Failed to create user by admin: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Có lỗi xảy ra khi tạo người dùng. Vui lòng thử lại.'
+            ], 500);
+        }
+    }
+
     public function listUser(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -388,7 +474,7 @@ class AuthController extends Controller
 
     public function updateUserByAdmin(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -397,8 +483,11 @@ class AuthController extends Controller
             'email' => 'required|email',
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|min:6',
+            'role' => 'required|in:user,admin,master_admin',
             'status' => 'required|in:0,1',
             'note' => 'nullable|string|max:500',
+            'gender' => 'nullable|string|max:10',
+            'dateOfBirth' => 'nullable|date',
         ], [
             'username.required' => 'Tên người dùng là bắt buộc',
             'username.string' => 'Tên người dùng phải là chuỗi',
@@ -408,6 +497,8 @@ class AuthController extends Controller
             'phone.string' => 'Số điện thoại phải là chuỗi',
             'phone.max' => 'Số điện thoại không được quá 20 ký tự',
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'role.required' => 'Vai trò là bắt buộc',
+            'role.in' => 'Vai trò không hợp lệ',
             'status.required' => 'Trạng thái là bắt buộc',
             'status.in' => 'Trạng thái không hợp lệ',
             'note.max' => 'Lý do ban không được quá 500 ký tự',
@@ -419,12 +510,45 @@ class AuthController extends Controller
 
         try {
             $user = User::findOrFail($id);
+            $currentUser = Auth::user();
+
+            // Kiểm tra quyền thay đổi role
+            if ($request->role === 'master_admin' && $currentUser->role !== 'master_admin') {
+                return response()->json([
+                    'error' => 'Chỉ Master Admin mới có quyền thay đổi role thành Master Admin'
+                ], 403);
+            }
+
+            if ($request->role === 'admin' && $currentUser->role === 'admin') {
+                return response()->json([
+                    'error' => 'Admin thường không thể thay đổi role thành Admin'
+                ], 403);
+            }
+
+            // Kiểm tra không cho phép thay đổi role của chính mình
+            if ((int) $id === (int) Auth::id()) {
+                if ($request->role !== $currentUser->role) {
+                    return response()->json([
+                        'error' => 'Bạn không thể thay đổi vai trò của chính bản thân'
+                    ], 422);
+                }
+            }
+
+            // Kiểm tra không cho phép thay đổi role của master admin (trừ khi là master admin khác)
+            if ($user->role === 'master_admin' && $currentUser->role !== 'master_admin') {
+                return response()->json([
+                    'error' => 'Không thể thay đổi thông tin của Master Admin'
+                ], 403);
+            }
 
             $updateData = [
                 'username' => $request->username,
                 'email' => $request->email,
                 'phone' => $request->phone,
+                'role' => $request->role,
                 'status' => $request->status,
+                'gender' => $request->gender,
+                'dateOfBirth' => $request->dateOfBirth,
             ];
 
             // Nếu ban user (status = 0) thì bắt buộc phải có lý do
@@ -472,29 +596,141 @@ class AuthController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        if ((int) $id === (int) Auth::id()) {
-            return response()->json(['error' => 'Không thể tự xoá tài khoản của chính bạn'], 422);
-        }
-
-        $user = User::findOrFail($id);
-
         try {
-            DB::transaction(function () use ($user) {
-                if ($user->avatar && Storage::exists('public/avatars/' . basename($user->avatar))) {
-                    Storage::delete('public/avatars/' . basename($user->avatar));
+            // Kiểm tra quyền admin
+            if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            $currentUser = Auth::user();
+
+            // Kiểm tra không cho phép tự xóa tài khoản của chính mình
+            if ((int) $id === (int) Auth::id()) {
+                return response()->json(['error' => 'Bạn không thể xóa chính bản thân'], 422);
+            }
+
+            // Tìm user để xóa
+            $userToDelete = User::findOrFail($id);
+
+            Log::info('Delete user attempt', [
+                'current_user_id' => $currentUser->id,
+                'current_user_role' => $currentUser->role,
+                'user_to_delete_id' => $userToDelete->id,
+                'user_to_delete_role' => $userToDelete->role
+            ]);
+
+            // Kiểm tra quyền xóa Master Admin
+            if ($userToDelete->role === 'master_admin') {
+                if ($currentUser->role !== 'master_admin') {
+                    return response()->json(['error' => 'Chỉ Master Admin mới có quyền xóa Master Admin khác'], 403);
                 }
 
-                $user->delete();
+                // Kiểm tra không cho phép xóa master admin cuối cùng
+                $masterAdminCount = User::where('role', 'master_admin')->count();
+                if ($masterAdminCount <= 1) {
+                    return response()->json(['error' => 'Không thể xóa Master Admin cuối cùng trong hệ thống'], 422);
+                }
+            }
+
+            // Kiểm tra quyền xóa Admin (chỉ Master Admin mới có thể xóa Admin)
+            if ($userToDelete->role === 'admin' && $currentUser->role === 'admin') {
+                return response()->json(['error' => 'Admin thường không thể xóa Admin khác'], 403);
+            }
+
+            // Thực hiện xóa user
+            DB::transaction(function () use ($userToDelete) {
+                // Xóa avatar nếu có
+                if ($userToDelete->avatar && Storage::exists('public/avatars/' . basename($userToDelete->avatar))) {
+                    Storage::delete('public/avatars/' . basename($userToDelete->avatar));
+                }
+
+                // Xóa relationships trước khi xóa user
+                $userToDelete->stockMovements()->delete();
+                $userToDelete->coupons()->detach();
+                $userToDelete->addresses()->delete();
+                $userToDelete->cartItems()->delete();
+                $userToDelete->favoriteProducts()->delete();
+                $userToDelete->productReviews()->delete();
+
+                // Đối với orders, chỉ xóa nếu không có dữ liệu quan trọng
+                // Hoặc có thể set user_id = null thay vì xóa
+                $userToDelete->orders()->update(['user_id' => null]);
+
+                // Xóa user
+                $userToDelete->delete();
             });
+
+            Log::info('User deleted successfully', [
+                'deleted_user_id' => $id,
+                'deleted_by' => $currentUser->id
+            ]);
+
+            return response()->json(['message' => 'Đã xoá người dùng thành công'], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('User not found for deletion: ' . $e->getMessage());
+            return response()->json(['error' => 'Không tìm thấy người dùng'], 404);
+        } catch (\Exception $e) {
+            Log::error('Delete user failed: ' . $e->getMessage(), [
+                'user_id' => $id,
+                'current_user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Có lỗi khi xoá người dùng: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Test method để debug
+    public function testDelete(Request $request, $id)
+    {
+        try {
+            Log::info('Test delete method called', [
+                'user_id' => $id,
+                'current_user' => Auth::user() ? Auth::user()->id : 'not authenticated',
+                'current_user_role' => Auth::user() ? Auth::user()->role : 'not authenticated'
+            ]);
+
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+
+            return response()->json([
+                'message' => 'Test successful',
+                'user_found' => true,
+                'user_id' => $user->id,
+                'user_role' => $user->role,
+                'current_user_id' => Auth::id(),
+                'current_user_role' => Auth::user()->role
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Test delete failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Test failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Simple delete method for testing
+    public function simpleDelete(Request $request, $id)
+    {
+        try {
+            // Kiểm tra quyền admin
+            if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            // Kiểm tra không cho phép tự xóa
+            if ((int) $id === (int) Auth::id()) {
+                return response()->json(['error' => 'Bạn không thể xóa chính bản thân'], 422);
+            }
+
+            $user = User::findOrFail($id);
+
+            // Xóa user đơn giản
+            $user->delete();
 
             return response()->json(['message' => 'Đã xoá người dùng thành công'], 200);
         } catch (\Exception $e) {
-            Log::error('Delete user failed: ' . $e->getMessage());
-            return response()->json(['error' => 'Có lỗi khi xoá người dùng'], 500);
+            Log::error('Simple delete failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Có lỗi khi xoá người dùng: ' . $e->getMessage()], 500);
         }
     }
 }

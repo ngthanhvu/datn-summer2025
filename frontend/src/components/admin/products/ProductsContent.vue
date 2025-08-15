@@ -105,9 +105,10 @@
 
         <!-- Products Table -->
         <div v-else>
-            <ProductsTable :columns="columns" :data="products" :categories="categories" :brands="brands"
-                :isLoading="isLoading" :itemsPerPage="10" :pagination="pagination" :currentPage="currentPage"
-                @delete="handleDelete" @refresh="handleRefresh" @page-change="handlePageChange" />
+            <ProductsTable :columns="columns" :data="products" :categories="formattedCategories"
+                :brands="formattedBrands" :isLoading="isLoading" :itemsPerPage="10" :pagination="pagination"
+                :currentPage="currentPage" @delete="handleDelete" @refresh="handleRefresh"
+                @page-change="handlePageChange" />
         </div>
     </div>
 </template>
@@ -164,6 +165,16 @@ const loadData = async (page = 1, forceRefresh = false) => {
             brandStore.fetchBrands()
         ])
 
+        // Đảm bảo dữ liệu được load thành công
+        if (categoryStore.error) {
+            console.error('Error loading categories:', categoryStore.error)
+            push.error('Lỗi khi tải danh mục')
+        }
+        if (brandStore.error) {
+            console.error('Error loading brands:', brandStore.error)
+            push.error('Lỗi khi tải thương hiệu')
+        }
+
         if (productsResponse) {
             pagination.value = {
                 current_page: productsResponse.pagination?.current_page || 1,
@@ -183,6 +194,7 @@ const loadData = async (page = 1, forceRefresh = false) => {
         const finalCategories = categoryStore.categories || []
         const finalBrands = brandStore.brands || []
 
+        // Gán dữ liệu trực tiếp cho reactive refs
         categories.value = finalCategories
         brands.value = finalBrands
 
@@ -210,6 +222,23 @@ const loadData = async (page = 1, forceRefresh = false) => {
 
 onMounted(() => {
     loadData(currentPage.value)
+})
+
+// Thêm computed để đảm bảo dữ liệu được reactive
+const formattedCategories = computed(() => {
+    const result = categories.value.map(cat => ({
+        value: cat.name,
+        label: cat.name
+    }))
+    return result
+})
+
+const formattedBrands = computed(() => {
+    const result = brands.value.map(brand => ({
+        value: brand.name,
+        label: brand.name
+    }))
+    return result
 })
 
 const handleDelete = async (product) => {

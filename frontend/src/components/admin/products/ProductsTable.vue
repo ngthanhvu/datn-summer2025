@@ -12,21 +12,23 @@
                 </div>
 
                 <div class="filters-container">
-                    <select v-if="categories.length" v-model="selectedCategory" class="filter-select">
+                    <select v-model="selectedCategory" class="filter-select border border-gray-300">
                         <option value="">Tất cả danh mục</option>
+                        <option v-if="categories.length === 0" value="" disabled>Đang tải...</option>
                         <option v-for="category in categories" :key="category.value" :value="category.value">
                             {{ category.label }}
                         </option>
                     </select>
 
-                    <select v-if="brands.length" v-model="selectedBrand" class="filter-select">
+                    <select v-model="selectedBrand" class="filter-select border border-gray-300">
                         <option value="">Tất cả thương hiệu</option>
+                        <option v-if="brands.length === 0" value="" disabled>Đang tải...</option>
                         <option v-for="brand in brands" :key="brand.value" :value="brand.value">
                             {{ brand.label }}
                         </option>
                     </select>
 
-                    <select v-model="selectedStatus" class="filter-select">
+                    <select v-model="selectedStatus" class="filter-select border border-gray-300">
                         <option value="">Tất cả trạng thái</option>
                         <option value="1">Hoạt động</option>
                         <option value="0">Vô hiệu</option>
@@ -137,14 +139,14 @@
                                     <div class="skeleton-loader"></div>
                                 </td>
                             </tr>
-                            <tr v-else v-for="(item, index) in filteredData" :key="index"
+                            <tr v-else v-for="(item, index) in paginatedData" :key="index"
                                 class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="px-3 py-2">
                                     <input type="checkbox" :checked="selectedRows.includes(item.id)"
                                         @change="toggleSelectRow(item.id)" />
                                 </td>
                                 <td class="px-3 py-2">
-                                    {{ (currentPage - 1) * props.itemsPerPage + index + 1 }}
+                                    {{ (currentPageLocal - 1) * itemsPerPageLocal + index + 1 }}
                                 </td>
                                 <td v-for="column in columns" :key="column.key" class="px-3 py-2 text-center">
                                     <template v-if="column.type === 'main_image'">
@@ -153,11 +155,18 @@
                                             class="w-10 h-10 object-cover rounded" />
                                     </template>
                                     <template v-else-if="column.type === 'sub_images'">
-                                        <div class="flex gap-1">
-                                            <img v-for="image in getSubImages(item.images)" :key="image.id"
-                                                :src="image.image_path" :alt="image.image_path"
+                                        <div class="flex items-center gap-1">
+                                            <!-- Chỉ lặp tối đa 3 ảnh -->
+                                            <img v-for="(image, index) in getSubImages(item.images).slice(0, 3)"
+                                                :key="image.id" :src="image.image_path" :alt="image.image_path"
                                                 class="w-6 h-6 object-cover rounded cursor-pointer hover:opacity-75"
                                                 @click="handleImageClick(image)" />
+
+                                            <!-- Nếu còn ảnh dư thì hiện dấu ba chấm -->
+                                            <button v-if="getSubImages(item.images).length > 3"
+                                                class="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 cursor-pointer">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
                                         </div>
                                     </template>
                                     <template v-else-if="column.type === 'brand'">
@@ -204,7 +213,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-if="!props.isLoading && filteredData.length === 0">
+                            <tr v-if="!props.isLoading && paginatedData.length === 0">
                                 <td :colspan="columns.length + 3" class="px-3 py-2 text-center text-gray-500">
                                     Không có dữ liệu
                                 </td>
@@ -221,13 +230,13 @@
                         <div class="skeleton-loader"></div>
                     </div>
                 </div>
-                <div v-else v-for="(item, index) in filteredData" :key="'mobile-' + index" class="mobile-card">
+                <div v-else v-for="(item, index) in paginatedData" :key="'mobile-' + index" class="mobile-card">
                     <div class="card-header">
                         <div class="card-checkbox">
                             <input type="checkbox" :checked="selectedRows.includes(item.id)"
                                 @change="toggleSelectRow(item.id)" />
                         </div>
-                        <div class="card-number">{{ (currentPage - 1) * props.itemsPerPage + index + 1 }}</div>
+                        <div class="card-number">{{ (currentPageLocal - 1) * itemsPerPageLocal + index + 1 }}</div>
                     </div>
 
                     <div class="card-content">
@@ -274,7 +283,7 @@
                     </div>
                 </div>
 
-                <div v-if="!props.isLoading && filteredData.length === 0" class="empty-state">
+                <div v-if="!props.isLoading && paginatedData.length === 0" class="empty-state">
                     <i class="fas fa-box-open text-gray-400 text-4xl mb-2"></i>
                     <p class="text-gray-500">Không có dữ liệu</p>
                 </div>
@@ -289,13 +298,14 @@
                 }} bản ghi
             </div>
             <div class="pagination-controls">
-                <button :disabled="currentPage === 1" @click="handlePageChange(currentPage - 1)" class="pagination-btn">
+                <button :disabled="currentPageLocal === 1" @click="handlePageChange(currentPageLocal - 1)"
+                    class="pagination-btn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <span class="pagination-text">
-                    Trang {{ currentPage }} / {{ totalPages }}
+                    Trang {{ currentPageLocal }} / {{ totalPages }}
                 </span>
-                <button :disabled="currentPage === totalPages" @click="handlePageChange(currentPage + 1)"
+                <button :disabled="currentPageLocal === totalPages" @click="handlePageChange(currentPageLocal + 1)"
                     class="pagination-btn">
                     <i class="fas fa-chevron-right"></i>
                 </button>
@@ -373,10 +383,7 @@ const isLoading = ref(false)
 
 const selectedRows = ref([])
 
-// Computed properties for pagination
-const totalPages = computed(() => props.pagination.last_page || 1)
-const paginationInfo = computed(() => props.pagination)
-
+// Computed properties for pagination với dữ liệu đã lọc
 const filteredData = computed(() => {
     let result = [...props.data]
 
@@ -415,9 +422,25 @@ const filteredData = computed(() => {
     return result
 })
 
+// Pagination cho dữ liệu đã lọc
+const currentPageLocal = ref(1)
+const itemsPerPageLocal = computed(() => props.itemsPerPage || 10)
+
+const paginatedData = computed(() => {
+    const start = (currentPageLocal.value - 1) * itemsPerPageLocal.value
+    const end = start + itemsPerPageLocal.value
+    return filteredData.value.slice(start, end)
+})
+
+const totalPages = computed(() => Math.ceil(filteredData.value.length / itemsPerPageLocal.value) || 1)
+
+const paginationInfo = computed(() => ({
+    from: (currentPageLocal.value - 1) * itemsPerPageLocal.value + 1,
+    to: Math.min(currentPageLocal.value * itemsPerPageLocal.value, filteredData.value.length),
+    total: filteredData.value.length
+}))
+
 const handleSearch = () => {
-    // Reset to page 1 when searching
-    emit('page-change', 1)
 }
 
 const sortBy = (key) => {
@@ -430,17 +453,11 @@ const sortBy = (key) => {
 }
 
 const handlePageChange = (page) => {
-    emit('page-change', page)
+    currentPageLocal.value = page
 }
 
-watch([selectedCategory, selectedBrand, selectedStatus], () => {
-    // Reset to page 1 when filters change
-    emit('page-change', 1)
-    emit('filter-change', {
-        category: selectedCategory.value,
-        brand: selectedBrand.value,
-        status: selectedStatus.value
-    })
+watch([selectedCategory, selectedBrand, selectedStatus, searchQuery], () => {
+    currentPageLocal.value = 1
 })
 
 const formatPrice = (price) => {
@@ -517,14 +534,14 @@ const handleImport = async () => {
 }
 
 const isAllSelected = computed(() => {
-    return filteredData.value.length > 0 && filteredData.value.every(item => selectedRows.value.includes(item.id))
+    return paginatedData.value.length > 0 && paginatedData.value.every(item => selectedRows.value.includes(item.id))
 })
 
 const toggleSelectAll = () => {
     if (isAllSelected.value) {
         selectedRows.value = []
     } else {
-        selectedRows.value = filteredData.value.map(item => item.id)
+        selectedRows.value = paginatedData.value.map(item => item.id)
     }
 }
 
@@ -636,7 +653,6 @@ const updateProductStatus = async (id, status) => {
 
 .filter-select {
     padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     background: white;

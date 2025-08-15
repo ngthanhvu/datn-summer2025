@@ -45,8 +45,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/admin/user', [AuthController::class, 'listUser']);
+    Route::post('/admin/user', [AuthController::class, 'createUserByAdmin']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
     Route::delete('/admin/user/{id}', [AuthController::class, 'destroy']);
+    Route::delete('/admin/user/{id}/simple', [AuthController::class, 'simpleDelete']); // Simple delete for testing
+    Route::get('/admin/user/{id}/test', [AuthController::class, 'testDelete']); // Test route
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
 
     Route::get('/inventory', [InventoryController::class, 'index']);
