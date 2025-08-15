@@ -186,7 +186,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, watch, onUnmounted } from 'vue'
+import { ref, nextTick, watch, onUnmounted, computed } from 'vue'
 import { useChat } from '../composable/useChat'
 
 // Khai báo API base URL
@@ -194,6 +194,21 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 const props = defineProps({
   isAuthenticated: { type: Boolean, default: false }
+})
+
+// Sử dụng props nếu được truyền, nếu không thì tự kiểm tra
+const isAuthenticated = computed(() => {
+  // Nếu có props được truyền, sử dụng props
+  if (props.isAuthenticated !== undefined) {
+    return props.isAuthenticated
+  }
+  
+  // Nếu không có props, tự kiểm tra từ localStorage và cookies
+  const localToken = localStorage.getItem('token')
+  const cookieToken = document.cookie.includes('token=')
+  const hasUser = !!user
+  const authenticated = (!!localToken || cookieToken) && hasUser
+  return authenticated
 })
 
 const {
@@ -205,7 +220,6 @@ const {
 } = useChat()
 
 const user = JSON.parse(localStorage.getItem('user') || 'null')
-// const isAuthenticated = !!localStorage.getItem('token') // Đã bỏ, dùng props
 
 const isOpen = ref(false)
 const admins = ref([])
@@ -223,18 +237,14 @@ const loadingAdmins = ref(false)
 const pollingInterval = ref(null)
 
 const toggleChat = () => {
-  console.log('ChatWidget toggleChat called, current state:', isOpen.value)
   isOpen.value = !isOpen.value
-  if (isOpen.value && props.isAuthenticated) {
+  if (isOpen.value && isAuthenticated.value) {
     loadAdmins()
     loadUnreadCount()
-    // Thêm class để ẩn AIChatbot khi ChatWidget mở
     document.documentElement.classList.add('chatwidget-open')
   } else {
-    // Xóa class khi ChatWidget đóng
     document.documentElement.classList.remove('chatwidget-open')
   }
-  console.log('ChatWidget new state:', isOpen.value)
 }
 
 const loadAdmins = async () => {
@@ -308,10 +318,8 @@ const sendMessage = async () => {
     await nextTick()
     scrollToBottom()
     await loadMessages()
-    // PHÁT SỰ KIỆN realtime cho admin
     const chatChannel = new BroadcastChannel('chat_channel')
     chatChannel.postMessage({ type: 'new_message', userId: currentAdmin.value.id })
-    console.log('[User] Phát sự kiện:', { type: 'new_message', userId: currentAdmin.value.id })
   } catch (error) {
     console.error('Lỗi khi gửi tin nhắn:', error)
   } finally {
@@ -379,26 +387,34 @@ watch([isOpen, currentAdmin], ([open, admin]) => {
   }
 })
 
-// Toggle a global class to hide AI floating button when this widget is open
 watch(isOpen, (open) => {
   const root = document.documentElement
-  if (open) root.classList.add('chatwidget-open')
-  else root.classList.remove('chatwidget-open')
+  if (open) {
+    root.classList.add('chatwidget-open')
+    root.classList.remove('ai-chatbot-open')
+  } else {
+    root.classList.remove('chatwidget-open')
+  }
 })
+
+watch(isAuthenticated, (authenticated) => {
+  if (!authenticated && isOpen.value) {
+    isOpen.value = false
+    document.documentElement.classList.remove('chatwidget-open')
+  }
+})
+
+watch(() => props.isAuthenticated, (newValue) => {
+}, { immediate: true })
 
 onUnmounted(() => {
   stopPolling()
-  // Cleanup classes khi component unmount
   document.documentElement.classList.remove('chatwidget-open')
-  document.documentElement.classList.remove('ai-chatbot-open')
 })
 
-// Lắng nghe BroadcastChannel để nhận tin nhắn mới từ admin
 const chatChannel = new BroadcastChannel('chat_channel')
 chatChannel.onmessage = (event) => {
-  console.log('[User] Nhận sự kiện:', event.data, 'user:', user)
   if (event.data.type === 'new_message' && user && String(event.data.userId) === String(user.id)) {
-    console.log('[User] Gọi loadMessages')
     loadMessages()
   }
 }
@@ -413,6 +429,9 @@ chatChannel.onmessage = (event) => {
   right: 20px;
   z-index: 1000;
   transition: all 0.3s ease;
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .chat-button:hover {
@@ -484,6 +503,9 @@ chatChannel.onmessage = (event) => {
   z-index: 1001;
   white-space: nowrap;
   border: 1px solid rgba(129, 170, 204, 0.2);
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .chat-panel {
@@ -823,5 +845,15 @@ chatChannel.onmessage = (event) => {
 
 :root.ai-chatbot-open .chat-panel { 
   display: none; 
+}
+
+/* Ensure chat button is always visible when not in ai-chatbot-open state */
+.chat-button {
+  display: flex !important;
+}
+
+/* Ensure support hint is always visible when not in ai-chatbot-open state */
+.support-hint {
+  display: block !important;
 }
 </style>

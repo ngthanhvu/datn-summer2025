@@ -225,11 +225,11 @@
                                         </td>
                                         <td class="px-4 py-2 text-sm text-gray-500">{{ item.variant.sku }}
                                         </td>
-                                        <td class="px-4 py-2 text-sm text-gray-900">{{ item.quantity }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ parseInt(item.quantity) || 0 }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{
-                                            formatCurrency(item.unit_price) }}</td>
+                                            formatCurrency(parseFloat(item.unit_price) || 0) }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{
-                                            formatCurrency(item.quantity * item.unit_price) }}</td>
+                                            formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)) }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -324,12 +324,12 @@
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2">{{ item.variant.sku }}
                                         </td>
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2 text-center">{{
-                                            item.quantity }}
+                                            parseInt(item.quantity) || 0 }}
                                         </td>
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
-                                            formatCurrency(item.unit_price) }}</td>
+                                            formatCurrency(parseFloat(item.unit_price) || 0) }}</td>
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
-                                            formatCurrency(item.quantity * item.unit_price) }}</td>
+                                            formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)) }}</td>
                                     </tr>
                                 </tbody>
                                 <tfoot>
@@ -400,11 +400,11 @@ const showPrintModal = ref(false)
 const selectedMovement = ref(null)
 
 const totalQuantity = computed(() => {
-    return selectedMovement.value?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
+    return selectedMovement.value?.items?.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0) || 0
 })
 
 const totalAmount = computed(() => {
-    return selectedMovement.value?.items?.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) || 0
+    return selectedMovement.value?.items?.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0) || 0
 })
 
 const paginatedMovements = computed(() => {
@@ -455,6 +455,10 @@ const closePrintModal = () => {
 const printDocument = () => {
     const printWindow = window.open('', '_blank')
     const receiptContent = document.querySelector('.receipt-content')
+    
+    // Tính toán tổng số lượng và tổng tiền trực tiếp
+    const calculatedTotalQuantity = selectedMovement.value?.items?.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0) || 0
+    const calculatedTotalAmount = selectedMovement.value?.items?.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0) || 0
     
     if (receiptContent && printWindow) {
         printWindow.document.write(`
@@ -584,18 +588,18 @@ const printDocument = () => {
                                     <td class="text-center">${index + 1}</td>
                                     <td>${item.variant.product.name}</td>
                                     <td>${item.variant.sku}</td>
-                                    <td class="text-center">${item.quantity}</td>
-                                    <td class="text-right">${formatCurrency(item.unit_price)}</td>
-                                    <td class="text-right">${formatCurrency(item.quantity * item.unit_price)}</td>
+                                    <td class="text-center">${parseInt(item.quantity) || 0}</td>
+                                    <td class="text-right">${formatCurrency(parseFloat(item.unit_price) || 0)}</td>
+                                    <td class="text-right">${formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0))}</td>
                                 </tr>
                             `).join('') || ''}
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="3" class="text-right"><strong>Tổng cộng:</strong></td>
-                                <td class="text-center"><strong>${totalQuantity}</strong></td>
+                                <td class="text-center"><strong>${calculatedTotalQuantity}</strong></td>
                                 <td class="text-right">-</td>
-                                <td class="text-right"><strong>${formatCurrency(totalAmount)}</strong></td>
+                                <td class="text-right"><strong>${formatCurrency(calculatedTotalAmount)}</strong></td>
                             </tr>
                         </tfoot>
                     </table>
