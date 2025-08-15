@@ -139,14 +139,14 @@
                                     <div class="skeleton-loader"></div>
                                 </td>
                             </tr>
-                            <tr v-else v-for="(item, index) in paginatedData" :key="index"
+                            <tr v-else v-for="(item, index) in filteredData" :key="index"
                                 class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="px-3 py-2">
                                     <input type="checkbox" :checked="selectedRows.includes(item.id)"
                                         @change="toggleSelectRow(item.id)" />
                                 </td>
                                 <td class="px-3 py-2">
-                                    {{ (currentPageLocal - 1) * itemsPerPageLocal + index + 1 }}
+                                    {{ (currentPageLocal - 1) * props.itemsPerPage + index + 1 }}
                                 </td>
                                 <td v-for="column in columns" :key="column.key" class="px-3 py-2 text-center">
                                     <template v-if="column.type === 'main_image'">
@@ -213,7 +213,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-if="!props.isLoading && paginatedData.length === 0">
+                            <tr v-if="!props.isLoading && filteredData.length === 0">
                                 <td :colspan="columns.length + 3" class="px-3 py-2 text-center text-gray-500">
                                     Không có dữ liệu
                                 </td>
@@ -230,13 +230,13 @@
                         <div class="skeleton-loader"></div>
                     </div>
                 </div>
-                <div v-else v-for="(item, index) in paginatedData" :key="'mobile-' + index" class="mobile-card">
+                <div v-else v-for="(item, index) in filteredData" :key="'mobile-' + index" class="mobile-card">
                     <div class="card-header">
                         <div class="card-checkbox">
                             <input type="checkbox" :checked="selectedRows.includes(item.id)"
                                 @change="toggleSelectRow(item.id)" />
                         </div>
-                        <div class="card-number">{{ (currentPageLocal - 1) * itemsPerPageLocal + index + 1 }}</div>
+                        <div class="card-number">{{ (currentPageLocal - 1) * props.itemsPerPage + index + 1 }}</div>
                     </div>
 
                     <div class="card-content">
@@ -283,7 +283,7 @@
                     </div>
                 </div>
 
-                <div v-if="!props.isLoading && paginatedData.length === 0" class="empty-state">
+                <div v-if="!props.isLoading && filteredData.length === 0" class="empty-state">
                     <i class="fas fa-box-open text-gray-400 text-4xl mb-2"></i>
                     <p class="text-gray-500">Không có dữ liệu</p>
                 </div>
@@ -298,14 +298,13 @@
                 }} bản ghi
             </div>
             <div class="pagination-controls">
-                <button :disabled="currentPageLocal === 1" @click="handlePageChange(currentPageLocal - 1)"
-                    class="pagination-btn">
+                <button :disabled="currentPage === 1" @click="handlePageChange(currentPage - 1)" class="pagination-btn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <span class="pagination-text">
-                    Trang {{ currentPageLocal }} / {{ totalPages }}
+                    Trang {{ currentPage }} / {{ totalPages }}
                 </span>
-                <button :disabled="currentPageLocal === totalPages" @click="handlePageChange(currentPageLocal + 1)"
+                <button :disabled="currentPage === totalPages" @click="handlePageChange(currentPage + 1)"
                     class="pagination-btn">
                     <i class="fas fa-chevron-right"></i>
                 </button>
@@ -383,7 +382,11 @@ const isLoading = ref(false)
 
 const selectedRows = ref([])
 
-// Computed properties for pagination với dữ liệu đã lọc
+// Computed properties for pagination từ server
+const totalPages = computed(() => props.pagination.last_page || 1)
+const paginationInfo = computed(() => props.pagination)
+
+// Computed properties cho dữ liệu đã lọc (chỉ lọc local, không phân trang)
 const filteredData = computed(() => {
     let result = [...props.data]
 
@@ -422,25 +425,8 @@ const filteredData = computed(() => {
     return result
 })
 
-// Pagination cho dữ liệu đã lọc
-const currentPageLocal = ref(1)
-const itemsPerPageLocal = computed(() => props.itemsPerPage || 10)
-
-const paginatedData = computed(() => {
-    const start = (currentPageLocal.value - 1) * itemsPerPageLocal.value
-    const end = start + itemsPerPageLocal.value
-    return filteredData.value.slice(start, end)
-})
-
-const totalPages = computed(() => Math.ceil(filteredData.value.length / itemsPerPageLocal.value) || 1)
-
-const paginationInfo = computed(() => ({
-    from: (currentPageLocal.value - 1) * itemsPerPageLocal.value + 1,
-    to: Math.min(currentPageLocal.value * itemsPerPageLocal.value, filteredData.value.length),
-    total: filteredData.value.length
-}))
-
 const handleSearch = () => {
+    // Search được xử lý bởi watch searchQuery
 }
 
 const sortBy = (key) => {
@@ -453,12 +439,22 @@ const sortBy = (key) => {
 }
 
 const handlePageChange = (page) => {
-    currentPageLocal.value = page
+    emit('page-change', page)
 }
 
+// Lọc chỉ hoạt động local, không gọi API
+// Khi filter thay đổi, chỉ cần reset page local về 1
+const currentPageLocal = ref(1)
+
 watch([selectedCategory, selectedBrand, selectedStatus, searchQuery], () => {
+    // Reset page local về 1 khi filter thay đổi
     currentPageLocal.value = 1
 })
+
+// Cập nhật currentPageLocal khi currentPage từ server thay đổi
+watch(() => props.currentPage, (newPage) => {
+    currentPageLocal.value = newPage
+}, { immediate: true })
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -534,14 +530,14 @@ const handleImport = async () => {
 }
 
 const isAllSelected = computed(() => {
-    return paginatedData.value.length > 0 && paginatedData.value.every(item => selectedRows.value.includes(item.id))
+    return filteredData.value.length > 0 && filteredData.value.every(item => selectedRows.value.includes(item.id))
 })
 
 const toggleSelectAll = () => {
     if (isAllSelected.value) {
         selectedRows.value = []
     } else {
-        selectedRows.value = paginatedData.value.map(item => item.id)
+        selectedRows.value = filteredData.value.map(item => item.id)
     }
 }
 
