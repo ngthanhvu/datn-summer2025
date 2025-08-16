@@ -1,14 +1,10 @@
 <template>
-    <div class="mt-3 bg-white p-4 md:p-8 rounded-[10px]">
+    <div class="mt-3 bg-white p-4 md:px-8 rounded-[10px]">
         <div class="flex justify-between items-center mb-4 md:mb-6">
             <h2 class="text-lg md:text-2xl font-semibold text-gray-800">Đánh giá gần nhất</h2>
-            <router-link to="/reviews"
-                class="text-blue-600 hover:text-blue-800 font-medium transition-colors text-sm md:text-base">
-                Xem tất cả →
-            </router-link>
         </div>
 
-        <div class="mb-6 md:mb-10">
+        <div class="mb-6 md:mb-4">
             <!-- Mobile: Horizontal scroll -->
             <div class="flex gap-4 overflow-x-auto scroll-smooth md:hidden">
                 <div v-for="review in filteredReviews" :key="review.id" class="flex-shrink-0 w-80">

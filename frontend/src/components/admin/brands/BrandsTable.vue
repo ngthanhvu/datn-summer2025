@@ -64,12 +64,9 @@
                                     <td class="px-4 py-3 text-center">{{ brand.products_count }}</td>
                                     <td class="px-4 py-3 text-center">
                                         <div class="flex justify-center">
-                                            <button
-                                                :class="['status-toggle', Number(brand.is_active) === 1 ? 'active' : 'inactive']"
-                                                @click="toggleStatus(brand)"
-                                                :aria-pressed="Number(brand.is_active) === 1">
-                                                <span class="toggle-slider"></span>
-                                            </button>
+                                            <span :class="getStatusBadgeClass(Number(brand.is_active))">
+                                                {{ getStatusText(Number(brand.is_active)) }}
+                                            </span>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-center">
@@ -151,10 +148,9 @@
                         </div>
 
                         <div class="brand-status">
-                            <button :class="['status-toggle', Number(brand.is_active) === 1 ? 'active' : 'inactive']"
-                                @click="toggleStatus(brand)" :aria-pressed="Number(brand.is_active) === 1">
-                                <span class="toggle-slider"></span>
-                            </button>
+                            <span :class="getStatusBadgeClass(Number(brand.is_active))">
+                                {{ getStatusText(Number(brand.is_active)) }}
+                            </span>
                         </div>
                     </div>
 
@@ -203,10 +199,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
-import { useBrand } from '../../../composable/useBrand'
 import { push } from 'notivue'
-
-const { updateBrandStatus } = useBrand()
 
 const props = defineProps({
     brands: {
@@ -262,6 +255,10 @@ const getStatusText = (isActive) => {
     return Number(isActive) === 1 ? 'Hoạt động' : 'Vô hiệu'
 }
 
+const getStatusBadgeClass = (isActive) => {
+    return isActive === 1 ? 'status-badge active' : 'status-badge inactive'
+}
+
 const handleDelete = async (brand) => {
     Swal.fire({
         title: 'Bạn có chắc chắn muốn xóa thương hiệu?',
@@ -291,19 +288,6 @@ const emit = defineEmits(['update:currentPage', 'delete', 'bulkDelete', 'refresh
 const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value) {
         emit('update:currentPage', page)
-    }
-}
-
-const toggleStatus = async (brand) => {
-    const newStatus = Number(brand.is_active) === 1 ? 0 : 1
-    try {
-        await updateBrandStatus(brand.id, newStatus)
-        brand.is_active = newStatus
-        push.success('Cập nhật trạng thái thành công')
-        // Emit event để parent component refresh data
-        emit('refresh')
-    } catch (e) {
-        push.error('Cập nhật trạng thái thất bại')
     }
 }
 </script>
@@ -427,56 +411,36 @@ const toggleStatus = async (brand) => {
     flex-shrink: 0;
 }
 
+/* Status Badge Styles */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.status-badge.active {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge.inactive {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Remove old toggle styles */
 .status-toggle {
-    width: 2.5rem;
-    height: 1.5rem;
-    border-radius: 1rem;
-    border: none;
-    cursor: pointer;
-    position: relative;
-    transition: background-color 0.2s;
-    flex-shrink: 0;
-}
-
-.status-toggle.active {
-    background-color: #3bb77e;
-}
-
-.status-toggle.inactive {
-    background-color: #d1d5db;
+    display: none;
 }
 
 .toggle-slider {
-    position: absolute;
-    top: 0.125rem;
-    left: 0.125rem;
-    width: 1.25rem;
-    height: 1.25rem;
-    background-color: white;
-    border-radius: 50%;
-    transition: transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.status-toggle.active .toggle-slider {
-    transform: translateX(1rem);
-}
-
-/* Mobile-specific toggle improvements */
-@media (max-width: 768px) {
-    .status-toggle {
-        width: 2.5rem;
-        height: 1.5rem;
-        min-width: 2.5rem;
-        min-height: 1.5rem;
-    }
-
-    .toggle-slider {
-        width: 1.25rem;
-        height: 1.25rem;
-        min-width: 1.25rem;
-        min-height: 1.25rem;
-    }
+    display: none;
 }
 
 .card-actions {

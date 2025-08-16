@@ -56,13 +56,9 @@
                             </td>
                             <td class="px-4 py-2 text-center">{{ item.start_time }} ~ {{ item.end_time }}</td>
                             <td class="px-4 py-2 text-center">
-                                <button
-                                    :class="['w-10 h-6 rounded-full relative transition-colors', item.active ? 'bg-primary' : 'bg-gray-300']"
-                                    @click="toggleStatus(item)" :aria-pressed="item.active"
-                                    style="background-color: #3bb77e">
-                                    <span
-                                        :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', item.active ? 'translate-x-4' : '']"></span>
-                                </button>
+                                <span :class="getStatusBadgeClass(item.active)">
+                                    {{ getStatusText(item.active) }}
+                                </span>
                             </td>
                             <td class="px-4 py-2 text-center">
                                 <span v-if="item.repeat"
@@ -110,13 +106,9 @@
                             <p class="text-xs text-gray-500 mt-1">#{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button
-                                :class="['w-8 h-5 rounded-full relative transition-colors', item.active ? 'bg-primary' : 'bg-gray-300']"
-                                @click="toggleStatus(item)" :aria-pressed="item.active"
-                                style="background-color: #3bb77e">
-                                <span
-                                    :class="['absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform', item.active ? 'translate-x-3' : '']"></span>
-                            </button>
+                            <span :class="getStatusBadgeClass(item.active)">
+                                {{ getStatusText(item.active) }}
+                            </span>
                         </div>
                     </div>
 
@@ -251,20 +243,36 @@ async function handleDelete(id) {
     }
 }
 
-const toggleStatus = async (item) => {
-    const newStatus = item.active ? 0 : 1
-    try {
-        await updateFlashSaleStatus(item.id, newStatus)
-        item.active = newStatus
-        push.success('Cập nhật trạng thái flash sale thành công!')
-    } catch (e) {
-        push.error('Có lỗi xảy ra khi cập nhật trạng thái flash sale!')
-    }
+const getStatusBadgeClass = (active) => {
+    return active ? 'status-badge active' : 'status-badge inactive'
 }
 
-// Hàm giả lập gọi API cập nhật trạng thái
-const updateFlashSaleStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
+const getStatusText = (active) => {
+    return active ? 'Đang diễn ra' : 'Kết thúc'
 }
 </script>
+
+<style scoped>
+/* Status Badge Styles */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.status-badge.active {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge.inactive {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+</style>

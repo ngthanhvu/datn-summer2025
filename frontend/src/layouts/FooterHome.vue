@@ -58,6 +58,10 @@
                                 </li>
                                 <li v-if="supportPages.length === 0" class="text-gray-200 text-sm">Đang tải...</li>
                             </ul>
+                            <div class="mt-50 flex gap-2">
+                                <img src="https://theme.hstatic.net/200000696635/1001373943/14/footer_trustbadge.png?v=6"
+                                    alt="">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -74,11 +78,10 @@
                         </button>
                     </form>
                     <div class="flex gap-4 mb-4">
-                        <a href="#" class="text-white text-2xl"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="text-white text-2xl"><i class="bi bi-chat-dots"></i></a>
-                        <a href="#" class="text-white text-2xl"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="text-white text-2xl"><i class="bi bi-youtube"></i></a>
-                        <a href="#" class="text-white text-2xl"><i class="bi bi-tiktok"></i></a>
+                        <a href="#" class="text-white text-2xl"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" class="text-white text-2xl"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="text-white text-2xl"><i class="fa-brands fa-telegram"></i></a>
+                        <a href="#" class="text-white text-2xl"><i class="fa-brands fa-tiktok"></i></a>
                     </div>
                 </div>
             </div>
