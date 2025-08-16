@@ -83,14 +83,14 @@
             <div class="mb-3 text-[11px]">
                 <div class="mb-1 font-semibold text-sm sm:text-[16px]">Mã giảm giá</div>
                 <div class="flex flex-wrap gap-2">
-                    <button
-                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px]">DEVGAMGREESHIP</button>
-                    <button
-                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px]">GIAM50K</button>
-                    <button
-                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px]">GIAM30</button>
-                    <button
-                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px]">GIAM40</button>
+                    <button v-for="coupon in nearestCoupons" :key="coupon.id" @click="openCouponPanel"
+                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px] hover:bg-blue-50 transition-colors cursor-pointer">
+                        {{ coupon.code }}
+                    </button>
+                    <button @click="openCouponPanel"
+                        class="border border-blue-400 rounded px-2 sm:px-3 py-1 text-blue-600 text-xs sm:text-[13px] hover:bg-blue-50 transition-colors cursor-pointer">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -176,10 +176,16 @@
             <span class="text-gray-500">Giao hàng trong 1-3 ngày</span>
         </div>
     </div>
+
+    <!-- Coupon Panel -->
+    <CouponPanel :isOpen="isCouponPanelOpen" @close="closeCouponPanel" />
 </template>
 
 <script setup>
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
+import { useCoupon } from '../../composable/useCoupon'
+import { push } from 'notivue'
+import CouponPanel from '../common/CouponPanel.vue'
 
 const props = defineProps({
     product: {
@@ -382,17 +388,50 @@ watch(() => [props.selectedSize, props.selectedColor], ([newSize, newColor]) => 
 const addToCart = async () => {
     try {
         if (!selectedVariant.value) {
-            notyf.error('Vui lòng chọn size và màu sắc')
+            push.error('Vui lòng chọn size và màu sắc')
             return
         }
-        if (props.quantity > (flashSalePercent.value > 0 ? props.flashSaleQuantity : selectedVariant.value.stock)) {
-            notyf.error('Số lượng vượt quá số lượng còn lại')
+        if (props.quantity > (flashSalePercent.value > 0 ? props.flashSaleQuantity : selectedVariantInventory.value)) {
+            push.error('Số lượng vượt quá số lượng còn lại')
             return
         }
         await addToCartComposable(selectedVariant.value.id, props.quantity, selectedVariantSalePrice.value)
-        notyf.success('Đã thêm vào giỏ hàng')
+        push.success('Đã thêm vào giỏ hàng')
+        emit('addToCart')
     } catch (error) {
-        notyf.error('Có lỗi xảy ra khi thêm vào giỏ hàng')
+        console.error('Error adding to cart:', error)
+        push.error('Có lỗi xảy ra khi thêm vào giỏ hàng')
     }
 }
+
+const { getCoupons, getNearestCoupons } = useCoupon()
+const isCouponPanelOpen = ref(false)
+const nearestCoupons = ref([])
+
+const openCouponPanel = () => {
+    isCouponPanelOpen.value = true
+}
+
+const closeCouponPanel = () => {
+    isCouponPanelOpen.value = false
+}
+
+const fetchNearestCoupons = async () => {
+    try {
+        // Sử dụng function getNearestCoupons từ useCoupon
+        nearestCoupons.value = await getNearestCoupons(3)
+    } catch (error) {
+        console.error('Error fetching nearest coupons:', error)
+        // Fallback với một số coupon mặc định
+        nearestCoupons.value = [
+            { id: 1, code: 'DEVGANG', discount_type: 'percentage', discount_value: 5 },
+            { id: 2, code: 'FREESHIP', discount_type: 'shipping', discount_value: 0 },
+            { id: 3, code: 'GIAM50K', discount_type: 'fixed', discount_value: 50000 }
+        ]
+    }
+}
+
+onMounted(() => {
+    fetchNearestCoupons()
+})
 </script>

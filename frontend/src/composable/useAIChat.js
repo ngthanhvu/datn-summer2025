@@ -1,14 +1,10 @@
 import { ref, reactive } from 'vue'
 import { useAuth } from './useAuth'
-import api from '../utils/api'
 
 export function useAIChat() {
   const { user } = useAuth()
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
-
-  // Sử dụng instance axios chung từ utility
-  const API = api
 
   const isOpen = ref(false)
   const isTyping = ref(false)
@@ -122,12 +118,19 @@ export function useAIChat() {
     isTyping.value = true
 
     try {
-      const response = await API.post('/ai/chat', {
-        message,
-        context: buildClientContextHint()
+      const response = await fetch(`${apiBaseUrl}/api/ai/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          message,
+          context: buildClientContextHint()
+        })
       })
 
-      const data = response.data
+      const data = await response.json()
 
       console.log('AI Chat Response:', data)
       if (data.context && data.context.products) {
@@ -213,8 +216,14 @@ export function useAIChat() {
 
   const searchProducts = async (query) => {
     try {
-      const response = await API.get(`/ai/search-products?query=${encodeURIComponent(query)}`)
-      return response.data.success ? response.data.products : []
+      const response = await fetch(`${apiBaseUrl}/api/ai/search-products?query=${encodeURIComponent(query)}`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+      return data.success ? data.products : []
     } catch (error) {
       console.error('Search Products Error:', error)
       return []
@@ -223,8 +232,14 @@ export function useAIChat() {
 
   const getAvailableCoupons = async () => {
     try {
-      const response = await API.get('/ai/coupons')
-      return response.data.success ? response.data.coupons : []
+      const response = await fetch(`${apiBaseUrl}/api/ai/coupons`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+      return data.success ? data.coupons : []
     } catch (error) {
       console.error('Get Coupons Error:', error)
       return []
@@ -233,8 +248,14 @@ export function useAIChat() {
 
   const getActiveFlashSales = async () => {
     try {
-      const response = await API.get('/ai/flash-sales')
-      return response.data.success ? response.data.flash_sales : []
+      const response = await fetch(`${apiBaseUrl}/api/ai/flash-sales`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+      return data.success ? data.flash_sales : []
     } catch (error) {
       console.error('Get Flash Sales Error:', error)
       return []

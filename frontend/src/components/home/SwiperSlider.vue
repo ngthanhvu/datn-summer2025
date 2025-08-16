@@ -22,8 +22,8 @@ import 'swiper/css/pagination'
 const { settings, fetchSettings } = useSetting()
 
 const defaultImages = [
-  'https://theme.hstatic.net/200000696635/1001257291/14/slider_2.jpg?v=107',
-  'https://theme.hstatic.net/200000696635/1001257291/14/slider_1.jpg?v=107',
+  'https://i.imgur.com/sz2mSUp.png',
+  'https://i.imgur.com/QQsOZz8.png',
 ]
 
 onMounted(async () => {

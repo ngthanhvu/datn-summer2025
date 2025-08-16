@@ -6,7 +6,8 @@
             <!-- Mobile-first filter layout -->
             <div class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 mb-4 sm:flex-wrap">
                 <div class="relative flex-1 min-w-full sm:min-w-[220px]">
-                    <input class="border border-gray-300 rounded px-3 py-2 w-full pl-10 text-sm" placeholder="Tìm kiếm..." />
+                    <input class="border border-gray-300 rounded px-3 py-2 w-full pl-10 text-sm"
+                        placeholder="Tìm kiếm..." />
                     <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <div class="flex gap-2 sm:gap-4">
@@ -118,11 +119,12 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="space-y-2 text-xs">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Sản phẩm:</span>
-                            <span v-if="Array.isArray(item.products) && item.products[0]" class="text-green-600">Có sản phẩm</span>
+                            <span v-if="Array.isArray(item.products) && item.products[0]" class="text-green-600">Có sản
+                                phẩm</span>
                             <span v-else class="text-gray-500">Không có sản phẩm</span>
                         </div>
                         <div class="flex justify-between">
@@ -131,11 +133,12 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Lặp lại:</span>
-                            <span v-if="item.repeat" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">Lặp lại</span>
+                            <span v-if="item.repeat"
+                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">Lặp lại</span>
                             <span v-else class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">Không</span>
                         </div>
                     </div>
-                    
+
                     <div class="flex justify-center gap-2 mt-3 pt-3 border-t border-gray-100">
                         <router-link :to="`/admin/flashsale/${item.id}/edit`"
                             class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors duration-150 text-xs font-medium"
@@ -162,7 +165,8 @@
             </div>
 
             <!-- Pagination -->
-            <div v-if="!loading && !error && totalPages > 1" class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3">
+            <div v-if="!loading && !error && totalPages > 1"
+                class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3">
                 <div class="text-xs sm:text-sm text-gray-600 order-2 sm:order-1">
                     Hiển thị {{ paginatedFlashSales.length }} trên tổng số {{ flashSales.length }} bản ghi
                 </div>
@@ -182,7 +186,7 @@
             </div>
         </div>
     </div>
-    
+
 </template>
 
 <script setup>

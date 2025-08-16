@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const images = ref([
     'https://theme.hstatic.net/200000696635/1001373943/14/banner-popup-img.png?v=6',
@@ -45,7 +45,18 @@ function closePopup() {
     show.value = false
 }
 
+function handleKeydown(e) {
+    if (e.key === 'Escape') {
+        closePopup()
+    }
+}
+
 onMounted(() => {
     openPopupOncePerSession()
+    window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', handleKeydown)
 })
 </script>

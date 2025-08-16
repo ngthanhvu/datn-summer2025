@@ -1,28 +1,63 @@
 <template>
   <div v-if="flashSaleProducts.length > 0" class="bg-white rounded p-4 md:p-6 mb-6">
-    <div class="flex items-center justify-between mb-3 md:mb-4">
-      <div class="flex items-center gap-2 md:gap-3">
-        <h1 class="text-lg md:text-2xl font-bold text-blue-700">{{ campaignName }}</h1>
-        <img src="https://theme.hstatic.net/200000696635/1001373943/14/flashsale-hot.png?v=6" alt="Flash Sale"
-          class="h-6 md:h-10 w-auto" />
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3 md:mb-4 gap-3">
+      <!-- Mobile & Desktop chung -->
+      <div class="flex items-center justify-between w-full md:w-auto">
+        <!-- Tiêu đề + icon -->
+        <div class="flex items-center gap-2 md:gap-3">
+          <h1 class="text-lg md:text-2xl font-bold text-blue-700">
+            GIẢM SỐC 50%
+          </h1>
+          <img src="https://theme.hstatic.net/200000696635/1001373943/14/flashsale-hot.png?v=6" alt="Flash Sale"
+            class="h-5 md:h-10 w-auto" />
+        </div>
+
+        <!-- Countdown mobile gọn -->
+        <div class="flex items-center gap-1 md:hidden">
+          <span class="text-xs text-blue-600">Kết thúc sau</span>
+          <div class="flex items-center gap-1">
+            <span class="bg-black text-white text-xs font-bold px-1 py-0.5 rounded">{{ countdown.days }}</span>
+            <span class="text-black font-bold">|</span>
+            <span class="bg-black text-white text-xs font-bold px-1 py-0.5 rounded">{{ countdown.hours }}</span>
+            <span class="text-black font-bold">:</span>
+            <span class="bg-black text-white text-xs font-bold px-1 py-0.5 rounded">{{ countdown.minutes }}</span>
+            <span class="text-black font-bold">:</span>
+            <span class="bg-black text-white text-xs font-bold px-1 py-0.5 rounded">{{ countdown.seconds }}</span>
+          </div>
+        </div>
       </div>
-      <div class="flex items-center gap-1 md:gap-2">
-        <span class="text-sm md:text-base text-blue-700 md:text-black">Kết thúc sau</span>
-        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.days }}</div>
-        <span class="text-xs md:text-sm">Ngày</span>
-        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.hours }}</div>
-        <span class="text-xs md:text-sm">:</span>
-        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.minutes }}</div>
-        <span class="text-xs md:text-sm">:</span>
-        <div class="bg-black text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm">{{ countdown.seconds }}</div>
+
+      <!-- Countdown desktop -->
+      <div class="hidden md:flex items-center gap-2">
+        <span class="text-sm md:text-base text-blue-600">Kết thúc sau</span>
+
+        <div class="flex flex-col items-center bg-black text-white px-3 py-2 rounded">
+          <span class="text-lg md:text-2xl font-bold leading-none">{{ countdown.days }}</span>
+          <span class="text-[10px] md:text-xs text-gray-300">Ngày</span>
+        </div>
+
+        <div class="flex flex-col items-center bg-black text-white px-3 py-2 rounded">
+          <span class="text-lg md:text-2xl font-bold leading-none">{{ countdown.hours }}</span>
+          <span class="text-[10px] md:text-xs text-gray-300">Giờ</span>
+        </div>
+
+        <div class="flex flex-col items-center bg-black text-white px-3 py-2 rounded">
+          <span class="text-lg md:text-2xl font-bold leading-none">{{ countdown.minutes }}</span>
+          <span class="text-[10px] md:text-xs text-gray-300">Phút</span>
+        </div>
+
+        <div class="flex flex-col items-center bg-black text-white px-3 py-2 rounded">
+          <span class="text-lg md:text-2xl font-bold leading-none">{{ countdown.seconds }}</span>
+          <span class="text-[10px] md:text-xs text-gray-300">Giây</span>
+        </div>
       </div>
     </div>
 
-    <div v-if="flashSales.length > 1" class="flex gap-6 shadow-sm mb-4 ml-2 bg-white">
+    <div v-if="flashSales.length > 1" class="flex gap-6 border-b border-t border-gray-200">
       <button v-for="(fs, idx) in flashSales" :key="fs.id" @click="selectTab(idx)"
-        class="pb-2 font-medium transition relative"
-        :class="selectedIndex === idx ? 'text-black border-b-2 border-black' : 'text-gray-400'"
-        style="background:none;border:none;outline:none;cursor:pointer;">
+        class="px-2 pb-2 pt-2 font-medium transition relative focus:outline-none" :class="selectedIndex === idx
+          ? 'text-black border-b-2 border-black'
+          : 'text-gray-400 hover:text-gray-600'">
         {{ fs.name }}
       </button>
     </div>
@@ -45,7 +80,9 @@
             <div class="relative overflow-hidden rounded-[5px]" style="width: 236px; height: 320px; margin: 5px auto;">
               <img :src="getMainImage(product)" alt="Ảnh sản phẩm"
                 class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
-              <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div
+                class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              </div>
               <div
                 class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                 <button
