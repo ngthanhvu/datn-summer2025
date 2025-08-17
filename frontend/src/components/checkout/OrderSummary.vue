@@ -73,12 +73,8 @@
 
         <!-- Thông tin vận chuyển -->
         <div class="mb-6">
-            <ShippingSection 
-                ref="shippingSectionRef"
-                :cart-items="cartItems" 
-                :selected-address="selectedAddress"
-                @shipping-calculated="handleShippingCalculated" 
-            />
+            <ShippingSection ref="shippingSectionRef" :cart-items="cartItems" :selected-address="selectedAddress"
+                @shipping-calculated="handleShippingCalculated" />
         </div>
 
         <div class="space-y-3 border-t border-gray-300 pt-4">
@@ -87,7 +83,8 @@
                 <span>{{ formatPrice(subtotal) }}</span>
             </div>
             <div class="flex justify-between">
-                <span>Phí vận chuyển <span v-if="shippingZone" class="text-xs text-gray-500">({{ shippingZone }})</span></span>
+                <span>Phí vận chuyển <span v-if="shippingZone" class="text-xs text-gray-500">({{ shippingZone
+                        }})</span></span>
                 <span v-if="shippingLoading" class="flex items-center">
                     <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
                     Đang tính...
@@ -103,9 +100,13 @@
                 <span>{{ formatPrice(total) }}</span>
             </div>
         </div>
-        <button @click="$emit('place-order')"
-            class="w-full mt-6 px-6 py-3 bg-[#81AACC] text-white rounded-md hover:bg-[#6387A6] font-medium cursor-pointer">
-            Đặt hàng
+        <button @click="$emit('place-order')" :disabled="isPlacingOrder"
+            class="w-full mt-6 px-6 py-3 bg-[#81AACC] text-white rounded-md hover:bg-[#6387A6] font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <div v-if="isPlacingOrder" class="flex items-center justify-center gap-2">
+                <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                <span>Đang đặt hàng...</span>
+            </div>
+            <span v-else>Đặt hàng</span>
         </button>
     </div>
 </template>
@@ -145,6 +146,10 @@ const props = defineProps({
         required: true
     },
     shippingLoading: {
+        type: Boolean,
+        default: false
+    },
+    isPlacingOrder: {
         type: Boolean,
         default: false
     }

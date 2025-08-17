@@ -28,7 +28,7 @@ const selectedAddress = ref(null)
 const addresses = ref([])
 const isLoading = ref(false)
 const error = ref(null)
-
+const isPlacingOrder = ref(false)
 
 
 const cartItems = ref([])
@@ -286,7 +286,7 @@ const placeOrder = async () => {
             return
         }
 
-        isLoading.value = true
+        isPlacingOrder.value = true
 
         const cart = await cartService.fetchCart()
 
@@ -340,7 +340,7 @@ const placeOrder = async () => {
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi đặt hàng'
     } finally {
-        isLoading.value = false
+        isPlacingOrder.value = false
     }
 }
 
@@ -434,8 +434,9 @@ onMounted(async () => {
             <div class="space-y-8">
                 <OrderSummary ref="orderSummaryRef" :items="cartItems" :subtotal="subtotal" :shipping="shipping"
                     :discount="discount" :shipping-zone="shippingZone" :shipping-loading="shippingLoading"
-                    :selected-address="currentSelectedAddress" :cart-items="cartItems" @place-order="placeOrder"
-                    @apply-coupon="applyCoupon" @shipping-calculated="handleShippingCalculated" />
+                    :selected-address="currentSelectedAddress" :cart-items="cartItems"
+                    :is-placing-order="isPlacingOrder" @place-order="placeOrder" @apply-coupon="applyCoupon"
+                    @shipping-calculated="handleShippingCalculated" />
             </div>
         </div>
 

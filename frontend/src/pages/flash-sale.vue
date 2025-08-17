@@ -83,33 +83,8 @@
                 style="width: 236px; height: 320px; margin: 5px auto;">
                 <img :src="getMainImage(product)" alt="Ảnh sản phẩm"
                   class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
-                <!-- Hover overlay -->
                 <div
                   class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                </div>
-                <!-- Hover buttons -->
-                <div
-                  class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                  <button
-                    class="bg-white rounded w-10 h-10 flex items-center justify-center shadow hover:bg-[#81AACC]/20 transition duration-200"
-                    title="Thêm vào giỏ" @click.prevent.stop="addToCart(product)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#81AACC]" fill="none"
-                      viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5H19M7 13L5.4 5M16 16a1 1 0 100 2 1 1 0 000-2zm-8 0a1 1 0 100 2 1 1 0 000-2z" />
-                    </svg>
-                  </button>
-                  <button
-                    class="bg-white rounded w-10 h-10 flex items-center justify-center shadow hover:bg-[#81AACC]/20 transition duration-200"
-                    title="Xem nhanh" @click.prevent.stop="onQuickView(product)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#81AACC]" fill="none"
-                      viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </button>
                 </div>
               </div>
             </div>

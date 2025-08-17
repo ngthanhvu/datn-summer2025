@@ -61,7 +61,7 @@
                             <div class="flex items-center gap-1 sm:gap-2">
                                 <i class="fas fa-user text-primary"></i>
                                 <span class="truncate">{{ blog.author?.username || blog.author?.name || 'Unknown'
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="flex items-center gap-1 sm:gap-2">
                                 <i class="fas fa-calendar text-primary"></i>
@@ -106,7 +106,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <h3 class="text-sm sm:text-base font-semibold">{{ blog.author.username || blog.author.name
-                            }}</h3>
+                                }}</h3>
                             <p v-if="blog.author.bio" class="text-gray-600 mt-2 text-sm">{{ blog.author.bio }}</p>
                             <div v-if="blog.author.social_links" class="flex gap-3 mt-3">
                                 <a v-for="(link, platform) in blog.author.social_links" :key="platform" :href="link"
@@ -172,7 +172,7 @@
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-folder text-blue-500 group-hover:text-blue-600"></i>
                                     <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ category.name
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                                     {{ category.blogs_count || 0 }}
@@ -196,7 +196,7 @@ import { useRouter, useRoute } from 'vue-router'
 const { isAuthenticated } = useAuth()
 const router = useRouter()
 const route = useRoute()
-const { blog, loading, error, categories, categoriesLoading, relatedBlogs, relatedBlogsLoading, fetchBlogBySlug, fetchCategories, fetchRelatedBlogs } = useBlog()
+const { blog, loading, error, categories, categoriesLoading, relatedBlogs, relatedBlogsLoading, fetchBlogBySlug, fetchCategories, fetchRelatedBlogs, increaseView } = useBlog()
 
 const socialPlatforms = [
     { name: 'Facebook', icon: 'fab fa-facebook', url: 'https://www.facebook.com/sharer/sharer.php?u=' },
@@ -300,17 +300,6 @@ const getImageUrl = (path) => {
 </script>
 
 <style>
-.blog-image {
-    max-width: 100%;
-    max-height: 300px;
-    width: auto;
-    height: auto;
-    object-fit: cover;
-    border-radius: 0.75rem;
-    box-shadow: none;
-    background: #f8f8f8;
-}
-
 @media (max-width: 1023px) {
     aside {
         margin-top: 1.5rem;

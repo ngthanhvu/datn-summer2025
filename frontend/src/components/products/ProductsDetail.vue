@@ -23,13 +23,14 @@
                 </div>
 
                 <!-- Product Info -->
-                <ProductInfo :product="product" :selected-size="props.selectedSize" :selected-color="props.selectedColor"
-                    :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
+                <ProductInfo :product="product" :selected-size="props.selectedSize"
+                    :selected-color="props.selectedColor" :quantity="quantity"
+                    :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
                     :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName"
                     :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime"
                     :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
                     :flash-sale-percent="flashSalePercent" :product-inventory="productInventory"
-                    @variant-change="$emit('variantChange', $event)"
+                    :is-adding-to-cart="isAddingToCart" @variant-change="$emit('variantChange', $event)"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
@@ -228,6 +229,10 @@ const props = defineProps({
     productInventory: {
         type: Array,
         default: 0
+    },
+    isAddingToCart: {
+        type: Boolean,
+        default: false
     }
 })
 

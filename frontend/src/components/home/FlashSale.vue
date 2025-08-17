@@ -83,28 +83,42 @@
               <div
                 class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               </div>
-              <div
-                class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                <button
-                  class="bg-white rounded w-10 h-10 flex items-center justify-center shadow hover:bg-gray-100 transition duration-200"
-                  title="Thêm vào giỏ" @click.prevent.stop="addToCart(product)">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5H19M7 13L5.4 5M16 16a1 1 0 100 2 1 1 0 000-2zm-8 0a1 1 0 100 2 1 1 0 000-2z" />
-                  </svg>
-                </button>
-                <button
-                  class="bg-white rounded w-10 h-10 flex items-center justify-center shadow hover:bg-gray-100 transition duration-200"
-                  title="Xem nhanh" @click.prevent.stop="onQuickView(product)">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
+
+              <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex opacity-0 translate-y-4 
+            group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                <div class="relative group/cart">
+                  <button @click.prevent.stop="onQuickView(product)"
+                    class="bg-white text-black w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center 
+                    transition duration-200 cursor-pointer group-hover/cart:bg-black group-hover/cart:text-white rounded-l">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5H19M7 13L5.4 5M16 16a1 1 0 100 2 1 1 0 000-2zm-8 0a1 1 0 100 2 1 1 0 000-2z" />
+                    </svg>
+                  </button>
+                  <span class="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs rounded bg-black text-white opacity-0 
+                    group-hover/cart:opacity-100 transition duration-200 whitespace-nowrap">
+                    Thêm vào giỏ
+                  </span>
+                </div>
+
+                <div class="relative group/view">
+                  <button @click.prevent.stop="onQuickView(product)"
+                    class="bg-white text-black w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center 
+                    transition duration-200 cursor-pointer group-hover/view:bg-black group-hover/view:text-white rounded-r">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <span class="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs rounded bg-black text-white opacity-0 
+                    group-hover/view:opacity-100 transition duration-200 whitespace-nowrap">
+                    Xem nhanh
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -160,12 +174,20 @@
         Xem tất cả &gt;
       </router-link>
     </div>
+
+    <!-- Quick View Modal -->
+    <FlashSaleQuickView :show="showQuickView" :product="selectedProduct"
+      :flash-sale-price="Number(selectedProduct?.flash_price) || 0"
+      :flash-sale-percent="getDiscountPercent(selectedProduct?.price, selectedProduct?.flash_price)"
+      :flash-sale-quantity="Number(selectedProduct?.flash_sale_quantity) || 0" @close="showQuickView = false"
+      @add-to-cart="handleAddToCart" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useFlashsale } from '../../composable/useFlashsale'
+import FlashSaleQuickView from '../products/FlashSaleQuickView.vue'
 import productSaleBg from '../../assets/product_sale.jpg'
 
 const flashSaleProducts = ref([])
@@ -173,6 +195,8 @@ const countdown = ref({ days: '00', hours: '00', minutes: '00', seconds: '00' })
 const campaignName = ref('')
 const flashSales = ref([])
 const selectedIndex = ref(0)
+const showQuickView = ref(false)
+const selectedProduct = ref(null)
 let countdownInterval = null
 let autoIncreaseInterval = null
 
@@ -229,12 +253,19 @@ function updateTabData() {
   if (fs && fs.products) {
     campaignName.value = fs.name || 'Flash Sale'
     flashSaleProducts.value = fs.products.map(p => ({
-      ...p.product,
-      ...p,
-      flash_price: p.flash_price,
+      ...p.product, // Đây là thông tin sản phẩm chính (có images, variants, etc.)
+      ...p, // Thông tin flash sale (flash_price, quantity, sold, etc.)
+      flash_price: Number(p.flash_price) || 0, // Convert to number
       sold: p.sold ?? 0,
       end_time: fs.end_time,
-      flash_sale_quantity: p.quantity
+      flash_sale_quantity: Number(p.quantity) || 0, // Convert to number
+      // Đảm bảo giữ nguyên cấu trúc images từ product
+      images: p.product?.images || [],
+      variants: p.product?.variants || [],
+      brand: p.product?.brand,
+      category: p.product?.category,
+      sku: p.product?.sku,
+      slug: p.product?.slug
     }))
 
     if (fs.end_time) {
@@ -266,6 +297,30 @@ function scrollRight() {
 function addToCart(product) {
 }
 function onQuickView(product) {
+  // Debug để xem cấu trúc data
+  console.log('Product data for Quick-view:', product)
+  console.log('Product images:', product.images)
+
+  // Đảm bảo truyền đúng cấu trúc data cho Quick-view
+  selectedProduct.value = {
+    ...product,
+    // Đảm bảo có đủ các trường cần thiết
+    images: product.images || [],
+    variants: product.variants || [],
+    brand: product.brand,
+    category: product.category,
+    sku: product.sku,
+    slug: product.slug,
+    // Flash sale data - convert to number
+    flash_price: Number(product.flash_price) || 0,
+    flash_sale_quantity: Number(product.flash_sale_quantity) || 0
+  }
+
+  console.log('Selected product for Quick-view:', selectedProduct.value)
+  showQuickView.value = true
+}
+function handleAddToCart() {
+  showQuickView.value = false
 }
 function startAutoIncrease() {
   if (autoIncreaseInterval) clearInterval(autoIncreaseInterval)

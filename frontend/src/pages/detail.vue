@@ -10,11 +10,11 @@
         :is-submitting="isSubmitting" :preview-images="previewImages" :reviews-loading="reviewsLoading"
         :reviews="reviews" :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
         :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
-        :user="user" :product-inventory="productInventory" @update:selectedSize="val => selectedSize = val"
-        @update:selectedColor="val => selectedColor = val" v-model:activeTab="activeTab" @submitReview="submitReview"
-        @update:showReviewForm="val => showReviewForm = val" @update:reviewForm="val => reviewForm = val"
-        @removeImage="removeImage" @handleImageUpload="handleImageUpload" @add-to-cart="handleAddToCart"
-        @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
+        :user="user" :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
+        @update:selectedSize="val => selectedSize = val" @update:selectedColor="val => selectedColor = val"
+        v-model:activeTab="activeTab" @submitReview="submitReview" @update:showReviewForm="val => showReviewForm = val"
+        @update:reviewForm="val => reviewForm = val" @removeImage="removeImage" @handleImageUpload="handleImageUpload"
+        @add-to-cart="handleAddToCart" @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
         @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts"
         @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
     <div v-else class="flex flex-col items-center justify-center h-screen">
@@ -54,6 +54,7 @@ const quantity = ref(1)
 const selectedVariantStock = ref(0)
 const displayPrice = ref(0)
 const showOriginalPrice = ref(false)
+const isAddingToCart = ref(false)
 
 // Thêm biến để lưu tất cả ảnh sản phẩm
 const allProductImages = ref([])
@@ -321,6 +322,7 @@ const handleReviewPageChange = (page) => {
 
 const handleAddToCart = async () => {
     try {
+        isAddingToCart.value = true
 
         const selectedVariant = product.value.variants?.find(v =>
             String(v.size) === String(selectedSize.value) &&
@@ -350,6 +352,8 @@ const handleAddToCart = async () => {
     } catch (error) {
         console.error('Lỗi khi thêm vào giỏ hàng:', error)
         push.error('Có lỗi xảy ra khi thêm vào giỏ hàng')
+    } finally {
+        isAddingToCart.value = false
     }
 }
 

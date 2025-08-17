@@ -157,10 +157,14 @@
 
         <!-- Actions -->
         <div class="flex gap-4">
-            <button
-                class="flex-1 bg-[#81AACC] text-white py-2 text-base sm:text-[18px] rounded-md hover:bg-[#6B8BA3] transition-colors cursor-pointer"
+            <button :disabled="isAddingToCart"
+                class="flex-1 bg-[#81AACC] text-white py-2 text-base sm:text-[18px] rounded-md hover:bg-[#6B8BA3] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="$emit('addToCart')">
-                Thêm vào giỏ hàng
+                <div v-if="isAddingToCart" class="flex items-center justify-center gap-2">
+                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Đang thêm...</span>
+                </div>
+                <span v-else>Thêm vào giỏ hàng</span>
             </button>
         </div>
 
@@ -243,6 +247,10 @@ const props = defineProps({
     productInventory: {
         type: Array,
         default: () => []
+    },
+    isAddingToCart: {
+        type: Boolean,
+        default: false
     },
 })
 
@@ -384,25 +392,6 @@ const handleColorChange = (color) => {
 
 watch(() => [props.selectedSize, props.selectedColor], ([newSize, newColor]) => {
 }, { deep: true })
-
-const addToCart = async () => {
-    try {
-        if (!selectedVariant.value) {
-            push.error('Vui lòng chọn size và màu sắc')
-            return
-        }
-        if (props.quantity > (flashSalePercent.value > 0 ? props.flashSaleQuantity : selectedVariantInventory.value)) {
-            push.error('Số lượng vượt quá số lượng còn lại')
-            return
-        }
-        await addToCartComposable(selectedVariant.value.id, props.quantity, selectedVariantSalePrice.value)
-        push.success('Đã thêm vào giỏ hàng')
-        emit('addToCart')
-    } catch (error) {
-        console.error('Error adding to cart:', error)
-        push.error('Có lỗi xảy ra khi thêm vào giỏ hàng')
-    }
-}
 
 const { getCoupons, getNearestCoupons } = useCoupon()
 const isCouponPanelOpen = ref(false)
