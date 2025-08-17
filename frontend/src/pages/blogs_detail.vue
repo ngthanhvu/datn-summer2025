@@ -76,17 +76,16 @@
                     <div v-if="blog.image" class="flex justify-center my-4 sm:my-6">
                         <img :src="blog.image" :alt="blog.title" class="blog-image" />
                     </div>
-                    <div v-if="blog.categories?.length || blog.tags?.length" class="flex flex-wrap gap-2 my-4">
-                        <router-link v-for="category in blog.categories" :key="category.id"
-                            :to="`/blogs/category/${category.slug}`"
-                            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
-                            {{ category.name }}
-                        </router-link>
-                        <span v-for="tag in blog.tags" :key="tag"
-                            class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
-                            #{{ tag }}
-                        </span>
+
+                    <!-- Category display -->
+                    <div v-if="blog.category" class="flex flex-wrap gap-2 my-4">
+                        <button
+                            class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-medium transition-colors">
+                            <i class="fas fa-folder mr-2"></i>
+                            {{ blog.category.name }}
+                        </button>
                     </div>
+
                     <article class="prose max-w-none w-full">
                         <div class="editor-content" v-html="blog.content"></div>
                     </article>
@@ -118,15 +117,68 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Sidebar -->
                 <aside class="w-full lg:w-80 flex-shrink-0">
+                    <!-- Related Blogs -->
                     <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm mb-4 lg:mb-6">
                         <h2 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Bài viết liên quan</h2>
-                        <div class="text-gray-500 text-sm">(Đang cập nhật...)</div>
+                        <div v-if="relatedBlogsLoading" class="space-y-3">
+                            <div v-for="n in 3" :key="n" class="flex gap-3">
+                                <div class="w-16 h-12 bg-gray-200 rounded animate-pulse"></div>
+                                <div class="flex-1 space-y-2">
+                                    <div class="h-3 bg-gray-200 rounded w-full animate-pulse"></div>
+                                    <div class="h-3 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else-if="!relatedBlogs || relatedBlogs.length === 0" class="text-gray-500 text-sm">
+                            Không có bài viết liên quan
+                        </div>
+                        <div v-else class="space-y-3">
+                            <div v-for="relatedBlog in relatedBlogs" :key="relatedBlog.id" class="flex gap-3 group">
+                                <div class="flex-shrink-0">
+                                    <img v-if="relatedBlog.image" :src="getImageUrl(relatedBlog.image)"
+                                        class="w-16 h-12 object-cover rounded" :alt="relatedBlog.title" />
+                                    <div v-else class="w-16 h-12 bg-gray-200 rounded flex items-center justify-center">
+                                        <i class="fas fa-newspaper text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <router-link :to="`/tin-tuc/${relatedBlog.slug}`"
+                                        class="block text-sm font-medium text-gray-800 group-hover:text-primary line-clamp-2">
+                                        {{ relatedBlog.title }}
+                                    </router-link>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        {{ formatDate(relatedBlog.published_at || relatedBlog.created_at) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Categories -->
                     <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                         <h2 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Danh mục</h2>
-                        <div class="text-gray-500 text-sm">(Đang cập nhật...)</div>
+                        <div v-if="categoriesLoading" class="space-y-2">
+                            <div v-for="n in 5" :key="n" class="h-4 bg-gray-200 rounded animate-pulse"></div>
+                        </div>
+                        <div v-else-if="!categories || categories.length === 0" class="text-gray-500 text-sm">
+                            Chưa có danh mục nào
+                        </div>
+                        <div v-else class="space-y-2">
+                            <button v-for="category in categories" :key="category.id"
+                                class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors group">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-folder text-blue-500 group-hover:text-blue-600"></i>
+                                    <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ category.name
+                                    }}</span>
+                                </div>
+                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                    {{ category.blogs_count || 0 }}
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </aside>
             </div>
@@ -144,7 +196,7 @@ import { useRouter, useRoute } from 'vue-router'
 const { isAuthenticated } = useAuth()
 const router = useRouter()
 const route = useRoute()
-const { blog, loading, error, fetchBlogBySlug } = useBlog()
+const { blog, loading, error, categories, categoriesLoading, relatedBlogs, relatedBlogsLoading, fetchBlogBySlug, fetchCategories, fetchRelatedBlogs } = useBlog()
 
 const socialPlatforms = [
     { name: 'Facebook', icon: 'fab fa-facebook', url: 'https://www.facebook.com/sharer/sharer.php?u=' },
@@ -155,7 +207,11 @@ const socialPlatforms = [
 
 onMounted(async () => {
     try {
-        await fetchBlogBySlug(route.params.slug)
+        await Promise.all([
+            fetchBlogBySlug(route.params.slug),
+            fetchCategories()
+        ])
+
         if (!blog.value) {
             error.value = 'Blog not found'
             return
@@ -169,7 +225,7 @@ onMounted(async () => {
 
 watch(
     () => blog.value,
-    (val) => {
+    async (val) => {
         if (val) {
             useHead({
                 title: val.title,
@@ -196,11 +252,19 @@ watch(
                     }
                 ]
             })
+
+            // Fetch related blogs if category exists
+            if (val.category?.id) {
+                try {
+                    await fetchRelatedBlogs(val.category.id, val.id, 5)
+                } catch (err) {
+                    console.error('Failed to fetch related blogs:', err)
+                }
+            }
         }
     },
     { immediate: true }
 )
-
 
 const formatDate = (dateString) => {
     if (!dateString) return ''
@@ -227,6 +291,11 @@ const getSocialIcon = (platform) => {
         instagram: 'fab fa-instagram'
     }
     return icons[platform.toLowerCase()] || 'fas fa-link'
+}
+
+const getImageUrl = (path) => {
+    if (!path) return ''
+    return path.startsWith('/storage/') ? `http://localhost:8000${path}` : path
 }
 </script>
 

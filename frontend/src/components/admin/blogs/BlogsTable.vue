@@ -27,6 +27,7 @@
                         <th class="px-4 py-3 text-center">#</th>
                         <th class="px-4 py-3 text-center">Hình ảnh</th>
                         <th class="px-4 py-3 text-center">Tên bài viết</th>
+                        <th class="px-4 py-3 text-center">Danh mục</th>
                         <th class="px-4 py-3 text-center">Mô tả</th>
                         <th class="px-4 py-3 text-center">Tác giả</th>
                         <th class="px-4 py-3 text-center">Trạng thái</th>
@@ -45,6 +46,9 @@
                             </td>
                             <td class="px-2 py-1">
                                 <div class="bg-gray-200 h-3 rounded w-1/3 animate-pulse"></div>
+                            </td>
+                            <td class="px-2 py-1">
+                                <div class="bg-gray-200 h-4 rounded w-20 animate-pulse"></div>
                             </td>
                             <td class="px-2 py-1">
                                 <div class="bg-gray-200 h-4 rounded w-24 animate-pulse"></div>
@@ -74,6 +78,13 @@
                             </td>
                             <td class="px-2 py-1 font-medium text-center">
                                 {{ blog.title }}
+                            </td>
+                            <td class="px-2 py-1 text-center">
+                                <span v-if="blog.category"
+                                    class="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                    {{ blog.category.name }}
+                                </span>
+                                <span v-else class="text-gray-400 text-sm">Không có</span>
                             </td>
                             <td class="px-2 py-1 max-w-xs truncate">
                                 {{ blog.description }}
@@ -113,7 +124,7 @@
                             </td>
                         </tr>
                         <tr v-if="blogs.length === 0">
-                            <td colspan="8" class="px-3 py-2 text-center text-gray-500">
+                            <td colspan="9" class="px-3 py-2 text-center text-gray-500">
                                 Không có dữ liệu
                             </td>
                         </tr>
@@ -138,6 +149,9 @@
                             <div class="flex-1 min-w-0">
                                 <div class="text-sm font-semibold truncate">{{ blog.title }}</div>
                                 <div class="text-xs text-gray-500">{{ blog.author?.username || 'Unknown' }}</div>
+                                <div class="text-xs text-blue-600 mt-1" v-if="blog.category">
+                                    {{ blog.category.name }}
+                                </div>
                             </div>
                             <span :class="getStatusBadgeClass(blog.status)">
                                 {{ getStatusText(blog.status) }}
@@ -297,7 +311,6 @@ function getImageUrl(path) {
 
 /* Status Badge Styles */
 .status-badge {
-    padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 500;

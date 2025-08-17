@@ -23,6 +23,7 @@ class Blogs extends Model
         'status',
         'published_at',
         'author_id',
+        'blog_category_id',
     ];
 
     protected $casts = [
@@ -57,5 +58,10 @@ class Blogs extends Model
     public function author()
     {
         return $this->belongsTo(\App\Models\User::class, 'author_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(BlogCategory::class, 'blog_category_id');
     }
 }

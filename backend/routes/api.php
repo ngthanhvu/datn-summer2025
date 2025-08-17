@@ -26,6 +26,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\AIChatController;
+use App\Http\Controllers\BlogCategoryController;
 
 // AI Chatbot routes
 Route::post('/ai/chat', [AIChatController::class, 'chat']);
@@ -256,3 +257,5 @@ Route::prefix('shipping')->group(function () {
 // Public pages routes
 Route::get('/pages/type/{type}', [PagesController::class, 'getByType']);
 Route::get('/pages/slug/{slug}', [PagesController::class, 'getBySlug']);
+
+Route::apiResource('blog-categories', BlogCategoryController::class);
