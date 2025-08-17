@@ -148,7 +148,6 @@ const handleUpdateCustomer = async (customerData) => {
             }
         }
         push.success('Cập nhật khách hàng thành công')
-        // console.log('Cập nhật khách hàng thành công:', customerData)
 
     } catch (error) {
         console.error('Lỗi khi cập nhật khách hàng:', error)
@@ -167,7 +166,6 @@ const handleCreateCustomer = async (customerData) => {
         totalItems.value = customers.value.length
 
         push.success('Tạo người dùng thành công')
-        console.log('Tạo người dùng thành công:', response.user)
     } catch (error) {
         console.error('Lỗi khi tạo người dùng:', error)
 
@@ -181,13 +179,12 @@ const handleToggleStatus = async (customer) => {
         const newStatus = customer.status === 1 ? 0 : 1
         await updateCustomerStatus(customer.id, newStatus)
 
-        // Cập nhật dữ liệu local
         const index = customers.value.findIndex(c => c.id === customer.id)
         if (index !== -1) {
             customers.value[index].status = newStatus
         }
 
-        console.log('Cập nhật trạng thái khách hàng thành công')
+        push.success('Cập nhật trạng thái khách hàng thành công')
     } catch (error) {
         console.error('Lỗi khi cập nhật trạng thái khách hàng:', error)
 

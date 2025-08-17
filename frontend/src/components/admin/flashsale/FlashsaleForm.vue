@@ -269,7 +269,6 @@ const props = defineProps({
 })
 
 // Debug: Log editData prop
-console.log('FlashSaleForm editData prop:', props.editData)
 const products = ref([])
 const productPage = ref(1)
 const productPageSize = 5
@@ -300,7 +299,6 @@ function goToSelectProducts() {
 
     // Lưu sản phẩm hiện tại vào localStorage nếu đang edit
     if (props.editData && props.editData.id) {
-        console.log('Saving current products to localStorage:', products.value)
         localStorage.setItem(`flashsale_edit_${props.editData.id}`, JSON.stringify(products.value))
         router.push(`/admin/flashsale/select?flashSaleId=${props.editData.id}`)
     } else {

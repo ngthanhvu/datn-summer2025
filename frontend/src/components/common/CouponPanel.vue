@@ -168,8 +168,6 @@ const showCopySuccess = (code) => {
 }
 
 const showCouponDetails = (coupon) => {
-    // Có thể mở modal chi tiết coupon ở đây
-    console.log('Coupon details:', coupon)
 }
 
 watch(() => props.isOpen, (open) => {

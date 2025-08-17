@@ -221,6 +221,8 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/products', [DashboardController::class, 'getProductsStats']);
     Route::get('/recent-orders', [DashboardController::class, 'getRecentOrders']);
     Route::get('/top-selling', [DashboardController::class, 'getTopSelling']);
+    Route::get('/inventory', [DashboardController::class, 'getInventoryStats']);
+    Route::get('/user-growth', [DashboardController::class, 'getUserGrowthStats']);
 });
 
 Route::get('/stock-movement', [StockMovementController::class, 'index']);

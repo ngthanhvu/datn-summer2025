@@ -71,7 +71,6 @@ const loading = computed(() => blogStore.loading)
 onMounted(() => {
     if (!blogStore.blogs.length) {
         blogStore.getBlogs()
-        // console.log('Fetching latest blogs...', blogStore.blogs)
     }
 })
 

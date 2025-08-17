@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-lg shadow px-8 py-7.5">
         <div class="flex justify-between items-center mb-4">
             <h3 class="font-semibold">Đơn hàng theo trạng thái</h3>
             <select v-model="selectedPeriod" @change="handlePeriodChange"

@@ -250,19 +250,15 @@ const togglePassword = () => {
 }
 
 const changeAvatar = () => {
-    // TODO: Implement avatar upload functionality
-    console.log('Change avatar clicked')
 }
 
 const validateForm = () => {
     let isValid = true
 
-    // Reset errors
     Object.keys(errors).forEach(key => {
         errors[key] = ''
     })
 
-    // Validate username
     if (!formData.username.trim()) {
         errors.username = 'Tên người dùng không được để trống'
         isValid = false
@@ -271,7 +267,6 @@ const validateForm = () => {
         isValid = false
     }
 
-    // Validate email
     if (!formData.email.trim()) {
         errors.email = 'Email không được để trống'
         isValid = false
@@ -280,25 +275,21 @@ const validateForm = () => {
         isValid = false
     }
 
-    // Validate phone (optional)
     if (formData.phone && !/^[0-9+\-\s()]+$/.test(formData.phone)) {
         errors.phone = 'Số điện thoại không hợp lệ'
         isValid = false
     }
 
-    // Validate role
     if (!formData.role) {
         errors.role = 'Vai trò là bắt buộc'
         isValid = false
     }
 
-    // Validate password (if provided)
     if (formData.password && formData.password.length < 6) {
         errors.password = 'Mật khẩu phải có ít nhất 6 ký tự'
         isValid = false
     }
 
-    // Validate note (only if status is 0)
     if (formData.status === 0 && !formData.note.trim()) {
         errors.note = 'Lý do khóa tài khoản là bắt buộc'
         isValid = false
@@ -315,7 +306,6 @@ const handleSubmit = async () => {
     isSubmitting.value = true
 
     try {
-        // Prepare data for API call
         const updateData = {
             id: props.customer.id,
             username: formData.username.trim(),
@@ -325,12 +315,10 @@ const handleSubmit = async () => {
             role: formData.role // Include role in update data
         }
 
-        // Only include note if status is 0 (banned)
         if (formData.status === 0) {
             updateData.note = formData.note.trim()
         }
 
-        // Only include password if it's provided
         if (formData.password.trim()) {
             updateData.password = formData.password
         }

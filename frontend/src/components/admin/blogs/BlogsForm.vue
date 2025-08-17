@@ -25,7 +25,7 @@
                         :class="{ 'border-red-500': errors.description }" placeholder="Nhập mô tả bài viết..."
                         rows="3"></textarea>
                     <span v-if="errors.description" class="text-red-500 text-sm mt-1">{{ errors.description
-                    }}</span>
+                        }}</span>
                 </div>
                 <!-- Image Upload -->
                 <div class="flex flex-col">
@@ -99,12 +99,21 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBlog } from '../../../composable/useBlogs'
 import CKEditor from '../../CKEditor.vue'
+import { push } from 'notivue'
+
+// Define props
+const props = defineProps({
+    isEdit: {
+        type: Boolean,
+        default: false
+    }
+})
 
 const route = useRoute()
 const router = useRouter()
 const { blog, loading, fetchBlog, createBlog, updateBlog, updateBlogJson } = useBlog()
 
-const isEditMode = computed(() => route.params.id)
+const isEditMode = computed(() => props.isEdit || route.params.id)
 const formData = ref({
     title: '',
     description: '',
@@ -202,18 +211,13 @@ const buildFormData = () => {
 }
 
 const handleSubmit = async () => {
-    console.log('Submit clicked')
-    console.log('Form data:', formData.value)
 
     if (!validateForm()) {
-        console.log('Validation failed:', errors.value)
         return
     }
 
-    console.log('Validation passed, submitting...')
     try {
         if (isEditMode.value) {
-            console.log('Edit mode')
             if (formData.value.imageFile instanceof File) {
                 await updateBlog(route.params.id, buildFormData())
             } else {
@@ -224,10 +228,10 @@ const handleSubmit = async () => {
                     status: formData.value.status
                 })
             }
+            push.success('Cập nhật bài viết thành công!')
         } else {
-            console.log('Create mode')
             await createBlog(buildFormData())
-            alert('Thêm bài viết thành công!')
+            push.success('Thêm bài viết thành công!')
         }
         router.push('/admin/blogs')
     } catch (err) {

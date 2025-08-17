@@ -72,8 +72,6 @@ export function useAIChat() {
     let keywords = queryLower.split(' ')
     keywords = keywords.filter(word => !stopWords.includes(word) && word.length >= 2)
 
-    console.log('Filtering products for query:', queryLower)
-    console.log('Keywords after filtering:', keywords)
 
     if (keywords.length === 0) return []
 
@@ -90,9 +88,6 @@ export function useAIChat() {
 
       return matchingKeywords.length >= 1
     })
-
-    console.log('Filtered products count:', result.length)
-    console.log('Filtered products:', result.map(p => p.name))
 
     return result.slice(0, 6)
   }
@@ -132,12 +127,8 @@ export function useAIChat() {
 
       const data = await response.json()
 
-      console.log('AI Chat Response:', data)
       if (data.context && data.context.products) {
-        console.log('Products in context:', data.context.products)
-        console.log('Products count:', data.context.products.length)
         data.context.products.forEach(product => {
-          console.log('Product:', product.name, 'MainImage:', product.mainImage)
         })
       } else {
         console.log('No products in context or context is empty')
@@ -158,14 +149,9 @@ export function useAIChat() {
           return
         }
 
-        // Xử lý context sản phẩm
         if (data.context && data.context.products && data.context.products.length > 0) {
-          console.log('Context products found:', data.context.products.length)
-          console.log('Products:', data.context.products)
 
-          // Luôn hiển thị sản phẩm nếu có trong context
           aiMessage.products = data.context.products.slice(0, 6)
-          console.log('Setting products from context:', aiMessage.products.length)
         }
 
         // Xử lý context mã giảm giá
@@ -263,18 +249,14 @@ export function useAIChat() {
   }
 
   const toggleChat = () => {
-    console.log('AIChatbot toggleChat called, current state:', isOpen.value)
     isOpen.value = !isOpen.value
     if (isOpen.value) {
       hasUnreadMessages.value = false
       unreadCount.value = 0
-      // Thêm class để ẩn ChatWidget khi AIChatbot mở
       document.documentElement.classList.add('ai-chatbot-open')
     } else {
-      // Xóa class khi AIChatbot đóng
       document.documentElement.classList.remove('ai-chatbot-open')
     }
-    console.log('AIChatbot new state:', isOpen.value)
   }
 
   const addWelcomeMessage = () => {

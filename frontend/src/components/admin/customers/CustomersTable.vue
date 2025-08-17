@@ -381,7 +381,6 @@ const handleSaveCustomer = async (customerData) => {
 
         closeEditModal()
 
-        console.log('Customer updated successfully:', customerData)
     } catch (error) {
         console.error('Error updating customer:', error)
     }
@@ -399,7 +398,6 @@ const handleCreateCustomer = async (customerData) => {
     try {
         emit('create-customer', customerData)
         closeCreateModal()
-        console.log('Customer created successfully:', customerData)
     } catch (error) {
         console.error('Error creating customer:', error)
     }

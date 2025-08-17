@@ -389,7 +389,6 @@ export const useProducts = () => {
                     }
                 }
             } else {
-                console.log('Using empty structure - no valid data found')
                 return {
                     products: [],
                     pagination: {

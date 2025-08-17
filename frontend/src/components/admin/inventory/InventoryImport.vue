@@ -301,11 +301,8 @@ const getVariantInfo = (variantId) => {
     return variants.value.find(v => v.id === variantId)
 }
 onMounted(async () => {
-    // Lấy danh sách variants từ API
     variants.value = await getVariant();
-    console.log(variants.value);
 
-    // Khởi tạo item đầu tiên với cấu trúc mới
     addProductItem();
 })
 </script>

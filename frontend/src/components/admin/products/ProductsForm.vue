@@ -591,8 +591,6 @@ const validateForm = () => {
     }
 
     formErrors.value = errors
-    console.log('ValidateForm errors:', errors)
-    console.log('ValidateForm data:', formData.value)
     return !hasError
 }
 

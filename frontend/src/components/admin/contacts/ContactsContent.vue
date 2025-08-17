@@ -322,7 +322,7 @@
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-sm font-medium text-green-800">Đã phản hồi</span>
                                     <span class="text-sm text-green-600">{{ formatDate(selectedContact.replied_at)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">{{
                                     selectedContact.admin_reply }}</p>
@@ -416,7 +416,6 @@ const sortOrder = ref('desc')
 const perPage = ref(15)
 const currentPage = ref(1)
 
-// Debounce search
 let searchTimeout = null
 
 const loadContacts = async () => {
@@ -431,11 +430,9 @@ const loadContacts = async () => {
             page: currentPage.value
         }
         const result = await fetchContacts(params)
-        // Đảm bảo contacts được gán đúng
         if (result && result.data) {
             contacts.value = result.data
         }
-        console.log('Loaded contacts:', contacts.value) // Debug log
     } catch (error) {
         console.error('Error loading contacts:', error)
     } finally {

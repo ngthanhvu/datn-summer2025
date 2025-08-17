@@ -1044,13 +1044,10 @@ const fetchOrders = async () => {
 }
 
 const handleFilterChange = (filters) => {
-    // console.log('Filters changed:', filters)
 }
 
 const openOrderDetail = (order) => {
     selectedOrder.value = order
-    console.log('Selected Order:', order)
-    console.log('Tracking Code:', order.tracking_code)
     showModal.value = true
 }
 

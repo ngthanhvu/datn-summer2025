@@ -1,6 +1,10 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="font-semibold mb-4">Doanh thu</h3>
+    <div class="bg-white rounded-lg shadow px-8 py-8">
+        <div class="chart-header">
+            <h3 class="font-semibold text-lg mb-1">Doanh thu</h3>
+            <p class="text-sm text-gray-600">Biểu đồ doanh thu theo tháng
+            </p>
+        </div>
         <div class="h-80">
             <div v-if="!data || !data.apex_chart_data" class="flex justify-center items-center h-full">
                 <p class="text-gray-500">Không có dữ liệu</p>

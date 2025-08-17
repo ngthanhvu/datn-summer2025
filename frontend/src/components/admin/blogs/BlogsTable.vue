@@ -92,7 +92,7 @@
                             <td class="px-2 py-1">
                                 <div class="flex text-center gap-2">
                                     <button @click="handleEdit(blog)"
-                                        class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
+                                        class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150 cursor-pointer"
                                         title="Chỉnh sửa bài viết">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -101,7 +101,7 @@
                                         </svg>
                                     </button>
                                     <button @click="handleDelete(blog)"
-                                        class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                                        class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150 cursor-pointer"
                                         title="Xóa bài viết">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -215,7 +215,7 @@ const emit = defineEmits(['delete', 'refresh'])
 const router = useRouter()
 
 const handleEdit = (blog) => {
-    router.push(`/admin/blogs/${blog.id}/edit`)
+    router.push(`/admin/blogs/edit/${blog.id}`)
 }
 
 const handleDelete = async (blog) => {

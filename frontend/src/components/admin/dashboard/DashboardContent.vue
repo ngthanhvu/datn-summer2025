@@ -22,16 +22,46 @@
             </template>
         </div>
 
-        <!-- Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <template v-if="loading">
-                <ChartSkeleton />
-                <ChartSkeleton />
-            </template>
-            <template v-else>
-                <RevenueChart :data="revenueData" />
-                <OrdersChart :data="ordersData" @period-change="handleOrdersPeriodChange" />
-            </template>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Revenue Chart - chiếm 2/3 -->
+            <div class="lg:col-span-2">
+                <template v-if="loading">
+                    <ChartSkeleton />
+                </template>
+                <template v-else>
+                    <RevenueChart :data="revenueData" />
+                </template>
+            </div>
+
+            <!-- Orders Status Chart - chiếm 1/3 -->
+            <div class="lg:col-span-1">
+                <template v-if="loading">
+                    <ChartSkeleton />
+                </template>
+                <template v-else>
+                    <OrdersChart :data="ordersData" @period-change="handleOrdersPeriodChange" />
+                </template>
+            </div>
+
+            <!-- User Growth Chart - hàng dưới trái -->
+            <div class="lg:col-span-1">
+                <template v-if="loading">
+                    <UserGrowthChartSkeleton />
+                </template>
+                <template v-else>
+                    <UserGrowthChart :data="userGrowthData" />
+                </template>
+            </div>
+
+            <!-- Inventory Chart - hàng dưới phải, chiếm 2/3 -->
+            <div class="lg:col-span-2">
+                <template v-if="loading">
+                    <InventoryChartSkeleton />
+                </template>
+                <template v-else>
+                    <InventoryChart :data="inventoryData" />
+                </template>
+            </div>
         </div>
 
         <!-- Recent Orders & Top Selling Section -->
@@ -68,6 +98,10 @@ import RecentOrders from './RecentOrders.vue'
 import RecentOrdersSkeleton from './RecentOrdersSkeleton.vue'
 import TopSelling from './TopSelling.vue'
 import TopSellingSkeleton from './TopSellingSkeleton.vue'
+import InventoryChart from './InventoryChart.vue'
+import InventoryChartSkeleton from './InventoryChartSkeleton.vue'
+import UserGrowthChart from './UserGrowthChart.vue'
+import UserGrowthChartSkeleton from './UserGrowthChartSkeleton.vue'
 import { useDashboard } from '../../../composable/useDashboard'
 
 const {
@@ -76,13 +110,17 @@ const {
     getOrdersByStatus,
     getRecentOrders,
     formatCurrency,
-    formatNumber
+    formatNumber,
+    getInventoryStats,
+    getUserGrowthStats
 } = useDashboard()
 
 const loading = ref(true)
 const statistics = ref({})
 const revenueData = ref({})
 const ordersData = ref({})
+const inventoryData = ref({})
+const userGrowthData = ref({})
 const recentOrders = ref([])
 
 const revenueGrowth = computed(() => {
@@ -106,12 +144,16 @@ const fetchDashboardData = async () => {
             statsResponse,
             revenueResponse,
             ordersResponse,
-            recentOrdersResponse
+            recentOrdersResponse,
+            inventoryResponse,
+            userGrowthResponse
         ] = await Promise.all([
             getStats(),
             getYearlyRevenue(),
             getOrdersByStatus(),
-            getRecentOrders({ limit: 5 })
+            getRecentOrders({ limit: 6 }),
+            getInventoryStats(),
+            getUserGrowthStats()
         ])
 
         if (statsResponse.success) {
@@ -127,6 +169,18 @@ const fetchDashboardData = async () => {
             recentOrders.value = recentOrdersResponse.data
         } else {
             recentOrders.value = []
+        }
+
+        if (inventoryResponse && inventoryResponse.success) {
+            inventoryData.value = inventoryResponse.data
+        } else {
+            inventoryData.value = {}
+        }
+
+        if (userGrowthResponse && userGrowthResponse.success) {
+            userGrowthData.value = userGrowthResponse.data
+        } else {
+            userGrowthData.value = {}
         }
 
     } catch (error) {

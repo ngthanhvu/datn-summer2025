@@ -13,7 +13,8 @@
             <div class="flex items-center gap-3">
               <div class="bg-white rounded-full p-3">
                 <svg class="w-8 h-8 text-[#81AACC]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+                  <path
+                    d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
                 </svg>
               </div>
               <div>
@@ -23,7 +24,8 @@
             </div>
           </div>
           <div class="flex flex-col gap-2">
-            <div v-for="badge in processBadges" :key="badge.text" class="bg-[#81AACC] px-4 py-2 rounded flex items-center gap-2">
+            <div v-for="badge in processBadges" :key="badge.text"
+              class="bg-[#81AACC] px-4 py-2 rounded flex items-center gap-2">
               <component :is="badge.icon" class="w-5 h-5" />
               <span class="text-sm font-semibold">{{ badge.text }}</span>
             </div>
@@ -49,11 +51,9 @@
       <div class="container mx-auto px-4">
         <div class="flex gap-4 py-4">
           <button v-for="(fs, idx) in flashSales" :key="fs.id" @click="selectTab(idx)"
-            class="px-6 py-2 rounded-full font-semibold transition-all border"
-            :class="selectedIndex === idx
+            class="px-6 py-2 rounded-full font-semibold transition-all border" :class="selectedIndex === idx
               ? 'bg-[#155DFC] text-white border-[#155DFC] shadow'
-              : 'bg-white text-[#155DFC] border-[#155DFC] hover:bg-[#e6f1f8]'"
-            style="outline:none;cursor:pointer;">
+              : 'bg-white text-[#155DFC] border-[#155DFC] hover:bg-[#e6f1f8]'" style="outline:none;cursor:pointer;">
             {{ fs.name }}
           </button>
         </div>
@@ -79,7 +79,8 @@
             class="relative" style="text-decoration: none; color: inherit;">
             <div class="relative overflow-hidden group pb-2 sm:pb-3 bg-white"
               :style="`width: 250px; height: 370px; margin: 17px auto; background: url('${productSaleBg}') center/cover no-repeat;`">
-              <div class="relative overflow-hidden rounded-[5px] " style="width: 236px; height: 320px; margin: 5px auto;">
+              <div class="relative overflow-hidden rounded-[5px] "
+                style="width: 236px; height: 320px; margin: 5px auto;">
                 <img :src="getMainImage(product)" alt="Ảnh sản phẩm"
                   class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
                 <!-- Hover overlay -->
@@ -92,8 +93,8 @@
                   <button
                     class="bg-white rounded w-10 h-10 flex items-center justify-center shadow hover:bg-[#81AACC]/20 transition duration-200"
                     title="Thêm vào giỏ" @click.prevent.stop="addToCart(product)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#81AACC]" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#81AACC]" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5H19M7 13L5.4 5M16 16a1 1 0 100 2 1 1 0 000-2zm-8 0a1 1 0 100 2 1 1 0 000-2z" />
                     </svg>
@@ -101,8 +102,8 @@
                   <button
                     class="bg-white rounded w-10 h-10 flex items-center justify-center shadow hover:bg-[#81AACC]/20 transition duration-200"
                     title="Xem nhanh" @click.prevent.stop="onQuickView(product)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#81AACC]" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#81AACC]" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -157,13 +158,13 @@ import { useFlashsale } from '../composable/useFlashsale'
 import productSaleBg from '../assets/product_sale.jpg'
 import { useHead } from '@vueuse/head';
 useHead({
-    title: "Flash Sale | DEVGANG",
-    meta: [
-        {
-            name: "description",
-            content: "Flash Sale"
-        }
-    ]
+  title: "Flash Sale | DEVGANG",
+  meta: [
+    {
+      name: "description",
+      content: "Flash Sale"
+    }
+  ]
 })
 
 const shopName = ref('DEVGANG')
@@ -245,13 +246,9 @@ function getUniqueColors(product) {
 }
 
 function addToCart(product) {
-  // TODO: Thêm logic thêm vào giỏ hàng
-  console.log('Add to cart:', product)
 }
 
 function onQuickView(product) {
-  // TODO: Hiển thị modal quick view
-  console.log('Quick view:', product)
 }
 
 function selectTab(idx) {
@@ -369,6 +366,7 @@ onUnmounted(() => {
   z-index: 1;
   overflow: hidden;
 }
+
 .snowflake {
   position: absolute;
   background: white;
@@ -376,17 +374,21 @@ onUnmounted(() => {
   opacity: 0.8;
   animation: snowfall linear infinite;
 }
+
 @keyframes snowfall {
   0% {
     transform: translateY(-10px) rotate(0deg);
     opacity: 0;
   }
+
   10% {
     opacity: 0.8;
   }
+
   90% {
     opacity: 0.8;
   }
+
   100% {
     transform: translateY(100vh) rotate(360deg);
     opacity: 0;

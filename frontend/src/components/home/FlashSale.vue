@@ -264,10 +264,8 @@ function scrollRight() {
   sliderRef.value?.scrollBy({ left: 300, behavior: 'smooth' })
 }
 function addToCart(product) {
-  console.log('Add to cart:', product)
 }
 function onQuickView(product) {
-  console.log('Quick view:', product)
 }
 function startAutoIncrease() {
   if (autoIncreaseInterval) clearInterval(autoIncreaseInterval)

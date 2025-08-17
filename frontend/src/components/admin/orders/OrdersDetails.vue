@@ -106,7 +106,7 @@
                             <span class="font-medium text-red-600 text-sm md:text-base">Lý do hủy đơn hàng:
                             </span>
                             <span class="text-red-600 text-sm md:text-base">{{ currentOrder.cancel_reason
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                 </div>
@@ -240,7 +240,7 @@
                                 </svg>
                                 <span class="font-semibold mr-1">Mã tra cứu:</span>
                                 <span class="font-medium text-blue-600">{{ currentOrder?.tracking_code || 'Chưa có mã'
-                                }}</span>
+                                    }}</span>
                             </p>
                         </div>
                         <div class="space-y-1">
@@ -471,8 +471,6 @@ const handleRejectReturn = async () => {
 
 onMounted(async () => {
     await getOrder(props.orderId)
-    console.log('Current Order:', currentOrder.value)
-    console.log('Order Details:', currentOrder.value?.orderDetails)
 })
 
 const handleUpdateStatus = async (data) => {

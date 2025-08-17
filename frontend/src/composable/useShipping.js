@@ -104,7 +104,6 @@ const callGHNShippingAPI = async (address, cartItems) => {
     insurance_value: totalValue, cod_value: 0
   };
   try {
-    console.log('Sending shipping data to GHN:', shippingData);
     const res = await axios.post(`${ghnConfig.base_url}/shipping-order/fee`, shippingData, {
       headers: {
         'Content-Type': 'application/json',
@@ -112,7 +111,6 @@ const callGHNShippingAPI = async (address, cartItems) => {
         'ShopId': ghnConfig.shop_id,
       }
     });
-    console.log('GHN API response:', res.data);
     if (res.data.code === 200) return { success: true, data: res.data.data };
     return { success: false, message: res.data.message || 'Có lỗi khi tính phí' };
   } catch (error) {

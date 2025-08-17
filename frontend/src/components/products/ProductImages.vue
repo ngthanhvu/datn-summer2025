@@ -112,27 +112,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:mainImage'])
 
-// onMounted(() => {
-//     console.log('ProductImages component mounted with props:', {
-//         productImages: props.productImages,
-//         mainImage: props.mainImage,
-//         selectedColor: props.selectedColor,
-//         product: props.product
-//     })
-// })
-
-// onUnmounted(() => {
-//     console.log('ProductImages component unmounted')
-// })
-
 const currentImages = computed(() => {
-    // console.log('Current images computed:', props.productImages)
     return Array.isArray(props.productImages) ? props.productImages : []
 })
 
 const currentImagesCount = computed(() => {
     const count = displayImages.value.length
-    // console.log('Current images count:', count)
     return count
 })
 
@@ -144,72 +129,43 @@ const currentMainImage = computed(() => {
     if (!exists && displayImages.value.length > 0) {
         const firstMainImage = displayImages.value.find(img => img.type === 'main')
         if (firstMainImage) {
-            // console.log('Main image not found, using first main image:', getImgSrc(firstMainImage))
             return getImgSrc(firstMainImage)
         }
 
-        // console.log('No main image found, using first image:', getImgSrc(displayImages.value[0]))
         return getImgSrc(displayImages.value[0])
     }
 
-    // console.log('Current main image:', props.mainImage)
     return props.mainImage
 })
 
 const filteredImagesByColor = computed(() => {
-    // console.log('Showing all images to avoid bugs:', currentImages.value)
     return currentImages.value
 })
 
 const displayImages = computed(() => {
-    // console.log('Display images computed:', filteredImagesByColor.value)
     return filteredImagesByColor.value
 })
 
 watch(displayImages, (newImages, oldImages) => {
-    // console.log('Display images changed:', newImages)
     if (newImages && newImages.length > 0) {
         modalIndex.value = 0
     }
 }, { deep: true })
 
 watch(currentMainImage, (newMainImage) => {
-    // console.log('Current main image changed:', newMainImage)
     if (newMainImage && newMainImage !== props.mainImage) {
         emit('update:mainImage', newMainImage)
     }
 })
 
-// watch(() => props.productImages, (newImages, oldImages) => {
-//     console.log('ProductImages prop changed:', { newImages, oldImages })
-// }, { deep: true })
-
-// watch(() => props.selectedColor, (newColor, oldColor) => {
-//     console.log('SelectedColor prop changed:', { newColor, oldColor })
-// }, { deep: true })
-
-// watch(() => props.mainImage, (newImage, oldImage) => {
-//     console.log('MainImage prop changed:', { newImage, oldImage })
-// }, { deep: true })
-
-// watch(() => [props.productImages, props.selectedColor, props.mainImage], ([newImages, newColor, newImage], [oldImages, oldColor, oldImage]) => {
-//     console.log('ProductImages component updated:', {
-//         images: { new: newImages, old: oldImages },
-//         color: { new: newColor, old: oldColor },
-//         image: { new: newImage, old: oldImage }
-//     })
-// }, { deep: true })
-
 watch(() => props.selectedColor, (newColor, oldColor) => {
     if (newColor?.name && oldColor?.name && newColor.name !== oldColor.name) {
-        // console.log('Color changed by user:', newColor.name)
 
         const colorVariant = props.product?.variants?.find(v =>
             String(v.color) === String(newColor.name)
         )
 
         if (colorVariant?.images && colorVariant.images.length > 0) {
-            // console.log('Found color variant images:', colorVariant.images)
             emit('update:mainImage', colorVariant.images[0].image_path)
         } else {
             console.log('No images found for color:', newColor.name)
@@ -226,11 +182,9 @@ const isPanning = ref(false)
 const lastPanX = ref(0)
 const lastPanY = ref(0)
 
-// Thêm state để quản lý loading và error
 const imageLoading = ref({})
 const imageError = ref({})
 
-// Thêm state để quản lý drag-to-scroll
 const isDragging = ref(false)
 const startX = ref(0)
 const scrollLeft = ref(0)
@@ -263,7 +217,6 @@ function getImgSrc(img) {
     if (!img) return ''
     if (typeof img === 'string') return img
     if (typeof img === 'object' && img.image_path) return img.image_path
-    // console.log('Invalid image object:', img)
     return ''
 }
 
@@ -271,16 +224,13 @@ const currentIndex = computed(() => {
     if (!displayImages.value || displayImages.value.length === 0) return -1
 
     const index = displayImages.value.findIndex(img => getImgSrc(img) === props.mainImage)
-    // console.log('Current index computed:', index, 'for main image:', props.mainImage)
     return index
 })
 
 function openModal() {
-    // console.log('Opening modal with display images:', displayImages.value)
     if (displayImages.value && displayImages.value.length > 0) {
         modalIndex.value = currentIndex.value !== -1 ? currentIndex.value : 0
         modalIndex.value = Math.min(modalIndex.value, displayImages.value.length - 1)
-        // console.log('Modal index set to:', modalIndex.value)
     } else {
         modalIndex.value = 0
     }
@@ -331,7 +281,6 @@ function prevModalImage() {
     if (displayImages.value && displayImages.value.length > 1) {
         modalIndex.value =
             modalIndex.value <= 0 ? displayImages.value.length - 1 : modalIndex.value - 1
-        // console.log('Previous modal image, new index:', modalIndex.value)
         resetZoom()
     }
 }
@@ -340,7 +289,6 @@ function nextModalImage() {
     if (displayImages.value && displayImages.value.length > 1) {
         modalIndex.value =
             modalIndex.value >= displayImages.value.length - 1 ? 0 : modalIndex.value + 1
-        // console.log('Next modal image, new index:', modalIndex.value)
         resetZoom()
     }
 }
@@ -352,7 +300,6 @@ function previousImage() {
         currentIndex.value <= 0
             ? displayImages.value.length - 1
             : currentIndex.value - 1
-    // console.log('Previous image, new index:', newIndex)
     emit('update:mainImage', getImgSrc(displayImages.value[newIndex]))
 }
 
@@ -363,12 +310,10 @@ function nextImage() {
         currentIndex.value >= displayImages.value.length - 1
             ? 0
             : currentIndex.value + 1
-    // console.log('Next image, new index:', newIndex)
     emit('update:mainImage', getImgSrc(displayImages.value[newIndex]))
 }
 
 const selectImage = (imagePath) => {
-    // console.log('Selecting image:', imagePath)
     emit('update:mainImage', imagePath)
 }
 

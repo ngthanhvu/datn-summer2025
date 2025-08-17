@@ -471,7 +471,6 @@ const getStatusText = (status) => {
 }
 
 const handleImageClick = (image) => {
-    console.log('Image clicked:', image)
 }
 
 const getMainImage = (images) => {

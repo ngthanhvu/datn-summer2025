@@ -45,6 +45,7 @@ import InventoryImportPageAdmin from '../pages/admin/inventory/import.vue';
 import InventoryHistoryPageAdmin from '../pages/admin/inventory/history.vue';
 import BlogsPageAdmin from '../pages/admin/blogs/index.vue';
 import BlogsCreate from '../pages/admin/blogs/create.vue';
+import BlogsEdit from '../pages/admin/blogs/edit.vue';
 import MessagePageAdmin from '../pages/admin/messages/index.vue';
 import CommentPageAdmin from '../pages/admin/comments/index.vue';
 import FlashSalePageAdmin from '../pages/admin/flashsale/index.vue';
@@ -263,6 +264,10 @@ const routes = [
             {
                 path: '/admin/blogs/create',
                 component: BlogsCreate
+            },
+            {
+                path: '/admin/blogs/edit/:id',
+                component: BlogsEdit
             },
             {
                 path: '/admin/messages',
