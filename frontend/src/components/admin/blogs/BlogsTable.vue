@@ -309,13 +309,13 @@ function getImageUrl(path) {
 .status-badge.active {
     background-color: #dcfce7;
     color: #166534;
-    border: 1px solid #bbf7d0;
+    border: 1px solid #2c814d;
 }
 
 .status-badge.draft {
     background-color: #dbeafe;
     color: #1d4ed8;
-    border: 1px solid #bfdbfe;
+    border: 1px solid #1d4ed8;
 }
 
 .status-badge.archived {

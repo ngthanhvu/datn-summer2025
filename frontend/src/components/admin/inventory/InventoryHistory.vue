@@ -47,8 +47,8 @@
                         <span :class="[
                             'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
                             movement.type === 'import'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-green-100 text-green-800 border border-green-500'
+                                : 'bg-red-100 text-red-800 border border-red-500',
                         ]">
                             {{ movement.type === 'import' ? 'Nhập kho' : 'Xuất kho' }}
                         </span>
@@ -225,11 +225,13 @@
                                         </td>
                                         <td class="px-4 py-2 text-sm text-gray-500">{{ item.variant.sku }}
                                         </td>
-                                        <td class="px-4 py-2 text-sm text-gray-900">{{ parseInt(item.quantity) || 0 }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ parseInt(item.quantity) || 0 }}
+                                        </td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{
                                             formatCurrency(parseFloat(item.unit_price) || 0) }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{
-                                            formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)) }}</td>
+                                            formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price)
+                                                || 0)) }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -329,7 +331,8 @@
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
                                             formatCurrency(parseFloat(item.unit_price) || 0) }}</td>
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
-                                            formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)) }}</td>
+                                            formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price)
+                                                || 0)) }}</td>
                                     </tr>
                                 </tbody>
                                 <tfoot>
@@ -455,11 +458,11 @@ const closePrintModal = () => {
 const printDocument = () => {
     const printWindow = window.open('', '_blank')
     const receiptContent = document.querySelector('.receipt-content')
-    
+
     // Tính toán tổng số lượng và tổng tiền trực tiếp
     const calculatedTotalQuantity = selectedMovement.value?.items?.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0) || 0
     const calculatedTotalAmount = selectedMovement.value?.items?.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0) || 0
-    
+
     if (receiptContent && printWindow) {
         printWindow.document.write(`
             <!DOCTYPE html>
@@ -622,11 +625,11 @@ const printDocument = () => {
             </body>
             </html>
         `)
-        
+
         printWindow.document.close()
         printWindow.focus()
-        
-        printWindow.onload = function() {
+
+        printWindow.onload = function () {
             printWindow.print()
             printWindow.close()
         }

@@ -86,7 +86,7 @@
                             customer.phone : 'Không có' }}</td>
                         <td class="px-4 py-3 text-center">
                             <span v-if="customer.role === 'master_admin'"
-                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700 border border-red-200"
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700 border border-yellow-400"
                                 title="Master Admin - Quyền cao nhất, có thể quản lý tất cả">
                                 <i class="fas fa-crown mr-1"></i>Master Admin
                             </span>
@@ -103,10 +103,10 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             <span v-if="customer.status == 1"
-                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Hoạt
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700 border border-green-300">Hoạt
                                 động</span>
                             <span v-else
-                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">Đã
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-100 border border-red-500 text-red-700">Đã
                                 khoá</span>
                         </td>
                         <td class="px-4 py-3 text-center">
