@@ -1,26 +1,14 @@
 import { ref } from 'vue'
-import axios from 'axios'
-import Cookies from 'js-cookie'
+import api from '../utils/api'
 
 export const useOrder = () => {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
-    const token = Cookies.get('token')
-
     const orders = ref([])
     const currentOrder = ref(null)
     const loading = ref(false)
     const error = ref(null)
 
-    const API = axios.create({
-        baseURL: apiBaseUrl
-    })
-
-    API.interceptors.request.use((req) => {
-        if (token) {
-            req.headers.Authorization = `Bearer ${token}`
-        }
-        return req
-    })
+    // Dùng instance API chung
+    const API = api
 
     const getAllOrders = async (params = {}) => {
         loading.value = true
@@ -85,8 +73,7 @@ export const useOrder = () => {
         loading.value = true
         error.value = null
         try {
-            const payload = {}
-            if (reason) payload.cancel_reason = reason
+            const payload = reason ? { cancel_reason: reason } : {}
             const res = await API.post(`/api/orders/${id}/cancel`, payload)
             return res.data
         } catch (err) {

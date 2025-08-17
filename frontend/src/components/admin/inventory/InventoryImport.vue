@@ -69,15 +69,28 @@
                                     <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Sản
                                             phẩm <span class="text-red-500">*</span></label>
-                                        <select v-model="item.variant_id"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                                        <!-- Chọn sản phẩm trước -->
+                                        <select v-model="item.product_id" @change="onProductChange(index)"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 mb-3"
                                             required>
                                             <option value="">Chọn sản phẩm</option>
-                                            <option v-for="variant in variants" :key="variant.id" :value="variant.id">
-                                                {{ variant.product.name }} - {{ variant.color }} - {{ variant.size }}
-                                                (SKU: {{ variant.sku }})
+                                            <option v-for="product in uniqueProducts" :key="product.id"
+                                                :value="product.id">
+                                                {{ product.name }}
                                             </option>
                                         </select>
+
+                                        <!-- Sau đó chọn biến thể (size, màu) -->
+                                        <select v-model="item.variant_id" :disabled="!item.product_id"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                                            required>
+                                            <option value="">Chọn size và màu</option>
+                                            <option v-for="variant in getVariantsByProduct(item.product_id)"
+                                                :key="variant.id" :value="variant.id">
+                                                {{ variant.color }} - {{ variant.size }} (SKU: {{ variant.sku }})
+                                            </option>
+                                        </select>
+
                                         <div v-if="item.variant_id"
                                             class="flex flex-col sm:flex-row sm:items-center gap-4 mt-2">
                                             <img v-if="getVariantImage(item.variant_id)"
@@ -206,10 +219,32 @@ const formData = ref({
     note: '',
     items: []
 })
+
+// Computed để lấy danh sách sản phẩm duy nhất
+const uniqueProducts = computed(() => {
+    const products = []
+    const seen = new Set()
+
+    variants.value.forEach(variant => {
+        if (variant.product && !seen.has(variant.product.id)) {
+            seen.add(variant.product.id)
+            products.push(variant.product)
+        }
+    })
+
+    return products
+})
+
+// Lấy biến thể theo sản phẩm
+const getVariantsByProduct = (productId) => {
+    if (!productId) return []
+    return variants.value.filter(variant => variant.product && variant.product.id === productId)
+}
+
 const isFormValid = computed(() => {
     if (formData.value.items.length === 0) return false
     return formData.value.items.every(item => {
-        return item.variant_id && item.quantity > 0 && item.unit_price > 0
+        return item.product_id && item.variant_id && item.quantity > 0 && item.unit_price > 0
     })
 })
 const totalQuantity = computed(() => formData.value.items.reduce((sum, item) => sum + (item.quantity || 0), 0))
@@ -221,11 +256,19 @@ const formatCurrency = (amount) => {
     }).format(amount || 0)
 }
 const addProductItem = () => {
-    formData.value.items.push({ variant_id: '', quantity: 1, unit_price: 0 })
+    formData.value.items.push({ product_id: '', variant_id: '', quantity: 1, unit_price: 0 })
 }
+
 const removeProductItem = (index) => {
     formData.value.items.splice(index, 1)
 }
+
+// Xử lý khi thay đổi sản phẩm
+const onProductChange = (index) => {
+    // Reset variant_id khi thay đổi sản phẩm
+    formData.value.items[index].variant_id = ''
+}
+
 const submitForm = async () => {
     loading.value = true
     try {
@@ -258,9 +301,7 @@ const getVariantInfo = (variantId) => {
     return variants.value.find(v => v.id === variantId)
 }
 onMounted(async () => {
-    // Lấy danh sách variants từ API
     variants.value = await getVariant();
-    console.log(variants.value);
 
     addProductItem();
 })

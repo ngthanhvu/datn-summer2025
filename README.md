@@ -73,7 +73,7 @@ DB_PASSWORD=your_db_password
 
 ```bash
 # Chạy migrations
-php artisan migrate 
+php artisan migrate
 ```
 
 ### 3. Cài đặt frontend (Vue 3)
@@ -91,7 +91,7 @@ npm install
 **Backend:**
 
 ```bash
-php artisan serve
+php artisan serve && php artisan queue:work redis
 ```
 
 **Frontend:**

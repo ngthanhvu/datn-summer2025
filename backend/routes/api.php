@@ -26,6 +26,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\AIChatController;
+use App\Http\Controllers\BlogCategoryController;
 
 // AI Chatbot routes
 Route::post('/ai/chat', [AIChatController::class, 'chat']);
@@ -45,8 +46,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/admin/user', [AuthController::class, 'listUser']);
+    Route::post('/admin/user', [AuthController::class, 'createUserByAdmin']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
     Route::delete('/admin/user/{id}', [AuthController::class, 'destroy']);
+    Route::delete('/admin/user/{id}/simple', [AuthController::class, 'simpleDelete']); // Simple delete for testing
+    Route::get('/admin/user/{id}/test', [AuthController::class, 'testDelete']); // Test route
     Route::post('/reset-password-profile', [AuthController::class, 'resetPasswordProfile']);
 
     Route::get('/inventory', [InventoryController::class, 'index']);
@@ -218,6 +222,8 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/products', [DashboardController::class, 'getProductsStats']);
     Route::get('/recent-orders', [DashboardController::class, 'getRecentOrders']);
     Route::get('/top-selling', [DashboardController::class, 'getTopSelling']);
+    Route::get('/inventory', [DashboardController::class, 'getInventoryStats']);
+    Route::get('/user-growth', [DashboardController::class, 'getUserGrowthStats']);
 });
 
 Route::get('/stock-movement', [StockMovementController::class, 'index']);
@@ -251,3 +257,5 @@ Route::prefix('shipping')->group(function () {
 // Public pages routes
 Route::get('/pages/type/{type}', [PagesController::class, 'getByType']);
 Route::get('/pages/slug/{slug}', [PagesController::class, 'getBySlug']);
+
+Route::apiResource('blog-categories', BlogCategoryController::class);

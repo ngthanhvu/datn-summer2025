@@ -75,11 +75,11 @@
                                 <span :class="[
                                     'px-2 py-1 rounded-full text-xs',
                                     {
-                                        'bg-yellow-100 text-yellow-700': order.status === 'pending',
-                                        'bg-blue-100 text-blue-700': order.status === 'processing',
-                                        'bg-purple-100 text-purple-700': order.status === 'shipping',
-                                        'bg-green-100 text-green-700': order.status === 'completed',
-                                        'bg-red-100 text-red-700': order.status === 'cancelled'
+                                        'bg-yellow-100 text-yellow-700 border border-yellow-300': order.status === 'pending',
+                                        'bg-blue-100 text-blue-700 border border-blue-300': order.status === 'processing',
+                                        'bg-purple-100 text-purple-700 border border-purple-300': order.status === 'shipping',
+                                        'bg-green-100 text-green-700 border border-green-300': order.status === 'completed',
+                                        'bg-red-100 text-red-700 border border-red-300': order.status === 'cancelled'
                                     }
                                 ]">
                                     {{ getOrderStatus(order.status) }}
@@ -89,11 +89,11 @@
                                 <span :class="[
                                     'px-2 py-1 rounded-full text-xs',
                                     {
-                                        'bg-yellow-100 text-yellow-700': order.payment_status === 'pending',
-                                        'bg-green-100 text-green-700': order.payment_status === 'paid',
-                                        'bg-red-100 text-red-700':
+                                        'bg-yellow-100 text-yellow-700 border border-yellow-300': order.payment_status === 'pending',
+                                        'bg-green-100 text-green-700 border border-green-300': order.payment_status === 'paid',
+                                        'bg-red-100 text-red-700 border border-red-300':
                                             order.payment_status === 'failed' || order.payment_status === 'canceled',
-                                        'bg-blue-100 text-blue-700': order.payment_status === 'refunded'
+                                        'bg-blue-100 text-blue-700 border border-blue-300': order.payment_status === 'refunded'
                                     }
                                 ]">
                                     {{ getPaymentStatus(order.payment_status) }}

@@ -16,6 +16,21 @@
                         :class="{ 'border-red-500': errors.title }" placeholder="Nhập tiêu đề bài viết..." />
                     <span v-if="errors.title" class="text-red-500 text-sm mt-1">{{ errors.title }}</span>
                 </div>
+
+                <!-- Category -->
+                <div class="flex flex-col">
+                    <label for="blog-category" class="font-medium text-gray-700 mb-2">Danh mục</label>
+                    <select id="blog-category" v-model="formData.blog_category_id"
+                        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100">
+                        <option value="">Chọn danh mục</option>
+                        <option v-for="category in categories" :key="category.id" :value="category.id">
+                            {{ category.name }}
+                        </option>
+                    </select>
+                    <span v-if="errors.blog_category_id" class="text-red-500 text-sm mt-1">{{ errors.blog_category_id
+                    }}</span>
+                </div>
+
                 <!-- Description -->
                 <div class="flex flex-col">
                     <label for="blog-description" class="font-medium text-gray-700 mb-2">Mô tả <span
@@ -25,7 +40,7 @@
                         :class="{ 'border-red-500': errors.description }" placeholder="Nhập mô tả bài viết..."
                         rows="3"></textarea>
                     <span v-if="errors.description" class="text-red-500 text-sm mt-1">{{ errors.description
-                    }}</span>
+                        }}</span>
                 </div>
                 <!-- Image Upload -->
                 <div class="flex flex-col">
@@ -99,17 +114,27 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBlog } from '../../../composable/useBlogs'
 import CKEditor from '../../CKEditor.vue'
+import { push } from 'notivue'
+
+// Define props
+const props = defineProps({
+    isEdit: {
+        type: Boolean,
+        default: false
+    }
+})
 
 const route = useRoute()
 const router = useRouter()
-const { blog, loading, fetchBlog, createBlog, updateBlog, updateBlogJson } = useBlog()
+const { blog, loading, categories, fetchBlog, createBlog, updateBlog, updateBlogJson, fetchCategories } = useBlog()
 
-const isEditMode = computed(() => route.params.id)
+const isEditMode = computed(() => props.isEdit || route.params.id)
 const formData = ref({
     title: '',
     description: '',
     content: '',
     status: 'draft',
+    blog_category_id: '',
     image: null,
     imageFile: null
 })
@@ -119,6 +144,7 @@ const dataLoaded = ref(false)
 watch(() => route.params.id, () => { dataLoaded.value = false })
 
 onMounted(async () => {
+    await fetchCategories()
     if (isEditMode.value) await fetchBlog(route.params.id)
 })
 
@@ -129,6 +155,7 @@ watch(() => blog.value, (val) => {
             description: val.description || '',
             content: val.content || '',
             status: val.status || 'draft',
+            blog_category_id: val.blog_category_id || '',
             image: val.image || null,
             imageFile: null
         }
@@ -186,6 +213,10 @@ const validateForm = () => {
         errors.value.content = 'Nội dung phải có ít nhất 50 ký tự'
         isValid = false
     }
+    if (!formData.value.blog_category_id) {
+        errors.value.blog_category_id = 'Vui lòng chọn danh mục'
+        isValid = false
+    }
     return isValid
 }
 
@@ -195,6 +226,9 @@ const buildFormData = () => {
     data.append('description', formData.value.description)
     data.append('content', formData.value.content)
     data.append('status', formData.value.status)
+    if (formData.value.blog_category_id) {
+        data.append('blog_category_id', formData.value.blog_category_id)
+    }
     if (formData.value.imageFile instanceof File) {
         data.append('image', formData.value.imageFile)
     }
@@ -202,18 +236,13 @@ const buildFormData = () => {
 }
 
 const handleSubmit = async () => {
-    console.log('Submit clicked')
-    console.log('Form data:', formData.value)
 
     if (!validateForm()) {
-        console.log('Validation failed:', errors.value)
         return
     }
 
-    console.log('Validation passed, submitting...')
     try {
         if (isEditMode.value) {
-            console.log('Edit mode')
             if (formData.value.imageFile instanceof File) {
                 await updateBlog(route.params.id, buildFormData())
             } else {
@@ -221,13 +250,14 @@ const handleSubmit = async () => {
                     title: formData.value.title,
                     description: formData.value.description,
                     content: formData.value.content,
-                    status: formData.value.status
+                    status: formData.value.status,
+                    blog_category_id: formData.value.blog_category_id || null
                 })
             }
+            push.success('Cập nhật bài viết thành công!')
         } else {
-            console.log('Create mode')
             await createBlog(buildFormData())
-            alert('Thêm bài viết thành công!')
+            push.success('Thêm bài viết thành công!')
         }
         router.push('/admin/blogs')
     } catch (err) {

@@ -1,11 +1,65 @@
 // src/composables/useCoupon.js
 import axios from 'axios'
 import Cookies from 'js-cookie'
+import api from '../utils/api'
 
-const API = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
-    timeout: 10000
-})
+// const API = axios.create({
+//     baseURL: import.meta.env.VITE_API_BASE_URL,
+//     timeout: 10000
+// })
+
+const API = api;
+
+const sampleCoupons = [
+    {
+        id: 1,
+        code: 'DEVGANG',
+        discount_type: 'percentage',
+        discount_value: 5,
+        description: 'Giảm 5% cho đơn hàng tối thiểu 200.000₫',
+        minimum_amount: 200000,
+        maximum_discount: 100000,
+        valid_until: '2025-12-31'
+    },
+    {
+        id: 2,
+        code: 'FREESHIP',
+        discount_type: 'shipping',
+        discount_value: 0,
+        description: 'Miễn phí vận chuyển cho đơn hàng tối thiểu 500.000₫',
+        minimum_amount: 500000,
+        valid_until: '2025-12-31'
+    },
+    {
+        id: 3,
+        code: 'GIAM50K',
+        discount_type: 'fixed',
+        discount_value: 50000,
+        description: 'Giảm 50.000₫ cho đơn hàng tối thiểu 300.000₫',
+        minimum_amount: 300000,
+        valid_until: '2025-12-31'
+    },
+    {
+        id: 4,
+        code: 'GIAM30',
+        discount_type: 'percentage',
+        discount_value: 30,
+        description: 'Giảm 30% cho đơn hàng tối thiểu 1.000.000₫',
+        minimum_amount: 1000000,
+        maximum_discount: 300000,
+        valid_until: '2025-12-31'
+    },
+    {
+        id: 5,
+        code: 'GIAM40',
+        discount_type: 'percentage',
+        discount_value: 40,
+        description: 'Giảm 40% cho đơn hàng tối thiểu 1.500.000₫',
+        minimum_amount: 1500000,
+        maximum_discount: 500000,
+        valid_until: '2025-12-31'
+    }
+]
 
 export const useCoupon = () => {
     const getTokenFromCookie = () => Cookies.get('token') || null
@@ -19,10 +73,37 @@ export const useCoupon = () => {
             if (Array.isArray(data?.coupons)) return data.coupons
             if (Array.isArray(data?.data)) return data.data
 
-            return []
+            // Fallback về coupon mẫu nếu API trả về dữ liệu không đúng định dạng
+            console.warn('API returned invalid data format, using sample coupons')
+            return sampleCoupons
         } catch (error) {
             console.error('Error getting coupons:', error)
-            return []
+            // Trả về coupon mẫu khi có lỗi
+            return sampleCoupons
+        }
+    }
+
+    const getNearestCoupons = async (limit = 3) => {
+        try {
+            const coupons = await getCoupons()
+            // Lọc các coupon còn hiệu lực
+            const validCoupons = coupons.filter(coupon => {
+                if (coupon.valid_until) {
+                    return new Date(coupon.valid_until) > new Date()
+                }
+                return true
+            })
+
+            // Sắp xếp theo thứ tự ưu tiên: percentage > fixed > shipping
+            const sortedCoupons = validCoupons.sort((a, b) => {
+                const priority = { percentage: 3, fixed: 2, shipping: 1 }
+                return priority[b.discount_type] - priority[a.discount_type]
+            })
+
+            return sortedCoupons.slice(0, limit)
+        } catch (error) {
+            console.error('Error getting nearest coupons:', error)
+            return sampleCoupons.slice(0, limit)
         }
     }
 
@@ -134,6 +215,7 @@ export const useCoupon = () => {
 
     return {
         getCoupons,
+        getNearestCoupons,
         getCouponById,
         createCoupon,
         updateCoupon,

@@ -59,15 +59,26 @@
                     </span>
                 </div>
 
-                <!-- Auth -->
-                <div class="auth-dropdown">
+                <!-- Auth Section -->
+                <div v-if="!isLoggedIn" class="flex items-center gap-3">
+                    <!-- Login Button -->
+                    <router-link to="/login" class="p-2 text-gray-700 hover:text-[#81aacc] transition-colors"
+                        title="Đăng nhập">
+                        <i class="bi bi-box-arrow-in-right text-xl"></i>
+                    </router-link>
+                    <!-- Register Button -->
+                    <router-link to="/register" class="p-2 text-gray-700 hover:text-[#81aacc] transition-colors"
+                        title="Đăng ký">
+                        <i class="bi bi-person-plus text-xl"></i>
+                    </router-link>
+                </div>
+
+                <!-- User Menu (if logged in) -->
+                <div v-else class="auth-dropdown">
                     <div class="auth-toggle bg-transparent border-0 text-gray-700 relative cursor-pointer">
                         <i class="bi bi-person text-2xl"></i>
                     </div>
-                    <div v-if="!isLoggedIn" class="absolute top-full left-0 w-full">
-                        <AuthMenu />
-                    </div>
-                    <div v-else class="absolute top-full left-0 w-full">
+                    <div class="absolute top-full left-0 w-full">
                         <UserMenu />
                     </div>
                 </div>

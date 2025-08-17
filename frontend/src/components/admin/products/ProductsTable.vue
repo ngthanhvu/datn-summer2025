@@ -12,21 +12,23 @@
                 </div>
 
                 <div class="filters-container">
-                    <select v-if="categories.length" v-model="selectedCategory" class="filter-select">
+                    <select v-model="selectedCategory" class="filter-select border border-gray-300">
                         <option value="">Tất cả danh mục</option>
+                        <option v-if="categories.length === 0" value="" disabled>Đang tải...</option>
                         <option v-for="category in categories" :key="category.value" :value="category.value">
                             {{ category.label }}
                         </option>
                     </select>
 
-                    <select v-if="brands.length" v-model="selectedBrand" class="filter-select">
+                    <select v-model="selectedBrand" class="filter-select border border-gray-300">
                         <option value="">Tất cả thương hiệu</option>
+                        <option v-if="brands.length === 0" value="" disabled>Đang tải...</option>
                         <option v-for="brand in brands" :key="brand.value" :value="brand.value">
                             {{ brand.label }}
                         </option>
                     </select>
 
-                    <select v-model="selectedStatus" class="filter-select">
+                    <select v-model="selectedStatus" class="filter-select border border-gray-300">
                         <option value="">Tất cả trạng thái</option>
                         <option value="1">Hoạt động</option>
                         <option value="0">Vô hiệu</option>
@@ -144,7 +146,7 @@
                                         @change="toggleSelectRow(item.id)" />
                                 </td>
                                 <td class="px-3 py-2">
-                                    {{ (currentPage - 1) * props.itemsPerPage + index + 1 }}
+                                    {{ (currentPageLocal - 1) * props.itemsPerPage + index + 1 }}
                                 </td>
                                 <td v-for="column in columns" :key="column.key" class="px-3 py-2 text-center">
                                     <template v-if="column.type === 'main_image'">
@@ -153,11 +155,18 @@
                                             class="w-10 h-10 object-cover rounded" />
                                     </template>
                                     <template v-else-if="column.type === 'sub_images'">
-                                        <div class="flex gap-1">
-                                            <img v-for="image in getSubImages(item.images)" :key="image.id"
-                                                :src="image.image_path" :alt="image.image_path"
+                                        <div class="flex items-center gap-1">
+                                            <!-- Chỉ lặp tối đa 3 ảnh -->
+                                            <img v-for="(image, index) in getSubImages(item.images).slice(0, 3)"
+                                                :key="image.id" :src="image.image_path" :alt="image.image_path"
                                                 class="w-6 h-6 object-cover rounded cursor-pointer hover:opacity-75"
                                                 @click="handleImageClick(image)" />
+
+                                            <!-- Nếu còn ảnh dư thì hiện dấu ba chấm -->
+                                            <button v-if="getSubImages(item.images).length > 3"
+                                                class="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 cursor-pointer">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
                                         </div>
                                     </template>
                                     <template v-else-if="column.type === 'brand'">
@@ -167,11 +176,9 @@
                                         <span class="text-xs">{{ item[column.key] }}</span>
                                     </template>
                                     <template v-else-if="column.type === 'status'">
-                                        <button
-                                            :class="['status-toggle', item[column.key] === 1 ? 'active' : 'inactive']"
-                                            @click="toggleStatus(item)" :aria-pressed="item[column.key] === 1">
-                                            <span class="toggle-slider"></span>
-                                        </button>
+                                        <span :class="getStatusBadgeClass(item[column.key])">
+                                            {{ getStatusText(item[column.key]) }}
+                                        </span>
                                     </template>
                                     <template v-else-if="column.type === 'price'">
                                         {{ formatPrice(item[column.key]) }}
@@ -227,7 +234,7 @@
                             <input type="checkbox" :checked="selectedRows.includes(item.id)"
                                 @change="toggleSelectRow(item.id)" />
                         </div>
-                        <div class="card-number">{{ (currentPage - 1) * props.itemsPerPage + index + 1 }}</div>
+                        <div class="card-number">{{ (currentPageLocal - 1) * props.itemsPerPage + index + 1 }}</div>
                     </div>
 
                     <div class="card-content">
@@ -255,10 +262,9 @@
                         </div>
 
                         <div class="product-status">
-                            <button :class="['status-toggle', item.is_active === 1 ? 'active' : 'inactive']"
-                                @click="toggleStatus(item)" :aria-pressed="item.is_active === 1">
-                                <span class="toggle-slider"></span>
-                            </button>
+                            <span :class="getStatusBadgeClass(item.is_active)">
+                                {{ getStatusText(item.is_active) }}
+                            </span>
                         </div>
                     </div>
 
@@ -373,10 +379,11 @@ const isLoading = ref(false)
 
 const selectedRows = ref([])
 
-// Computed properties for pagination
+// Computed properties for pagination từ server
 const totalPages = computed(() => props.pagination.last_page || 1)
 const paginationInfo = computed(() => props.pagination)
 
+// Computed properties cho dữ liệu đã lọc (chỉ lọc local, không phân trang)
 const filteredData = computed(() => {
     let result = [...props.data]
 
@@ -416,8 +423,7 @@ const filteredData = computed(() => {
 })
 
 const handleSearch = () => {
-    // Reset to page 1 when searching
-    emit('page-change', 1)
+    // Search được xử lý bởi watch searchQuery
 }
 
 const sortBy = (key) => {
@@ -433,15 +439,19 @@ const handlePageChange = (page) => {
     emit('page-change', page)
 }
 
-watch([selectedCategory, selectedBrand, selectedStatus], () => {
-    // Reset to page 1 when filters change
-    emit('page-change', 1)
-    emit('filter-change', {
-        category: selectedCategory.value,
-        brand: selectedBrand.value,
-        status: selectedStatus.value
-    })
+// Lọc chỉ hoạt động local, không gọi API
+// Khi filter thay đổi, chỉ cần reset page local về 1
+const currentPageLocal = ref(1)
+
+watch([selectedCategory, selectedBrand, selectedStatus, searchQuery], () => {
+    // Reset page local về 1 khi filter thay đổi
+    currentPageLocal.value = 1
 })
+
+// Cập nhật currentPageLocal khi currentPage từ server thay đổi
+watch(() => props.currentPage, (newPage) => {
+    currentPageLocal.value = newPage
+}, { immediate: true })
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -452,8 +462,8 @@ const formatPrice = (price) => {
 
 const getStatusBadgeClass = (status) => {
     return status === 1
-        ? 'bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs'
-        : 'bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs'
+        ? 'status-badge active'
+        : 'status-badge inactive'
 }
 
 const getStatusText = (status) => {
@@ -461,7 +471,6 @@ const getStatusText = (status) => {
 }
 
 const handleImageClick = (image) => {
-    console.log('Image clicked:', image)
 }
 
 const getMainImage = (images) => {
@@ -558,24 +567,6 @@ const handleBulkDelete = async () => {
         push.error('Xoá sản phẩm thất bại')
     }
 }
-
-const toggleStatus = async (item) => {
-    const newStatus = item.is_active === 1 ? 0 : 1
-    try {
-        await updateProductStatus(item.id, newStatus)
-        item.is_active = newStatus
-        push.success('Cập nhật trạng thái thành công')
-        emit('refresh')
-    } catch (e) {
-        push.error('Cập nhật trạng thái thất bại')
-    }
-}
-
-// Hàm giả lập gọi API cập nhật trạng thái
-const updateProductStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
-}
 </script>
 
 <style scoped>
@@ -636,7 +627,6 @@ const updateProductStatus = async (id, status) => {
 
 .filter-select {
     padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     background: white;
@@ -1022,38 +1012,36 @@ const updateProductStatus = async (id, status) => {
     flex-shrink: 0;
 }
 
+/* Status Badge Styles */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.status-badge.active {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge.inactive {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Remove old toggle styles */
 .status-toggle {
-    width: 2.5rem;
-    height: 1.5rem;
-    border-radius: 1rem;
-    border: none;
-    cursor: pointer;
-    position: relative;
-    transition: background-color 0.2s;
-}
-
-.status-toggle.active {
-    background-color: #3bb77e;
-}
-
-.status-toggle.inactive {
-    background-color: #d1d5db;
+    display: none;
 }
 
 .toggle-slider {
-    position: absolute;
-    top: 0.125rem;
-    left: 0.125rem;
-    width: 1.25rem;
-    height: 1.25rem;
-    background-color: white;
-    border-radius: 50%;
-    transition: transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.status-toggle.active .toggle-slider {
-    transform: translateX(1rem);
+    display: none;
 }
 
 .card-actions {

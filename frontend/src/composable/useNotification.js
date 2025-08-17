@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { push } from 'notivue'
+import api from '../utils/api'
 
 export function useNotification() {
     const notifications = ref([])
@@ -10,17 +11,15 @@ export function useNotification() {
     const previousNotifications = ref([])
     const lastNotificationTime = ref(0)
 
+    // Sử dụng instance axios chung từ utility
+    const API = api
+
     const fetchNotifications = async () => {
         loading.value = true
         error.value = null
         try {
-            const token = Cookies.get('token')
-
-            const res = await axios.get('/api/notifications', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
+            // Không cần thêm Authorization header nữa vì đã có trong interceptor
+            const res = await API.get('/api/notifications')
 
             const newNotifications = res.data
 

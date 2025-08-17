@@ -68,6 +68,23 @@
                         <p v-if="errors.phone" class="text-red-500 text-xs mt-1">{{ errors.phone }}</p>
                     </div>
 
+                    <!-- Role -->
+                    <div>
+                        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
+                            Vai trò <span class="text-red-500">*</span>
+                        </label>
+                        <select id="role" v-model="formData.role" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            :class="{ 'border-red-500': errors.role }">
+                            <option value="">Chọn vai trò</option>
+                            <option value="user">Người dùng</option>
+                            <option value="admin">Quản trị viên</option>
+                            <option v-if="currentUserRole === 'master_admin'" value="master_admin">Master Admin</option>
+                        </select>
+                        <p v-if="errors.role" class="text-red-500 text-xs mt-1">{{ errors.role }}</p>
+                        <p class="text-gray-500 text-xs mt-1">Chọn vai trò cho người dùng này</p>
+                    </div>
+
                     <!-- Password -->
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
@@ -160,6 +177,10 @@ const props = defineProps({
     customer: {
         type: Object,
         default: () => ({})
+    },
+    currentUserRole: {
+        type: String,
+        default: 'user'
     }
 })
 
@@ -176,7 +197,8 @@ const formData = reactive({
     password: '',
     status: 1, // 1 = active, 0 = inactive
     avatar: '',
-    note: '' // Added for note field
+    note: '', // Added for note field
+    role: '' // Added for role field
 })
 
 const errors = reactive({
@@ -184,7 +206,8 @@ const errors = reactive({
     email: '',
     phone: '',
     password: '',
-    note: ''
+    note: '',
+    role: '' // Added for role error
 })
 
 // Watch for customer changes to populate form
@@ -197,6 +220,7 @@ watch(() => props.customer, (newCustomer) => {
         formData.avatar = newCustomer.avatar || ''
         formData.password = '' // Reset password field
         formData.note = newCustomer.note || '' // Populate note field
+        formData.role = newCustomer.role || '' // Populate role field
     }
 }, { immediate: true })
 
@@ -213,6 +237,7 @@ const resetForm = () => {
     })
     formData.status = 1
     formData.note = '' // Reset note field
+    formData.role = '' // Reset role field
     Object.keys(errors).forEach(key => {
         errors[key] = ''
     })
@@ -225,19 +250,15 @@ const togglePassword = () => {
 }
 
 const changeAvatar = () => {
-    // TODO: Implement avatar upload functionality
-    console.log('Change avatar clicked')
 }
 
 const validateForm = () => {
     let isValid = true
 
-    // Reset errors
     Object.keys(errors).forEach(key => {
         errors[key] = ''
     })
 
-    // Validate username
     if (!formData.username.trim()) {
         errors.username = 'Tên người dùng không được để trống'
         isValid = false
@@ -246,7 +267,6 @@ const validateForm = () => {
         isValid = false
     }
 
-    // Validate email
     if (!formData.email.trim()) {
         errors.email = 'Email không được để trống'
         isValid = false
@@ -255,19 +275,21 @@ const validateForm = () => {
         isValid = false
     }
 
-    // Validate phone (optional)
     if (formData.phone && !/^[0-9+\-\s()]+$/.test(formData.phone)) {
         errors.phone = 'Số điện thoại không hợp lệ'
         isValid = false
     }
 
-    // Validate password (if provided)
+    if (!formData.role) {
+        errors.role = 'Vai trò là bắt buộc'
+        isValid = false
+    }
+
     if (formData.password && formData.password.length < 6) {
         errors.password = 'Mật khẩu phải có ít nhất 6 ký tự'
         isValid = false
     }
 
-    // Validate note (only if status is 0)
     if (formData.status === 0 && !formData.note.trim()) {
         errors.note = 'Lý do khóa tài khoản là bắt buộc'
         isValid = false
@@ -284,21 +306,19 @@ const handleSubmit = async () => {
     isSubmitting.value = true
 
     try {
-        // Prepare data for API call
         const updateData = {
             id: props.customer.id,
             username: formData.username.trim(),
             email: formData.email.trim(),
             phone: formData.phone.trim() || null,
             status: formData.status,
+            role: formData.role // Include role in update data
         }
 
-        // Only include note if status is 0 (banned)
         if (formData.status === 0) {
             updateData.note = formData.note.trim()
         }
 
-        // Only include password if it's provided
         if (formData.password.trim()) {
             updateData.password = formData.password
         }

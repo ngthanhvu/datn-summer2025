@@ -17,8 +17,9 @@
         </div>
 
         <CustomersTable :customers="customers" :isLoading="isLoading" :currentPage="currentPage"
-            :itemsPerPage="itemsPerPage" :totalItems="totalItems" @delete="handleDelete" @page-change="handlePageChange"
-            @update-customer="handleUpdateCustomer" @toggle-status="handleToggleStatus" />
+            :itemsPerPage="itemsPerPage" :totalItems="totalItems" :currentUserRole="currentUserRole"
+            @delete="handleDelete" @page-change="handlePageChange" @update-customer="handleUpdateCustomer"
+            @toggle-status="handleToggleStatus" @create-customer="handleCreateCustomer" />
     </div>
 </template>
 
@@ -29,7 +30,7 @@ import { useAuth } from '../../../composable/useAuth'
 import { push } from 'notivue'
 import Swal from 'sweetalert2'
 
-const { getListUser, updateUserByAdmin, updateCustomerStatus, deleteUser } = useAuth()
+const { getListUser, updateUserByAdmin, updateCustomerStatus, deleteUser, createUserByAdmin, user } = useAuth()
 const customers = ref([])
 const isLoading = ref(true)
 
@@ -38,12 +39,76 @@ const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
 
+// Get current user role
+const currentUserRole = ref('user')
+
+// Helper function to show error alerts
+const showErrorAlert = (errorMessage) => {
+    const errorConfigs = {
+        'không thể xóa chính bản thân': {
+            title: 'Không thể xóa tài khoản',
+            text: 'Bạn không thể xóa chính bản thân!'
+        },
+        'không thể thay đổi vai trò của chính bản thân': {
+            title: 'Không thể thay đổi vai trò',
+            text: 'Bạn không thể thay đổi vai trò của chính bản thân!'
+        },
+        'Chỉ Master Admin mới có quyền tạo tài khoản Master Admin': {
+            title: 'Không có quyền',
+            text: 'Chỉ Master Admin mới có quyền tạo tài khoản Master Admin!'
+        },
+        'Admin thường không thể tạo tài khoản Admin khác': {
+            title: 'Không có quyền',
+            text: 'Admin thường không thể tạo tài khoản Admin khác!'
+        },
+        'Không thể thay đổi thông tin của Master Admin': {
+            title: 'Không có quyền',
+            text: 'Không thể thay đổi thông tin của Master Admin!'
+        },
+        'Chỉ Master Admin mới có quyền thay đổi role thành Master Admin': {
+            title: 'Không có quyền',
+            text: 'Chỉ Master Admin mới có quyền thay đổi role thành Master Admin!'
+        },
+        'Chỉ Master Admin mới có quyền xóa Master Admin khác': {
+            title: 'Không có quyền',
+            text: 'Chỉ Master Admin mới có quyền xóa Master Admin khác!'
+        },
+        'Không thể xóa Master Admin cuối cùng trong hệ thống': {
+            title: 'Không thể xóa',
+            text: 'Không thể xóa Master Admin cuối cùng trong hệ thống!'
+        }
+    }
+
+    // Tìm config phù hợp
+    for (const [key, config] of Object.entries(errorConfigs)) {
+        if (errorMessage.includes(key)) {
+            Swal.fire({
+                icon: 'warning',
+                title: config.title,
+                text: config.text,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Đã hiểu'
+            })
+            return true
+        }
+    }
+
+    // Nếu không tìm thấy config, hiển thị thông báo lỗi thông thường
+    push.error(errorMessage)
+    return false
+}
+
 onMounted(async () => {
     isLoading.value = true
     try {
         const res = await getListUser()
         customers.value = res.users
         totalItems.value = res.users.length
+
+        // Get current user role
+        if (user.value) {
+            currentUserRole.value = user.value.role
+        }
     } catch (err) {
         console.error('Get list user error:', err.response?.data || err.message)
         throw err
@@ -65,7 +130,9 @@ const handleDelete = async (customer) => {
         push.success('Xóa khách hàng thành công')
     } catch (error) {
         console.error('Lỗi khi xóa khách hàng:', error)
-        push.error('Có lỗi xảy ra khi xóa khách hàng')
+
+        const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi xóa khách hàng'
+        showErrorAlert(errorMessage)
     }
 }
 
@@ -81,10 +148,29 @@ const handleUpdateCustomer = async (customerData) => {
             }
         }
         push.success('Cập nhật khách hàng thành công')
-        // console.log('Cập nhật khách hàng thành công:', customerData)
 
     } catch (error) {
         console.error('Lỗi khi cập nhật khách hàng:', error)
+
+        const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi cập nhật khách hàng'
+        showErrorAlert(errorMessage)
+    }
+}
+
+const handleCreateCustomer = async (customerData) => {
+    try {
+        const response = await createUserByAdmin(customerData)
+
+        // Add new customer to the list
+        customers.value.unshift(response.user)
+        totalItems.value = customers.value.length
+
+        push.success('Tạo người dùng thành công')
+    } catch (error) {
+        console.error('Lỗi khi tạo người dùng:', error)
+
+        const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi tạo người dùng'
+        showErrorAlert(errorMessage)
     }
 }
 
@@ -93,15 +179,17 @@ const handleToggleStatus = async (customer) => {
         const newStatus = customer.status === 1 ? 0 : 1
         await updateCustomerStatus(customer.id, newStatus)
 
-        // Cập nhật dữ liệu local
         const index = customers.value.findIndex(c => c.id === customer.id)
         if (index !== -1) {
             customers.value[index].status = newStatus
         }
 
-        console.log('Cập nhật trạng thái khách hàng thành công')
+        push.success('Cập nhật trạng thái khách hàng thành công')
     } catch (error) {
         console.error('Lỗi khi cập nhật trạng thái khách hàng:', error)
+
+        const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi cập nhật trạng thái khách hàng'
+        showErrorAlert(errorMessage)
     }
 }
 

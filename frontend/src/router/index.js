@@ -7,6 +7,7 @@ import ProductsPage from '../pages/products.vue';
 import ProducDetail from '../pages/detail.vue';
 import LoginPage from '../pages/auth/login.vue';
 import RegisterPage from '../pages/auth/register.vue';
+import GoogleCallback from '../pages/auth/googleCallback.vue';
 import ForgotPasswordPage from '../pages/forgotPassword.vue'
 import ResetPasswordPage from '../pages/resetPassword.vue'
 import ProfilePage from '../pages/profile.vue';
@@ -44,6 +45,7 @@ import InventoryImportPageAdmin from '../pages/admin/inventory/import.vue';
 import InventoryHistoryPageAdmin from '../pages/admin/inventory/history.vue';
 import BlogsPageAdmin from '../pages/admin/blogs/index.vue';
 import BlogsCreate from '../pages/admin/blogs/create.vue';
+import BlogsEdit from '../pages/admin/blogs/edit.vue';
 import MessagePageAdmin from '../pages/admin/messages/index.vue';
 import CommentPageAdmin from '../pages/admin/comments/index.vue';
 import FlashSalePageAdmin from '../pages/admin/flashsale/index.vue';
@@ -79,6 +81,11 @@ const routes = [
             {
                 path: '/register',
                 component: RegisterPage,
+                meta: { guestOnly: true }
+            },
+            {
+                path: '/auth/google/callback',
+                component: GoogleCallback,
                 meta: { guestOnly: true }
             },
             {
@@ -257,6 +264,10 @@ const routes = [
             {
                 path: '/admin/blogs/create',
                 component: BlogsCreate
+            },
+            {
+                path: '/admin/blogs/edit/:id',
+                component: BlogsEdit
             },
             {
                 path: '/admin/messages',

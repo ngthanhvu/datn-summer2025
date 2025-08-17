@@ -1,6 +1,7 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { ref } from 'vue'
+import api from '../utils/api'
 
 export function useSettings() {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
@@ -16,11 +17,8 @@ export function useSettings() {
     const isLoading = ref(false)
     const error = ref(null)
 
-    const API = axios.create({
-        baseURL: baseUrl,
-        timeout: 10000,
-        withCredentials: true
-    })
+    // Sử dụng instance axios chung từ utility
+    const API = api
 
     const getToken = () => {
         // Ưu tiên lấy từ cookie, fallback sang localStorage

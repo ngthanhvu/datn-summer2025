@@ -1,20 +1,10 @@
 // composables/useInventories.js
 import axios from 'axios'
 import Cookies from 'js-cookie'
+import api from '../utils/api'
 
-const API = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
-    timeout: 10000
-})
-
-// Gắn token cho tất cả request nếu có
-API.interceptors.request.use((config) => {
-    const token = Cookies.get('token')
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-})
+// Sử dụng instance axios chung từ utility
+const API = api
 
 export const useInventories = () => {
     const getInventories = async (params = {}) => {

@@ -2,13 +2,10 @@ import axios from "axios";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
+import api from '../utils/api'
 
-const API = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL });
-API.interceptors.request.use((req) => {
-  const token = Cookies.get("token");
-  if (token) req.headers.Authorization = `Bearer ${token}`;
-  return req;
-});
+// Sử dụng instance axios chung từ utility
+const API = api
 
 const shippingFee = ref(null);
 const provinces = ref([]);
@@ -41,7 +38,7 @@ const fetchShopInfo = async () => {
   try {
     const res = await API.get('/api/shipping/config');
     if (res.data.success) shopInfo.value = res.data.data;
-  } catch {}
+  } catch { }
 };
 
 const getShopLocation = async () => {
@@ -81,19 +78,19 @@ const getDistrictAndWardFromAddress = async (address) => {
 const callGHNShippingAPI = async (address, cartItems) => {
   const totalWeight = cartItems.reduce((t, i) => t + (500 * i.quantity), 0);
   const totalValue = cartItems.reduce((t, i) => t + (i.price * i.quantity), 0);
-  
+
   const shopLocation = await getShopLocation();
-  
+
   if (!shopInfo.value) await fetchShopInfo();
   const ghnConfig = shopInfo.value || {
     base_url: 'https://online-gateway.ghn.vn/shiip/public-api/v2',
     token: '', shop_id: ''
   };
-  
+
   const loc = await getDistrictAndWardFromAddress(address);
   const toDistrictId = loc.district_id;
   const toWardCode = loc.ward_code;
-  
+
   if (!toDistrictId || !toWardCode) return { success: false, message: 'Thiếu district_id hoặc ward_code' };
   if (!shopLocation.districtId || !shopLocation.wardCode) return { success: false, message: 'Không thể lấy thông tin shop từ GHN API' };
   const shippingData = {
@@ -107,7 +104,6 @@ const callGHNShippingAPI = async (address, cartItems) => {
     insurance_value: totalValue, cod_value: 0
   };
   try {
-    console.log('Sending shipping data to GHN:', shippingData);
     const res = await axios.post(`${ghnConfig.base_url}/shipping-order/fee`, shippingData, {
       headers: {
         'Content-Type': 'application/json',
@@ -115,7 +111,6 @@ const callGHNShippingAPI = async (address, cartItems) => {
         'ShopId': ghnConfig.shop_id,
       }
     });
-    console.log('GHN API response:', res.data);
     if (res.data.code === 200) return { success: true, data: res.data.data };
     return { success: false, message: res.data.message || 'Có lỗi khi tính phí' };
   } catch (error) {

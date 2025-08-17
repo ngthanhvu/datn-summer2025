@@ -20,21 +20,19 @@
                         :class="[msg.isAdmin ? 'justify-end' : 'justify-start']">
                         <div class="flex items-end gap-2" :class="[msg.isAdmin ? 'flex-row-reverse' : '']">
                             <img :src="msg.isAdmin ? getAvatarUrl(adminAvatar) : getAvatarUrl(message.avatar)"
-                                :alt="msg.isAdmin ? 'Admin' : message.name" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover">
+                                :alt="msg.isAdmin ? 'Admin' : message.name"
+                                class="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover">
                             <div :class="[
                                 'max-w-xs sm:max-w-md rounded-2xl px-3 sm:px-4 py-2',
                                 msg.isAdmin ? 'bg-primary text-white rounded-br-none' : 'bg-white rounded-bl-none shadow-sm'
                             ]">
                                 <div v-if="msg.attachment" class="mb-2">
                                     <div v-if="/\.(jpg|jpeg|png|gif)$/i.test(msg.attachment)" class="relative">
-                                        <img 
-                                            :src="getAvatarUrl(msg.attachment)" 
-                                            :alt="'Attachment'"
+                                        <img :src="getAvatarUrl(msg.attachment)" :alt="'Attachment'"
                                             class="max-w-full sm:max-w-xs rounded cursor-pointer block"
-                                            @click="openImage(getAvatarUrl(msg.attachment))"
-                                            @error="handleImageError"
+                                            @click="openImage(getAvatarUrl(msg.attachment))" @error="handleImageError"
                                             loading="lazy">
-                                        <div v-if="!getAvatarUrl(msg.attachment)" 
+                                        <div v-if="!getAvatarUrl(msg.attachment)"
                                             class="max-w-full sm:max-w-xs h-32 bg-gray-200 rounded flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400 text-2xl"></i>
                                         </div>
@@ -54,8 +52,8 @@
             </div>
 
             <!-- Message Input (sticky) -->
-            <div class="bg-white px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-300 mt-auto flex-shrink-0" 
-                 style="min-height: 80px; background-color: white !important; position: relative; z-index: 10;">
+            <div class="bg-white px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-300 mt-auto flex-shrink-0"
+                style="min-height: 80px; background-color: white !important; position: relative; z-index: 10;">
                 <div class="max-w-3xl mx-auto">
                     <!-- File preview (if selected) -->
                     <div v-if="selectedFile" class="mb-3 flex items-center gap-2 p-2 bg-gray-100 rounded text-sm">
@@ -65,26 +63,20 @@
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    
+
                     <!-- Debug: Always visible input area -->
-                    <div class="flex gap-2 sm:gap-4 items-center" style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 8px;">
-                        <input 
-                            type="text" 
-                            v-model="newMessage" 
-                            @keyup.enter="handleSend" 
-                            placeholder="Nhập tin nhắn..."
+                    <div class="flex gap-2 sm:gap-4 items-center"
+                        style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 8px;">
+                        <input type="text" v-model="newMessage" @keyup.enter="handleSend" placeholder="Nhập tin nhắn..."
                             class="flex-1 border border-gray-300 rounded-full px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base focus:ring-1 focus:ring-[#3BB77E] focus:border-[#3BB77E] focus:outline-none"
-                            style="min-height: 40px;"
-                            :disabled="false">
+                            style="min-height: 40px;" :disabled="false">
                         <label
                             class="bg-gray-100 rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center cursor-pointer hover:bg-gray-200 flex-shrink-0 transition-colors">
                             <i class="fas fa-paperclip text-sm sm:text-lg text-gray-600"></i>
                             <input type="file" ref="fileInput" @change="handleFileSelect" class="hidden"
                                 accept="image/*,.pdf,.doc,.docx">
                         </label>
-                        <button 
-                            @click="handleSend" 
-                            :disabled="(!newMessage.trim() && !selectedFile)"
+                        <button @click="handleSend" :disabled="(!newMessage.trim() && !selectedFile)"
                             class="bg-primary text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 transition-colors">
                             <i class="fas fa-paper-plane text-sm sm:text-base"></i>
                         </button>
@@ -163,40 +155,29 @@ watch(
 
 onMounted(() => {
     scrollToBottom()
-    console.log('MessagesContent mounted with props:', props)
 })
 
 const getAvatarUrl = (avatar) => {
     if (!avatar) {
-        console.log('No avatar provided, using default')
         return defaultAvatar
     }
-    
+
     if (avatar.startsWith('http')) {
-        console.log('Avatar is full URL:', avatar)
         return avatar
     }
-    
-    // Handle different path formats
+
     let cleanPath = avatar
-    
-    // Remove leading slashes
+
     cleanPath = cleanPath.replace(/^\/+/, '')
-    
+
     if (!cleanPath.startsWith('storage/')) {
         cleanPath = `storage/${cleanPath}`
     }
-    
-    // Build final URL
+
     let url = `${apiBaseUrl}/${cleanPath}`
-    
+
     url = url.replace(/([^:]\/)\/+/g, '$1')
-    
-    console.log('Original avatar path:', avatar)
-    console.log('Clean path:', cleanPath)
-    console.log('Final URL:', url)
-    console.log('API Base URL:', apiBaseUrl)
-    
+
     return url
 }
 
@@ -248,7 +229,8 @@ img {
     transition: opacity 0.3s ease;
 }
 
-img[src=""], img:not([src]) {
+img[src=""],
+img:not([src]) {
     opacity: 0;
 }
 
@@ -288,7 +270,7 @@ img[src=""], img:not([src]) {
         display: flex !important;
         flex-direction: column !important;
     }
-    
+
     /* Ensure input is visible on mobile */
     .mt-auto {
         margin-top: auto !important;
@@ -298,7 +280,7 @@ img[src=""], img:not([src]) {
         background: white !important;
         border-top: 2px solid #3BB77E !important;
     }
-    
+
     /* Make sure the input area has enough space */
     .border-t {
         background-color: white !important;
@@ -306,14 +288,14 @@ img[src=""], img:not([src]) {
         padding-bottom: env(safe-area-inset-bottom, 16px) !important;
         min-height: 80px !important;
     }
-    
+
     /* Force input visibility */
     .flex.gap-2 {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
     }
-    
+
     /* Ensure messages area doesn't overlap input */
     .flex-1.overflow-y-auto {
         padding-bottom: 100px !important;

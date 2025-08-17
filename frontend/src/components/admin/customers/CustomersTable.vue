@@ -2,16 +2,32 @@
     <div class="bg-white rounded-lg shadow p-4">
         <div class="p-4">
             <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-                <div class="relative w-full sm:w-auto">
-                    <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..."
-                        class="border border-gray-300 rounded px-4 py-2 pl-10 w-full sm:w-64">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div class="relative w-full sm:w-auto">
+                        <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..."
+                            class="border border-gray-300 rounded px-4 py-2 pl-10 w-full sm:w-64">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <select v-model="filterStatus" class="border border-gray-300 rounded px-4 py-2 w-full sm:w-auto">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="1">Đang hoạt động</option>
+                        <option value="0">Đã khóa</option>
+                    </select>
+                    <select v-model="filterRole" class="border border-gray-300 rounded px-4 py-2 w-full sm:w-auto">
+                        <option value="">Tất cả vai trò</option>
+                        <option value="user">Người dùng</option>
+                        <option value="admin">Quản trị viên</option>
+                        <option value="master_admin">Master Admin</option>
+                    </select>
                 </div>
-                <select v-model="filterStatus" class="border border-gray-300 rounded px-4 py-2 w-full sm:w-auto">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="1">Đang hoạt động</option>
-                    <option value="0">Đã khóa</option>
-                </select>
+                <button @click="openCreateModal"
+                    class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Thêm người dùng
+                </button>
             </div>
         </div>
 
@@ -36,6 +52,9 @@
                             Số điện thoại
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                            Vai trò
+                        </th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                             Trạng thái
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
@@ -49,7 +68,7 @@
                 <tbody class="divide-y divide-gray-200">
                     <!-- Skeleton loading -->
                     <tr v-if="props.isLoading" v-for="n in 7" :key="'skeleton-' + n">
-                        <td v-for="i in 7" :key="i" class="px-4 py-3">
+                        <td v-for="i in 8" :key="i" class="px-4 py-3">
                             <div class="skeleton-loader"></div>
                         </td>
                     </tr>
@@ -66,11 +85,28 @@
                         <td class="px-4 py-3 text-sm text-gray-900 text-center">{{ customer.phone ?
                             customer.phone : 'Không có' }}</td>
                         <td class="px-4 py-3 text-center">
+                            <span v-if="customer.role === 'master_admin'"
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700 border border-yellow-400"
+                                title="Master Admin - Quyền cao nhất, có thể quản lý tất cả">
+                                <i class="fas fa-crown mr-1"></i>Master Admin
+                            </span>
+                            <span v-else-if="customer.role === 'admin'"
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700 border border-purple-200"
+                                title="Quản trị viên - Có quyền truy cập tất cả tính năng">
+                                <i class="fas fa-shield-alt mr-1"></i>Quản trị viên
+                            </span>
+                            <span v-else
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+                                title="Người dùng - Quyền truy cập hạn chế">
+                                <i class="fas fa-user mr-1"></i>Người dùng
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
                             <span v-if="customer.status == 1"
-                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Hoạt
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700 border border-green-300">Hoạt
                                 động</span>
                             <span v-else
-                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">Đã
+                                class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-100 border border-red-500 text-red-700">Đã
                                 khoá</span>
                         </td>
                         <td class="px-4 py-3 text-center">
@@ -147,6 +183,24 @@
                         <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
                             <div class="text-gray-500">Số điện thoại</div>
                             <div class="text-right">{{ customer.phone ? customer.phone : 'Không có' }}</div>
+                            <div class="text-gray-500">Vai trò</div>
+                            <div class="text-right">
+                                <span v-if="customer.role === 'master_admin'"
+                                    class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-100 text-red-700 border border-red-200"
+                                    title="Master Admin - Quyền cao nhất, có thể quản lý tất cả">
+                                    <i class="fas fa-crown mr-1"></i>Master Admin
+                                </span>
+                                <span v-else-if="customer.role === 'admin'"
+                                    class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full bg-purple-100 text-purple-700 border border-purple-200"
+                                    title="Quản trị viên - Có quyền truy cập tất cả tính năng">
+                                    <i class="fas fa-shield-alt mr-1"></i>Quản trị viên
+                                </span>
+                                <span v-else
+                                    class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+                                    title="Người dùng - Quyền truy cập hạn chế">
+                                    <i class="fas fa-user mr-1"></i>Người dùng
+                                </span>
+                            </div>
                             <div class="text-gray-500">Trạng thái</div>
                             <div class="text-right">
                                 <span v-if="customer.status == 1"
@@ -192,14 +246,19 @@
         </div>
 
         <!-- Customer Edit Modal -->
-        <CustomerEditModal :is-visible="isEditModalVisible" :customer="selectedCustomer" @close="closeEditModal"
-            @save="handleSaveCustomer" />
+        <CustomerEditModal :is-visible="isEditModalVisible" :customer="selectedCustomer"
+            :currentUserRole="props.currentUserRole" @close="closeEditModal" @save="handleSaveCustomer" />
+
+        <!-- Customer Create Modal -->
+        <CustomerCreateModal :is-visible="isCreateModalVisible" :currentUserRole="props.currentUserRole"
+            @close="closeCreateModal" @save="handleCreateCustomer" />
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import CustomerEditModal from './CustomerEditModal.vue'
+import CustomerCreateModal from './CustomerCreateModal.vue'
 import { useAuth } from '../../../composable/useAuth'
 import Swal from 'sweetalert2'
 
@@ -225,17 +284,23 @@ const props = defineProps({
     totalItems: {
         type: Number,
         default: 0
+    },
+    currentUserRole: {
+        type: String,
+        default: 'user'
     }
 })
 
 const defaultAvatar = ref('https://img.freepik.com/premium-vector/error-404-found-glitch-effect_8024-4.jpg')
-const emit = defineEmits(['delete', 'page-change', 'update-customer', 'toggle-status'])
+const emit = defineEmits(['delete', 'page-change', 'update-customer', 'toggle-status', 'create-customer'])
 
 const searchQuery = ref('')
 const filterStatus = ref('')
+const filterRole = ref('')
 
 // Modal state
 const isEditModalVisible = ref(false)
+const isCreateModalVisible = ref(false)
 const selectedCustomer = ref({})
 
 const filteredCustomers = computed(() => {
@@ -246,8 +311,9 @@ const filteredCustomers = computed(() => {
             (customer.phone?.includes(searchQuery.value) || '')
 
         const matchesStatus = filterStatus.value === '' || customer.status?.toString() === filterStatus.value
+        const matchesRole = filterRole.value === '' || customer.role === filterRole.value
 
-        return matchesSearch && matchesStatus
+        return matchesSearch && matchesStatus && matchesRole
     })
 })
 
@@ -315,9 +381,25 @@ const handleSaveCustomer = async (customerData) => {
 
         closeEditModal()
 
-        console.log('Customer updated successfully:', customerData)
     } catch (error) {
         console.error('Error updating customer:', error)
+    }
+}
+
+const openCreateModal = () => {
+    isCreateModalVisible.value = true
+}
+
+const closeCreateModal = () => {
+    isCreateModalVisible.value = false
+}
+
+const handleCreateCustomer = async (customerData) => {
+    try {
+        emit('create-customer', customerData)
+        closeCreateModal()
+    } catch (error) {
+        console.error('Error creating customer:', error)
     }
 }
 </script>

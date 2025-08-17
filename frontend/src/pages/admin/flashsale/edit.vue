@@ -44,9 +44,6 @@ const loadFlashSale = async () => {
         error.value = ''
         const flashSaleId = route.params.id
         const data = await getFlashSaleById(flashSaleId)
-        console.log('Flash sale data loaded:', data)
-        console.log('Flash sale data type:', typeof data)
-        console.log('Flash sale data keys:', Object.keys(data || {}))
         flashSaleData.value = data
     } catch (err) {
         error.value = err.message || 'Không thể tải dữ liệu flash sale'

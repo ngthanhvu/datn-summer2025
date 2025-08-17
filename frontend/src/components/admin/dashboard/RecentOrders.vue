@@ -1,7 +1,7 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-lg shadow px-6 py-6">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="font-semibold">Đơn hàng gần đây</h3>
+            <h3 class="font-semibold text-lg">Đơn hàng gần đây</h3>
             <router-link to="/admin/orders" class="text-primary hover:text-[#3BB77E] cursor-pointer">
                 Xem tất cả
             </router-link>
@@ -67,19 +67,19 @@ const orderStatusClass = (status) => {
     switch (status) {
         case 'Hoàn thành':
         case 'Đã giao hàng':
-            return 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs'
+            return 'bg-green-100 text-green-700 border border-green-300 px-3 py-1 rounded-full text-xs'
         case 'Đang giao hàng':
-            return 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs'
+            return 'bg-blue-100 text-blue-700 border border-blue-300 px-3 py-1 rounded-full text-xs'
         case 'Đang xử lý':
-            return 'bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs'
+            return 'bg-yellow-100 text-yellow-700 border border-yellow-300 px-3 py-1 rounded-full text-xs'
         case 'Chờ xử lý':
-            return 'bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs'
+            return 'bg-orange-100 text-orange-700 border border-orange-300 px-3 py-1 rounded-full text-xs'
         case 'Đã hủy':
-            return 'bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs'
+            return 'bg-red-100 text-red-700 border border-red-300 px-3 py-1 rounded-full text-xs'
         case 'Đã trả hàng':
-            return 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
+            return 'bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1 rounded-full text-xs'
         default:
-            return 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
+            return 'bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1 rounded-full text-xs'
     }
 }
 </script>

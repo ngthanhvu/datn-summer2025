@@ -6,7 +6,8 @@
             <!-- Mobile-first filter layout -->
             <div class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 mb-4 sm:flex-wrap">
                 <div class="relative flex-1 min-w-full sm:min-w-[220px]">
-                    <input class="border border-gray-300 rounded px-3 py-2 w-full pl-10 text-sm" placeholder="Tìm kiếm..." />
+                    <input class="border border-gray-300 rounded px-3 py-2 w-full pl-10 text-sm"
+                        placeholder="Tìm kiếm..." />
                     <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <div class="flex gap-2 sm:gap-4">
@@ -55,13 +56,9 @@
                             </td>
                             <td class="px-4 py-2 text-center">{{ item.start_time }} ~ {{ item.end_time }}</td>
                             <td class="px-4 py-2 text-center">
-                                <button
-                                    :class="['w-10 h-6 rounded-full relative transition-colors', item.active ? 'bg-primary' : 'bg-gray-300']"
-                                    @click="toggleStatus(item)" :aria-pressed="item.active"
-                                    style="background-color: #3bb77e">
-                                    <span
-                                        :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', item.active ? 'translate-x-4' : '']"></span>
-                                </button>
+                                <span :class="getStatusBadgeClass(item.active)">
+                                    {{ getStatusText(item.active) }}
+                                </span>
                             </td>
                             <td class="px-4 py-2 text-center">
                                 <span v-if="item.repeat"
@@ -109,20 +106,17 @@
                             <p class="text-xs text-gray-500 mt-1">#{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button
-                                :class="['w-8 h-5 rounded-full relative transition-colors', item.active ? 'bg-primary' : 'bg-gray-300']"
-                                @click="toggleStatus(item)" :aria-pressed="item.active"
-                                style="background-color: #3bb77e">
-                                <span
-                                    :class="['absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform', item.active ? 'translate-x-3' : '']"></span>
-                            </button>
+                            <span :class="getStatusBadgeClass(item.active)">
+                                {{ getStatusText(item.active) }}
+                            </span>
                         </div>
                     </div>
-                    
+
                     <div class="space-y-2 text-xs">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Sản phẩm:</span>
-                            <span v-if="Array.isArray(item.products) && item.products[0]" class="text-green-600">Có sản phẩm</span>
+                            <span v-if="Array.isArray(item.products) && item.products[0]" class="text-green-600">Có sản
+                                phẩm</span>
                             <span v-else class="text-gray-500">Không có sản phẩm</span>
                         </div>
                         <div class="flex justify-between">
@@ -131,11 +125,12 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Lặp lại:</span>
-                            <span v-if="item.repeat" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">Lặp lại</span>
+                            <span v-if="item.repeat"
+                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">Lặp lại</span>
                             <span v-else class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">Không</span>
                         </div>
                     </div>
-                    
+
                     <div class="flex justify-center gap-2 mt-3 pt-3 border-t border-gray-100">
                         <router-link :to="`/admin/flashsale/${item.id}/edit`"
                             class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors duration-150 text-xs font-medium"
@@ -162,7 +157,8 @@
             </div>
 
             <!-- Pagination -->
-            <div v-if="!loading && !error && totalPages > 1" class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3">
+            <div v-if="!loading && !error && totalPages > 1"
+                class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3">
                 <div class="text-xs sm:text-sm text-gray-600 order-2 sm:order-1">
                     Hiển thị {{ paginatedFlashSales.length }} trên tổng số {{ flashSales.length }} bản ghi
                 </div>
@@ -182,7 +178,7 @@
             </div>
         </div>
     </div>
-    
+
 </template>
 
 <script setup>
@@ -247,20 +243,36 @@ async function handleDelete(id) {
     }
 }
 
-const toggleStatus = async (item) => {
-    const newStatus = item.active ? 0 : 1
-    try {
-        await updateFlashSaleStatus(item.id, newStatus)
-        item.active = newStatus
-        push.success('Cập nhật trạng thái flash sale thành công!')
-    } catch (e) {
-        push.error('Có lỗi xảy ra khi cập nhật trạng thái flash sale!')
-    }
+const getStatusBadgeClass = (active) => {
+    return active ? 'status-badge active' : 'status-badge inactive'
 }
 
-// Hàm giả lập gọi API cập nhật trạng thái
-const updateFlashSaleStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
+const getStatusText = (active) => {
+    return active ? 'Đang diễn ra' : 'Kết thúc'
 }
 </script>
+
+<style scoped>
+/* Status Badge Styles */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.status-badge.active {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge.inactive {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+</style>

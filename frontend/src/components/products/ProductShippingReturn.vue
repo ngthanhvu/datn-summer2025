@@ -20,7 +20,7 @@
             </p>
             <p class="text-red-600">
                 <strong>Lưu ý:</strong> Không áp dụng cho các sản phẩm giảm giá từ <strong>30%</strong> trở lên và các
-                sản phẩm mua trực tiếp tại hệ thống cửa hàng của Maison.
+                sản phẩm mua trực tiếp tại hệ thống cửa hàng của Devgang.
             </p>
             <p>
                 <strong>Ghi chú:</strong> Thời hạn đổi/trả hàng được tính từ ngày khách hàng nhận hàng cho đến ngày

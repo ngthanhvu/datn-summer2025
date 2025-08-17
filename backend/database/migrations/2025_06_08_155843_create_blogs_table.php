@@ -21,7 +21,15 @@ return new class extends Migration
             $table->enum('status', ['draft', 'published'])->default('published');
             $table->timestamp('published_at')->nullable();
             $table->unsignedBigInteger('author_id');
+
+            $table->unsignedBigInteger('blog_category_id')->nullable();
+
             $table->timestamps();
+
+            $table->foreign('blog_category_id')
+                ->references('id')
+                ->on('blog_categories')
+                ->onDelete('set null');
         });
     }
 

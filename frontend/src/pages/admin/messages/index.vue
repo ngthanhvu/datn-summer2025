@@ -1,9 +1,8 @@
 <template>
     <div class="admin-chat-container h-screen flex bg-gray-50">
         <!-- Mobile Back Button (only visible when chat is selected) -->
-        <div v-if="selectedUser && isMobile" 
-            class="fixed top-16 left-4 z-50 lg:hidden">
-            <button @click="goBackToList" 
+        <div v-if="selectedUser && isMobile" class="fixed top-16 left-4 z-50 lg:hidden">
+            <button @click="goBackToList"
                 class="bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:bg-gray-50">
                 <i class="fas fa-arrow-left text-gray-600"></i>
             </button>
@@ -18,7 +17,8 @@
             <!-- Header -->
             <div class="p-3 sm:p-4 border-b" style="background-color: #3BB77E; color: #fff;">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <div
+                        class="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                         <i class="fas fa-comments text-sm sm:text-lg"></i>
                     </div>
                     <div>
@@ -74,7 +74,8 @@
                                     {{ conversation.user.username || conversation.user.username }}
                                 </div>
                                 <div class="text-xs text-gray-500 ml-2 whitespace-nowrap">
-                                    <span v-if="conversation.latest_message && conversation.latest_message.sent_at">{{ formatTime(conversation.latest_message.sent_at) }}</span>
+                                    <span v-if="conversation.latest_message && conversation.latest_message.sent_at">{{
+                                        formatTime(conversation.latest_message.sent_at) }}</span>
                                 </div>
                             </div>
                             <div class="text-xs sm:text-sm text-gray-600 truncate mt-1">
@@ -100,19 +101,13 @@
                     <i class="fas fa-spinner animate-spin text-2xl sm:text-3xl text-gray-400 mb-2"></i>
                     <div class="text-gray-500 ml-2 text-sm sm:text-base">Đang tải tin nhắn...</div>
                 </div>
-                <MessageContent
-                    v-else
-                    ref="messageContentRef"
-                    :key="`messages-${selectedUser.id}-${messages.map(m => m.id).join('-')}`"
-                    :message="{
+                <MessageContent v-else ref="messageContentRef"
+                    :key="`messages-${selectedUser.id}-${messages.map(m => m.id).join('-')}`" :message="{
                         name: selectedUser.username,
                         email: selectedUser.email,
                         avatar: getUserAvatar(selectedUser.avatar),
                         messages: [...computedMessages]
-                    }"
-                    :adminAvatar="adminAvatar"
-                    @send="handleSendMessage"
-                />
+                    }" :adminAvatar="adminAvatar" @send="handleSendMessage" />
             </div>
             <div v-else class="flex-1 flex items-center justify-center bg-white">
                 <div class="text-center text-gray-500 p-4">
@@ -158,21 +153,21 @@ const goBackToList = () => {
 }
 
 function formatTime(timestamp) {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now - date;
-  if (diff < 60000) return 'Vừa xong';
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} phút trước`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} giờ trước`;
-  return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    if (diff < 60000) return 'Vừa xong';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} phút trước`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)} giờ trước`;
+    return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 }
 
 const currentAdmin = ref(null)
 try {
-  const user = JSON.parse(localStorage.getItem('user') || 'null')
-  if (user && user.id) currentAdmin.value = user
-} catch {}
+    const user = JSON.parse(localStorage.getItem('user') || 'null')
+    if (user && user.id) currentAdmin.value = user
+} catch { }
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
@@ -194,9 +189,9 @@ const showImageModal = ref(false)
 const modalImage = ref('')
 const messagesContainer = ref(null)
 const messageContentRef = ref(null)
-const messageUpdateTrigger = ref(0) 
-const autoUpdateInterval = ref(null) 
-const isReadingMessages = ref(false) 
+const messageUpdateTrigger = ref(0)
+const autoUpdateInterval = ref(null)
+const isReadingMessages = ref(false)
 
 const filteredConversations = computed(() => {
     if (!searchQuery.value) return conversations.value
@@ -226,12 +221,11 @@ const adminAvatar = ref(
 const loadConversations = async () => {
     try {
         const newConversations = await getConversations()
-        
+
         const hasChanges = JSON.stringify(newConversations) !== JSON.stringify(conversations.value)
-        
+
         if (hasChanges) {
             conversations.value = newConversations
-            console.log('[Admin] Conversations có thay đổi, count:', newConversations.length)
         }
     } catch (err) {
         console.error('Lỗi khi tải cuộc trò chuyện:', err)
@@ -239,39 +233,38 @@ const loadConversations = async () => {
 }
 
 const selectConversation = async (conversation) => {
-  selectedUser.value = conversation.user
-  messages.value = [] 
-  await loadMessages() 
-  await nextTick()
-  messageContentRef.value?.scrollToBottom()
-  await loadConversations()
+    selectedUser.value = conversation.user
+    messages.value = []
+    await loadMessages()
+    await nextTick()
+    messageContentRef.value?.scrollToBottom()
+    await loadConversations()
 }
 
 function isAtBottom() {
-  if (!messagesContainer.value) return true
-  const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value
-  return scrollHeight - scrollTop - clientHeight < 50 // 50px tolerance
+    if (!messagesContainer.value) return true
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value
+    return scrollHeight - scrollTop - clientHeight < 50 // 50px tolerance
 }
 
 const loadMessages = async () => {
-  if (!selectedUser.value) return
-  try {
-    loadingMessages.value = true
-    const newMessages = await getMessages(selectedUser.value.id)
-    
-    const hasNewMessages = JSON.stringify(newMessages) !== JSON.stringify(messages.value)
-    
-    if (hasNewMessages) {
-      messages.value = newMessages
-      console.log('[Admin] Có tin nhắn mới, count:', newMessages.length)
-      await nextTick()
-      if (isAtBottom()) scrollToBottom()
+    if (!selectedUser.value) return
+    try {
+        loadingMessages.value = true
+        const newMessages = await getMessages(selectedUser.value.id)
+
+        const hasNewMessages = JSON.stringify(newMessages) !== JSON.stringify(messages.value)
+
+        if (hasNewMessages) {
+            messages.value = newMessages
+            await nextTick()
+            if (isAtBottom()) scrollToBottom()
+        }
+    } catch (err) {
+        console.error('Lỗi khi tải tin nhắn:', err)
+    } finally {
+        loadingMessages.value = false
     }
-  } catch (err) {
-    console.error('Lỗi khi tải tin nhắn:', err)
-  } finally {
-    loadingMessages.value = false
-  }
 }
 
 const handleSendMessage = async ({ text, file }) => {
@@ -324,10 +317,10 @@ const closeImageModal = () => {
 }
 
 const startAutoUpdate = () => {
-    stopAutoUpdate() 
+    stopAutoUpdate()
     autoUpdateInterval.value = setInterval(async () => {
         await loadConversations()
-    }, 10000) 
+    }, 10000)
 }
 
 const stopAutoUpdate = () => {
@@ -338,51 +331,48 @@ const stopAutoUpdate = () => {
 }
 
 watch(selectedUser, (val) => {
-  if (val) {
-    loadMessages()
-  }
+    if (val) {
+        loadMessages()
+    }
 })
 
 watch(conversations, (newConversations, oldConversations) => {
-  if (
-    selectedUser.value &&
-    newConversations.length &&
-    oldConversations &&
-    newConversations[0].user.id === selectedUser.value.id &&
-    JSON.stringify(newConversations[0].latest_message) !== JSON.stringify(oldConversations[0]?.latest_message)
-  ) {
-    console.log('[Admin] Sidebar có tin nhắn mới, đang mở đúng user, gọi loadMessages')
-    loadMessages()
-  }
+    if (
+        selectedUser.value &&
+        newConversations.length &&
+        oldConversations &&
+        newConversations[0].user.id === selectedUser.value.id &&
+        JSON.stringify(newConversations[0].latest_message) !== JSON.stringify(oldConversations[0]?.latest_message)
+    ) {
+        loadMessages()
+    }
 })
 
 const chatChannel = new BroadcastChannel('chat_channel')
 chatChannel.onmessage = async (event) => {
-  if (event.data.type === 'new_message') {
-    console.log('[Admin] Nhận sự kiện new_message, gọi loadMessages', event.data)
-    await loadMessages()
-    await nextTick()
-    if (messageContentRef.value) {
-      messageContentRef.value.scrollToBottom()
+    if (event.data.type === 'new_message') {
+        await loadMessages()
+        await nextTick()
+        if (messageContentRef.value) {
+            messageContentRef.value.scrollToBottom()
+        }
     }
-  }
 }
 
 watch(messages, (newMessages) => {
-  nextTick(() => {
-    if (messageContentRef.value) {
-      messageContentRef.value.scrollToBottom()
-    }
-  })
+    nextTick(() => {
+        if (messageContentRef.value) {
+            messageContentRef.value.scrollToBottom()
+        }
+    })
 }, { deep: true })
 
 onMounted(async () => {
-    console.log('[Admin] Trang tin nhắn được mở - Bắt đầu load dữ liệu')
-    
+
     // Check mobile on mount
     checkMobile()
     window.addEventListener('resize', checkMobile)
-    
+
     await loadConversations() // Load ngay lập tức
     startAutoUpdate()
 })

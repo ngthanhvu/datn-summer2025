@@ -1,5 +1,5 @@
 <template>
-    <div :class="['fixed z-[10] pointer-events-none', positionClass]">
+    <div :class="['fixed z-[10] pointer-events-none hidden md:block', positionClass]">
         <Transition enter-active-class="transform transition duration-300" enter-from-class="translate-y-3 opacity-0"
             enter-to-class="translate-y-0 opacity-100" leave-active-class="transform transition duration-300"
             leave-from-class="translate-y-0 opacity-100" leave-to-class="translate-y-3 opacity-0">

@@ -51,6 +51,16 @@ export const useDashboard = () => {
             .then((r) => r.data)
             .catch((e) => handleError(e, "Không thể lấy top sản phẩm bán chạy"));
 
+    const getInventoryStats = (params = {}) =>
+        API.get("/dashboard/inventory", { params })
+            .then((r) => r.data)
+            .catch((e) => handleError(e, "Không thể lấy thống kê xuất nhập kho"));
+
+    const getUserGrowthStats = (params = {}) =>
+        API.get("/dashboard/user-growth", { params })
+            .then((r) => r.data)
+            .catch((e) => handleError(e, "Không thể lấy thống kê tăng trưởng người dùng"));
+
     // ---------- FORMAT HELPERS ----------
     const formatCurrency = (v) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(v);
@@ -182,6 +192,8 @@ export const useDashboard = () => {
         getProductsStats,
         getRecentOrders,
         getTopSelling,
+        getInventoryStats,
+        getUserGrowthStats,
         formatCurrency,
         formatNumber,
         getStatusColor,

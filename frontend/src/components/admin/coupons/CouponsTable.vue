@@ -99,11 +99,11 @@
                         <td class="px-4 py-3">
                             {{ item.usage_limit === 0 ? 'Không giới hạn' : item.usage_limit }}
                         </td>
-                        <td class="px-4 py-3">
+                        <!-- <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
                                 <span>{{ item.used_count }}</span>
                             </div>
-                        </td>
+                        </td> -->
                         <td class="px-4 py-3">
                             {{ formatDate(item.start_date) }}
                         </td>
@@ -111,13 +111,9 @@
                             {{ formatDate(item.end_date) }}
                         </td>
                         <td class="px-4 py-3">
-                            <button
-                                :class="['w-10 h-6 rounded-full relative transition-colors', item.is_active === 1 ? 'bg-primary' : 'bg-gray-300']"
-                                @click="toggleStatus(item)" :aria-pressed="item.is_active === 1"
-                                style="background-color: #3bb77e">
-                                <span
-                                    :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', item.is_active === 1 ? 'translate-x-4' : '']"></span>
-                            </button>
+                            <span :class="getStatusBadgeClass(item.is_active)">
+                                {{ getStatusText(item.is_active) }}
+                            </span>
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
@@ -212,21 +208,17 @@
                     </div>
                     <div class="text-gray-500">Giới hạn</div>
                     <div class="text-right">{{ item.usage_limit === 0 ? 'Không giới hạn' : item.usage_limit }}</div>
-                    <div class="text-gray-500">Đã dùng</div>
-                    <div class="text-right">{{ item.used_count }}</div>
+                    <!-- <div class="text-gray-500">Đã dùng</div>
+                    <div class="text-right">{{ item.used_count }}</div> -->
                     <div class="text-gray-500">Ngày bắt đầu</div>
                     <div class="text-right">{{ formatDate(item.start_date) }}</div>
                     <div class="text-gray-500">Ngày kết thúc</div>
                     <div class="text-right">{{ formatDate(item.end_date) }}</div>
                     <div class="text-gray-500">Trạng thái</div>
                     <div class="text-right">
-                        <button
-                            :class="['w-8 h-5 rounded-full relative transition-colors', item.is_active === 1 ? 'bg-primary' : 'bg-gray-300']"
-                            @click="toggleStatus(item)" :aria-pressed="item.is_active === 1"
-                            style="background-color: #3bb77e">
-                            <span
-                                :class="['absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform', item.is_active === 1 ? 'translate-x-3' : '']"></span>
-                        </button>
+                        <span :class="getStatusBadgeClass(item.is_active)">
+                            {{ getStatusText(item.is_active) }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -273,7 +265,7 @@ const columns = [
     { key: 'min_order_value', label: 'Đơn tối thiểu', type: 'price' },
     { key: 'max_discount_value', label: 'Giảm tối đa', type: 'price' },
     { key: 'usage_limit', label: 'Giới hạn' },
-    { key: 'used_count', label: 'Đã dùng' },
+    // { key: 'used_count', label: 'Đã dùng' },
     { key: 'start_date', label: 'Ngày bắt đầu' },
     { key: 'end_date', label: 'Ngày kết thúc' },
     { key: 'is_active', label: 'Trạng thái', type: 'status' }
@@ -409,9 +401,9 @@ const formatPrice = (price) => {
 }
 
 const getStatusBadgeClass = (status) => {
-    return status
-        ? 'bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs'
-        : 'bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs'
+    return status === true
+        ? 'status-badge active'
+        : 'status-badge inactive'
 }
 
 const getStatusText = (status) => {
@@ -431,23 +423,6 @@ const formatDate = (date) => {
 onMounted(() => {
     loadPromotions()
 })
-
-const toggleStatus = async (item) => {
-    const newStatus = item.is_active === 1 ? 0 : 1
-    try {
-        await updatePromotionStatus(item.id, newStatus)
-        item.is_active = newStatus
-        // Nếu có notyf hoặc emit refresh thì gọi ở đây
-    } catch (e) {
-        // Nếu có notyf thì báo lỗi ở đây
-    }
-}
-
-// Hàm giả lập gọi API cập nhật trạng thái
-const updatePromotionStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
-}
 </script>
 
 <style scoped>
@@ -457,6 +432,29 @@ const updatePromotionStatus = async (id, status) => {
 
 .bg-primary-dark {
     background-color: #2ea16d;
+}
+
+/* Status Badge Styles */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.status-badge.active {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge.inactive {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
 }
 
 /* Custom scrollbar for table */

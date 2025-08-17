@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\StockMovement;
 
 class DashboardController extends Controller
 {
@@ -537,6 +538,434 @@ class DashboardController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Có lỗi xảy ra khi lấy sản phẩm bán chạy',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy thống kê tăng trưởng người dùng
+     */
+    public function getUserGrowthStats(Request $request): JsonResponse
+    {
+        try {
+            $year = $request->get('year', Carbon::now()->year);
+            $yearly = $request->get('yearly', false);
+
+            if ($yearly) {
+                // Lấy dữ liệu 12 tháng gần nhất
+                $monthlyUsers = [];
+                $monthNames = [
+                    1 => 'Jan',
+                    2 => 'Feb',
+                    3 => 'Mar',
+                    4 => 'Apr',
+                    5 => 'May',
+                    6 => 'Jun',
+                    7 => 'Jul',
+                    8 => 'Aug',
+                    9 => 'Sep',
+                    10 => 'Oct',
+                    11 => 'Nov',
+                    12 => 'Dec'
+                ];
+
+                // Tính 12 tháng gần nhất từ tháng hiện tại
+                for ($i = 11; $i >= 0; $i--) {
+                    $targetDate = Carbon::now()->subMonths($i);
+                    $month = $targetDate->month;
+                    $year = $targetDate->year;
+
+                    $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+                    $monthEnd = Carbon::create($year, $month, 1)->endOfMonth();
+
+                    // Số người dùng mới trong tháng
+                    $newUsers = User::where('role', 'user')
+                        ->whereBetween('created_at', [$monthStart, $monthEnd])
+                        ->count();
+
+                    // Tổng người dùng đến cuối tháng
+                    $totalUsers = User::where('role', 'user')
+                        ->where('created_at', '<=', $monthEnd)
+                        ->count();
+
+                    // Tính tỷ lệ tăng trưởng so với tháng trước
+                    $previousMonthEnd = $monthStart->copy()->subDay();
+                    $previousTotalUsers = User::where('role', 'user')
+                        ->where('created_at', '<=', $previousMonthEnd)
+                        ->count();
+
+                    $growthRate = $previousTotalUsers > 0
+                        ? (($totalUsers - $previousTotalUsers) / $previousTotalUsers) * 100
+                        : 0;
+
+                    $monthlyUsers[] = [
+                        'month' => $month,
+                        'month_name' => $monthNames[$month],
+                        'year' => $year,
+                        'full_date' => $targetDate->format('M Y'),
+                        'new_users' => $newUsers,
+                        'total_users' => $totalUsers,
+                        'growth_rate' => round($growthRate, 2)
+                    ];
+                }
+
+                $chartData = $monthlyUsers;
+                $categories = array_column($monthlyUsers, 'full_date');
+                $series = [
+                    [
+                        'name' => 'Người dùng mới',
+                        'data' => array_column($monthlyUsers, 'new_users')
+                    ],
+                    [
+                        'name' => 'Tổng người dùng',
+                        'data' => array_column($monthlyUsers, 'total_users')
+                    ],
+                    [
+                        'name' => 'Tỷ lệ tăng trưởng (%)',
+                        'data' => array_column($monthlyUsers, 'growth_rate')
+                    ]
+                ];
+
+                $startDate = Carbon::now()->subMonths(12)->startOfMonth();
+                $endDate = Carbon::now()->endOfMonth();
+            } else {
+                // Lấy dữ liệu theo năm dương lịch
+                $startDate = Carbon::create($year, 1, 1)->startOfMonth();
+                $endDate = Carbon::create($year, 12, 31)->endOfMonth();
+
+                $monthlyUsers = [];
+                $monthNames = [
+                    1 => 'Jan',
+                    2 => 'Feb',
+                    3 => 'Mar',
+                    4 => 'Apr',
+                    5 => 'May',
+                    6 => 'Jun',
+                    7 => 'Jul',
+                    8 => 'Aug',
+                    9 => 'Sep',
+                    10 => 'Oct',
+                    11 => 'Nov',
+                    12 => 'Dec'
+                ];
+
+                for ($month = 1; $month <= 12; $month++) {
+                    $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+                    $monthEnd = Carbon::create($year, $month, 1)->endOfMonth();
+
+                    $newUsers = User::where('role', 'user')
+                        ->whereBetween('created_at', [$monthStart, $monthEnd])
+                        ->count();
+
+                    $totalUsers = User::where('role', 'user')
+                        ->where('created_at', '<=', $monthEnd)
+                        ->count();
+
+                    $previousMonthEnd = $monthStart->copy()->subDay();
+                    $previousTotalUsers = User::where('role', 'user')
+                        ->where('created_at', '<=', $previousMonthEnd)
+                        ->count();
+
+                    $growthRate = $previousTotalUsers > 0
+                        ? (($totalUsers - $previousTotalUsers) / $previousTotalUsers) * 100
+                        : 0;
+
+                    $monthlyUsers[] = [
+                        'month' => $month,
+                        'month_name' => $monthNames[$month],
+                        'new_users' => $newUsers,
+                        'total_users' => $totalUsers,
+                        'growth_rate' => round($growthRate, 2)
+                    ];
+                }
+
+                $chartData = $monthlyUsers;
+                $categories = array_column($monthlyUsers, 'month_name');
+                $series = [
+                    [
+                        'name' => 'Người dùng mới',
+                        'data' => array_column($monthlyUsers, 'new_users')
+                    ],
+                    [
+                        'name' => 'Tổng người dùng',
+                        'data' => array_column($monthlyUsers, 'total_users')
+                    ],
+                    [
+                        'name' => 'Tỷ lệ tăng trưởng (%)',
+                        'data' => array_column($monthlyUsers, 'growth_rate')
+                    ]
+                ];
+            }
+
+            // Thống kê tổng quan
+            $totalUsers = User::where('role', 'user')->count();
+            $newUsersThisMonth = User::where('role', 'user')
+                ->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year)
+                ->count();
+
+            $lastMonthUsers = User::where('role', 'user')
+                ->whereMonth('created_at', Carbon::now()->subMonth()->month)
+                ->whereYear('created_at', Carbon::now()->subMonth()->year)
+                ->count();
+
+            $growthRateThisMonth = $lastMonthUsers > 0
+                ? (($newUsersThisMonth - $lastMonthUsers) / $lastMonthUsers) * 100
+                : 0;
+
+            $periodInfo = $yearly ? [
+                'year' => $year,
+                'type' => 'yearly'
+            ] : [
+                'year' => $year,
+                'type' => 'calendar_year'
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_users' => $totalUsers,
+                    'new_users_this_month' => $newUsersThisMonth,
+                    'growth_rate_this_month' => round($growthRateThisMonth, 2),
+                    'monthly_data' => $chartData,
+                    'apex_chart_data' => [
+                        'categories' => $categories,
+                        'series' => $series
+                    ],
+                    'period' => $periodInfo
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi lấy thống kê tăng trưởng người dùng',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy thống kê xuất nhập kho
+     */
+    public function getInventoryStats(Request $request): JsonResponse
+    {
+        try {
+            $month = $request->get('month', Carbon::now()->month);
+            $year = $request->get('year', Carbon::now()->year);
+            $period = $request->get('period');
+            $yearly = $request->get('yearly', false);
+
+            if ($yearly) {
+                // Lấy dữ liệu 12 tháng gần nhất
+                $monthlyInventory = [];
+                $monthNames = [
+                    1 => 'Jan',
+                    2 => 'Feb',
+                    3 => 'Mar',
+                    4 => 'Apr',
+                    5 => 'May',
+                    6 => 'Jun',
+                    7 => 'Jul',
+                    8 => 'Aug',
+                    9 => 'Sep',
+                    10 => 'Oct',
+                    11 => 'Nov',
+                    12 => 'Dec'
+                ];
+
+                // Tính 12 tháng gần nhất từ tháng hiện tại
+                $currentMonth = Carbon::now()->month;
+                $currentYear = Carbon::now()->year;
+
+                for ($i = 11; $i >= 0; $i--) {
+                    $targetDate = Carbon::now()->subMonths($i);
+                    $month = $targetDate->month;
+                    $year = $targetDate->year;
+
+                    $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+                    $monthEnd = Carbon::create($year, $month, 1)->endOfMonth();
+
+                    $monthImportQuantity = DB::table('stock_movements')
+                        ->join('stock_movement_items', 'stock_movements.id', '=', 'stock_movement_items.stock_movement_id')
+                        ->whereBetween('stock_movements.created_at', [$monthStart, $monthEnd])
+                        ->where('stock_movements.type', 'import')
+                        ->sum('stock_movement_items.quantity');
+
+                    $monthExportQuantity = DB::table('stock_movements')
+                        ->join('stock_movement_items', 'stock_movements.id', '=', 'stock_movement_items.stock_movement_id')
+                        ->whereBetween('stock_movements.created_at', [$monthStart, $monthEnd])
+                        ->where('stock_movements.type', 'export')
+                        ->sum('stock_movement_items.quantity');
+
+                    // Tính tồn kho (tổng nhập - tổng xuất từ 12 tháng trước đến tháng hiện tại)
+                    $totalImportUntilMonth = DB::table('stock_movements')
+                        ->join('stock_movement_items', 'stock_movements.id', '=', 'stock_movement_items.stock_movement_id')
+                        ->where('stock_movements.type', 'import')
+                        ->where('stock_movements.created_at', '>=', Carbon::now()->subMonths(12)->startOfMonth())
+                        ->where('stock_movements.created_at', '<=', $monthEnd)
+                        ->sum('stock_movement_items.quantity');
+
+                    $totalExportUntilMonth = DB::table('stock_movements')
+                        ->join('stock_movement_items', 'stock_movements.id', '=', 'stock_movement_items.stock_movement_id')
+                        ->where('stock_movements.type', 'export')
+                        ->where('stock_movements.created_at', '>=', Carbon::now()->subMonths(12)->startOfMonth())
+                        ->where('stock_movements.created_at', '<=', $monthEnd)
+                        ->sum('stock_movement_items.quantity');
+
+                    $monthlyInventory[] = [
+                        'month' => $month,
+                        'month_name' => $monthNames[$month],
+                        'year' => $year,
+                        'full_date' => $targetDate->format('M Y'),
+                        'import_quantity' => $monthImportQuantity,
+                        'export_quantity' => $monthExportQuantity,
+                        'stock_quantity' => $totalImportUntilMonth - $totalExportUntilMonth
+                    ];
+                }
+
+                $chartData = $monthlyInventory;
+                $categories = array_column($monthlyInventory, 'full_date');
+                $series = [
+                    [
+                        'name' => 'Nhập kho',
+                        'data' => array_column($monthlyInventory, 'import_quantity')
+                    ],
+                    [
+                        'name' => 'Xuất kho',
+                        'data' => array_column($monthlyInventory, 'export_quantity')
+                    ],
+                    [
+                        'name' => 'Tồn kho',
+                        'data' => array_column($monthlyInventory, 'stock_quantity')
+                    ]
+                ];
+
+                // Đặt startDate và endDate cho thống kê tổng quan
+                $startDate = Carbon::now()->subMonths(12)->startOfMonth();
+                $endDate = Carbon::now()->endOfMonth();
+            } elseif ($period) {
+                $endDate = Carbon::now();
+                $startDate = Carbon::now()->subDays($period);
+            } else {
+                $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+                $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+            }
+
+            // Lấy thống kê xuất nhập kho theo ngày (cho trường hợp không phải yearly)
+            if (!$yearly) {
+                $dailyInventory = StockMovement::whereBetween('created_at', [$startDate, $endDate])
+                    ->select(
+                        DB::raw('DATE(created_at) as date'),
+                        DB::raw('SUM(CASE WHEN type = "import" THEN 1 ELSE 0 END) as import_count'),
+                        DB::raw('SUM(CASE WHEN type = "export" THEN 1 ELSE 0 END) as export_count')
+                    )
+                    ->groupBy('date')
+                    ->orderBy('date')
+                    ->get();
+
+                // Lấy thống kê số lượng sản phẩm xuất nhập
+                $inventoryQuantities = DB::table('stock_movements')
+                    ->join('stock_movement_items', 'stock_movements.id', '=', 'stock_movement_items.stock_movement_id')
+                    ->whereBetween('stock_movements.created_at', [$startDate, $endDate])
+                    ->select(
+                        DB::raw('DATE(stock_movements.created_at) as date'),
+                        DB::raw('SUM(CASE WHEN stock_movements.type = "import" THEN stock_movement_items.quantity ELSE 0 END) as import_quantity'),
+                        DB::raw('SUM(CASE WHEN stock_movements.type = "export" THEN stock_movement_items.quantity ELSE 0 END) as export_quantity')
+                    )
+                    ->groupBy('date')
+                    ->orderBy('date')
+                    ->get();
+
+                // Chuẩn bị dữ liệu cho chart
+                $chartData = [];
+                $currentDate = $startDate->copy();
+
+                while ($currentDate <= $endDate) {
+                    $dateStr = $currentDate->format('Y-m-d');
+
+                    $dailyData = $dailyInventory->where('date', $dateStr)->first();
+                    $quantityData = $inventoryQuantities->where('date', $dateStr)->first();
+
+                    $chartData[] = [
+                        'date' => $dateStr,
+                        'date_formatted' => $currentDate->format('d/m'),
+                        'import_count' => $dailyData ? $dailyData->import_count : 0,
+                        'export_count' => $dailyData ? $dailyData->export_count : 0,
+                        'import_quantity' => $quantityData ? $quantityData->import_quantity : 0,
+                        'export_quantity' => $quantityData ? $quantityData->export_quantity : 0,
+                    ];
+
+                    $currentDate->addDay();
+                }
+
+                $categories = array_column($chartData, 'date_formatted');
+                $series = [
+                    [
+                        'name' => 'Nhập kho',
+                        'data' => array_column($chartData, 'import_quantity')
+                    ],
+                    [
+                        'name' => 'Xuất kho',
+                        'data' => array_column($chartData, 'export_quantity')
+                    ]
+                ];
+            }
+
+            // Lấy thống kê tổng quan
+            $totalImports = StockMovement::whereBetween('created_at', [$startDate, $endDate])
+                ->where('type', 'import')
+                ->count();
+
+            $totalExports = StockMovement::whereBetween('created_at', [$startDate, $endDate])
+                ->where('type', 'export')
+                ->count();
+
+            $totalImportQuantity = DB::table('stock_movements')
+                ->join('stock_movement_items', 'stock_movements.id', '=', 'stock_movement_items.stock_movement_id')
+                ->whereBetween('stock_movements.created_at', [$startDate, $endDate])
+                ->where('stock_movements.type', 'import')
+                ->sum('stock_movement_items.quantity');
+
+            $totalExportQuantity = DB::table('stock_movements')
+                ->join('stock_movement_items', 'stock_movements.id', '=', 'stock_movement_items.stock_movement_id')
+                ->whereBetween('stock_movements.created_at', [$startDate, $endDate])
+                ->where('stock_movements.type', 'export')
+                ->sum('stock_movement_items.quantity');
+
+            $periodInfo = $yearly ? [
+                'year' => $year,
+                'type' => 'yearly'
+            ] : ($period ? [
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'period_days' => $period
+            ] : [
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'month' => $month,
+                'year' => $year
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_imports' => $totalImports,
+                    'total_exports' => $totalExports,
+                    'total_import_quantity' => $totalImportQuantity,
+                    'total_export_quantity' => $totalExportQuantity,
+                    'daily_data' => $chartData,
+                    'apex_chart_data' => [
+                        'categories' => $categories,
+                        'series' => $series
+                    ],
+                    'period' => $periodInfo
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi lấy thống kê xuất nhập kho',
                 'error' => $e->getMessage()
             ], 500);
         }

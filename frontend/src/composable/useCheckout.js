@@ -1,16 +1,14 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { ref } from 'vue'
+import api from '../utils/api'
 
 export function useCheckout() {
     // Lấy API base URL từ .env (chuẩn Vite)
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || ''
 
-    const API = axios.create({
-        baseURL: apiBaseUrl,
-        timeout: 10000,
-        withCredentials: true
-    })
+    // Sử dụng instance axios chung từ utility
+    const API = api
 
     const isLoading = ref(false)
     const error = ref(null)

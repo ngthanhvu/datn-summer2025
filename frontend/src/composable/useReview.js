@@ -1,10 +1,9 @@
 import { ref } from 'vue';
 import axios from 'axios';
+import api from '../utils/api'
 
-const API = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
-    timeout: 10000
-});
+// Sử dụng instance axios chung từ utility
+const API = api
 
 export const useReview = () => {
     const reviews = ref([]);

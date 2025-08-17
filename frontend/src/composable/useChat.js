@@ -1,20 +1,9 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import api from '../utils/api'
 
-const API = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
-    timeout: 10000,
-    withCredentials: true // nếu API yêu cầu gửi cookie
-});
-
-API.interceptors.request.use((config) => {
-    const token = Cookies.get("token"); // lấy token trong cookie
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
-
+// Sử dụng instance axios chung từ utility
+const API = api
 
 export const useChat = () => {
     const getConversations = async () => {

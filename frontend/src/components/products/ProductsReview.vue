@@ -94,14 +94,15 @@
 
 
                     <!-- Image Previews -->
-                    <div v-if="Array.isArray(previewImages) && previewImages.length > 0" class="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
+                    <div v-if="Array.isArray(previewImages) && previewImages.length > 0"
+                        class="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
                         <div v-for="(image, index) in previewImages" :key="index"
                             class="relative w-20 h-20 sm:w-24 sm:h-24 group overflow-hidden rounded-lg shadow-sm">
                             <img :src="image.url"
                                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
-                          
+
                             <button type="button" @click="$emit('removeImage', index)"
-                                class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:w-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <i class="bi bi-x text-xs sm:text-sm"></i>
                             </button>
                         </div>
@@ -239,8 +240,8 @@
                                 class="w-20 h-20 sm:w-24 sm:h-24 object-cover cursor-pointer transition-transform duration-300 group-hover:scale-110"
                                 @click="$emit('openImageModal', getImageUrlWithTimestamp(image.image_path))"
                                 @error="console.error('Image failed to load:', getImageUrlWithTimestamp(image.image_path)); $event.target.src = 'https://via.placeholder.com/100x100?text=Error'"
-                                @load="console.log('Image loaded successfully:', getImageUrlWithTimestamp(image.image_path))" />
-                            
+                                @load="getImageUrlWithTimestamp(image.image_path)" />
+
                         </div>
                     </div>
 
@@ -272,12 +273,12 @@
                                         class="mt-2 flex flex-wrap gap-1 sm:gap-2">
                                         <div v-for="image in reply.images" :key="image.id"
                                             class="relative group overflow-hidden rounded-lg shadow-sm">
-                                            <img :src="getImageUrlWithTimestamp(image.image_path)" :alt="'Hình ảnh phản hồi'"
+                                            <img :src="getImageUrlWithTimestamp(image.image_path)"
+                                                :alt="'Hình ảnh phản hồi'"
                                                 class="w-12 h-12 sm:w-16 sm:h-16 object-cover cursor-pointer transition-transform duration-300 group-hover:scale-110"
                                                 @click="$emit('openImageModal', getImageUrlWithTimestamp(image.image_path))"
                                                 @error="console.error('Reply image failed to load:', getImageUrlWithTimestamp(image.image_path))"
-                                                @load="console.log('Reply image loaded successfully:', getImageUrlWithTimestamp(image.image_path))" />
-                                            
+                                                @load="getImageUrlWithTimestamp(image.image_path)" />
                                         </div>
                                     </div>
                                 </div>
@@ -326,26 +327,15 @@
 <script setup>
 import { computed, ref } from 'vue'
 
-// Bỏ useRuntimeConfig, không dùng Nuxt
-// const runtimeConfig = useRuntimeConfig()
-
-// Tạo ref để lưu trữ API base URL
 const apiBaseUrl = ref(import.meta.env.VITE_API_BASE_URL)
 
-// Debug: Log API base URL
-console.log('API Base URL:', apiBaseUrl.value)
-
-// Function để tạo URL hình ảnh
 const getImageUrl = (imagePath) => {
     const url = `${apiBaseUrl.value}/storage/${imagePath}`
-    console.log('Generated image URL:', url)
     return url
 }
 
-// Function để tạo URL cho một image cụ thể
 const getImageUrlWithTimestamp = (imagePath) => {
     const url = `${apiBaseUrl.value}/storage/${imagePath}?t=${Date.now()}`
-    console.log('Generated image URL with timestamp:', url)
     return url
 }
 
@@ -436,26 +426,12 @@ const emit = defineEmits([
 ])
 
 const handleImageChange = (event) => {
-    console.log('Image change event:', event)
-    console.log('Event type:', event.type)
-    console.log('Event target:', event.target)
-    console.log('Files:', event.target.files)
-    console.log('Files length:', event.target.files?.length)
-    
+
     if (event.target.files && event.target.files.length > 0) {
         Array.from(event.target.files).forEach((file, index) => {
-            console.log(`File ${index}:`, {
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                lastModified: file.lastModified
-            })
         })
     }
-    
-    console.log('Emitting handleImageUpload event')
     emit('handleImageUpload', event)
-    console.log('Event emitted successfully')
 }
 
 const canModifyReview = (review) => {

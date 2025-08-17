@@ -50,9 +50,12 @@
 
         <div class="text-center mt-3">
             <p class="mb-2">Hoặc</p>
+            <div v-if="googleError" class="mb-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {{ googleError }}
+            </div>
             <div class="flex justify-center">
-                <button @click="googleLogin"
-                    class="bg-white text-gray-800 border border-gray-200 rounded-lg px-4 py-2 flex items-center justify-center gap-2 shadow-sm hover:bg-gray-100 w-full">
+                <button @click="handleGoogleLogin"
+                    class="bg-white text-gray-800 border border-gray-200 rounded-lg px-4 py-2 flex items-center justify-center gap-2 shadow-sm hover:bg-gray-100 w-full cursor-pointer">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
                         class="w-6 h-6" />
                     <span>Đăng nhập bằng Google</span>
@@ -70,6 +73,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuth } from '../../composable/useAuth'
 import { useAuthStore } from '../../stores/auth'
 import { push } from 'notivue'
@@ -79,9 +83,21 @@ const error = reactive({ email: '', password: '' })
 const isLoading = ref(false)
 const rememberMe = ref(false)
 const showPassword = ref(false)
+const googleError = ref('')
 
-const { login, getUser } = useAuth()
+const route = useRoute()
+const { login, getUser, googleLogin } = useAuth()
 const authStore = useAuthStore()
+
+const handleGoogleLogin = async () => {
+    try {
+        googleError.value = '' // Clear previous errors
+        await googleLogin()
+    } catch (err) {
+        console.error('Google login error:', err)
+        googleError.value = 'Không thể kết nối với Google. Vui lòng thử lại.'
+    }
+}
 
 onMounted(() => {
     const savedEmail = localStorage.getItem('rememberedEmail')
@@ -90,6 +106,11 @@ onMounted(() => {
         form.email = savedEmail
         form.password = savedPassword
         rememberMe.value = true
+    }
+
+    // Check for Google login errors
+    if (route.query.error) {
+        googleError.value = route.query.error
     }
 })
 
@@ -157,9 +178,5 @@ const handleLogin = async () => {
         console.log(err)
         isLoading.value = false
     }
-}
-
-const googleLogin = () => {
-    alert('Đăng nhập bằng Google (fake)')
 }
 </script>

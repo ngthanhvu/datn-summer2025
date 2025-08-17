@@ -16,11 +16,17 @@ class BlogsController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Blogs::with('author')
+            $query = Blogs::with(['author', 'category'])
                 ->where('status', 'published')
                 ->whereNotNull('published_at')
                 ->where('published_at', '<=', now())
                 ->orderBy('published_at', 'desc');
+
+            // Filter by category if provided
+            if ($request->has('category_id')) {
+                $query->where('blog_category_id', $request->category_id);
+            }
+
             $blogs = $query->paginate(10);
             return response()->json([
                 'success' => true,
@@ -38,7 +44,7 @@ class BlogsController extends Controller
     public function show($id)
     {
         try {
-            $blog = Blogs::with('author')->findOrFail($id);
+            $blog = Blogs::with(['author', 'category'])->findOrFail($id);
 
             if ($blog->author && $blog->author->avatar) {
                 $blog->author->avatar = url($blog->author->avatar);
@@ -60,7 +66,7 @@ class BlogsController extends Controller
     public function showBySlug($slug)
     {
         try {
-            $blog = Blogs::with('author')
+            $blog = Blogs::with(['author', 'category'])
                 ->where('slug', $slug)
                 ->where('status', 'published')
                 ->whereNotNull('published_at')
@@ -107,6 +113,7 @@ class BlogsController extends Controller
                 'content' => 'required|string',
                 'status' => 'required|in:draft,published,archived',
                 'published_at' => 'nullable|date',
+                'blog_category_id' => 'nullable|exists:blog_categories,id',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
 
@@ -142,7 +149,7 @@ class BlogsController extends Controller
             $blogData['slug'] = $slug;
 
             $blog = Blogs::create($blogData);
-            $blog->load('author');
+            $blog->load(['author', 'category']);
 
             return response()->json([
                 'success' => true,
@@ -168,6 +175,7 @@ class BlogsController extends Controller
                 'content' => 'sometimes|required|string',
                 'status' => 'sometimes|required|in:draft,published,archived',
                 'published_at' => 'nullable|date',
+                'blog_category_id' => 'nullable|exists:blog_categories,id',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
 
@@ -210,7 +218,7 @@ class BlogsController extends Controller
             }
 
             $blog->update($blogData);
-            $blog->load('author');
+            $blog->load(['author', 'category']);
 
             return response()->json([
                 'success' => true,

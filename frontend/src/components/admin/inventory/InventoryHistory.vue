@@ -47,8 +47,8 @@
                         <span :class="[
                             'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
                             movement.type === 'import'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-green-100 text-green-800 border border-green-500'
+                                : 'bg-red-100 text-red-800 border border-red-500',
                         ]">
                             {{ movement.type === 'import' ? 'Nhập kho' : 'Xuất kho' }}
                         </span>
@@ -225,11 +225,13 @@
                                         </td>
                                         <td class="px-4 py-2 text-sm text-gray-500">{{ item.variant.sku }}
                                         </td>
-                                        <td class="px-4 py-2 text-sm text-gray-900">{{ item.quantity }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ parseInt(item.quantity) || 0 }}
+                                        </td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{
-                                            formatCurrency(item.unit_price) }}</td>
+                                            formatCurrency(parseFloat(item.unit_price) || 0) }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{
-                                            formatCurrency(item.quantity * item.unit_price) }}</td>
+                                            formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price)
+                                                || 0)) }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -324,12 +326,13 @@
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2">{{ item.variant.sku }}
                                         </td>
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2 text-center">{{
-                                            item.quantity }}
+                                            parseInt(item.quantity) || 0 }}
                                         </td>
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
-                                            formatCurrency(item.unit_price) }}</td>
+                                            formatCurrency(parseFloat(item.unit_price) || 0) }}</td>
                                         <td class="border border-gray-300 px-2 sm:px-4 py-2 text-right">{{
-                                            formatCurrency(item.quantity * item.unit_price) }}</td>
+                                            formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price)
+                                                || 0)) }}</td>
                                     </tr>
                                 </tbody>
                                 <tfoot>
@@ -400,11 +403,11 @@ const showPrintModal = ref(false)
 const selectedMovement = ref(null)
 
 const totalQuantity = computed(() => {
-    return selectedMovement.value?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
+    return selectedMovement.value?.items?.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0) || 0
 })
 
 const totalAmount = computed(() => {
-    return selectedMovement.value?.items?.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) || 0
+    return selectedMovement.value?.items?.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0) || 0
 })
 
 const paginatedMovements = computed(() => {
@@ -453,7 +456,184 @@ const closePrintModal = () => {
 }
 
 const printDocument = () => {
-    window.print()
+    const printWindow = window.open('', '_blank')
+    const receiptContent = document.querySelector('.receipt-content')
+
+    // Tính toán tổng số lượng và tổng tiền trực tiếp
+    const calculatedTotalQuantity = selectedMovement.value?.items?.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0) || 0
+    const calculatedTotalAmount = selectedMovement.value?.items?.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0) || 0
+
+    if (receiptContent && printWindow) {
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Phiếu ${selectedMovement.value?.type === 'import' ? 'Nhập' : 'Xuất'} Kho #${selectedMovement.value?.id}</title>
+                <style>
+                    body {
+                        font-family: 'Times New Roman', serif;
+                        margin: 0;
+                        padding: 20px;
+                        line-height: 1.4;
+                        color: black;
+                    }
+                    .receipt-content {
+                        max-width: 800px;
+                        margin: 0 auto;
+                    }
+                    h1 {
+                        text-align: center;
+                        font-size: 24px;
+                        font-weight: bold;
+                        margin-bottom: 20px;
+                    }
+                    .header-info {
+                        text-align: center;
+                        margin-bottom: 30px;
+                    }
+                    .header-info p {
+                        margin: 5px 0;
+                    }
+                    .info-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 30px;
+                        margin-bottom: 30px;
+                    }
+                    .info-section h3 {
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                    }
+                    .info-section p {
+                        margin: 5px 0;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 30px;
+                    }
+                    th, td {
+                        border: 1px solid #000;
+                        padding: 8px;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #f5f5f5;
+                        font-weight: bold;
+                    }
+                    .text-center {
+                        text-align: center;
+                    }
+                    .text-right {
+                        text-align: right;
+                    }
+                    .signatures {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 30px;
+                        margin-top: 50px;
+                    }
+                    .signature-box {
+                        text-align: center;
+                    }
+                    .signature-line {
+                        border-top: 1px solid #000;
+                        margin-top: 40px;
+                        padding-top: 10px;
+                    }
+                    @media print {
+                        body {
+                            margin: 0;
+                            padding: 15px;
+                        }
+                        .receipt-content {
+                            max-width: none;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-content">
+                    <div class="header-info">
+                        <h1>${selectedMovement.value?.type === 'import' ? 'PHIẾU NHẬP KHO' : 'PHIẾU XUẤT KHO'}</h1>
+                        <p><strong>Số phiếu: #${selectedMovement.value?.id}</strong></p>
+                        <p>Ngày: ${formatDate(selectedMovement.value?.created_at)}</p>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-section">
+                            <h3>Thông tin phiếu:</h3>
+                            <p><strong>Loại:</strong> ${selectedMovement.value?.type === 'import' ? 'Nhập kho' : 'Xuất kho'}</p>
+                            <p><strong>Người tạo:</strong> ${selectedMovement.value?.user?.username || 'N/A'}</p>
+                            <p><strong>Ngày tạo:</strong> ${formatDate(selectedMovement.value?.created_at)}</p>
+                        </div>
+                        <div class="info-section">
+                            <h3>Ghi chú:</h3>
+                            <p>${selectedMovement.value?.note || 'Không có ghi chú'}</p>
+                        </div>
+                    </div>
+
+                    <h3>Danh sách sản phẩm:</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Tên sản phẩm</th>
+                                <th>SKU</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-right">Đơn giá</th>
+                                <th class="text-right">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${selectedMovement.value?.items?.map((item, index) => `
+                                <tr>
+                                    <td class="text-center">${index + 1}</td>
+                                    <td>${item.variant.product.name}</td>
+                                    <td>${item.variant.sku}</td>
+                                    <td class="text-center">${parseInt(item.quantity) || 0}</td>
+                                    <td class="text-right">${formatCurrency(parseFloat(item.unit_price) || 0)}</td>
+                                    <td class="text-right">${formatCurrency((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0))}</td>
+                                </tr>
+                            `).join('') || ''}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>Tổng cộng:</strong></td>
+                                <td class="text-center"><strong>${calculatedTotalQuantity}</strong></td>
+                                <td class="text-right">-</td>
+                                <td class="text-right"><strong>${formatCurrency(calculatedTotalAmount)}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="signatures">
+                        <div class="signature-box">
+                            <p class="signature-line"><strong>Người lập phiếu</strong></p>
+                            <p>${selectedMovement.value?.user?.username || 'N/A'}</p>
+                        </div>
+                        <div class="signature-box">
+                            <p class="signature-line"><strong>Thủ kho</strong></p>
+                            <p>_________________</p>
+                        </div>
+                        <div class="signature-box">
+                            <p class="signature-line"><strong>Giám đốc</strong></p>
+                            <p>_________________</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `)
+
+        printWindow.document.close()
+        printWindow.focus()
+
+        printWindow.onload = function () {
+            printWindow.print()
+            printWindow.close()
+        }
+    }
 }
 
 onMounted(() => {
@@ -462,72 +642,6 @@ onMounted(() => {
 </script>
 
 <style>
-@media print {
-    .no-print {
-        display: none !important;
-    }
-
-    /* Reset body styles for printing */
-    body {
-        margin: 0;
-        padding: 0;
-        background: white !important;
-    }
-
-    /* Hide all content except the receipt */
-    body * {
-        display: none !important;
-    }
-
-    /* Show only the receipt content */
-    .receipt-content,
-    .receipt-content * {
-        display: block !important;
-        visibility: visible !important;
-    }
-
-    /* Ensure receipt content is properly positioned */
-    .receipt-content {
-        position: relative !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        background: white !important;
-        margin: 0 !important;
-        padding: 20px !important;
-        page-break-inside: avoid;
-    }
-
-    /* Reset modal positioning for print */
-    .fixed {
-        position: static !important;
-        inset: auto !important;
-    }
-
-    /* Ensure table doesn't break across pages */
-    .receipt-content table {
-        page-break-inside: avoid;
-        width: 100% !important;
-    }
-
-    /* Ensure text is visible */
-    .receipt-content h1,
-    .receipt-content h3,
-    .receipt-content p,
-    .receipt-content span,
-    .receipt-content td,
-    .receipt-content th {
-        color: #000 !important;
-        visibility: visible !important;
-    }
-
-    /* Remove any background colors that might interfere */
-    .bg-gray-50,
-    .bg-white {
-        background: transparent !important;
-    }
-}
-
 .receipt-content {
     font-family: 'Times New Roman', serif;
     line-height: 1.4;

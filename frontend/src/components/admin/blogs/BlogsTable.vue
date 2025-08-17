@@ -27,6 +27,7 @@
                         <th class="px-4 py-3 text-center">#</th>
                         <th class="px-4 py-3 text-center">Hình ảnh</th>
                         <th class="px-4 py-3 text-center">Tên bài viết</th>
+                        <th class="px-4 py-3 text-center">Danh mục</th>
                         <th class="px-4 py-3 text-center">Mô tả</th>
                         <th class="px-4 py-3 text-center">Tác giả</th>
                         <th class="px-4 py-3 text-center">Trạng thái</th>
@@ -45,6 +46,9 @@
                             </td>
                             <td class="px-2 py-1">
                                 <div class="bg-gray-200 h-3 rounded w-1/3 animate-pulse"></div>
+                            </td>
+                            <td class="px-2 py-1">
+                                <div class="bg-gray-200 h-4 rounded w-20 animate-pulse"></div>
                             </td>
                             <td class="px-2 py-1">
                                 <div class="bg-gray-200 h-4 rounded w-24 animate-pulse"></div>
@@ -75,6 +79,13 @@
                             <td class="px-2 py-1 font-medium text-center">
                                 {{ blog.title }}
                             </td>
+                            <td class="px-2 py-1 text-center">
+                                <span v-if="blog.category"
+                                    class="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                    {{ blog.category.name }}
+                                </span>
+                                <span v-else class="text-gray-400 text-sm">Không có</span>
+                            </td>
                             <td class="px-2 py-1 max-w-xs truncate">
                                 {{ blog.description }}
                             </td>
@@ -82,13 +93,9 @@
                                 {{ blog.author?.username || 'Unknown' }}
                             </td>
                             <td class="px-2 py-1 text-center">
-                                <button
-                                    :class="['w-10 h-6 rounded-full relative transition-colors', blog.status === 1 ? 'bg-primary' : 'bg-gray-300']"
-                                    @click="toggleStatus(blog)" :aria-pressed="blog.status === 1"
-                                    style="background-color: #3bb77e">
-                                    <span
-                                        :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', blog.status === 1 ? 'translate-x-4' : '']"></span>
-                                </button>
+                                <span :class="getStatusBadgeClass(blog.status)">
+                                    {{ getStatusText(blog.status) }}
+                                </span>
                             </td>
                             <td class="px-2 py-1 text-center">
                                 {{ formatDate(blog.created_at) }}
@@ -96,7 +103,7 @@
                             <td class="px-2 py-1">
                                 <div class="flex text-center gap-2">
                                     <button @click="handleEdit(blog)"
-                                        class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
+                                        class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150 cursor-pointer"
                                         title="Chỉnh sửa bài viết">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -105,7 +112,7 @@
                                         </svg>
                                     </button>
                                     <button @click="handleDelete(blog)"
-                                        class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                                        class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150 cursor-pointer"
                                         title="Xóa bài viết">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -117,7 +124,7 @@
                             </td>
                         </tr>
                         <tr v-if="blogs.length === 0">
-                            <td colspan="8" class="px-3 py-2 text-center text-gray-500">
+                            <td colspan="9" class="px-3 py-2 text-center text-gray-500">
                                 Không có dữ liệu
                             </td>
                         </tr>
@@ -142,14 +149,13 @@
                             <div class="flex-1 min-w-0">
                                 <div class="text-sm font-semibold truncate">{{ blog.title }}</div>
                                 <div class="text-xs text-gray-500">{{ blog.author?.username || 'Unknown' }}</div>
+                                <div class="text-xs text-blue-600 mt-1" v-if="blog.category">
+                                    {{ blog.category.name }}
+                                </div>
                             </div>
-                            <button
-                                :class="['w-8 h-5 rounded-full relative transition-colors', blog.status === 1 ? 'bg-primary' : 'bg-gray-300']"
-                                @click="toggleStatus(blog)" :aria-pressed="blog.status === 1"
-                                style="background-color: #3bb77e">
-                                <span
-                                    :class="['absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform', blog.status === 1 ? 'translate-x-3' : '']"></span>
-                            </button>
+                            <span :class="getStatusBadgeClass(blog.status)">
+                                {{ getStatusText(blog.status) }}
+                            </span>
                         </div>
                         <div class="text-xs text-gray-600 line-clamp-2 mb-2">{{ blog.description }}</div>
                         <div class="flex items-center justify-between">
@@ -223,7 +229,7 @@ const emit = defineEmits(['delete', 'refresh'])
 const router = useRouter()
 
 const handleEdit = (blog) => {
-    router.push(`/admin/blogs/${blog.id}/edit`)
+    router.push(`/admin/blogs/edit/${blog.id}`)
 }
 
 const handleDelete = async (blog) => {
@@ -259,13 +265,26 @@ function getStatusLabel(status) {
 function getStatusBadgeClass(status) {
     switch (status) {
         case 'published':
-            return 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs'
-        case 'archived':
-            return 'bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs'
+            return 'status-badge active'
         case 'draft':
-            return 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs'
+            return 'status-badge draft'
+        case 'archived':
+            return 'status-badge archived'
         default:
-            return 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
+            return 'status-badge unknown'
+    }
+}
+
+function getStatusText(status) {
+    switch (status) {
+        case 'published':
+            return 'Đã xuất bản'
+        case 'draft':
+            return 'Bản nháp'
+        case 'archived':
+            return 'Lưu trữ'
+        default:
+            return 'Không xác định'
     }
 }
 
@@ -279,23 +298,6 @@ function getImageUrl(path) {
     if (!path) return ''
     return path.startsWith('/storage/') ? `http://localhost:8000${path}` : path
 }
-
-const toggleStatus = async (blog) => {
-    const newStatus = blog.status === 1 ? 0 : 1
-    try {
-        await updateBlogStatus(blog.id, newStatus)
-        blog.status = newStatus
-        // Nếu có notyf hoặc emit refresh thì gọi ở đây
-    } catch (e) {
-        // Nếu có notyf thì báo lỗi ở đây
-    }
-}
-
-// Hàm giả lập gọi API cập nhật trạng thái
-const updateBlogStatus = async (id, status) => {
-    // TODO: Thay bằng gọi API thực tế
-    return new Promise((resolve) => setTimeout(resolve, 500))
-}
 </script>
 
 <style scoped>
@@ -305,5 +307,39 @@ const updateBlogStatus = async (id, status) => {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Status Badge Styles */
+.status-badge {
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.status-badge.active {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #2c814d;
+}
+
+.status-badge.draft {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #1d4ed8;
+}
+
+.status-badge.archived {
+    background-color: #fed7aa;
+    color: #9a3412;
+    border: 1px solid #fdba74;
+}
+
+.status-badge.unknown {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
 }
 </style>

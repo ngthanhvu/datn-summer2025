@@ -119,4 +119,29 @@ class User extends Authenticatable implements JWTSubject
             ->withPivot('claimed_at', 'used_at', 'status')
             ->withTimestamps();
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Orders::class);
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function cartItems()
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    public function favoriteProducts()
+    {
+        return $this->hasMany(FavoriteProduct::class);
+    }
+
+    public function productReviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
 }

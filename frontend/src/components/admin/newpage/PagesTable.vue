@@ -6,7 +6,8 @@
                 <div class="relative">
                     <input type="text" v-model="searchQuery" placeholder="Tìm kiếm..." @input="handleSearch"
                         class="border border-gray-300 rounded px-3 sm:px-4 py-2 pl-9 sm:pl-10 w-full sm:w-64 text-xs sm:text-sm focus:outline-none focus:border-primary">
-                    <i class="fas fa-search absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs sm:text-sm"></i>
+                    <i
+                        class="fas fa-search absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs sm:text-sm"></i>
                 </div>
                 <div class="flex gap-3 sm:gap-4">
                     <div class="relative flex-1 sm:flex-none">
@@ -28,7 +29,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Add button -->
             <button @click="$router.push('/admin/pages/create')"
                 class="bg-primary text-white rounded px-3 sm:px-4 py-2 flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors cursor-pointer text-xs sm:text-sm">
@@ -39,7 +40,7 @@
         <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {{ error }}
         </div>
-        
+
         <div v-else>
             <!-- Mobile Card Layout (hidden on desktop) -->
             <div class="block sm:hidden">
@@ -60,18 +61,18 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Empty State -->
                 <div v-else-if="paginatedData.length === 0" class="text-center py-8">
                     <i class="fas fa-file-alt text-4xl text-gray-300 mb-4"></i>
                     <p class="text-gray-600">Không có trang nào</p>
                 </div>
-                
+
                 <!-- Page Cards -->
                 <div v-else class="space-y-4">
-                    <div v-for="(item, index) in paginatedData" :key="index" 
-                         class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        
+                    <div v-for="(item, index) in paginatedData" :key="index"
+                        class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+
                         <!-- Header: Title and Status -->
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex-1 min-w-0">
@@ -84,15 +85,11 @@
                                     </span>
                                 </div>
                             </div>
-                                                    <button
-                            :class="['w-10 h-6 rounded-full relative transition-colors ml-3 flex-shrink-0', item.status ? 'bg-primary' : 'bg-gray-300']"
-                            @click="toggleStatus(item)" :aria-pressed="item.status"
-                            :title="item.status ? 'Vô hiệu hóa' : 'Kích hoạt'">
-                                <span
-                                    :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', item.status ? 'translate-x-4' : '']"></span>
-                            </button>
+                            <span :class="getStatusBadgeClass(item.status)">
+                                {{ getStatusText(item.status) }}
+                            </span>
                         </div>
-                        
+
                         <!-- Meta Info -->
                         <div class="grid grid-cols-2 gap-4 text-xs text-gray-500 mb-3">
                             <div>
@@ -113,7 +110,7 @@
                                 <span class="ml-1">{{ formatDate(item.created_at) }}</span>
                             </div>
                         </div>
-                        
+
                         <!-- Actions -->
                         <div class="flex gap-2 pt-3 border-t border-gray-200">
                             <button @click="$router.push(`/admin/pages/${item.id}/edit`)"
@@ -126,11 +123,11 @@
                                 <i class="fas fa-eye mr-1"></i>
                                 Xem
                             </button>
-                                                    <button @click="handleDelete(item)"
-                            class="flex-1 inline-flex items-center justify-center px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150 text-xs">
-                            <i class="fas fa-trash mr-1"></i>
-                            Xóa
-                        </button>
+                            <button @click="handleDelete(item)"
+                                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150 text-xs">
+                                <i class="fas fa-trash mr-1"></i>
+                                Xóa
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -138,99 +135,96 @@
 
             <!-- Desktop Table Layout (hidden on mobile) -->
             <div class="hidden sm:block overflow-x-auto overflow-hidden rounded-2xl border border-gray-200 bg-white">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="border-b border-gray-300">
-                        <th v-for="column in columns" :key="column.key"
-                            class="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-100"
-                            @click="sortBy(column.key)">
-                            <div class="flex items-center gap-2">
-                                {{ column.label }}
-                                <i v-if="sortKey === column.key"
-                                    :class="['fas', sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down', 'text-primary']"></i>
-                            </div>
-                        </th>
-                        <th class="px-4 py-3 font-semibold">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Skeleton loading -->
-                    <tr v-if="props.isLoading" v-for="n in 13" :key="'skeleton-' + n">
-                        <td v-for="i in 8" :key="i" class="px-4 py-3">
-                            <div class="skeleton-loader"></div>
-                        </td>
-                    </tr>
-                    <tr v-else v-for="(item, index) in paginatedData" :key="index"
-                        class="border-b border-gray-300 hover:bg-gray-50 transition-colors">
-                        <td class="px-4 py-3 text-gray-600">
-                            {{ index + 1 }}
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium">{{ item.title }}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm">
-                                {{ item.slug }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span :class="[
-                                'px-2 py-1 rounded text-sm',
-                                getTypeBadgeClass(item.type)
-                            ]">
-                                {{ getTypeLabel(item.type) }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            {{ item.sort_order }}
-                        </td>
-                        <td class="px-4 py-3">
-                            {{ formatDate(item.created_at) }}
-                        </td>
-                        <td class="px-4 py-3">
-                            <button
-                                :class="['w-10 h-6 rounded-full relative transition-colors', item.status ? 'bg-primary' : 'bg-gray-300']"
-                                @click="toggleStatus(item)" :aria-pressed="item.status"
-                                style="background-color: #3bb77e">
-                                <span
-                                    :class="['absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', item.status ? 'translate-x-4' : '']"></span>
-                            </button>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <button @click="$router.push(`/admin/pages/${item.id}/edit`)"
-                                    class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
-                                    title="Chỉnh sửa trang">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                        </path>
-                                    </svg>
-                                </button>
-                                <button @click="handleDelete(item)"
-                                    class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150"
-                                    title="Xóa trang">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                        </path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="!props.isLoading && !paginatedData.length">
-                        <td colspan="8" class="px-4 py-3 text-center text-gray-600">
-                            Không có dữ liệu
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-300">
+                            <th v-for="column in columns" :key="column.key"
+                                class="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-100"
+                                @click="sortBy(column.key)">
+                                <div class="flex items-center gap-2">
+                                    {{ column.label }}
+                                    <i v-if="sortKey === column.key"
+                                        :class="['fas', sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down', 'text-primary']"></i>
+                                </div>
+                            </th>
+                            <th class="px-4 py-3 font-semibold">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Skeleton loading -->
+                        <tr v-if="props.isLoading" v-for="n in 13" :key="'skeleton-' + n">
+                            <td v-for="i in 8" :key="i" class="px-4 py-3">
+                                <div class="skeleton-loader"></div>
+                            </td>
+                        </tr>
+                        <tr v-else v-for="(item, index) in paginatedData" :key="index"
+                            class="border-b border-gray-300 hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3 text-gray-600">
+                                {{ index + 1 }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="font-medium">{{ item.title }}</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm">
+                                    {{ item.slug }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span :class="[
+                                    'px-2 py-1 rounded text-sm',
+                                    getTypeBadgeClass(item.type)
+                                ]">
+                                    {{ getTypeLabel(item.type) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                {{ item.sort_order }}
+                            </td>
+                            <td class="px-4 py-3">
+                                {{ formatDate(item.created_at) }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <span :class="getStatusBadgeClass(item.status)">
+                                    {{ getStatusText(item.status) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <button @click="$router.push(`/admin/pages/${item.id}/edit`)"
+                                        class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
+                                        title="Chỉnh sửa trang">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                    <button @click="handleDelete(item)"
+                                        class="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                                        title="Xóa trang">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-if="!props.isLoading && !paginatedData.length">
+                            <td colspan="8" class="px-4 py-3 text-center text-gray-600">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <!-- Pagination -->
-        <div v-if="!loading && !error" class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mt-4 sm:mt-6 pt-4 border-t border-gray-200">
+        <div v-if="!loading && !error"
+            class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mt-4 sm:mt-6 pt-4 border-t border-gray-200">
             <div class="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                 Hiển thị {{ paginatedData.length }} trên tổng số {{ filteredData.length }} bản ghi
             </div>
@@ -261,7 +255,7 @@ import { useRouter } from 'vue-router'
 import { usePages } from '../../../composable/usePages'
 import { push } from 'notivue'
 
-const { pages, loading, error, pagination, fetchPages, updatePageStatus, deletePage: deletePageApi } = usePages()
+const { pages, loading, error, pagination, fetchPages, deletePage: deletePageApi } = usePages()
 
 const columns = [
     { key: 'id', label: '#' },
@@ -376,17 +370,6 @@ const handleDelete = async (page) => {
     }
 }
 
-const toggleStatus = async (page) => {
-    try {
-        await updatePageStatus(page.id, !page.status)
-        push.success('Cập nhật trạng thái trang thành công!')
-        await loadPages()
-    } catch (error) {
-        console.error('Error updating page status:', error)
-        push.error('Có lỗi xảy ra khi cập nhật trạng thái trang!')
-    }
-}
-
 const viewPage = (page) => {
     // Open page in new tab to view
     const baseUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
@@ -416,6 +399,14 @@ const getTypeBadgeClass = (type) => {
         other: 'bg-gray-100 text-gray-700'
     }
     return classes[type] || 'bg-gray-100 text-gray-700'
+}
+
+const getStatusBadgeClass = (status) => {
+    return status ? 'status-badge active' : 'status-badge inactive'
+}
+
+const getStatusText = (status) => {
+    return status ? 'Hoạt động' : 'Vô hiệu'
 }
 
 const formatDate = (date) => {
@@ -491,4 +482,27 @@ select:focus {
         background-position: calc(200px + 100%) 0;
     }
 }
-</style> 
+
+/* Status Badge Styles */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.status-badge.active {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge.inactive {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+</style>
