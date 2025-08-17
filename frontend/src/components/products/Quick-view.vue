@@ -13,25 +13,18 @@
                     <div class="relative">
                         <!-- Main Image with Border -->
                         <div class="relative mb-4">
-                            <div class="bg-gradient-to-br from-blue-400 to-blue-600 p-1 rounded-lg">
-                                <img :src="mainImage || '/images/placeholder.jpg'" :alt="product.name"
-                                    class="w-full h-80 object-cover rounded-lg" />
-                            </div>
-                            <!-- Banner overlay -->
-                            <div
-                                class="absolute bottom-0 left-0 right-0 bg-blue-400 text-white text-center py-2 rounded-b-lg">
-                                <span class="text-sm font-medium">MUA LÀ CÓ QUÀ</span>
-                            </div>
+                            <img :src="mainImage || '/images/placeholder.jpg'" :alt="props.product?.name || 'Product'"
+                                class="w-full h-80 object-cover rounded-lg" />
                         </div>
 
                         <!-- Thumbnail Images -->
                         <div class="flex gap-2 justify-center">
-                            <div v-for="(image, index) in product.images?.slice(0, 4) || []" :key="index"
+                            <div v-for="(image, index) in props.product?.images?.slice(0, 4) || []" :key="index"
                                 @click="mainImage = image.image_path" :class="[
                                     'w-16 h-16 border-2 rounded cursor-pointer overflow-hidden',
                                     mainImage === image.image_path ? 'border-black' : 'border-gray-300'
                                 ]">
-                                <img :src="image.image_path" :alt="`${product.name} - ${index + 1}`"
+                                <img :src="image.image_path" :alt="`${props.product?.name || 'Product'} - ${index + 1}`"
                                     class="w-full h-full object-cover" />
                             </div>
                         </div>
@@ -42,13 +35,14 @@
                 <div class="w-full lg:w-3/5 p-6 overflow-y-auto">
                     <div class="space-y-4">
                         <!-- Product Name -->
-                        <h2 class="text-2xl font-bold text-gray-900">{{ product.name }}</h2>
+                        <h2 class="text-2xl font-bold text-gray-900">{{ props.product?.name || 'Tên sản phẩm' }}</h2>
 
                         <!-- Brand & SKU -->
                         <div class="text-sm text-gray-600">
-                            <span class="font-medium">Thương hiệu:</span> {{ product.brand?.name || 'Khác' }}
+                            <span class="font-medium">Thương hiệu:</span> {{ props.product?.brand?.name || 'Khác' }}
                             <span class="mx-2">|</span>
-                            <span class="font-medium">Mã sản phẩm:</span> {{ selectedVariant?.sku || product.sku ||
+                            <span class="font-medium">Mã sản phẩm:</span> {{ selectedVariant?.sku || props.product?.sku
+                                ||
                                 'Đang cập nhật' }}
                         </div>
 
@@ -59,7 +53,8 @@
                                     {{
                                         selectedVariant
                                             ? formatPrice(selectedVariantSalePrice)
-                                            : (flashSalePrice ? formatPrice(flashSalePrice) : formatPrice(displayPrice))
+                                            : (flashSalePrice ? formatPrice(flashSalePrice) : formatPrice(props.displayPrice ||
+                                                props.product?.price || 0))
                                     }}
                                 </span>
                                 <span v-if="selectedVariant && flashSalePercent > 0"
@@ -68,7 +63,7 @@
                                 </span>
                                 <span v-else-if="!selectedVariant && flashSalePrice"
                                     class="line-through text-gray-400 text-xl">
-                                    {{ formatPrice(displayPrice) }}
+                                    {{ formatPrice(props.displayPrice || props.product?.price || 0) }}
                                 </span>
                                 <span
                                     v-if="(selectedVariant && flashSalePercent > 0) || (!selectedVariant && flashSalePercent > 0)"
@@ -94,7 +89,7 @@
                                         'px-3 py-2 border rounded-md transition-colors text-sm cursor-pointer',
                                         hoveredSize === size
                                             ? 'bg-[#e0f2fe] border-[#81AACC] text-[#0369a1]'
-                                            : selectedSize === size
+                                            : localSelectedSize === size
                                                 ? 'bg-[#81AACC] text-white border-[#81AACC]'
                                                 : 'border-gray-300 hover:border-[#81AACC]'
                                     ]">
@@ -112,7 +107,7 @@
                                         'w-10 h-10 rounded-full border-2 transition-colors cursor-pointer',
                                         hoveredColor && hoveredColor.name === color.name
                                             ? 'border-[#38bdf8] ring-2 ring-[#38bdf8]'
-                                            : selectedColor && selectedColor.name === color.name
+                                            : localSelectedColor && localSelectedColor.name === color.name
                                                 ? 'border-[#81AACC] ring-2 ring-[#81AACC]'
                                                 : 'border-gray-300 hover:border-[#81AACC]'
                                     ]" :style="{ backgroundColor: color.code }" :title="color.name">
@@ -150,13 +145,13 @@
                         <!-- Quantity Selector -->
                         <div class="flex items-center gap-4">
                             <div class="flex items-center border border-gray-300 rounded-md">
-                                <button @click="handleQuantityChange(Math.max(1, quantity - 1))"
+                                <button @click="handleQuantityChange(Math.max(1, localQuantity - 1))"
                                     class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-lg">-</button>
-                                <input type="number" :value="quantity"
+                                <input type="number" :value="localQuantity"
                                     @input="handleQuantityChange(Math.max(1, parseInt($event.target.value) || 1))"
                                     min="1" max="maxQuantity"
                                     class="w-16 text-center border-x border-gray-300 py-2 text-lg" />
-                                <button @click="handleQuantityChange(quantity + 1)" :disabled="!canIncrease"
+                                <button @click="handleQuantityChange(localQuantity + 1)" :disabled="!canIncrease"
                                     class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed">+</button>
                             </div>
 
@@ -174,7 +169,7 @@
                             </button>
 
                             <!-- View Details Link -->
-                            <a v-if="product.slug" :href="`/san-pham/${product.slug}`"
+                            <a v-if="props.product?.slug" :href="`/san-pham/${props.product?.slug}`"
                                 class="text-[#81AACC] underline text-base hover:text-[#6B8BA3]">
                                 Xem chi tiết »
                             </a>
@@ -199,7 +194,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useCart } from '../../composable/useCart'
 import { useInventories } from '../../composable/useInventorie'
 import { push } from 'notivue'
@@ -221,7 +216,7 @@ const props = defineProps({
     },
     displayPrice: {
         type: Number,
-        required: true
+        default: 0 // Không còn required
     },
     showOriginalPrice: {
         type: Boolean,
@@ -254,8 +249,10 @@ const mainImage = ref('')
 const hoveredSize = ref('')
 const hoveredColor = ref(null)
 const localProductInventory = ref([])
+const localSelectedSize = ref('')
+const localSelectedColor = ref(null)
+const localQuantity = ref(1)
 
-// Computed properties giống như ProductInfo.vue
 const sizes = computed(() => {
     if (!props.product?.variants?.length) return []
     const uniqueSizes = new Set()
@@ -273,14 +270,16 @@ const colors = computed(() => {
     })
     return Array.from(uniqueColors).map(color => ({
         name: color,
-        code: color
+        code: getColorCode(color)
     }))
 })
 
 const selectedVariant = computed(() => {
     if (!props.product?.variants?.length) return null
+    const size = localSelectedSize.value || props.selectedSize
+    const color = localSelectedColor.value?.name || props.selectedColor?.name
     return props.product.variants.find(
-        v => v.size === props.selectedSize && v.color === props.selectedColor?.name
+        v => v.size === size && v.color === color
     )
 })
 
@@ -307,38 +306,117 @@ const maxQuantity = computed(() => {
     return max > 0 ? max : Infinity
 })
 
-const canIncrease = computed(() => props.quantity < maxQuantity.value)
+const canIncrease = computed(() => localQuantity.value < maxQuantity.value)
 
 const canAddToCart = computed(() => {
     if (!selectedVariant.value) return false
-    if (props.quantity > maxQuantity.value) return false
+    if (localQuantity.value > maxQuantity.value) return false
     return maxQuantity.value > 0
 })
 
-// Map tên màu sang mã màu hex nếu cần
 const colorMap = {
-    'Đen': '#222',
-    'Black': '#222',
-    'Xanh': '#2a9d8f',
-    'Blue': '#2a9d8f',
-    'Trắng': '#fff',
-    'White': '#fff',
-    'Đỏ': '#e63946',
-    'Red': '#e63946',
-    'Vàng': '#f4d35e',
-    'Yellow': '#f4d35e',
-    'Xanh lá': '#43aa8b',
-    'Green': '#43aa8b',
-    'Nâu': '#8B4513',
-    'Brown': '#8B4513',
-    // ... thêm các màu khác nếu cần
+    'Black': '#000000',
+    'White': '#FFFFFF',
+    'Gray': '#808080',
+    'Silver': '#C0C0C0',
+    'Gold': '#FFD700',
+    'Red': '#FF0000',
+    'DarkRed': '#8B0000',
+    'Crimson': '#DC143C',
+    'FireBrick': '#B22222',
+    'IndianRed': '#CD5C5C',
+    'LightCoral': '#F08080',
+    'Salmon': '#FA8072',
+    'Tomato': '#FF6347',
+    'Pink': '#FFC0CB',
+    'HotPink': '#FF69B4',
+    'DeepPink': '#FF1493',
+    'LightPink': '#FFB6C1',
+    'PaleVioletRed': '#DB7093',
+    'Orange': '#FFA500',
+    'DarkOrange': '#FF8C00',
+    'Coral': '#FF7F50',
+    'Tomato': '#FF6347',
+    'OrangeRed': '#FF4500',
+    'Yellow': '#FFFF00',
+    'LightYellow': '#FFFFE0',
+    'LemonChiffon': '#FFFACD',
+    'LightGoldenRodYellow': '#FAFAD2',
+    'Gold': '#FFD700',
+    'Khaki': '#F0E68C',
+    'Green': '#008000',
+    'DarkGreen': '#006400',
+    'ForestGreen': '#228B22',
+    'Lime': '#00FF00',
+    'LimeGreen': '#32CD32',
+    'LightGreen': '#90EE90',
+    'PaleGreen': '#98FB98',
+    'SeaGreen': '#2E8B57',
+    'MediumSeaGreen': '#3CB371',
+    'SpringGreen': '#00FF7F',
+    'MintCream': '#F5FFFA',
+    'Blue': '#0000FF',
+    'DarkBlue': '#00008B',
+    'Navy': '#000080',
+    'MidnightBlue': '#191970',
+    'RoyalBlue': '#4169E1',
+    'DodgerBlue': '#1E90FF',
+    'DeepSkyBlue': '#00BFFF',
+    'SkyBlue': '#87CEEB',
+    'LightSkyBlue': '#87CEFA',
+    'PowderBlue': '#B0E0E6',
+    'Purple': '#800080',
+    'Indigo': '#4B0082',
+    'DarkMagenta': '#8B008B',
+    'MediumPurple': '#9370DB',
+    'BlueViolet': '#8A2BE2',
+    'Violet': '#EE82EE',
+    'Plum': '#DDA0DD',
+    'Orchid': '#DA70D6',
+    'Thistle': '#D8BFD8',
+    'Lavender': '#E6E6FA',
+    'Brown': '#A52A2A',
+    'SaddleBrown': '#8B4513',
+    'Sienna': '#A0522D',
+    'Chocolate': '#D2691E',
+    'Peru': '#CD853F',
+    'Tan': '#D2B48C',
+    'RosyBrown': '#BC8F8F',
+    'Moccasin': '#FFE4B5',
+    'Beige': '#F5F5DC',
+    'Wheat': '#F5DEB3',
+    'Cornsilk': '#FFF8DC',
+    'AntiqueWhite': '#FAEBD7',
+    'BlanchedAlmond': '#FFEBCD',
+    'Bisque': '#FFE4C4',
+    'Linen': '#FAF0E6',
+    'Ivory': '#FFFFF0',
+    'Snow': '#FFFAFA',
+    'Cyan': '#00FFFF',
+    'Aqua': '#00FFFF',
+    'Teal': '#008080',
+    'DarkCyan': '#008B8B',
+    'LightCyan': '#E0FFFF',
+    'Turquoise': '#40E0D0',
+    'MediumTurquoise': '#48D1CC',
+    'PaleTurquoise': '#AFEEEE',
+    'SlateGray': '#708090',
+    'LightSlateGray': '#778899',
+    'DarkSlateGray': '#2F4F4F',
+    'Gainsboro': '#DCDCDC',
+    'DimGray': '#696969',
+    'LightGray': '#D3D3D3',
+    'DarkGray': '#A9A9A9'
 }
 
 function getColorCode(color) {
     if (!color) return '#ccc'
     if (/^#|rgb/.test(color)) return color
-    return colorMap[color] || '#ccc'
+
+    const normalizedColor = color.charAt(0).toUpperCase() + color.slice(1).toLowerCase()
+    return colorMap[normalizedColor] || color
 }
+
 
 function isColorCode(color) {
     if (!color) return false
@@ -351,7 +429,6 @@ const copyCouponCode = async (code) => {
         push.success(`Đã sao chép mã: ${code}`)
     } catch (error) {
         console.error('Error copying coupon code:', error)
-        // Fallback cho các trình duyệt cũ
         const textArea = document.createElement('textarea')
         textArea.value = code
         document.body.appendChild(textArea)
@@ -363,19 +440,22 @@ const copyCouponCode = async (code) => {
 }
 
 const handleSizeChange = (size) => {
+    localSelectedSize.value = size
     emit('update:selectedSize', size)
-    const variantData = { size, color: props.selectedColor?.name }
+    const variantData = { size, color: localSelectedColor.value?.name || props.selectedColor?.name }
     emit('variant-change', variantData)
 }
 
 const handleColorChange = (color) => {
+    localSelectedColor.value = color
     emit('update:selectedColor', color)
-    const variantData = { size: props.selectedSize, color: color.name }
+    const variantData = { size: localSelectedSize.value || props.selectedSize, color: color.name }
     emit('variant-change', variantData)
 }
 
 const handleQuantityChange = (newQuantity) => {
-    emit('update:quantity', newQuantity)
+    localQuantity.value = Math.max(1, newQuantity)
+    emit('update:quantity', localQuantity.value)
 }
 
 const fetchProductInventory = async () => {
@@ -390,6 +470,20 @@ const fetchProductInventory = async () => {
     }
 }
 
+const initializeLocalState = () => {
+    if (props.product?.variants?.length) {
+        if (!localSelectedSize.value && sizes.value.length > 0) {
+            localSelectedSize.value = props.selectedSize || sizes.value[0]
+        }
+
+        if (!localSelectedColor.value && colors.value.length > 0) {
+            localSelectedColor.value = props.selectedColor || colors.value[0]
+        }
+    }
+
+    localQuantity.value = props.quantity || 1
+}
+
 watch(() => props.product, (newProduct) => {
     if (newProduct?.images?.length) {
         const mainImg = newProduct.images.find(img => img.is_main) || newProduct.images[0]
@@ -402,13 +496,26 @@ watch(() => props.product, (newProduct) => {
         fetchProductInventory()
     }
 
-    if (newProduct?.variants?.length && !props.selectedSize && sizes.value.length > 0) {
-        handleSizeChange(sizes.value[0])
-    }
-    if (newProduct?.variants?.length && !props.selectedColor && colors.value.length > 0) {
-        handleColorChange(colors.value[0])
-    }
+    initializeLocalState()
 }, { immediate: true })
+
+watch(() => props.selectedSize, (newSize) => {
+    if (newSize && newSize !== localSelectedSize.value) {
+        localSelectedSize.value = newSize
+    }
+})
+
+watch(() => props.selectedColor, (newColor) => {
+    if (newColor && newColor !== localSelectedColor.value) {
+        localSelectedColor.value = newColor
+    }
+})
+
+watch(() => props.quantity, (newQuantity) => {
+    if (newQuantity && newQuantity !== localQuantity.value) {
+        localQuantity.value = newQuantity
+    }
+})
 
 function close() {
     emit('close')
@@ -420,11 +527,11 @@ const addToCart = async () => {
             push.error('Vui lòng chọn size và màu sắc')
             return
         }
-        if (props.quantity > maxQuantity.value) {
+        if (localQuantity.value > maxQuantity.value) {
             push.error('Số lượng vượt quá số lượng còn lại')
             return
         }
-        await addToCartComposable(selectedVariant.value.id, props.quantity, selectedVariantSalePrice.value)
+        await addToCartComposable(selectedVariant.value.id, localQuantity.value, selectedVariantSalePrice.value)
         push.success('Đã thêm vào giỏ hàng')
         emit('addToCart')
         emit('close')
