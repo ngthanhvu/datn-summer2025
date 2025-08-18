@@ -10,7 +10,7 @@
                     Flash Sale</div>
             </div>
         </div>
-        <!-- <div v-if="error" class="text-red-500 mb-2">{{ error }}</div> -->
+        <div v-if="error" class="text-red-500 mb-2 whitespace-pre-line">{{ error }}</div>
         <div v-if="success" class="text-green-600 mb-2">{{ success }}</div>
         <div class="flex flex-col lg:flex-row gap-4 lg:gap-8">
             <div class="bg-white rounded shadow p-4 sm:p-6 lg:w-2/5 mb-4 lg:mb-0 text-sm">
@@ -173,6 +173,7 @@
                                     </button>
                                 </td>
                             </tr>
+                            
                             <tr v-if="paginatedProducts.length === 0">
                                 <td colspan="9" class="text-center py-4">Không có sản phẩm</td>
                             </tr>
@@ -297,7 +298,6 @@ const router = useRouter()
 function goToSelectProducts() {
     localStorage.setItem('flashsale_form_data', JSON.stringify(form.value));
 
-    // Lưu sản phẩm hiện tại vào localStorage nếu đang edit
     if (props.editData && props.editData.id) {
         localStorage.setItem(`flashsale_edit_${props.editData.id}`, JSON.stringify(products.value))
         router.push(`/admin/flashsale/select?flashSaleId=${props.editData.id}`)
@@ -357,7 +357,8 @@ watch(() => props.editData, (val) => {
                     sold: p.sold || 0,
                     realQty: p.real_qty !== undefined ? p.real_qty : true,
                     image: productData.main_image?.image_path || productData.image || '/default-product.png',
-                    product: productData
+                    product: productData,
+                    variantAllocations: (productData.variants || []).map(v => ({ variant_id: v.id, qty: 0 }))
                 }
             })
         }
@@ -372,7 +373,8 @@ function addProduct(product) {
             flashPrice: '',
             quantity: 100,
             sold: 0,
-            realQty: true
+            realQty: true,
+            variantAllocations: (product.variants || []).map(v => ({ variant_id: v.id, qty: 0 }))
         })
     }
 }
@@ -388,6 +390,20 @@ function increaseSold(item) {
     const newSold = Math.min(currentSold + increaseAmount, maxQuantity)
     item.sold = newSold.toString()
 }
+function getAlloc(item, variantId) {
+    if (!item.variantAllocations) item.variantAllocations = []
+    let found = item.variantAllocations.find(a => a.variant_id === variantId)
+    if (!found) {
+        found = { variant_id: variantId, qty: 0 }
+        item.variantAllocations.push(found)
+    }
+    return found
+}
+
+function sumAlloc(item) {
+    return (item.variantAllocations || []).reduce((s, a) => s + (Number(a.qty) || 0), 0)
+}
+
 async function submit() {
     error.value = ''
     success.value = ''
@@ -419,11 +435,17 @@ async function submit() {
             push.success('Tạo flash sale thành công!')
             setTimeout(() => router.push('/admin/flashsale'), 1000)
         }
-        // Xóa dữ liệu form tạm sau khi submit thành công
+        success.value = 'Lưu flash sale thành công'
         localStorage.removeItem('flashsale_form_data');
     } catch (e) {
-        error.value = e.message || 'Có lỗi xảy ra khi lưu flash sale'
-        push.error('Có lỗi xảy ra khi lưu flash sale!')
+        const apiMsg = e?.response?.data?.error
+        error.value = (typeof apiMsg === 'string' && apiMsg)
+            ? apiMsg
+            : (e.message || 'Có lỗi xảy ra khi lưu flash sale')
+        if (Array.isArray(e?.response?.data?.insufficient_variants)) {
+            console.warn('Insufficient variants:', e.response.data.insufficient_variants)
+        }
+        push.error(error.value)
     } finally {
         loading.value = false
     }

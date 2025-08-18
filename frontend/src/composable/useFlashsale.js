@@ -1,10 +1,23 @@
 import axios from "axios";
 
 export function useFlashsale() {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // ✅ Dùng biến môi trường Vite
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; 
 
     const getFlashSales = async () => {
         const res = await axios.get(`${API_BASE_URL}/api/flash-sales`);
+        return res.data;
+    };
+
+    const getFlashSaleStatistics = async (id = null) => {
+        const url = id
+            ? `${API_BASE_URL}/api/flash-sales/${id}/statistics`
+            : `${API_BASE_URL}/api/flash-sales/statistics`;
+        const res = await axios.get(url);
+        return res.data;
+    };
+
+    const toggleFlashSaleStatus = async (id, active) => {
+        const res = await axios.patch(`${API_BASE_URL}/api/flash-sales/${id}/status`, { active });
         return res.data;
     };
 
@@ -73,5 +86,7 @@ export function useFlashsale() {
         deleteFlashSale,
         getFlashSaleById,
         getMainImage,
+        getFlashSaleStatistics,
+        toggleFlashSaleStatus,
     };
 }

@@ -198,7 +198,7 @@
                                                         formatPrice(order.total_price) }}đ</span></div>
                                             <div class="flex justify-between"><span class="text-gray-600">Phí vận
                                                     chuyển</span><span class="font-medium">{{
-                                                        formatPrice(order.shipping_fee) }}đ</span></div>
+                                                        formatPrice(calculateShipping(order)) }}đ</span></div>
                                             <div class="flex justify-between"><span class="text-gray-600">Giảm
                                                     giá</span><span class="font-medium text-red-600">-{{
                                                         formatPrice(order.discount_price) }}đ</span></div>
@@ -482,7 +482,7 @@
                                         formatPrice(order.total_price) }}đ</span></div>
                             <div class="flex justify-between"><span class="text-gray-600">Phí vận
                                     chuyển</span><span class="font-medium">{{
-                                        formatPrice(order.shipping_fee) }}đ</span></div>
+                                        formatPrice(calculateShipping(order)) }}đ</span></div>
                             <div class="flex justify-between"><span class="text-gray-600">Giảm
                                     giá</span><span class="font-medium text-red-600">-{{
                                         formatPrice(order.discount_price) }}đ</span></div>
@@ -790,7 +790,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Phí vận chuyển</span>
-                                <span>{{ formatPrice(selectedOrder.shipping_fee) }}đ</span>
+                                <span>{{ formatPrice(calculateShipping(selectedOrder)) }}đ</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Giảm giá</span>
@@ -1263,6 +1263,14 @@ const formatDateNoPrefix = (date) => {
     if (!date) return ''
     const d = new Date(date)
     return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+const calculateShipping = (order) => {
+    if (!order) return 0
+    const total = Number(order.total_price) || 0
+    const final = Number(order.final_price) || 0
+    const shipping = final - total
+    return shipping > 0 ? shipping : 0
 }
 
 onMounted(() => {

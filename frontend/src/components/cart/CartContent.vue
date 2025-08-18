@@ -37,7 +37,10 @@
                         <table class="w-full min-w-[800px]">
                             <tbody>
                                 <CartItem v-for="item in cartItems" :key="item.id" :product="item"
-                                    :quantity="item.quantity" @remove="handleRemove(item.id)"
+                                    :quantity="item.quantity"
+                                    :max-available="getMaxAvailable(item)"
+                                    :external-error="itemErrors[item.id] || ''"
+                                    @remove="handleRemove(item.id)"
                                     @decrease="handleDecrease(item.id)" @increase="handleIncrease(item.id)"
                                     @update:quantity="handleUpdateQuantity(item.id, $event)" />
                             </tbody>
@@ -73,6 +76,7 @@ import { useCart } from '../../composable/useCart'
 const { cart, fetchCart, updateQuantity, removeFromCart } = useCart()
 
 const cartItems = computed(() => Array.isArray(cart.value) ? cart.value : [])
+const itemErrors = ref({})
 const loading = ref(true)
 
 const selectedShipping = ref({
@@ -83,6 +87,15 @@ const selectedShipping = ref({
 const subtotal = computed(() => {
     return cartItems.value.reduce((total, item) => total + (item.price * item.quantity), 0)
 })
+
+const getMaxAvailable = (item) => {
+    const inv = item?.variant?.inventory?.quantity ?? 0
+    const flashRemaining = item?.flash_sale?.remaining
+    if (typeof flashRemaining === 'number') {
+        return Math.min(inv, flashRemaining)
+    }
+    return inv
+}
 
 const handleRemove = async (itemId) => {
     try {
@@ -95,11 +108,24 @@ const handleRemove = async (itemId) => {
 const handleUpdateQuantity = async (itemId, newQuantity) => {
     try {
         const item = cartItems.value.find(i => i.id === itemId)
-        if (!item || newQuantity <= 0 || !item.variant || !item.variant.inventory) return
-        if (newQuantity > item.variant.inventory.quantity) return
+        if (!item || newQuantity <= 0) return
+
+        const max = getMaxAvailable(item)
+        if (newQuantity > max) {
+            itemErrors.value[itemId] = `Số lượng tối đa còn lại là ${max}`
+            await updateQuantity(itemId, max)
+            return
+        }
+
         await updateQuantity(itemId, newQuantity)
+        itemErrors.value[itemId] = ''
     } catch (error) {
-        console.error('Có lỗi xảy ra khi cập nhật số lượng:', error)
+        const available = error?.response?.data?.available_quantity
+        if (typeof available === 'number') {
+            itemErrors.value[itemId] = `Số lượng tối đa còn lại là ${available}`
+        } else {
+            itemErrors.value[itemId] = 'Không thể cập nhật số lượng'
+        }
         await fetchCart()
     }
 }

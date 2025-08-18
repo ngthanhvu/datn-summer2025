@@ -86,7 +86,7 @@ const shippingFee = ref(null);
 const estimatedDelivery = ref(null);
 
 const isAddressComplete = computed(() => {
-  return props.selectedAddress && props.cartItems.length > 0;
+  return !!props.selectedAddress && Array.isArray(props.cartItems) && props.cartItems.length > 0;
 });
 
 const handleShippingCalculation = async () => {
@@ -94,7 +94,6 @@ const handleShippingCalculation = async () => {
     return;
   }
 
-  // Emit loading state khi bắt đầu tính toán
   emit('shipping-calculated', { loading: true });
 
   const result = await calculateGHNShipping(props.selectedAddress, props.cartItems);
@@ -121,7 +120,7 @@ watch(() => props.cartItems, () => {
   if (isAddressComplete.value) {
     handleShippingCalculation();
   }
-}, { deep: true });
+}, { deep: true, immediate: true });
 
 watch(() => props.selectedAddress, (newAddress, oldAddress) => {
   if (oldAddress && newAddress && oldAddress.id !== newAddress.id) {
@@ -133,10 +132,13 @@ watch(() => props.selectedAddress, (newAddress, oldAddress) => {
   if (isAddressComplete.value) {
     handleShippingCalculation();
   }
-}, { deep: true });
+}, { deep: true, immediate: true });
 
-onMounted(() => {
-  fetchShopInfo();
+onMounted(async () => {
+  await fetchShopInfo();
+  if (isAddressComplete.value) {
+    handleShippingCalculation();
+  }
 });
 
 defineExpose({
