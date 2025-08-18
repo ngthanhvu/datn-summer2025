@@ -2,6 +2,11 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+use App\Models\Products;
+use App\Models\Blogs;
+use App\Models\Pages;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrandsController;
 use App\Http\Controllers\CategoriesController;
@@ -259,3 +264,11 @@ Route::get('/pages/type/{type}', [PagesController::class, 'getByType']);
 Route::get('/pages/slug/{slug}', [PagesController::class, 'getBySlug']);
 
 Route::apiResource('blog-categories', BlogCategoryController::class);
+
+Route::get('/sitemap-data', function () {
+    return response()->json([
+        'products' => Products::where('is_active', 1)->pluck('slug'),
+        'blogs'    => Blogs::where('status', 'published')->pluck('slug'),
+        'pages'    => Pages::where('status', 1)->pluck('slug'),
+    ]);
+});

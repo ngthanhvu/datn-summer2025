@@ -79,26 +79,21 @@
 
                 <!-- Loading state -->
                 <div v-if="productStore.loading" class="bg-white p-4 md:p-6 rounded-lg shadow-sm">
-                    <!-- Header skeleton -->
                     <div class="mb-6">
                         <div class="skeleton-loader h-6 w-32 mb-2"></div>
                         <div class="skeleton-loader h-4 w-48"></div>
                     </div>
 
-                    <!-- Products Grid skeleton -->
                     <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                         <div v-for="n in 8" :key="n" class="product-card-skeleton">
-                            <!-- Product image skeleton -->
                             <div class="skeleton-loader h-48 w-full rounded-lg mb-3"></div>
 
-                            <!-- Product info skeleton -->
                             <div class="space-y-2">
                                 <div class="skeleton-loader h-4 w-3/4"></div>
                                 <div class="skeleton-loader h-4 w-1/2"></div>
                                 <div class="skeleton-loader h-5 w-1/3"></div>
                             </div>
 
-                            <!-- Button skeleton -->
                             <div class="mt-3">
                                 <div class="skeleton-loader h-10 w-full rounded-lg"></div>
                             </div>
