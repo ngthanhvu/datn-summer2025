@@ -38,10 +38,31 @@ const generateSessionId = () => {
     return id
 }
 
+const syncSessionCartToUser = async () => {
+    try {
+        const token = getToken()
+        const sessionId = localStorage.getItem('sessionId')
+        if (!token || !sessionId) return
+        // Gọi API để chuyển toàn bộ giỏ hàng từ session sang user sau khi đăng nhập
+        await API.post('api/cart/transfer-session-to-user', {}, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'X-Session-Id': sessionId
+            }
+        })
+        // Xóa sessionId để tránh gọi lại nhiều lần
+        localStorage.removeItem('sessionId')
+    } catch (_) {
+        // Bỏ qua lỗi đồng bộ, không chặn luồng người dùng
+    }
+}
+
 const fetchCart = async () => {
     try {
         isLoading.value = true
         error.value = null
+        // Nếu đã đăng nhập và còn session giỏ hàng cũ thì hợp nhất trước
+        await syncSessionCartToUser()
         const res = await API.get(`api/${getCartEndpoint()}`, {
             headers: getHeaders()
         })
@@ -60,10 +81,15 @@ const addToCart = async (variantId, quantity = 1, price = null) => {
         const payload = { variant_id: variantId, quantity }
         if (price !== null) payload.price = price
 
-        await API.post(`api/${getCartEndpoint()}`, payload, {
+        const res = await API.post(`api/${getCartEndpoint()}`, payload, {
             headers: getHeaders()
         })
         await fetchCart()
+        // Trả về item vừa thêm (để caller có thể hiển thị remaining flash sale nếu có)
+        const added = cart.value
+            .filter(i => i.variant_id === variantId)
+            .sort((a, b) => b.id - a.id)[0]
+        return added || res.data
     } catch (err) {
         error.value = err.response?.data?.error || 'Không thể thêm vào giỏ hàng'
         throw err
@@ -122,6 +148,7 @@ export const useCart = () => {
         cart,
         isLoading,
         error,
+        syncSessionCartToUser,
         fetchCart,
         addToCart,
         updateQuantity,

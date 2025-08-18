@@ -10,12 +10,6 @@
             </div>
         </LazyLoader>
 
-        <LazyLoader @visible="loadTrending">
-            <div class="mt-3">
-                <Trending />
-            </div>
-        </LazyLoader>
-
         <LazyLoader @visible="loadCoupons">
             <div class="mt-3">
                 <div class="bg-white p-5 rounded-[5px]">
@@ -24,10 +18,20 @@
             </div>
         </LazyLoader>
 
+        <LazyLoader @visible="loadTrending">
+            <div class="mt-3">
+                <Trending />
+            </div>
+        </LazyLoader>
+
         <LazyLoader @visible="loadNewProducts">
             <div class="mt-3">
                 <NewProducts />
             </div>
+        </LazyLoader>
+
+        <LazyLoader @visible="loadBestSellers">
+            <BestSellers />
         </LazyLoader>
 
         <LazyLoader @visible="loadBanner">
@@ -70,6 +74,7 @@ import FeaturedBlogs from '../components/home/FeaturedBlogs.vue';
 import FlashSale from '../components/home/FlashSale.vue';
 import Trending from '../components/home/Trending.vue';
 import LazyLoader from '../components/common/LazyLoader.vue';
+import BestSellers from '../components/home/BestSellers.vue';
 import { useLazyLoading } from '../composable/useLazyLoading';
 
 useHead({
@@ -120,6 +125,12 @@ const loadCoupons = async () => {
 const loadNewProducts = async () => {
     if (!isComponentLoaded('newProducts')) {
         await loadComponentData('newProducts', async () => {
+        })
+    }
+}
+const loadBestSellers = async () => {
+    if (!isComponentLoaded('bestSellers')) {
+        await loadComponentData('bestSellers', async () => {
         })
     }
 }

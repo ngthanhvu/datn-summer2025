@@ -485,6 +485,25 @@ export const useProducts = () => {
         }
     }
 
+    const getBestSellerProducts = async (limit = 10) => {
+        try {
+            const cacheKey = `bestseller_products_${limit}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
+            const response = await API.get('/api/products/bestsellers', {
+                params: { limit }
+            })
+            setCachedData(cacheKey, response.data)
+            return response.data
+        } catch (error) {
+            console.error('Error getting bestseller products:', error)
+            return []
+        }
+    }
+
     return {
         getProducts,
         getProductById,
@@ -505,5 +524,6 @@ export const useProducts = () => {
         getVariant,
         getNewProducts,
         getRecommendedProducts
+        , getBestSellerProducts
     }
 }

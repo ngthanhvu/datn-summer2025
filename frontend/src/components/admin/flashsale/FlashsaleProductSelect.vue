@@ -331,7 +331,6 @@ async function loadProducts() {
     try {
         const data = await getProducts()
 
-        // Kiểm tra cấu trúc dữ liệu trả về
         if (data && data.products && Array.isArray(data.products)) {
             allProducts.value = data.products.map(p => {
                 let img = '/default-product.png';
@@ -345,7 +344,6 @@ async function loadProducts() {
                 }
             })
         } else if (Array.isArray(data)) {
-            // Nếu data là array trực tiếp
             allProducts.value = data.map(p => {
                 let img = '/default-product.png';
                 if (p.images && Array.isArray(p.images) && p.images.length > 0) {
@@ -371,10 +369,8 @@ async function loadProducts() {
 onMounted(async () => {
     await loadProducts()
 
-    // Kiểm tra xem có phải đang edit flash sale không
     const flashSaleId = route.query.flashSaleId
     if (flashSaleId) {
-        // Nếu có flashSaleId trong query, load sản phẩm từ localStorage hoặc API
         const savedProducts = localStorage.getItem(`flashsale_edit_${flashSaleId}`)
         if (savedProducts) {
             try {
@@ -434,16 +430,13 @@ function remove(idx) {
     const removed = selectedProducts.value.splice(idx, 1)
 }
 function apply() {
-    // Lưu danh sách sản phẩm đã chọn vào localStorage
     localStorage.setItem('flashsale_selected_products', JSON.stringify(selectedProducts.value))
 
-    // Nếu đang edit, lưu thêm vào localStorage với key riêng
     const flashSaleId = route.query.flashSaleId
     if (flashSaleId) {
         localStorage.setItem(`flashsale_edit_${flashSaleId}`, JSON.stringify(selectedProducts.value))
     }
 
-    // Quay lại trang form flash sale
     if (flashSaleId) {
         router.push(`/admin/flashsale/${flashSaleId}/edit`)
     } else {

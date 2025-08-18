@@ -310,7 +310,7 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Phí vận chuyển</span>
-                            <span>{{ formatPrice(currentOrder.shipping_fee || 0) }}</span>
+                            <span>{{ formatPrice(calculateShipping(currentOrder)) }}</span>
                         </div>
                         <div v-if="currentOrder.discount_price > 0" class="flex justify-between">
                             <span class="text-gray-600">Giảm giá</span>
@@ -603,6 +603,14 @@ const getReturnDateLabel = (status) => {
         case 'rejected': return 'Ngày từ chối'
         default: return 'Ngày cập nhật'
     }
+}
+
+const calculateShipping = (order) => {
+    if (!order) return 0
+    const subtotal = Number(order.total_price) || 0
+    const total = Number(order.final_price) || 0
+    const shipping = total - subtotal
+    return shipping > 0 ? shipping : 0
 }
 </script>
 

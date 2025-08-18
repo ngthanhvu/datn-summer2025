@@ -106,7 +106,7 @@
                             </div>
                             <div class="flex justify-between text-red-600">
                                 <span>Phí vận chuyển</span>
-                                <span>-{{ formatPrice(currentOrder?.shipping_fee || 0) }}</span>
+                                <span>-{{ formatPrice(calculateShipping(currentOrder)) }}</span>
                             </div>
                             <div v-if="currentOrder?.discount_price > 0" class="flex justify-between text-red-600">
                                 <span>Giảm giá</span>
@@ -483,6 +483,14 @@ const handleApproveReturn = async () => {
 onMounted(async () => {
     await getOrder(props.orderId)
 })
+
+const calculateShipping = (order) => {
+    if (!order) return 0
+    const subtotal = Number(order.total_price) || 0
+    const total = Number(order.final_price) || 0
+    const shipping = total - subtotal
+    return shipping > 0 ? shipping : 0
+}
 </script>
 
 <style scoped>
