@@ -158,6 +158,10 @@ const fetchAddresses = async () => {
             }))
             if (selectedAddress.value === null && addresses.value.length > 0) {
                 selectedAddress.value = 0
+                await nextTick()
+                if (orderSummaryRef.value) {
+                    orderSummaryRef.value.forceShippingCalculation()
+                }
             }
         } else {
             addresses.value = []
