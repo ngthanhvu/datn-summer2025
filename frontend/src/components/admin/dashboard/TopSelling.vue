@@ -66,7 +66,6 @@ async function fetchTopSelling() {
     try {
         const data = await getTopSelling({ limit: 5 })
         if (data.success) {
-            // Giả lập nhiều màu nếu có, backend trả về color là string hoặc mảng
             products.value = data.data.map(p => ({
                 ...p,
                 colors: Array.isArray(p.colors) ? p.colors : (p.color ? [p.color] : [])

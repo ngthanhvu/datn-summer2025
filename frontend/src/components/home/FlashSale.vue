@@ -258,8 +258,7 @@ function updateTabData() {
       flash_price: Number(p.flash_price) || 0, // Convert to number
       sold: p.sold ?? 0,
       end_time: fs.end_time,
-      flash_sale_quantity: Number(p.quantity) || 0, // Convert to number
-      // Đảm bảo giữ nguyên cấu trúc images từ product
+      flash_sale_quantity: Number(p.quantity) || 0, 
       images: p.product?.images || [],
       variants: p.product?.variants || [],
       brand: p.product?.brand,
@@ -297,21 +296,17 @@ function scrollRight() {
 function addToCart(product) {
 }
 function onQuickView(product) {
-  // Debug để xem cấu trúc data
   console.log('Product data for Quick-view:', product)
   console.log('Product images:', product.images)
 
-  // Đảm bảo truyền đúng cấu trúc data cho Quick-view
   selectedProduct.value = {
     ...product,
-    // Đảm bảo có đủ các trường cần thiết
     images: product.images || [],
     variants: product.variants || [],
     brand: product.brand,
     category: product.category,
     sku: product.sku,
     slug: product.slug,
-    // Flash sale data - convert to number
     flash_price: Number(product.flash_price) || 0,
     flash_sale_quantity: Number(product.flash_sale_quantity) || 0
   }
@@ -345,15 +340,21 @@ function stopAutoIncrease() {
 onMounted(async () => {
   try {
     const data = await getFlashSales()
-    flashSales.value = Array.isArray(data) ? data : []
-
-    const activeIdx = flashSales.value.findIndex(fs => {
-      const now = new Date()
+    const all = Array.isArray(data) ? data : []
+    const now = new Date()
+    flashSales.value = all.filter(fs => {
       const start = new Date(fs.start_time)
       const end = new Date(fs.end_time)
-      return fs.active && start <= now && end >= now
+      return !!fs.active && start <= now && end >= now
     })
-    selectedIndex.value = activeIdx !== -1 ? activeIdx : 0
+
+    if (flashSales.value.length === 0) {
+      flashSaleProducts.value = []
+      emit('has-flash-sale', false)
+      return
+    }
+
+    selectedIndex.value = 0
 
     updateTabData()
     emit('has-flash-sale', flashSaleProducts.value.length > 0)

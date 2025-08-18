@@ -74,6 +74,16 @@
                             </td>
                             <td class="px-4 py-2 flex justify-center items-center">
                                 <div class="flex gap-2">
+                                    <button
+                                        class="inline-flex items-center p-1.5 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150"
+                                        @click="toggleStatus(item)" :title="item.active ? 'Tắt chiến dịch' : 'Bật chiến dịch'">
+                                        <svg v-if="item.active" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+                                        </svg>
+                                        <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6" />
+                                        </svg>
+                                    </button>
                                     <router-link :to="`/admin/flashsale/${item.id}/edit`"
                                         class="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-150"
                                         title="Sửa">

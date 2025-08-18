@@ -154,6 +154,7 @@ Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
 Route::get('/products/search', [ProductsController::class, 'search']);
 Route::get('/products/filter-options', [ProductsController::class, 'getFilterOptions']);
 Route::get('/products', [ProductsController::class, 'index']);
+Route::get('/products/bestsellers', [ProductsController::class, 'bestsellers']);
 Route::post('/products', [ProductsController::class, 'store']);
 Route::put('/products/{id}', [ProductsController::class, 'update']);
 Route::get('/products/recommend', [ProductsController::class, 'recommend']);

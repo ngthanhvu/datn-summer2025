@@ -296,19 +296,22 @@ onMounted(async () => {
   try {
     loading.value = true
     const data = await getFlashSales()
-    flashSales.value = Array.isArray(data) ? data : []
-    // Chọn tab đầu tiên là flash sale đang active, nếu không có thì lấy đầu tiên
-    let idx = 0
-    if (flashSales.value.length > 0) {
-      const activeIdx = flashSales.value.findIndex(fs => {
-        const now = new Date()
-        const start = new Date(fs.start_time)
-        const end = new Date(fs.end_time)
-        return fs.active && start <= now && end >= now
-      })
-      idx = activeIdx !== -1 ? activeIdx : 0
+    const all = Array.isArray(data) ? data : []
+    const now = new Date()
+    // Chỉ giữ các campaign đang bật và còn trong khung giờ
+    flashSales.value = all.filter(fs => {
+      const start = new Date(fs.start_time)
+      const end = new Date(fs.end_time)
+      return !!fs.active && start <= now && end >= now
+    })
+
+    if (flashSales.value.length === 0) {
+      flashSaleProducts.value = []
+      loading.value = false
+      return
     }
-    selectedIndex.value = idx
+
+    selectedIndex.value = 0
     updateTabData()
     // Bắt đầu auto increase cho flash sale đang active
     startAutoIncrease()
