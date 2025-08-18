@@ -334,21 +334,34 @@ const handleAddToCart = async () => {
             return
         }
 
-        if (quantity.value > selectedVariant.stock) {
-            push.warning('Số lượng vượt quá số lượng trong kho')
+        let maxAvailable = Number(selectedVariantStock.value || 0)
+        if (flashSalePrice.value && Number(flashSalePrice.value) > 0) {
+            const fsRemain = Number(flashSaleQuantity.value || 0)
+            if (fsRemain <= 0) {
+                push.warning('Sản phẩm Flash Sale đã hết hàng')
+                return
+            }
+            maxAvailable = Math.min(maxAvailable, fsRemain)
+        }
+        if (quantity.value > maxAvailable) {
+            push.warning(`Số lượng vượt quá cho phép. Tối đa còn lại: ${maxAvailable}`)
             return
         }
 
         let price = selectedVariant.price
-        if (flashSalePrice.value && product.value.price) {
-            const percent = Math.round(100 - (flashSalePrice.value / product.value.price) * 100)
+        if (flashSalePrice.value && Number(flashSalePrice.value) > 0 && product.value?.price) {
+            const percent = Math.round(100 - (Number(flashSalePrice.value) / Number(product.value.price)) * 100)
             if (percent > 0) {
                 price = Math.round(selectedVariant.price * (1 - percent / 100))
             }
         }
 
-        await addToCart(selectedVariant.id, quantity.value, price)
-        push.success('Đã thêm vào giỏ hàng')
+        const added = await addToCart(selectedVariant.id, quantity.value, price)
+        if (added?.flash_sale && typeof added.flash_sale.remaining === 'number') {
+            push.success(`Đã thêm vào giỏ hàng. Flash Sale còn lại: ${added.flash_sale.remaining}`)
+        } else {
+            push.success('Đã thêm vào giỏ hàng')
+        }
     } catch (error) {
         console.error('Lỗi khi thêm vào giỏ hàng:', error)
         push.error('Có lỗi xảy ra khi thêm vào giỏ hàng')

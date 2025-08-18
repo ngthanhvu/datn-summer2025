@@ -81,10 +81,15 @@ const addToCart = async (variantId, quantity = 1, price = null) => {
         const payload = { variant_id: variantId, quantity }
         if (price !== null) payload.price = price
 
-        await API.post(`api/${getCartEndpoint()}`, payload, {
+        const res = await API.post(`api/${getCartEndpoint()}`, payload, {
             headers: getHeaders()
         })
         await fetchCart()
+        // Trả về item vừa thêm (để caller có thể hiển thị remaining flash sale nếu có)
+        const added = cart.value
+            .filter(i => i.variant_id === variantId)
+            .sort((a, b) => b.id - a.id)[0]
+        return added || res.data
     } catch (err) {
         error.value = err.response?.data?.error || 'Không thể thêm vào giỏ hàng'
         throw err

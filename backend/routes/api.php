@@ -233,9 +233,13 @@ Route::delete('/stock-movement/{id}', [StockMovementController::class, 'destroy'
 
 Route::get('flash-sales', [FlashSaleController::class, 'index']);
 Route::post('flash-sales', [FlashSaleController::class, 'store']);
-Route::put('flash-sales/{id}', [FlashSaleController::class, 'update']);
-Route::delete('flash-sales/{id}', [FlashSaleController::class, 'destroy']);
-Route::get('flash-sales/{id}', [FlashSaleController::class, 'show']);
+// Specific routes must come before parameterized routes to avoid conflicts
+Route::get('flash-sales/statistics', [FlashSaleController::class, 'statistics']);
+Route::get('flash-sales/{id}/statistics', [FlashSaleController::class, 'statistics'])->whereNumber('id');
+Route::patch('flash-sales/{id}/status', [FlashSaleController::class, 'updateStatus'])->whereNumber('id');
+Route::put('flash-sales/{id}', [FlashSaleController::class, 'update'])->whereNumber('id');
+Route::delete('flash-sales/{id}', [FlashSaleController::class, 'destroy'])->whereNumber('id');
+Route::get('flash-sales/{id}', [FlashSaleController::class, 'show'])->whereNumber('id');
 
 // Contact
 Route::get('/contacts', [ContactController::class, 'index']);

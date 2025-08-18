@@ -35,13 +35,9 @@
                             <span v-if="item.variant?.size">Size: {{ item.variant.size }}</span>
                             <span v-if="item.variant?.color"> | Màu: {{ item.variant.color }}</span>
                         </p>
-                        <p class="text-sm text-gray-500 mb-1">
-                            <span v-if="item.flash_sale && typeof item.flash_sale.remaining === 'number'">
-                                Còn lại: {{ Math.min(item.variant?.inventory?.quantity || 0, item.flash_sale.remaining) }} sản phẩm
-                            </span>
-                            <span v-else>
-                                Còn lại: {{ item.variant?.inventory?.quantity ?? item.variant?.stock ?? 0 }} sản phẩm
-                            </span>
+                        <p v-if="item.flash_sale && typeof item.flash_sale.remaining === 'number'"
+                            class="text-sm text-gray-500 mb-1">
+                            Còn lại: {{ item.flash_sale.remaining }} sản phẩm
                         </p>
                         <div class="flex justify-between items-center">
                             <div class="flex items-center gap-2">

@@ -48,28 +48,33 @@ class CartController extends Controller
             foreach ($carts as $cart) {
                 $product = $cart->variant->product ?? null;
                 if (!$product) continue;
-                $flashSale = FlashSale::whereHas('products', function ($q) use ($product) {
-                    $q->where('product_id', $product->id);
-                })
+                $flashSales = FlashSale::with('products')
+                    ->whereHas('products', function ($q) use ($product) {
+                        $q->where('product_id', $product->id);
+                    })
                     ->where('active', true)
                     ->where('start_time', '<=', now())
                     ->where('end_time', '>=', now())
-                    ->first();
-                if ($flashSale) {
-                    $fsp = $flashSale->products->firstWhere('product_id', $product->id);
-                    if ($fsp) {
-                        $flashPrice = (int) $fsp->flash_price;
-                        $remaining = (int) $fsp->quantity; // quantity là tồn còn lại thực tế
-                        // Chỉ gắn nhãn flash sale cho item nếu giá của item == giá flash (hoặc thấp hơn)
-                        if ((int) $cart->price <= $flashPrice) {
-                            $cart->setAttribute('flash_sale', [
-                                'id' => $flashSale->id,
-                                'name' => $flashSale->name,
-                                'flash_price' => $flashPrice,
-                                'remaining' => $remaining,
-                                'end_time' => $flashSale->end_time,
-                            ]);
-                        }
+                    ->get();
+                foreach ($flashSales as $fs) {
+                    $fsp = $fs->products->firstWhere('product_id', $product->id);
+                    if (!$fsp) continue;
+                    $campaignFlashPrice = (int) $fsp->flash_price;
+                    $remaining = (int) $fsp->quantity;
+                    $productBasePrice = (int) ($product->price ?? 0);
+                    $variantBasePrice = (int) ($cart->variant->price ?? 0);
+                    if ($productBasePrice <= 0 || $variantBasePrice <= 0) continue;
+                    $ratio = $campaignFlashPrice / $productBasePrice;
+                    $expectedVariantFlashPrice = (int) round($variantBasePrice * $ratio);
+                    if (abs(((int) $cart->price) - $expectedVariantFlashPrice) <= 1 || (int) $cart->price === $campaignFlashPrice) {
+                        $cart->setAttribute('flash_sale', [
+                            'id' => $fs->id,
+                            'name' => $fs->name,
+                            'flash_price' => $campaignFlashPrice,
+                            'remaining' => $remaining,
+                            'end_time' => $fs->end_time,
+                        ]);
+                        break;
                     }
                 }
             }
@@ -87,7 +92,7 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $variant = Variants::with('inventory')->findOrFail($request->variant_id);
+        $variant = Variants::with(['inventory', 'product'])->findOrFail($request->variant_id);
 
         if (!$variant->inventory) {
             return response()->json(['error' => 'Không thể xác định số lượng tồn kho'], 422);
@@ -101,6 +106,37 @@ class CartController extends Controller
         }
 
         $price = $request->has('price') ? $request->price : $variant->price;
+
+        // Nếu là hàng Flash Sale (giá đúng bằng flash_price) thì kiểm tra thêm quota sale
+        $product = $variant->product;
+        if ($product) {
+            $flashSales = FlashSale::with('products')
+                ->whereHas('products', function ($q) use ($product) {
+                    $q->where('product_id', $product->id);
+                })
+                ->where('active', true)
+                ->where('start_time', '<=', now())
+                ->where('end_time', '>=', now())
+                ->get();
+            foreach ($flashSales as $fs) {
+                $fsp = $fs->products->firstWhere('product_id', $product->id);
+                if (!$fsp) continue;
+                $productBasePrice = (int) ($product->price ?? 0);
+                $variantBasePrice = (int) ($variant->price ?? 0);
+                if ($productBasePrice <= 0 || $variantBasePrice <= 0) continue;
+                $ratio = ((int) $fsp->flash_price) / $productBasePrice;
+                $expectedVariantFlashPrice = (int) round($variantBasePrice * $ratio);
+                if ((int) $price === $expectedVariantFlashPrice) {
+                    if ($request->quantity > (int) $fsp->quantity) {
+                        return response()->json([
+                            'error' => 'Số lượng vượt quá số lượng Flash Sale còn lại',
+                            'available_quantity' => (int) $fsp->quantity
+                        ], 422);
+                    }
+                    break;
+                }
+            }
+        }
 
         $data = [
             'variant_id' => $variant->id,
@@ -165,7 +201,7 @@ class CartController extends Controller
         $request->validate(['quantity' => 'required|integer|min:1']);
 
         $item = Cart::findOrFail($id);
-        $variant = Variants::with('inventory')->findOrFail($item->variant_id);
+        $variant = Variants::with(['inventory', 'product'])->findOrFail($item->variant_id);
 
         if (Auth::check() && $item->user_id !== Auth::id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -180,6 +216,37 @@ class CartController extends Controller
                 'error' => 'Số lượng vượt quá tồn kho',
                 'available_quantity' => $variant->inventory->quantity
             ], 422);
+        }
+
+        // Kiểm tra quota Flash Sale nếu item có giá đúng bằng flash_price
+        $product = $variant->product;
+        if ($product) {
+            $flashSales = FlashSale::with('products')
+                ->whereHas('products', function ($q) use ($product) {
+                    $q->where('product_id', $product->id);
+                })
+                ->where('active', true)
+                ->where('start_time', '<=', now())
+                ->where('end_time', '>=', now())
+                ->get();
+            foreach ($flashSales as $fs) {
+                $fsp = $fs->products->firstWhere('product_id', $product->id);
+                if (!$fsp) continue;
+                $productBasePrice = (int) ($product->price ?? 0);
+                $variantBasePrice = (int) ($variant->price ?? 0);
+                if ($productBasePrice <= 0 || $variantBasePrice <= 0) continue;
+                $ratio = ((int) $fsp->flash_price) / $productBasePrice;
+                $expectedVariantFlashPrice = (int) round($variantBasePrice * $ratio);
+                if ((int) $item->price === $expectedVariantFlashPrice) {
+                    if ($request->quantity > (int) $fsp->quantity) {
+                        return response()->json([
+                            'error' => 'Số lượng vượt quá số lượng Flash Sale còn lại',
+                            'available_quantity' => (int) $fsp->quantity
+                        ], 422);
+                    }
+                    break;
+                }
+            }
         }
 
         $item->quantity = $request->quantity;

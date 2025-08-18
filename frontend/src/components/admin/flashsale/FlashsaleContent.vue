@@ -37,6 +37,8 @@
                             <th class="px-4 py-3">Tên chiến dịch</th>
                             <th class="px-4 py-3">Sản phẩm</th>
                             <th class="px-4 py-3">Thời gian</th>
+                            <th class="px-4 py-3 text-center">Đã bán (thật)</th>
+                            <th class="px-4 py-3 text-center">Doanh thu (thật)</th>
                             <th class="px-4 py-3 text-center">Trạng thái</th>
                             <th class="px-4 py-3">Lặp lại</th>
                             <th class="px-4 py-3">Thao tác</th>
@@ -55,10 +57,14 @@
                                 <span v-else>Không có sản phẩm</span>
                             </td>
                             <td class="px-4 py-2 text-center">{{ item.start_time }} ~ {{ item.end_time }}</td>
+                            <td class="px-4 py-2 text-center">{{ getSoldReal(item) }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0) }}</td>
                             <td class="px-4 py-2 text-center">
-                                <span :class="getStatusBadgeClass(item.active)">
-                                    {{ getStatusText(item.active) }}
-                                </span>
+                                <button class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                                    :class="item.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
+                                    @click="toggleStatus(item)">
+                                    {{ item.active ? 'Đang hoạt động' : 'Đang ẩn' }}
+                                </button>
                             </td>
                             <td class="px-4 py-2 text-center">
                                 <span v-if="item.repeat"
@@ -186,13 +192,24 @@ import { ref, onMounted, computed } from 'vue'
 import { useFlashsale } from '../../../composable/useFlashsale'
 import { push } from 'notivue'
 
-const { getFlashSales, deleteFlashSale } = useFlashsale()
+const { getFlashSales, deleteFlashSale, getFlashSaleStatistics, toggleFlashSaleStatus } = useFlashsale()
 const flashSales = ref([])
 const loading = ref(false)
 const error = ref('')
 const deleteLoading = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 10
+const realStats = ref({})
+
+function getSoldReal(item) {
+    return realStats.value[item.id]?.sold_real ?? 0
+}
+
+function getFlashRevenue(item) {
+    const sold = getSoldReal(item)
+    const flashPrice = Number((item.products?.[0]?.flash_price) || 0)
+    return sold * (flashPrice || 0)
+}
 
 // Pagination computed properties
 const totalPages = computed(() => Math.ceil(flashSales.value.length / itemsPerPage))
@@ -215,6 +232,11 @@ async function fetchFlashSales() {
     try {
         const data = await getFlashSales()
         flashSales.value = Array.isArray(data) ? data : []
+        // Tải thống kê thật
+        const stats = await getFlashSaleStatistics()
+        const mapping = {}
+        ;(Array.isArray(stats) ? stats : []).forEach(s => { mapping[s.id] = s })
+        realStats.value = mapping
     } catch (e) {
         error.value = e.message || 'Lỗi tải dữ liệu flash sale'
         flashSales.value = []
@@ -250,6 +272,19 @@ const getStatusBadgeClass = (active) => {
 const getStatusText = (active) => {
     return active ? 'Đang diễn ra' : 'Kết thúc'
 }
+
+const toggleStatus = async (item) => {
+    try {
+        const next = !item.active
+        await toggleFlashSaleStatus(item.id, next)
+        item.active = next
+        push.success(next ? 'Đã bật chiến dịch' : 'Đã ẩn chiến dịch')
+    } catch (e) {
+        push.error('Không thể cập nhật trạng thái')
+    }
+}
+
+const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
 </script>
 
 <style scoped>
