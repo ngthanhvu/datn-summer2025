@@ -38,7 +38,7 @@
                             <th class="px-4 py-3">Sản phẩm</th>
                             <th class="px-4 py-3">Thời gian</th>
                             <th class="px-4 py-3 text-center">Đã bán (thật)</th>
-                            <th class="px-4 py-3 text-center">Doanh thu (thật)</th>
+                            <th class="px-4 py-3 text-center">Lợi nhuận (thật)</th>
                             <th class="px-4 py-3 text-center">Trạng thái</th>
                             <th class="px-4 py-3">Lặp lại</th>
                             <th class="px-4 py-3">Thao tác</th>

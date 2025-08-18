@@ -178,11 +178,17 @@ class OrdersController extends Controller
             'items.*.price' => 'required|integer|min:0',
             'note' => 'nullable|string',
             'total_price' => 'required|integer|min:0',
-            'shipping_fee' => 'required|integer|min:0',
+            'shipping_fee' => 'required|integer|min:1',
             'discount_price' => 'required|integer|min:0',
             'final_price' => 'required|integer|min:0',
             'user_id' => 'nullable|exists:users,id',
         ]);
+
+        if (($validated['shipping_fee'] ?? 0) <= 0) {
+            return response()->json([
+                'message' => 'Vui lòng tính phí vận chuyển trước khi thanh toán',
+            ], 422);
+        }
 
         if ($validated['payment_method'] === 'cod') {
             DB::beginTransaction();
@@ -200,7 +206,6 @@ class OrdersController extends Controller
                         ? $variant->discount_price
                         : ($variant ? $variant->price : $item['price']);
 
-                    // Nếu là sản phẩm Flash Sale, sử dụng đúng giá sale và đánh dấu note
                     if ($variant && $variant->product) {
                         $activeFlashSale = FlashSale::whereHas('products', function ($q) use ($variant) {
                             $q->where('product_id', $variant->product_id);
@@ -238,7 +243,6 @@ class OrdersController extends Controller
                         }
                         $inventory->quantity -= $item['quantity'];
                         $inventory->save();
-                        // Tăng sold_count cho sản phẩm
                         if ($variant && $variant->product_id) {
                             Products::where('id', $variant->product_id)->increment('sold_count', $item['quantity']);
                         }
@@ -246,7 +250,6 @@ class OrdersController extends Controller
                         throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                     }
 
-                    // Trừ số lượng Flash Sale thực tế nếu đơn giá nằm trong mức flash và chiến dịch đang hoạt động
                     self::applyFlashSaleDeduction($item['variant_id'], (int)$item['price'], (int)$item['quantity']);
                 }
                 if ($hasFlashSale) {
@@ -501,7 +504,6 @@ class OrdersController extends Controller
                     ? $variant->discount_price
                     : ($variant ? $variant->price : $item['price']);
 
-                // Nếu là sản phẩm Flash Sale, sử dụng đúng giá sale và đánh dấu note
                 if ($variant) {
                     $activeFlashSale = FlashSale::whereHas('products', function ($q) use ($variant) {
                         $q->where('product_id', $variant->product_id);
@@ -541,15 +543,12 @@ class OrdersController extends Controller
                     }
                     $inventory->quantity -= $item['quantity'];
                     $inventory->save();
-                    // Tăng sold_count cho sản phẩm
                     if ($variant && $variant->product_id) {
                         Products::where('id', $variant->product_id)->increment('sold_count', $item['quantity']);
                     }
                 } else {
                     throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                 }
-
-                // Trừ số lượng Flash Sale thực tế nếu đơn giá nằm trong mức flash và chiến dịch đang hoạt động
                 self::applyFlashSaleDeduction($item['variant_id'], (int)$item['price'], (int)$item['quantity']);
             }
 

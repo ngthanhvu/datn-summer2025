@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export function useFlashsale() {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // ✅ Dùng biến môi trường Vite
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; 
 
     const getFlashSales = async () => {
         const res = await axios.get(`${API_BASE_URL}/api/flash-sales`);

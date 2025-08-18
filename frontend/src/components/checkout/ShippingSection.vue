@@ -94,7 +94,6 @@ const handleShippingCalculation = async () => {
     return;
   }
 
-  // Emit loading state khi bắt đầu tính toán
   emit('shipping-calculated', { loading: true });
 
   const result = await calculateGHNShipping(props.selectedAddress, props.cartItems);

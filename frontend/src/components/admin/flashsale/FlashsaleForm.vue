@@ -298,7 +298,6 @@ const router = useRouter()
 function goToSelectProducts() {
     localStorage.setItem('flashsale_form_data', JSON.stringify(form.value));
 
-    // Lưu sản phẩm hiện tại vào localStorage nếu đang edit
     if (props.editData && props.editData.id) {
         localStorage.setItem(`flashsale_edit_${props.editData.id}`, JSON.stringify(products.value))
         router.push(`/admin/flashsale/select?flashSaleId=${props.editData.id}`)
@@ -437,7 +436,6 @@ async function submit() {
             setTimeout(() => router.push('/admin/flashsale'), 1000)
         }
         success.value = 'Lưu flash sale thành công'
-        // Xóa dữ liệu form tạm sau khi submit thành công
         localStorage.removeItem('flashsale_form_data');
     } catch (e) {
         const apiMsg = e?.response?.data?.error

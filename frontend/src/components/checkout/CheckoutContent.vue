@@ -35,6 +35,7 @@ const cartItems = ref([])
 const shipping = ref(0)
 const shippingZone = ref('')
 const shippingLoading = ref(false)
+const shippingCalculated = ref(false)
 const discount = ref(0)
 const appliedCoupon = ref(null)
 const orderSummaryRef = ref(null)
@@ -87,7 +88,6 @@ const saveAddress = async (address) => {
                 note: address.note
             })
             await fetchAddresses()
-            // Chọn địa chỉ mới làm địa chỉ giao hàng
             if (addresses.value.length > 0) {
                 selectedAddress.value = addresses.value.length - 1
                 await nextTick()
@@ -252,6 +252,7 @@ const handleShippingCalculated = (shippingData) => {
     if (shippingData.shippingFee) {
         shipping.value = shippingData.shippingFee?.total || 0;
         shippingZone.value = shippingData.zone || '';
+        shippingCalculated.value = true;
     }
 };
 
@@ -260,12 +261,14 @@ watch(() => selectedAddress.value, (newValue) => {
         shipping.value = 0;
         shippingZone.value = '';
         shippingLoading.value = false;
+        shippingCalculated.value = false;
     }
 });
 
 watch(() => currentSelectedAddress.value, (newAddress) => {
     if (!newAddress) {
         shippingLoading.value = false;
+        shippingCalculated.value = false;
     }
 });
 
@@ -312,6 +315,15 @@ const placeOrder = async () => {
             final_price: total.value,
             user_id: authService.user.value.id,
             shipping_zone: shippingZone.value
+        }
+
+        if (shippingLoading.value || !shippingCalculated.value) {
+            error.value = 'Vui lòng tính phí vận chuyển trước khi thanh toán';
+            if (orderSummaryRef.value) {
+                orderSummaryRef.value.forceShippingCalculation();
+            }
+            isPlacingOrder.value = false
+            return
         }
 
         const result = await checkoutService.createOrder(orderData)

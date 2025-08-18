@@ -43,7 +43,6 @@ class FlashSaleController extends Controller
         return response()->json($flashSales);
     }
 
-    // Thống kê bán thật và doanh thu thật theo toàn bộ hoặc theo id
     public function statistics($id = null)
     {
         $query = FlashSale::query();
@@ -53,22 +52,56 @@ class FlashSaleController extends Controller
         $stats = [];
         foreach ($flashSales as $fs) {
             $sold = 0; $revenue = 0;
-            foreach ($fs->products as $p) {
-                // Chỉ đếm các order item có đơn giá <= flash_price (tức là mua theo giá flash)
-                $row = DB::table('orders_details as od')
-                    ->join('orders as o', 'o.id', '=', 'od.order_id')
-                    ->join('variants as v', 'v.id', '=', 'od.variant_id')
-                    ->where('v.product_id', $p->product_id)
-                    ->whereBetween('o.created_at', [$fs->start_time, $fs->end_time])
-                    ->where(function ($q) {
-                        $q->where('o.payment_status', 'paid')
-                          ->orWhere('o.status', 'completed');
-                    })
-                    ->where('od.price', '<=', $p->flash_price)
-                    ->selectRaw('SUM(od.quantity) as qty, SUM(od.quantity * od.price) as rev')
-                    ->first();
-                $sold += (int)($row->qty ?? 0);
-                $revenue += (int)($row->rev ?? 0);
+
+            $lastImportIds = DB::table('stock_movement_items as smi')
+                ->join('stock_movements as sm', 'sm.id', '=', 'smi.stock_movement_id')
+                ->where('sm.type', 'import')
+                ->where('sm.created_at', '<=', $fs->end_time)
+                ->select(
+                    'smi.variant_id',
+                    DB::raw('MAX(smi.id) as last_smi_id')
+                )
+                ->groupBy('smi.variant_id');
+
+            $costSub = DB::table('stock_movement_items as last_smi')
+                ->joinSub($lastImportIds, 'latest', function ($join) {
+                    $join->on('latest.last_smi_id', '=', 'last_smi.id');
+                })
+                ->select('last_smi.variant_id', 'last_smi.unit_price as last_cost');
+
+            $lines = DB::table('orders_details as od')
+                ->join('orders as o', 'o.id', '=', 'od.order_id')
+                ->join('variants as v', 'v.id', '=', 'od.variant_id')
+                ->join('flash_sale_products as fsp', function ($join) use ($fs) {
+                    $join->on('fsp.product_id', '=', 'v.product_id')
+                         ->where('fsp.flash_sale_id', '=', $fs->id);
+                })
+                ->leftJoinSub($costSub, 'costs', function ($join) {
+                    $join->on('costs.variant_id', '=', 'v.id');
+                })
+                ->whereBetween('o.created_at', [$fs->start_time, $fs->end_time])
+                ->where(function ($q) {
+                    $q->where('o.payment_status', 'paid')
+                      ->orWhere('o.status', 'completed');
+                })
+                // Chỉ tính các dòng có đơn giá đúng bằng giá flash của chiến dịch này
+                ->whereColumn('od.price', '=', 'fsp.flash_price')
+                ->select(
+                    'o.id as order_id',
+                    'v.product_id',
+                    DB::raw('SUM(od.quantity) as qty'),
+                    DB::raw('SUM(od.quantity * od.price) as line_rev'),
+                    DB::raw('SUM(od.quantity * COALESCE(costs.last_cost, 0)) as line_cost')
+                )
+                ->groupBy('o.id', 'v.product_id')
+                ->get();
+
+            if ($lines->isNotEmpty()) {
+                foreach ($lines as $ln) {
+                    $sold += (int)($ln->qty ?? 0);
+                    $profit = (float)$ln->line_rev - (float)$ln->line_cost;
+                    $revenue += (int)round($profit);
+                }
             }
             $stats[] = [
                 'id' => $fs->id,
@@ -80,7 +113,6 @@ class FlashSaleController extends Controller
         return response()->json($id ? ($stats[0] ?? []) : $stats);
     }
 
-    // Bật/tắt chiến dịch
     public function updateStatus(Request $request, $id)
     {
         $request->validate(['active' => 'required|boolean']);
@@ -206,7 +238,6 @@ class FlashSaleController extends Controller
 
             $flashSale->products()->delete();
             $flashSale->update($data);
-            // Ghi lại danh sách sản phẩm sale (không tác động kho, quantity là áp cho MỖI size)
             foreach ($data['products'] as $prod) {
                 FlashSaleProduct::create([
                     'flash_sale_id' => $flashSale->id,
@@ -230,7 +261,6 @@ class FlashSaleController extends Controller
         DB::beginTransaction();
         try {
             $flashSale = FlashSale::with('products')->findOrFail($id);
-            // Không tác động xuất/nhập kho khi xóa campaign. Chỉ xóa cấu hình.
             $flashSale->products()->delete();
             $flashSale->delete();
             DB::commit();
