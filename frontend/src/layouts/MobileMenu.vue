@@ -130,7 +130,10 @@ const router = useRouter()
 // Computed properties
 const isLoggedIn = computed(() => !!authStore.user)
 const user = computed(() => authStore.user)
-const isAdmin = computed(() => authStore.user?.role === 'admin')
+// const isAdmin = computed(() => authStore.user?.role === 'admin')
+const isAdmin = computed(() => {
+    ['admin', 'master_admin'].includes(authStore.user?.role)
+})
 
 const close = () => {
     emit('close')

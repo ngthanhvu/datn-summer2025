@@ -530,7 +530,7 @@ class OrdersController extends Controller
     public function approveReturn($id)
     {
         $order = Orders::findOrFail($id);
-        if (Auth::user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
             return response()->json(['message' => 'Bạn không có quyền duyệt hoàn hàng'], 403);
         }
         if ($order->return_status !== 'requested') {
