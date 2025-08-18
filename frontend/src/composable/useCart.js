@@ -38,10 +38,31 @@ const generateSessionId = () => {
     return id
 }
 
+const syncSessionCartToUser = async () => {
+    try {
+        const token = getToken()
+        const sessionId = localStorage.getItem('sessionId')
+        if (!token || !sessionId) return
+        // Gọi API để chuyển toàn bộ giỏ hàng từ session sang user sau khi đăng nhập
+        await API.post('api/cart/transfer-session-to-user', {}, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'X-Session-Id': sessionId
+            }
+        })
+        // Xóa sessionId để tránh gọi lại nhiều lần
+        localStorage.removeItem('sessionId')
+    } catch (_) {
+        // Bỏ qua lỗi đồng bộ, không chặn luồng người dùng
+    }
+}
+
 const fetchCart = async () => {
     try {
         isLoading.value = true
         error.value = null
+        // Nếu đã đăng nhập và còn session giỏ hàng cũ thì hợp nhất trước
+        await syncSessionCartToUser()
         const res = await API.get(`api/${getCartEndpoint()}`, {
             headers: getHeaders()
         })
@@ -122,6 +143,7 @@ export const useCart = () => {
         cart,
         isLoading,
         error,
+        syncSessionCartToUser,
         fetchCart,
         addToCart,
         updateQuantity,

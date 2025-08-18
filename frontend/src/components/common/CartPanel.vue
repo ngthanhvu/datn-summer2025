@@ -36,7 +36,12 @@
                             <span v-if="item.variant?.color"> | Màu: {{ item.variant.color }}</span>
                         </p>
                         <p class="text-sm text-gray-500 mb-1">
-                            Còn lại: {{ item.variant?.inventory?.quantity ?? item.variant?.stock ?? 0 }} sản phẩm
+                            <span v-if="item.flash_sale && typeof item.flash_sale.remaining === 'number'">
+                                Còn lại: {{ Math.min(item.variant?.inventory?.quantity || 0, item.flash_sale.remaining) }} sản phẩm
+                            </span>
+                            <span v-else>
+                                Còn lại: {{ item.variant?.inventory?.quantity ?? item.variant?.stock ?? 0 }} sản phẩm
+                            </span>
                         </p>
                         <div class="flex justify-between items-center">
                             <div class="flex items-center gap-2">
@@ -47,7 +52,7 @@
                                 <button
                                     class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer"
                                     @click="handleIncrease(item.id)"
-                                    :disabled="item.quantity >= (item.variant?.inventory?.quantity || 0)">+</button>
+                                    :disabled="item.quantity >= getMaxAvailable(item)">+</button>
                             </div>
                             <span class="font-medium">{{ formatPrice(item.price) }}</span>
                         </div>
@@ -106,9 +111,18 @@ const formatPrice = (price) =>
         currency: 'VND'
     }).format(price)
 
+const getMaxAvailable = (item) => {
+    const inv = item?.variant?.inventory?.quantity ?? 0
+    const flashRemaining = item?.flash_sale?.remaining
+    if (typeof flashRemaining === 'number') {
+        return Math.min(inv, flashRemaining)
+    }
+    return inv
+}
+
 const handleIncrease = async (cartId) => {
     const item = cart.value.find(i => i.id === cartId)
-    if (item && item.quantity < (item.variant?.inventory?.quantity || 0)) {
+    if (item && item.quantity < getMaxAvailable(item)) {
         await increaseQuantity(cartId)
     }
 }
