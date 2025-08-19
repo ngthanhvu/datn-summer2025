@@ -10,17 +10,17 @@
             </div>
         </LazyLoader>
 
-        <LazyLoader @visible="loadTrending">
-            <div class="mt-3">
-                <Trending />
-            </div>
-        </LazyLoader>
-
         <LazyLoader @visible="loadCoupons">
             <div class="mt-3">
                 <div class="bg-white p-5 rounded-[5px]">
                     <CouponList />
                 </div>
+            </div>
+        </LazyLoader>
+
+        <LazyLoader @visible="loadTrending">
+            <div class="mt-3">
+                <Trending />
             </div>
         </LazyLoader>
 
