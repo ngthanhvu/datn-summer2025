@@ -3,7 +3,7 @@
         <SwiperSlider />
         <ServiceFeatures />
         <CategoriesList />
-        
+
         <LazyLoader @visible="loadCoupons">
             <div class="mt-3">
                 <div class="bg-white p-5 rounded-[5px]">
@@ -16,7 +16,6 @@
                 <FlashSale @has-flash-sale="handleFlashSaleStatus" />
             </div>
         </LazyLoader>
-        <RecentlyViewed />
 
         <LazyLoader @visible="loadTrending">
             <div class="mt-3">
@@ -33,7 +32,7 @@
         <LazyLoader @visible="loadBestSellers">
             <BestSellers />
         </LazyLoader>
-        
+
         <LazyLoader @visible="loadBanner">
             <div class="mt-3">
                 <Banner />
@@ -46,6 +45,10 @@
 
         <LazyLoader @visible="loadHotBrands">
             <HotBrands />
+        </LazyLoader>
+
+        <LazyLoader @visible="loadRecentlyViewed">
+            <RecentlyViewed />
         </LazyLoader>
 
         <LazyLoader @visible="loadReviewLatest">
@@ -99,7 +102,7 @@ const {
     data,
     loadComponentData,
     isComponentLoaded,
-    isComponentLoading
+    isComponentLoading,
 } = useLazyLoading()
 
 const loadFlashSale = async () => {
@@ -167,6 +170,13 @@ const loadReviewLatest = async () => {
 const loadFeaturedBlogs = async () => {
     if (!isComponentLoaded('featuredBlogs')) {
         await loadComponentData('featuredBlogs', async () => {
+        })
+    }
+}
+
+const loadRecentlyViewed = async () => {
+    if (!isComponentLoaded('recentlyViewed')) {
+        await loadComponentData('recentlyViewed', async () => {
         })
     }
 }

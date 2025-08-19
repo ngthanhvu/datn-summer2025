@@ -29,8 +29,8 @@
                     :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName"
                     :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime"
                     :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
-                    :flash-sale-percent="flashSalePercent" :product-inventory="productInventory"
-                    :is-adding-to-cart="isAddingToCart" @variant-change="$emit('variantChange', $event)"
+                    :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
+                    @variant-change="$emit('variantChange', $event)"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
@@ -218,10 +218,6 @@ const props = defineProps({
         default: 0
     },
     flashSaleQuantity: {
-        type: Number,
-        default: 0
-    },
-    flashSalePercent: {
         type: Number,
         default: 0
     },

@@ -5,17 +5,18 @@
             :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
             :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice"
             :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold"
-            :flash-sale-quantity="flashSaleQuantity" :flash-sale-percent="flashSalePercent" :review-stats="reviewStats"
-            :show-review-form="showReviewForm" :is-authenticated="isAuthenticated" :user-has-reviewed="userHasReviewed"
-            :user-review="userReview" :review-form="reviewForm" :editing-review-id="editingReviewId"
-            :is-submitting="isSubmitting" :preview-images="previewImages" :reviews-loading="reviewsLoading"
-            :reviews="reviews" :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
+            :flash-sale-quantity="flashSaleQuantity" :review-stats="reviewStats" :show-review-form="showReviewForm"
+            :is-authenticated="isAuthenticated" :user-has-reviewed="userHasReviewed" :user-review="userReview"
+            :review-form="reviewForm" :editing-review-id="editingReviewId" :is-submitting="isSubmitting"
+            :preview-images="previewImages" :reviews-loading="reviewsLoading" :reviews="reviews"
+            :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
             :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
             :user="user" :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
             @update:selectedSize="val => selectedSize = val" @update:selectedColor="val => selectedColor = val"
-            v-model:activeTab="activeTab" @submitReview="submitReview" @update:showReviewForm="val => showReviewForm = val"
-            @update:reviewForm="val => reviewForm = val" @removeImage="removeImage" @handleImageUpload="handleImageUpload"
-            @add-to-cart="handleAddToCart" @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
+            v-model:activeTab="activeTab" @submitReview="submitReview"
+            @update:showReviewForm="val => showReviewForm = val" @update:reviewForm="val => reviewForm = val"
+            @removeImage="removeImage" @handleImageUpload="handleImageUpload" @add-to-cart="handleAddToCart"
+            @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
             @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts"
             @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
         <div class="max-w-7xl mx-auto">
@@ -72,7 +73,6 @@ const flashSalePrice = ref(0)
 const flashSaleEndTime = ref('')
 const flashSaleSold = ref(0)
 const flashSaleQuantity = ref(0)
-const flashSalePercent = ref(0)
 
 const activeTab = ref('description')
 

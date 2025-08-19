@@ -1,4 +1,4 @@
-import axios from 'axios'
+import { ref } from 'vue'
 import { useAuth } from './useAuth'
 import api from '../utils/api'
 
@@ -6,7 +6,10 @@ export const useReviews = () => {
     const { getToken } = useAuth()
 
     // Sử dụng instance axios chung từ utility
-    const API = api
+    const API = api;
+    const reviews = ref([]);
+    const loading = ref(false);
+    const error = ref(null);
 
     const getReviewsByProductSlug = async (productSlug, page = 1, perPage = 3, userId = null) => {
         try {
@@ -135,11 +138,26 @@ export const useReviews = () => {
         }
     }
 
+    const fetchLatestReview = async () => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const response = await API.get('/api/reviews/latest');
+            reviews.value = response.data;
+            return reviews.value;
+        } catch (err) {
+            error.value = err;
+        } finally {
+            loading.value = false;
+        }
+    };
+
     return {
         getReviewsByProductSlug,
         addReview,
         updateReview,
         deleteReview,
-        checkUserReview
+        checkUserReview,
+        fetchLatestReview
     }
 }
