@@ -3,13 +3,7 @@
         <SwiperSlider />
         <ServiceFeatures />
         <CategoriesList />
-
-        <LazyLoader @visible="loadFlashSale">
-            <div class="mt-3" v-if="showFlashSale">
-                <FlashSale @has-flash-sale="handleFlashSaleStatus" />
-            </div>
-        </LazyLoader>
-
+        
         <LazyLoader @visible="loadCoupons">
             <div class="mt-3">
                 <div class="bg-white p-5 rounded-[5px]">
@@ -17,6 +11,12 @@
                 </div>
             </div>
         </LazyLoader>
+        <LazyLoader @visible="loadFlashSale">
+            <div class="mt-3" v-if="showFlashSale">
+                <FlashSale @has-flash-sale="handleFlashSaleStatus" />
+            </div>
+        </LazyLoader>
+        <RecentlyViewed />
 
         <LazyLoader @visible="loadTrending">
             <div class="mt-3">
@@ -33,7 +33,7 @@
         <LazyLoader @visible="loadBestSellers">
             <BestSellers />
         </LazyLoader>
-
+        
         <LazyLoader @visible="loadBanner">
             <div class="mt-3">
                 <Banner />
@@ -75,6 +75,7 @@ import FlashSale from '../components/home/FlashSale.vue';
 import Trending from '../components/home/Trending.vue';
 import LazyLoader from '../components/common/LazyLoader.vue';
 import BestSellers from '../components/home/BestSellers.vue';
+import RecentlyViewed from '../components/home/RecentlyViewed.vue';
 import { useLazyLoading } from '../composable/useLazyLoading';
 
 useHead({

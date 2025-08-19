@@ -36,6 +36,7 @@ import { useInventories } from '../composable/useInventorie'
 import { useReviews } from '../composable/useReviews'
 import { useAuth } from '../composable/useAuth'
 import { useCart } from '../composable/useCart'
+import { useRecentlyViewed } from '../composable/useRecentlyViewed'
 import { push } from 'notivue'
 
 const route = useRoute()
@@ -44,6 +45,7 @@ const { getInventories } = useInventories()
 const { getReviewsByProductSlug, addReview, updateReview, deleteReview, checkUserReview } = useReviews()
 const { user, isAuthenticated } = useAuth()
 const { addToCart } = useCart()
+const { addToRecentlyViewed } = useRecentlyViewed()
 
 const product = ref(null)
 const productInventory = ref([])
@@ -510,6 +512,7 @@ onMounted(async () => {
 
         await fetchReviews()
         await fetchRelatedProducts()
+        await addToRecentlyViewed(product.value)
 
     } catch (err) {
         console.error('Lỗi khi tải sản phẩm:', err)

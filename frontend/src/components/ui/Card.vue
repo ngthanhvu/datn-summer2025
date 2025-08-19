@@ -95,8 +95,38 @@ const productProp = props.product
 const maxDisplayVariants = 3
 
 const getMainImage = computed(() => {
-    const main = productProp.images?.find(img => img.is_main === 1)
-    return main?.image_path || productProp.images?.[0]?.image_path || ''
+    if (!productProp.images || productProp.images.length === 0) {
+        return 'https://via.placeholder.com/300x300?text=No+Image';
+    }
+    
+    const main = productProp.images.find(img => img.is_main === 1);
+    let imagePath = '';
+    
+    if (main && main.image_path) {
+        imagePath = main.image_path;
+    } else {
+        const firstImage = productProp.images[0];
+        if (firstImage && firstImage.image_path) {
+            imagePath = firstImage.image_path;
+        }
+    }
+    
+    if (!imagePath) {
+        return 'https://via.placeholder.com/300x300?text=No+Image';
+    }
+    
+    // Nếu imagePath đã là URL đầy đủ, trả về luôn
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    
+    // Nếu là đường dẫn tương đối, thêm base URL
+    if (imagePath.startsWith('/storage/')) {
+        return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${imagePath}`;
+    }
+    
+    // Nếu không có /storage/, thêm /storage/ vào trước
+    return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/storage/${imagePath}`;
 })
 
 const displayedVariants = computed(() => {
