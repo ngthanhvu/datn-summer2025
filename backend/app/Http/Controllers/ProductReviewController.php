@@ -66,16 +66,23 @@ class ProductReviewController extends Controller
         $perPage = $request->get('per_page', 5);
         $query = ProductReview::with(['user', 'product', 'replies', 'images'])
             ->whereNull('parent_id');
+
         if ($request->get('badwords') == 1) {
             $badWords = $this->badWords;
             $query->where(function ($q) use ($badWords) {
                 foreach ($badWords as $word) {
                     $q->orWhere('content', 'LIKE', "%$word%");
                 }
-            });
+            })->where('is_hidden', true)->where('is_approved', false);
         } else if ($request->get('negative') == 1) {
-            $query->where('rating', '<=', 2);
+            $query->where('rating', '<=', 2)
+                ->where('is_approved', true)
+                ->where('is_hidden', false);
+        } else if ($request->get('admin') == 1) {
+        } else {
+            $query->where('is_approved', true)->where('is_hidden', false);
         }
+
         $reviews = $query->orderByDesc('created_at')->paginate($perPage);
         return response()->json($reviews);
     }
@@ -109,8 +116,7 @@ class ProductReviewController extends Controller
             $validated['is_hidden'] = true;
             $validated['is_approved'] = false;
         } else {
-            // Đánh giá mới mặc định là chờ duyệt
-            $validated['is_approved'] = false;
+            $validated['is_approved'] = true;
             $validated['is_hidden'] = false;
         }
 
@@ -155,23 +161,19 @@ class ProductReviewController extends Controller
             'delete_image_ids.*' => 'integer|exists:review_images,id'
         ]);
 
-        // Xử lý logic trạng thái
         if (isset($validated['is_approved']) && isset($validated['is_hidden'])) {
-            // Nếu admin thay đổi trạng thái thủ công
             if ($validated['is_approved'] === true) {
-                $validated['is_hidden'] = false; // Đã duyệt thì không ẩn
+                $validated['is_hidden'] = false;
             } else if ($validated['is_hidden'] === true) {
-                $validated['is_approved'] = false; // Bị ẩn thì không duyệt
+                $validated['is_approved'] = false;
             }
         } else if (isset($validated['content'])) {
-            // Kiểm tra từ khóa tiêu cực khi cập nhật nội dung
             if ($this->containsBadWords($validated['content'])) {
                 $validated['is_hidden'] = true;
                 $validated['is_approved'] = false;
-            } else if ($review->is_hidden) {
-                // Nếu không còn từ khóa tiêu cực và đang bị ẩn, chuyển về chờ duyệt
+            } else {
                 $validated['is_hidden'] = false;
-                $validated['is_approved'] = false;
+                $validated['is_approved'] = true;
             }
         }
 

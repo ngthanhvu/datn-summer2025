@@ -1,13 +1,13 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { useReview } from "../composable/useReview";
+import { useReviews } from "../composable/useReviews";
 
 export const useReviewStore = defineStore("review", () => {
     const reviews = ref([]);
     const loading = ref(false);
     const error = ref(null);
 
-    const { fetchLatestReview } = useReview();
+    const { fetchLatestReview } = useReviews();
 
     const getLatestReview = async () => {
         loading.value = true;

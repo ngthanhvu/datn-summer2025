@@ -4,17 +4,16 @@
         <ServiceFeatures />
         <CategoriesList />
 
-        <LazyLoader @visible="loadFlashSale">
-            <div class="mt-3" v-if="showFlashSale">
-                <FlashSale @has-flash-sale="handleFlashSaleStatus" />
-            </div>
-        </LazyLoader>
-
         <LazyLoader @visible="loadCoupons">
             <div class="mt-3">
                 <div class="bg-white p-5 rounded-[5px]">
                     <CouponList />
                 </div>
+            </div>
+        </LazyLoader>
+        <LazyLoader @visible="loadFlashSale">
+            <div class="mt-3" v-if="showFlashSale">
+                <FlashSale @has-flash-sale="handleFlashSaleStatus" />
             </div>
         </LazyLoader>
 
@@ -48,6 +47,10 @@
             <HotBrands />
         </LazyLoader>
 
+        <LazyLoader @visible="loadRecentlyViewed">
+            <RecentlyViewed />
+        </LazyLoader>
+
         <LazyLoader @visible="loadReviewLatest">
             <ReviewLatest />
         </LazyLoader>
@@ -75,6 +78,7 @@ import FlashSale from '../components/home/FlashSale.vue';
 import Trending from '../components/home/Trending.vue';
 import LazyLoader from '../components/common/LazyLoader.vue';
 import BestSellers from '../components/home/BestSellers.vue';
+import RecentlyViewed from '../components/home/RecentlyViewed.vue';
 import { useLazyLoading } from '../composable/useLazyLoading';
 
 useHead({
@@ -98,7 +102,7 @@ const {
     data,
     loadComponentData,
     isComponentLoaded,
-    isComponentLoading
+    isComponentLoading,
 } = useLazyLoading()
 
 const loadFlashSale = async () => {
@@ -166,6 +170,13 @@ const loadReviewLatest = async () => {
 const loadFeaturedBlogs = async () => {
     if (!isComponentLoaded('featuredBlogs')) {
         await loadComponentData('featuredBlogs', async () => {
+        })
+    }
+}
+
+const loadRecentlyViewed = async () => {
+    if (!isComponentLoaded('recentlyViewed')) {
+        await loadComponentData('recentlyViewed', async () => {
         })
     }
 }

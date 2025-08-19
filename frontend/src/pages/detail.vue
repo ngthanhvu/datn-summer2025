@@ -1,22 +1,28 @@
 <template>
-    <ProductsDetail v-if="product" :product="product" :product-images="allProductImages" :main-image="mainImage"
-        :selected-size="selectedSize" :selected-color="selectedColor" v-model:quantity="quantity"
-        :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
-        :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice"
-        :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold"
-        :flash-sale-quantity="flashSaleQuantity" :flash-sale-percent="flashSalePercent" :review-stats="reviewStats"
-        :show-review-form="showReviewForm" :is-authenticated="isAuthenticated" :user-has-reviewed="userHasReviewed"
-        :user-review="userReview" :review-form="reviewForm" :editing-review-id="editingReviewId"
-        :is-submitting="isSubmitting" :preview-images="previewImages" :reviews-loading="reviewsLoading"
-        :reviews="reviews" :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
-        :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
-        :user="user" :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
-        @update:selectedSize="val => selectedSize = val" @update:selectedColor="val => selectedColor = val"
-        v-model:activeTab="activeTab" @submitReview="submitReview" @update:showReviewForm="val => showReviewForm = val"
-        @update:reviewForm="val => reviewForm = val" @removeImage="removeImage" @handleImageUpload="handleImageUpload"
-        @add-to-cart="handleAddToCart" @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
-        @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts"
-        @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
+    <template v-if="product">
+        <ProductsDetail :product="product" :product-images="allProductImages" :main-image="mainImage"
+            :selected-size="selectedSize" :selected-color="selectedColor" v-model:quantity="quantity"
+            :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
+            :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName" :flash-sale-price="flashSalePrice"
+            :flash-sale-end-time="flashSaleEndTime" :flash-sale-sold="flashSaleSold"
+            :flash-sale-quantity="flashSaleQuantity" :review-stats="reviewStats" :show-review-form="showReviewForm"
+            :is-authenticated="isAuthenticated" :user-has-reviewed="userHasReviewed" :user-review="userReview"
+            :review-form="reviewForm" :editing-review-id="editingReviewId" :is-submitting="isSubmitting"
+            :preview-images="previewImages" :reviews-loading="reviewsLoading" :reviews="reviews"
+            :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
+            :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
+            :user="user" :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
+            @update:selectedSize="val => selectedSize = val" @update:selectedColor="val => selectedColor = val"
+            v-model:activeTab="activeTab" @submitReview="submitReview"
+            @update:showReviewForm="val => showReviewForm = val" @update:reviewForm="val => reviewForm = val"
+            @removeImage="removeImage" @handleImageUpload="handleImageUpload" @add-to-cart="handleAddToCart"
+            @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
+            @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts"
+            @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
+        <div class="max-w-7xl mx-auto">
+            <RecentlyViewed variant="detail" />
+        </div>
+    </template>
     <div v-else class="flex flex-col items-center justify-center h-screen">
         <div class="mb-4">
             <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#81AACC]"></div>
@@ -27,15 +33,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import ProductsDetail from '../components/products/ProductsDetail.vue'
+import RecentlyViewed from '../components/home/RecentlyViewed.vue'
 import { useProducts } from '../composable/useProducts'
 import { useInventories } from '../composable/useInventorie'
 import { useReviews } from '../composable/useReviews'
 import { useAuth } from '../composable/useAuth'
 import { useCart } from '../composable/useCart'
+import { useRecentlyViewed } from '../composable/useRecentlyViewed'
 import { push } from 'notivue'
 
 const route = useRoute()
@@ -44,6 +52,7 @@ const { getInventories } = useInventories()
 const { getReviewsByProductSlug, addReview, updateReview, deleteReview, checkUserReview } = useReviews()
 const { user, isAuthenticated } = useAuth()
 const { addToCart } = useCart()
+const { addToRecentlyViewed } = useRecentlyViewed()
 
 const product = ref(null)
 const productInventory = ref([])
@@ -64,7 +73,6 @@ const flashSalePrice = ref(0)
 const flashSaleEndTime = ref('')
 const flashSaleSold = ref(0)
 const flashSaleQuantity = ref(0)
-const flashSalePercent = ref(0)
 
 const activeTab = ref('description')
 
@@ -455,9 +463,7 @@ const fetchRelatedProducts = async () => {
     }
 }
 
-onMounted(async () => {
-    const slug = route.params.slug
-    if (!slug) return
+async function loadProduct(slug) {
     try {
         const data = await getProductBySlug(slug)
 
@@ -510,9 +516,25 @@ onMounted(async () => {
 
         await fetchReviews()
         await fetchRelatedProducts()
-
+        await addToRecentlyViewed(product.value)
     } catch (err) {
         console.error('Lỗi khi tải sản phẩm:', err)
     }
+}
+
+onMounted(async () => {
+    const slug = route.params.slug
+    if (!slug) return
+    await loadProduct(slug)
+})
+
+watch(() => route.params.slug, async (newSlug, oldSlug) => {
+    if (!newSlug || newSlug === oldSlug) return
+    activeTab.value = 'description'
+    quantity.value = 1
+    previewImages.value = []
+    deleteImageIds.value = []
+    await loadProduct(newSlug)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
 })
 </script>

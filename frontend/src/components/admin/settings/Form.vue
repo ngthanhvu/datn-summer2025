@@ -1,7 +1,7 @@
 <template>
     <form @submit.prevent="handleSubmit" class="form">
         <div v-for="field in fields" :key="field.name" class="form-group">
-            <label :for="field.name">{{ field.label }}</label>
+            <label :for="field.name">{{ field.label }} <span class="text-red-500">*</span></label>
 
             <!-- Text Input -->
             <input v-if="field.type === 'text'" :id="field.name" v-model="formData[field.name]" type="text"

@@ -38,6 +38,19 @@
                         <option value="">Tiêu cực</option>
                         <option value="1">Chỉ tiêu cực</option>
                     </select>
+                    <select v-model="filterHidden"
+                        class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">
+                        <option value="">Trạng thái ẩn</option>
+                        <option value="hidden">Đang bị ẩn</option>
+                        <option value="visible">Đang hiển thị</option>
+                    </select>
+                    <select v-model="filterApproval"
+                        class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">
+                        <option value="">Phê duyệt</option>
+                        <option value="pending">Chờ duyệt</option>
+                        <option value="approved">Đã duyệt</option>
+                        <option value="rejected">Bị từ chối</option>
+                    </select>
                 </div>
 
                 <!-- Row 3: Search input -->
@@ -343,6 +356,8 @@ const filterRating = ref("");
 const filterHasImage = ref("");
 const filterUnread = ref("");
 const filterBadwords = ref("");
+const filterHidden = ref("");
+const filterApproval = ref("");
 
 const getImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/150";
@@ -396,6 +411,24 @@ const filteredComments = computed(() => {
     if (filterUnread.value) {
         filtered = filtered.filter(
             (comment) => comment.status === "pending" && !comment.isRead
+        );
+    }
+
+    if (filterBadwords.value === "1") {
+        filtered = filtered.filter(
+            (comment) => comment.isHidden && !comment.isApproved
+        );
+    }
+
+    if (filterHidden.value) {
+        filtered = filtered.filter(
+            (comment) => comment.isHidden === (filterHidden.value === "hidden")
+        );
+    }
+
+    if (filterApproval.value) {
+        filtered = filtered.filter(
+            (comment) => comment.status === filterApproval.value
         );
     }
 

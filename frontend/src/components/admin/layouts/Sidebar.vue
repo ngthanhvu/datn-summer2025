@@ -75,17 +75,14 @@
                 <RouterLink to="/admin/messages" class="nav-item">
                     <i class="fas fa-envelope"></i>
                     <span>Tin nhắn</span>
-                    <span v-if="unreadMessages > 0" class="badge">{{ unreadMessages }}</span>
                 </RouterLink>
                 <RouterLink to="/admin/comments" class="nav-item">
                     <i class="fas fa-comments"></i>
                     <span>Đánh giá</span>
-                    <span v-if="unapprovedReviews > 0" class="badge">{{ unapprovedReviews }}</span>
                 </RouterLink>
                 <RouterLink to="/admin/contacts" class="nav-item">
                     <i class="fas fa-address-book"></i>
                     <span>Liên hệ</span>
-                    <span v-if="contactStats.unreplied > 0" class="badge">{{ contactStats.unreplied }}</span>
                 </RouterLink>
                 <RouterLink to="/admin/pages" class="nav-item">
                     <i class="fas fa-file-alt"></i>
@@ -111,8 +108,6 @@ import { useContact } from '../../../composable/useContact'
 
 const showProductsMenu = ref(false)
 const showInventoryMenu = ref(false)
-const unreadMessages = ref(0)
-const unapprovedReviews = ref(0)
 
 const { getContactStats } = useContact()
 const contactStats = ref({
@@ -150,9 +145,6 @@ onUnmounted(() => {
         clearInterval(statsInterval)
     }
 })
-
-unreadMessages.value = 3
-unapprovedReviews.value = 2
 </script>
 
 <style scoped>

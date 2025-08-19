@@ -1,5 +1,6 @@
 <template>
     <div class="container mx-auto px-4 py-8">
+        <!-- Tiêu đề -->
         <div class="text-center mb-12">
             <h1 class="text-4xl font-bold mb-4">Tin tức mới nhất</h1>
             <p class="text-lg text-gray-600">Cập nhật những bài viết và kiến thức mới nhất</p>
@@ -19,6 +20,7 @@
             </div>
         </div>
 
+        <!-- Danh sách blogs -->
         <div v-else>
             <div v-if="filteredBlogs.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
                 <div v-for="blog in filteredBlogs" :key="blog.id"
@@ -49,12 +51,43 @@
                 Không có bài viết nào.
             </div>
 
-            <div v-if="pagination && filteredBlogs.length > 0" class="flex justify-center mt-8">
-                <button v-for="page in pagination.last_page" :key="page" @click="fetchBlogs(page)" :class="{
+            <!-- Pagination -->
+            <div v-if="pagination && pagination.last_page > 1" class="flex justify-center mt-8">
+                <button @click="fetchBlogs(pagination.current_page - 1)" :disabled="pagination.current_page === 1"
+                    class="px-3 py-2 mx-1 rounded border border-gray-300 bg-white text-gray-700 disabled:opacity-50 cursor-pointer">
+                    «
+                </button>
+
+                <button @click="fetchBlogs(1)" :class="{
+                    'bg-[#81aacc] text-white': pagination.current_page === 1,
+                    'bg-white text-gray-700': pagination.current_page !== 1
+                }" class="px-3 py-2 mx-1 rounded border border-gray-300 hover:bg-[#4a8abe] cursor-pointer">
+                    1
+                </button>
+
+                <span v-if="pagination.current_page > 3" class="px-2 py-2 mx-1">...</span>
+
+                <button v-for="page in pagesToShow" :key="page" @click="fetchBlogs(page)" :class="{
                     'bg-[#81aacc] text-white': page === pagination.current_page,
                     'bg-white text-gray-700': page !== pagination.current_page
-                }" class="px-4 py-2 mx-1 rounded border border-gray-300 hover:bg-[#4a8abe]">
+                }" class="px-3 py-2 mx-1 rounded border border-gray-300 hover:bg-[#4a8abe] cursor-pointer">
                     {{ page }}
+                </button>
+
+                <span v-if="pagination.current_page < pagination.last_page - 2" class="px-2 py-2 mx-1">...</span>
+
+                <button v-if="pagination.last_page > 1" @click="fetchBlogs(pagination.last_page)" :class="{
+                    'bg-[#81aacc] text-white': pagination.current_page === pagination.last_page,
+                    'bg-white text-gray-700': pagination.current_page !== pagination.last_page
+                }" class="px-3 py-2 mx-1 rounded border border-gray-300 hover:bg-[#4a8abe] cursor-pointer">
+                    {{ pagination.last_page }}
+                </button>
+
+                <!-- Next -->
+                <button @click="fetchBlogs(pagination.current_page + 1)"
+                    :disabled="pagination.current_page === pagination.last_page"
+                    class="px-3 py-2 mx-1 rounded border border-gray-300 bg-white text-gray-700 disabled:opacity-50 cursor-pointer">
+                    »
                 </button>
             </div>
         </div>
@@ -69,7 +102,7 @@ import { RouterLink } from 'vue-router'
 const blogStore = useBlogStore()
 
 onMounted(() => {
-    blogStore.getBlogs()
+    blogStore.getBlogs(1, { per_page: 6 })
 })
 
 const blogs = computed(() => blogStore.blogs)
@@ -81,8 +114,24 @@ const filteredBlogs = computed(() =>
 )
 
 const fetchBlogs = (page) => {
-    blogStore.getBlogs(page)
+    if (page < 1 || page > pagination.value.last_page) return
+    blogStore.getBlogs(page, { per_page: 6 })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+// Tính toán các trang gần current
+const pagesToShow = computed(() => {
+    if (!pagination.value) return []
+    const current = pagination.value.current_page
+    const last = pagination.value.last_page
+    const pages = []
+    for (let i = current - 1; i <= current + 1; i++) {
+        if (i > 1 && i < last) {
+            pages.push(i)
+        }
+    }
+    return pages
+})
 
 const formatDate = (dateString) => {
     if (!dateString) return ''

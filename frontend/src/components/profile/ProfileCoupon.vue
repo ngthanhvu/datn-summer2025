@@ -44,9 +44,9 @@
         <div v-else-if="!loading && myCoupons.length === 0" class="bg-white rounded-lg shadow-sm p-8 text-center">
             <i class="fa-solid fa-ticket text-4xl text-gray-400 mb-4"></i>
             <p class="text-gray-500 mb-2">Bạn chưa lưu voucher nào</p>
-            <NuxtLink to="/kho-voucher" class="text-blue-600 hover:underline">
+            <router-link to="/kho-voucher" class="text-blue-600 hover:underline cursor-pointer">
                 Khám phá voucher mới →
-            </NuxtLink>
+            </router-link>
         </div>
 
         <!-- Coupons List -->

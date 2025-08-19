@@ -29,15 +29,14 @@
                     :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName"
                     :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime"
                     :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
-                    :flash-sale-percent="flashSalePercent" :product-inventory="productInventory"
-                    :is-adding-to-cart="isAddingToCart" @variant-change="$emit('variantChange', $event)"
+                    :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
+                    @variant-change="$emit('variantChange', $event)"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
                     @update:quantity="$emit('update:quantity', $event)" @add-to-cart="$emit('addToCart')" />
             </div>
         </div>
 
-        <!-- FB: Hoài Lý -->
         <div class="max-w-7xl mx-auto mb-5">
             <div class="pt-2 bg-white p-3 sm:p-8 rounded-[10px] border border-gray-200">
                 <div class="flex flex-wrap gap-2 sm:gap-8 mb-4 sm:mb-8 justify-start">
@@ -219,10 +218,6 @@ const props = defineProps({
         default: 0
     },
     flashSaleQuantity: {
-        type: Number,
-        default: 0
-    },
-    flashSalePercent: {
         type: Number,
         default: 0
     },
