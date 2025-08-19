@@ -280,13 +280,10 @@
             <div class="reason-section">
                 <div class="reason-title">Lý do tài khoản bị khóa:</div>
                 <ul class="reason-list">
-                    <li>Vi phạm chính sách sử dụng của chúng tôi</li>
-                    <li>Hành vi spam hoặc nội dung không phù hợp</li>
-                    <li>Thông tin tài khoản không chính xác hoặc giả mạo</li>
-                    <li>Hoạt động bất thường hoặc nghi ngờ vi phạm bảo mật</li>
+                    <li>{{ $reason }}</li>
                 </ul>
             </div>
-            
+
             <div class="contact-details">
                 <div class="contact-title">Thông tin tài khoản bị khóa</div>
                 <div class="simple-contact-info">

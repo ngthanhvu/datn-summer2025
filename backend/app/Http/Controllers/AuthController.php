@@ -12,6 +12,7 @@ use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
 use App\Mail\WelcomeEmail;
 use App\Mail\OtpEmail;
+use App\Mail\UserBannedMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -512,7 +513,6 @@ class AuthController extends Controller
             $user = User::findOrFail($id);
             $currentUser = Auth::user();
 
-            // Kiểm tra quyền thay đổi role
             if ($request->role === 'master_admin' && $currentUser->role !== 'master_admin') {
                 return response()->json([
                     'error' => 'Chỉ Master Admin mới có quyền thay đổi role thành Master Admin'
@@ -525,7 +525,6 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            // Kiểm tra không cho phép thay đổi role của chính mình
             if ((int) $id === (int) Auth::id()) {
                 if ($request->role !== $currentUser->role) {
                     return response()->json([
@@ -534,7 +533,6 @@ class AuthController extends Controller
                 }
             }
 
-            // Kiểm tra không cho phép thay đổi role của master admin (trừ khi là master admin khác)
             if ($user->role === 'master_admin' && $currentUser->role !== 'master_admin') {
                 return response()->json([
                     'error' => 'Không thể thay đổi thông tin của Master Admin'
@@ -551,14 +549,12 @@ class AuthController extends Controller
                 'dateOfBirth' => $request->dateOfBirth,
             ];
 
-            // Nếu ban user (status = 0) thì bắt buộc phải có lý do
             if ($request->status == 0 && empty($request->note)) {
                 return response()->json([
                     'error' => 'Vui lòng nhập lý do khi khóa tài khoản'
                 ], 422);
             }
 
-            // Nếu mở khóa user (status = 1) thì xóa lý do ban
             if ($request->status == 1) {
                 $updateData['note'] = null;
             } else {
@@ -570,6 +566,10 @@ class AuthController extends Controller
             }
 
             $user->update($updateData);
+
+            if ($request->status == 0) {
+                Mail::to($user->email)->queue(new UserBannedMail($user, $request->note));
+            }
 
             return response()->json([
                 'message' => 'Cập nhật người dùng thành công',
@@ -597,19 +597,16 @@ class AuthController extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            // Kiểm tra quyền admin
             if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 
             $currentUser = Auth::user();
 
-            // Kiểm tra không cho phép tự xóa tài khoản của chính mình
             if ((int) $id === (int) Auth::id()) {
                 return response()->json(['error' => 'Bạn không thể xóa chính bản thân'], 422);
             }
 
-            // Tìm user để xóa
             $userToDelete = User::findOrFail($id);
 
             Log::info('Delete user attempt', [
@@ -619,32 +616,26 @@ class AuthController extends Controller
                 'user_to_delete_role' => $userToDelete->role
             ]);
 
-            // Kiểm tra quyền xóa Master Admin
             if ($userToDelete->role === 'master_admin') {
                 if ($currentUser->role !== 'master_admin') {
                     return response()->json(['error' => 'Chỉ Master Admin mới có quyền xóa Master Admin khác'], 403);
                 }
 
-                // Kiểm tra không cho phép xóa master admin cuối cùng
                 $masterAdminCount = User::where('role', 'master_admin')->count();
                 if ($masterAdminCount <= 1) {
                     return response()->json(['error' => 'Không thể xóa Master Admin cuối cùng trong hệ thống'], 422);
                 }
             }
 
-            // Kiểm tra quyền xóa Admin (chỉ Master Admin mới có thể xóa Admin)
             if ($userToDelete->role === 'admin' && $currentUser->role === 'admin') {
                 return response()->json(['error' => 'Admin thường không thể xóa Admin khác'], 403);
             }
 
-            // Thực hiện xóa user
             DB::transaction(function () use ($userToDelete) {
-                // Xóa avatar nếu có
                 if ($userToDelete->avatar && Storage::exists('public/avatars/' . basename($userToDelete->avatar))) {
                     Storage::delete('public/avatars/' . basename($userToDelete->avatar));
                 }
 
-                // Xóa relationships trước khi xóa user
                 $userToDelete->stockMovements()->delete();
                 $userToDelete->coupons()->detach();
                 $userToDelete->addresses()->delete();
@@ -652,11 +643,8 @@ class AuthController extends Controller
                 $userToDelete->favoriteProducts()->delete();
                 $userToDelete->productReviews()->delete();
 
-                // Đối với orders, chỉ xóa nếu không có dữ liệu quan trọng
-                // Hoặc có thể set user_id = null thay vì xóa
                 $userToDelete->orders()->update(['user_id' => null]);
 
-                // Xóa user
                 $userToDelete->delete();
             });
 
@@ -679,7 +667,6 @@ class AuthController extends Controller
         }
     }
 
-    // Test method để debug
     public function testDelete(Request $request, $id)
     {
         try {
@@ -708,23 +695,19 @@ class AuthController extends Controller
         }
     }
 
-    // Simple delete method for testing
     public function simpleDelete(Request $request, $id)
     {
         try {
-            // Kiểm tra quyền admin
             if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 
-            // Kiểm tra không cho phép tự xóa
             if ((int) $id === (int) Auth::id()) {
                 return response()->json(['error' => 'Bạn không thể xóa chính bản thân'], 422);
             }
 
             $user = User::findOrFail($id);
 
-            // Xóa user đơn giản
             $user->delete();
 
             return response()->json(['message' => 'Đã xoá người dùng thành công'], 200);
