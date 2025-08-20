@@ -20,10 +20,10 @@ use App\Models\FlashSale;
 use App\Models\FlashSaleProduct;
 use Illuminate\Support\Facades\Cache;
 use App\Notifications\NewOrderNotification;
+use App\Models\Coupons;
 
 class OrdersController extends Controller
 {
-    // Trừ số lượng Flash Sale còn lại theo đơn hàng
     private static function applyFlashSaleDeduction(int $variantId, int $unitPrice, int $quantity): void
     {
         try {
@@ -46,7 +46,6 @@ class OrdersController extends Controller
                 ->first();
             if (!$fsp) return;
 
-            // Tính giá sale kỳ vọng theo % của campaign trên giá biến thể
             $expected = null;
             if ($variant && $variant->product && $variant->product->price) {
                 $percent = round(100 - ((int)$fsp->flash_price / $variant->product->price) * 100);
@@ -55,18 +54,16 @@ class OrdersController extends Controller
                 }
             }
             if (!is_null($expected) && $unitPrice == $expected) {
-                // Trừ số lượng flash sale còn lại (áp dụng cho toàn sản phẩm)
                 $deduct = min((int)$quantity, max(0, (int)$fsp->quantity));
                 if ($deduct > 0) {
                     $fsp->quantity = max(0, (int)$fsp->quantity - $deduct);
                 }
-                // Ghi nhận đã bán (thống kê)
                 $fsp->sold = (int)$fsp->sold + (int)$quantity;
                 $fsp->save();
                 Cache::tags(['flash_sales'])->flush();
             }
         } catch (\Throwable $e) {
-            // Không break đơn hàng nếu khấu trừ flash sale lỗi
+
         }
     }
     public function index()
@@ -178,13 +175,21 @@ class OrdersController extends Controller
             'items.*.price' => 'required|integer|min:0',
             'note' => 'nullable|string',
             'total_price' => 'required|integer|min:0',
-            'shipping_fee' => 'required|integer|min:1',
+            'shipping_fee' => 'required|integer|min:0',
             'discount_price' => 'required|integer|min:0',
             'final_price' => 'required|integer|min:0',
             'user_id' => 'nullable|exists:users,id',
         ]);
 
-        if (($validated['shipping_fee'] ?? 0) <= 0) {
+        $allowsZeroShipping = false;
+        if (!empty($validated['coupon_id'])) {
+            $coupon = Coupons::find($validated['coupon_id']);
+            if ($coupon && $coupon->type === 'shipping') {
+                $allowsZeroShipping = true;
+            }
+        }
+
+        if (($validated['shipping_fee'] ?? 0) <= 0 && !$allowsZeroShipping) {
             return response()->json([
                 'message' => 'Vui lòng tính phí vận chuyển trước khi thanh toán',
             ], 422);
