@@ -13,10 +13,28 @@
             <span class="mt-5">{{ formatPrice(total) }}</span>
         </div>
 
+        <!-- Stock Warning -->
+        <div v-if="hasOverStockItems" class="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <div class="flex items-center gap-2 text-orange-800 text-sm">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="font-semibold">Không thể thanh toán</span>
+            </div>
+            <p class="text-orange-700 text-xs mt-1">
+                Vui lòng điều chỉnh số lượng sản phẩm vượt quá tồn kho trước khi thanh toán.
+            </p>
+        </div>
+
         <button type="button"
-            class="bg-[#81AACC] text-white text-sm font-semibold uppercase py-3 rounded w-full mt-2 hover:bg-[#427fb1] transition-colors cursor-pointer"
+            :disabled="hasOverStockItems"
+            class="text-sm font-semibold uppercase py-3 rounded w-full mt-2 transition-colors cursor-pointer"
+            :class="[
+                hasOverStockItems
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                    : 'bg-[#81AACC] text-white hover:bg-[#427fb1]'
+            ]"
             @click="handleCheckout">
-            Thanh toán
+            <span v-if="hasOverStockItems">Không thể thanh toán</span>
+            <span v-else>Thanh toán</span>
         </button>
     </div>
 </template>
@@ -37,6 +55,10 @@ const props = defineProps({
     shipping: {
         type: Object,
         required: true
+    },
+    hasOverStockItems: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -64,6 +86,9 @@ const formatPrice = (price) => {
 }
 
 const handleCheckout = () => {
+    if (props.hasOverStockItems) {
+        return // Không cho phép thanh toán khi có sản phẩm vượt quá tồn kho
+    }
     router.push('/thanh-toan')
 }
 </script>
