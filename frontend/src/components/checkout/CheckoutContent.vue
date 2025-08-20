@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { push } from 'notivue'
 import AddressList from './AddressList.vue'
 import AddressForm from './AddressForm.vue'
 import PaymentMethods from './PaymentMethods.vue'
@@ -33,11 +34,14 @@ const isPlacingOrder = ref(false)
 
 const cartItems = ref([])
 const shipping = ref(0)
+const isFreeShipping = ref(false)
 const shippingZone = ref('')
 const shippingLoading = ref(false)
 const shippingCalculated = ref(false)
 const discount = ref(0)
-const appliedCoupon = ref(null)
+const appliedDiscountCoupon = ref(null)
+const appliedShippingCoupon = ref(null)
+const appliedCoupon = ref(null) 
 const orderSummaryRef = ref(null)
 
 const subtotal = computed(() => {
@@ -46,8 +50,10 @@ const subtotal = computed(() => {
     }, 0)
 })
 
+const shippingForTotal = computed(() => isFreeShipping.value ? 0 : shipping.value)
+
 const total = computed(() => {
-    return Math.round(subtotal.value + shipping.value - discount.value)
+    return Math.round(subtotal.value + shippingForTotal.value - discount.value)
 })
 
 const editingAddress = computed(() => {
@@ -197,19 +203,43 @@ const applyCoupon = async (code) => {
         isLoading.value = true
         const result = await couponService.validateCoupon(code, subtotal.value)
 
-        if (result.discount !== undefined) {
+        if (result.free_shipping) {
+            // Apply/replace shipping coupon
+            appliedShippingCoupon.value = result.coupon
+            isFreeShipping.value = true
+            shippingCalculated.value = true
+            error.value = null
+            push.success('Áp dụng mã freeship thành công')
+        } else if (result.discount !== undefined) {
+            // Apply/replace percentage/fixed coupon
+            appliedDiscountCoupon.value = result.coupon
             appliedCoupon.value = result.coupon
             discount.value = Math.round(result.discount)
             error.value = null
+            push.success('Áp dụng mã giảm giá thành công')
         } else {
             error.value = 'Mã giảm giá không hợp lệ'
         }
     } catch (err) {
         error.value = err.message || 'Mã giảm giá không hợp lệ'
+        push.error(error.value)
         discount.value = 0
+        appliedDiscountCoupon.value = null
+        appliedShippingCoupon.value = null
         appliedCoupon.value = null
+        isFreeShipping.value = false
     } finally {
         isLoading.value = false
+    }
+}
+
+// Apply list of codes (e.g., from modal) in order. Supports 1 shipping + 1 discount
+const applyMultipleCoupons = async (codes) => {
+    if (!Array.isArray(codes)) return
+    for (const c of codes) {
+        try {
+            await applyCoupon(c)
+        } catch (_e) {}
     }
 }
 
@@ -272,15 +302,24 @@ watch(() => currentSelectedAddress.value, (newAddress) => {
     }
 });
 
+// Show all error messages via Notivue
+watch(error, (message) => {
+    if (message) {
+        push.error(String(message))
+    }
+})
+
 const placeOrder = async () => {
     try {
         if (addresses.value.length === 0) {
             error.value = 'Vui lòng thêm địa chỉ giao hàng'
+            push.warning(error.value)
             return
         }
 
         if (!authService.isAuthenticated.value) {
             error.value = 'Vui lòng đăng nhập để đặt hàng'
+            push.warning(error.value)
             return
         }
 
@@ -290,6 +329,7 @@ const placeOrder = async () => {
 
         if (!authService.user.value?.id) {
             error.value = 'Không thể xác định thông tin người dùng'
+            push.error(error.value)
             return
         }
 
@@ -306,11 +346,12 @@ const placeOrder = async () => {
         const orderData = {
             address_id: addresses.value[selectedAddress.value].id,
             payment_method: paymentMethods.value[selectedPaymentMethod.value]?.code || 'cod',
-            coupon_id: appliedCoupon.value?.id || null,
+            // Prefer saving discount coupon id; fallback to shipping coupon id if no discount
+            coupon_id: appliedDiscountCoupon.value?.id || appliedShippingCoupon.value?.id || null,
             items: items,
             note: '',
             total_price: subtotal.value,
-            shipping_fee: shipping.value,
+            shipping_fee: shippingForTotal.value,
             discount_price: discount.value,
             final_price: total.value,
             user_id: authService.user.value.id,
@@ -319,6 +360,7 @@ const placeOrder = async () => {
 
         if (shippingLoading.value || !shippingCalculated.value) {
             error.value = 'Vui lòng tính phí vận chuyển trước khi thanh toán';
+            push.warning(error.value)
             if (orderSummaryRef.value) {
                 orderSummaryRef.value.forceShippingCalculation();
             }
@@ -348,6 +390,7 @@ const placeOrder = async () => {
         }
 
         if (result && result.order) {
+            push.success('Đặt hàng thành công')
             router.push(`/status?status=success&orderId=${result.order.id}&amount=${result.order.final_price}&tracking_code=${result.order.tracking_code || ''}`)
             return
         } else {
@@ -355,6 +398,7 @@ const placeOrder = async () => {
         }
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi đặt hàng'
+        push.error(error.value)
     } finally {
         isPlacingOrder.value = false
     }
@@ -396,11 +440,6 @@ onMounted(async () => {
                 <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#81AACC]"></div>
             </div>
             <p class="text-gray-600 text-lg">Đang tải trang thanh toán...</p>
-        </div>
-
-        <!-- Error -->
-        <div v-else-if="error" class="bg-red-50 p-4 rounded-md text-red-600 mb-6">
-            {{ error }}
         </div>
 
         <!-- Authentication Error -->
@@ -448,11 +487,14 @@ onMounted(async () => {
             </div>
 
             <div class="space-y-8">
-                <OrderSummary ref="orderSummaryRef" :items="cartItems" :subtotal="subtotal" :shipping="shipping"
+                <OrderSummary ref="orderSummaryRef" :items="cartItems" :subtotal="subtotal" :shipping="shippingForTotal"
+                    :free-shipping="isFreeShipping"
+                    :applied-shipping-coupon="appliedShippingCoupon"
+                    :applied-discount-coupon="appliedDiscountCoupon"
                     :discount="discount" :shipping-zone="shippingZone" :shipping-loading="shippingLoading"
                     :selected-address="currentSelectedAddress" :cart-items="cartItems"
                     :is-placing-order="isPlacingOrder" @place-order="placeOrder" @apply-coupon="applyCoupon"
-                    @shipping-calculated="handleShippingCalculated" />
+                    @apply-coupons="applyMultipleCoupons" @shipping-calculated="handleShippingCalculated" />
             </div>
         </div>
 

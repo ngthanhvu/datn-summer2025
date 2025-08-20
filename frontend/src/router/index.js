@@ -23,6 +23,7 @@ import FavoriteProductPage from '../pages/favorite.vue';
 import ShippingCalculatorPage from '../pages/shipping-calculator.vue';
 import FlashSalePage from '../pages/flash-sale.vue';
 import PageView from '../pages/page.vue';
+import CategoryPage from '../pages/category.vue';
 
 import Admin from '../pages/admin/index.vue';
 import ProductsPageAdmin from '../pages/admin/products/index.vue';
@@ -91,6 +92,10 @@ const routes = [
             {
                 path: '/san-pham',
                 component: ProductsPage,
+            },
+            {
+                path: '/danh-muc/:slug',
+                component: CategoryPage,
             },
             {
                 path: '/san-pham/:slug',

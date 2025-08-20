@@ -73,6 +73,7 @@
                                 tối đa {{ formatCurrency(coupon.max_discount_value) }}
                             </span>
                         </div>
+                        <div v-else-if="coupon.type === 'shipping'">Miễn ship</div>
                         <div v-else>Giảm {{ formatCurrency(coupon.value) }}</div>
                         <div v-if="coupon.min_order_value > 0">
                             Đơn tối thiểu: {{ formatCurrency(coupon.min_order_value) }}
