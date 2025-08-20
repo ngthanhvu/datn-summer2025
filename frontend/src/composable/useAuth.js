@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import Cookies from 'js-cookie'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import api from '../utils/api'
 
@@ -49,19 +49,6 @@ const syncStorage = () => {
 }
 
 syncStorage()
-
-const initializeAuth = async () => {
-    if (token.value) {
-        try {
-            await getUser()
-        } catch (error) {
-            console.log('Token không hợp lệ, đăng xuất...')
-            forceLogout()
-        }
-    }
-}
-
-initializeAuth()
 
 const API = api
 
@@ -152,6 +139,17 @@ const getUser = async () => {
     } catch (err) {
         console.error('Get user error:', err.response?.data || err.message)
         if (err.response?.status === 401 && token.value) {
+            forceLogout()
+        }
+    }
+}
+
+const initializeAuth = async () => {
+    if (token.value) {
+        try {
+            await getUser()
+        } catch (error) {
+            console.log('Token không hợp lệ, đăng xuất...')
             forceLogout()
         }
     }
@@ -348,6 +346,9 @@ const handleGoogleCallback = async (tokenFromQuery, userFromQuery, error) => {
 }
 
 const getToken = () => token.value
+
+// Initialize auth after all functions are declared
+initializeAuth()
 
 export const useAuth = () => {
     return {
