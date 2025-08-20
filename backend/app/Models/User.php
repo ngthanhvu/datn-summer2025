@@ -109,6 +109,32 @@ class User extends Authenticatable implements JWTSubject
             ->whereNotNull('otp_expires_at')
             ->where('otp_expires_at', '<=', Carbon::now());
     }
+
+    public function isGoogleUser()
+    {
+        return $this->oauth_provider === 'google';
+    }
+
+    public function isOAuthUser()
+    {
+        return !empty($this->oauth_provider);
+    }
+
+    public function canLoginWithPassword()
+    {
+        return !$this->isOAuthUser() || !empty($this->password);
+    }
+
+    public function isHybridUser()
+    {
+        return !empty($this->password) && $this->isOAuthUser();
+    }
+
+    public function isOAuthOnlyUser()
+    {
+        return $this->isOAuthUser() && empty($this->password);
+    }
+
     public function stockMovements()
     {
         return $this->hasMany(StockMovement::class);

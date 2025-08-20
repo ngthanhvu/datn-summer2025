@@ -28,6 +28,13 @@ class AuthController extends Controller
             'role' => 'required',
         ]);
 
+        $existingUser = User::where('email', $request->email)->first();
+        if ($existingUser && $existingUser->isGoogleUser() && !$existingUser->password) {
+            return response()->json([
+                'error' => 'Email này đã được sử dụng để đăng ký bằng Google. Vui lòng sử dụng đăng nhập Google.'
+            ], 422);
+        }
+
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
@@ -49,6 +56,14 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
+
+        $user = User::where('email', $credentials['email'])->first();
+
+        if ($user && $user->isGoogleUser() && !$user->password) {
+            return response()->json([
+                'error' => 'Tài khoản này chỉ có thể đăng nhập bằng Google. Vui lòng sử dụng đăng nhập Google.'
+            ], 401);
+        }
 
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
@@ -115,19 +130,32 @@ class AuthController extends Controller
                 ->redirectUrl(config('services.google.redirect'))
                 ->user();
 
-            $user = User::updateOrCreate(
-                ['email' => $googleUser->getEmail()],
-                [
+            $existingUser = User::where('email', $googleUser->getEmail())->first();
+
+            if ($existingUser) {
+                $existingUser->update([
+                    'oauth_provider' => 'google',
+                    'oauth_id' => $googleUser->getId(),
+                    'status' => 1,
+                    'ip_user' => $request->ip(),
+                ]);
+
+                $user = $existingUser;
+            } else {
+                $user = User::create([
                     'username' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
                     'password' => Hash::make(uniqid()),
                     'oauth_provider' => 'google',
                     'oauth_id' => $googleUser->getId(),
-                ]
-            );
+                    'status' => 1,
+                    'ip_user' => $request->ip(),
+                ]);
 
-            if ($user->wasRecentlyCreated) {
                 Mail::to($user->email)->queue(new WelcomeEmail($user));
             }
+
+            $user->refresh();
 
             $token = JWTAuth::fromUser($user);
 
@@ -248,6 +276,15 @@ class AuthController extends Controller
                 'gender' => $user->gender,
                 'dateOfBirth' => $user->dateOfBirth,
                 'note' => $user->note,
+                'auth_info' => [
+                    'can_login_with_password' => $user->canLoginWithPassword(),
+                    'is_google_user' => $user->isGoogleUser(),
+                    'is_oauth_user' => $user->isOAuthUser(),
+                    'is_hybrid_user' => $user->isHybridUser(),
+                    'is_oauth_only_user' => $user->isOAuthOnlyUser(),
+                    'has_password' => !empty($user->password),
+                    'auth_methods' => $this->getUserAuthMethods($user)
+                ]
             ];
         });
 
@@ -584,6 +621,8 @@ class AuthController extends Controller
                     'gender' => $user->gender,
                     'dateOfBirth' => $user->dateOfBirth,
                     'note' => $user->note,
+                    'oauth_provider' => $user->oauth_provider,
+                    'oauth_id' => $user->oauth_id,
                 ]
             ], 200);
         } catch (\Exception $e) {
@@ -715,5 +754,81 @@ class AuthController extends Controller
             Log::error('Simple delete failed: ' . $e->getMessage());
             return response()->json(['error' => 'Có lỗi khi xoá người dùng: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function checkOAuthStatus(Request $request)
+    {
+        $email = $request->input('email');
+
+        if (!$email) {
+            return response()->json(['error' => 'Email is required'], 400);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return response()->json([
+            'email' => $user->email,
+            'oauth_provider' => $user->oauth_provider,
+            'oauth_id' => $user->oauth_id,
+            'status' => $user->status,
+            'can_login_with_password' => $user->canLoginWithPassword(),
+            'is_google_user' => $user->isGoogleUser(),
+            'is_oauth_user' => $user->isOAuthUser(),
+            'is_hybrid_user' => $user->isHybridUser(),
+            'is_oauth_only_user' => $user->isOAuthOnlyUser(),
+            'has_password' => !empty($user->password),
+            'auth_methods' => $this->getUserAuthMethods($user)
+        ]);
+    }
+
+    public function testGoogleLogin(Request $request)
+    {
+        try {
+            // Test Google OAuth configuration
+            $config = [
+                'google_client_id' => config('services.google.client_id'),
+                'google_client_secret' => config('services.google.client_secret'),
+                'google_redirect' => config('services.google.redirect'),
+                'frontend_url' => config('app.frontend_url'),
+            ];
+
+            // Test database connection
+            $userCount = User::count();
+            $googleUsers = User::where('oauth_provider', 'google')->count();
+
+            return response()->json([
+                'message' => 'Google OAuth test successful',
+                'config' => $config,
+                'database' => [
+                    'total_users' => $userCount,
+                    'google_users' => $googleUsers,
+                ],
+                'timestamp' => now()->toISOString(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Google OAuth test failed: ' . $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
+    public function getUserAuthMethods($user)
+    {
+        $methods = [];
+
+        if (!empty($user->password)) {
+            $methods[] = 'email_password';
+        }
+
+        if ($user->isOAuthUser()) {
+            $methods[] = $user->oauth_provider;
+        }
+
+        return $methods;
     }
 }
