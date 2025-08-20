@@ -83,10 +83,13 @@
                             <span :class="[
                                 item.type === 'percent'
                                     ? 'text-blue-600'
-                                    : 'text-purple-600'
+                                    : (item.type === 'shipping' ? 'text-green-600' : 'text-purple-600')
                             ]">
-                                {{ item.type === 'percent' ? Math.round(parseFloat(item.value)) + '%' :
-                                    formatPrice(item.value) }}
+                                {{
+                                    item.type === 'percent'
+                                        ? Math.round(parseFloat(item.value)) + '%'
+                                        : (item.type === 'shipping' ? 'Miễn ship' : formatPrice(item.value))
+                                }}
                             </span>
                         </td>
                         <td class="px-4 py-3">
@@ -94,8 +97,11 @@
                         </td>
                         <td class="px-4 py-3">
                             {{
-                                item.max_discount_value != null ? formatPrice(item.max_discount_value) :
-                                    'Giảm theo phần trăm'
+                                item.type === 'shipping'
+                                    ? 'Miễn ship'
+                                    : (item.max_discount_value != null
+                                        ? formatPrice(item.max_discount_value)
+                                        : 'Giảm theo phần trăm')
                             }}
                         </td>
                         <td class="px-4 py-3">
@@ -198,17 +204,26 @@
                         <span :class="[
                             item.type === 'percent'
                                 ? 'text-blue-600'
-                                : 'text-purple-600'
+                                : (item.type === 'shipping' ? 'text-green-600' : 'text-purple-600')
                         ]">
-                            {{ item.type === 'percent' ? Math.round(parseFloat(item.value)) + '%' :
-                                formatPrice(item.value) }}
+                            {{
+                                item.type === 'percent'
+                                    ? Math.round(parseFloat(item.value)) + '%'
+                                    : (item.type === 'shipping' ? 'Miễn ship' : formatPrice(item.value))
+                            }}
                         </span>
                     </div>
                     <div class="text-gray-500">Đơn tối thiểu</div>
                     <div class="text-right">{{ formatPrice(item.min_order_value) }}</div>
                     <div class="text-gray-500">Giảm tối đa</div>
                     <div class="text-right">
-                        {{ item.max_discount_value != null ? formatPrice(item.max_discount_value) : 'Giảm theo %' }}
+                        {{
+                            item.type === 'shipping'
+                                ? 'Miễn ship'
+                                : (item.max_discount_value != null
+                                    ? formatPrice(item.max_discount_value)
+                                    : 'Giảm theo %')
+                        }}
                     </div>
                     <div class="text-gray-500">Giới hạn</div>
                     <div class="text-right">{{ item.usage_limit === 0 ? 'Không giới hạn' : item.usage_limit }}</div>

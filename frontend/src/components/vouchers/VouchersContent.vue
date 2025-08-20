@@ -59,6 +59,9 @@
                                     formatCurrency(coupon.max_discount_value)
                                     }}</span>
                             </div>
+                            <div v-else-if="coupon.type === 'shipping'">
+                                Miễn ship
+                            </div>
                             <div v-else>
                                 Giảm {{ formatCurrency(coupon.value || 0) }}
                             </div>
