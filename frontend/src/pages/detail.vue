@@ -12,13 +12,14 @@
             :review-pagination-data="reviewPaginationData" :total-review-pages="totalReviewPages"
             :total-reviews="totalReviews" :reviews-per-page="reviewsPerPage" :current-review-page="currentReviewPage"
             :user="user" :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
+            :cart-quantity="cartQuantity"
             @update:selectedSize="val => selectedSize = val" @update:selectedColor="val => selectedColor = val"
             v-model:activeTab="activeTab" @submitReview="submitReview"
             @update:showReviewForm="val => showReviewForm = val" @update:reviewForm="val => reviewForm = val"
             @removeImage="removeImage" @handleImageUpload="handleImageUpload" @add-to-cart="handleAddToCart"
             @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
             @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts"
-            @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
+            @variantChange="handleVariantChange" @update:mainImage="handleMainImageUpdate" />
         <div class="max-w-7xl mx-auto">
             <RecentlyViewed variant="detail" />
         </div>
@@ -33,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import ProductsDetail from '../components/products/ProductsDetail.vue'
@@ -51,7 +52,7 @@ const { getProductBySlug, getProducts } = useProducts()
 const { getInventories } = useInventories()
 const { getReviewsByProductSlug, addReview, updateReview, deleteReview, checkUserReview } = useReviews()
 const { user, isAuthenticated } = useAuth()
-const { addToCart } = useCart()
+const { addToCart, cart } = useCart()
 const { addToRecentlyViewed } = useRecentlyViewed()
 
 const product = ref(null)
@@ -105,6 +106,20 @@ useHead(() => {
             }
         ]
     }
+})
+
+// Computed property để lấy số lượng sản phẩm đã có trong giỏ hàng cho biến thể hiện tại
+const cartQuantity = computed(() => {
+    if (!selectedSize.value || !selectedColor.value?.name || !cart.value) return 0
+    
+    // Tìm biến thể trong giỏ hàng
+    const cartItem = cart.value.find(item => {
+        return item.variant?.size === selectedSize.value && 
+               item.variant?.color === selectedColor.value.name &&
+               item.variant?.product?.id === product.value?.id
+    })
+    
+    return cartItem ? cartItem.quantity : 0
 })
 
 const fetchReviews = async (page = 1) => {
@@ -378,8 +393,17 @@ const handleAddToCart = async () => {
     }
 }
 
+const handleMainImageUpdate = (newImagePath) => {
+    console.log('Main image update triggered:', { 
+        oldImage: mainImage.value, 
+        newImage: newImagePath 
+    })
+    mainImage.value = newImagePath
+}
+
 const handleVariantChange = (variantData) => {
     const { size, color } = variantData
+    console.log('Variant change triggered:', { size, color })
 
     selectedSize.value = size
     selectedColor.value = { name: color }
@@ -497,6 +521,11 @@ async function loadProduct(slug) {
         }
 
         allProductImages.value = generateAllProductImages()
+        console.log('Generated product images:', {
+            count: allProductImages.value.length,
+            images: allProductImages.value.map(img => img.image_path || img),
+            mainImage: mainImage.value
+        })
 
         if (route.query.flashsale) {
             flashSaleName.value = route.query.flashsale

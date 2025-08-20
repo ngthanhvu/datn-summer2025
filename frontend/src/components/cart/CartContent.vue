@@ -33,6 +33,31 @@
 
                 <!-- Cart Items -->
                 <div v-else>
+                    <!-- Stock Warning Banner -->
+                    <div v-if="hasOverStockItems" class="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div class="flex items-center gap-2 text-orange-800">
+                            <i class="fas fa-exclamation-triangle text-lg"></i>
+                            <span class="font-semibold">Cảnh báo tồn kho</span>
+                        </div>
+                        <p class="text-orange-700 text-sm mt-1">
+                            Một số sản phẩm trong giỏ hàng vượt quá số lượng tồn kho. Vui lòng kiểm tra và điều chỉnh số lượng.
+                        </p>
+                        
+                        <!-- List of overstock items -->
+                        <div class="mt-3 pt-3 border-t border-orange-200">
+                            <p class="text-orange-700 text-xs font-semibold mb-2">Sản phẩm cần điều chỉnh:</p>
+                            <div class="space-y-1">
+                                <div v-for="item in overStockItems" :key="item.id" 
+                                    class="text-orange-700 text-xs flex items-center justify-between">
+                                    <span>{{ item.variant?.product?.name }} ({{ item.variant?.size }}, {{ item.variant?.color }})</span>
+                                    <span class="font-semibold">
+                                        {{ item.quantity }} > {{ getMaxAvailable(item) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto w-full">
                         <table class="w-full min-w-[800px]">
                             <tbody>
@@ -61,7 +86,12 @@
                 </div>
             </section>
 
-            <CartSummary :item-count="cartItems.length" :subtotal="subtotal" :shipping="selectedShipping" />
+            <CartSummary 
+                :item-count="cartItems.length" 
+                :subtotal="subtotal" 
+                :shipping="selectedShipping"
+                :has-over-stock-items="hasOverStockItems" 
+            />
         </main>
     </div>
 </template>
@@ -78,6 +108,22 @@ const { cart, fetchCart, updateQuantity, removeFromCart } = useCart()
 const cartItems = computed(() => Array.isArray(cart.value) ? cart.value : [])
 const itemErrors = ref({})
 const loading = ref(true)
+
+// Computed property để kiểm tra xem có sản phẩm nào vượt quá tồn kho không
+const hasOverStockItems = computed(() => {
+    return cartItems.value.some(item => {
+        const maxAvailable = getMaxAvailable(item)
+        return item.quantity > maxAvailable
+    })
+})
+
+// Computed property để lấy danh sách sản phẩm vượt quá tồn kho
+const overStockItems = computed(() => {
+    return cartItems.value.filter(item => {
+        const maxAvailable = getMaxAvailable(item)
+        return item.quantity > maxAvailable
+    })
+})
 
 const selectedShipping = ref({
     value: 'standard',
