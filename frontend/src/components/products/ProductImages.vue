@@ -28,7 +28,7 @@
             </button>
         </div>
 
-        <!-- Thumbnails -->
+        <!-- Thumbnail -->
         <div class="flex flex-row gap-3 items-center justify-start flex-nowrap overflow-x-auto thumbnail-container pb-2"
             style="max-width: 100%;" @mousedown="startDrag" @mousemove="onDrag" @mouseup="stopDrag"
             @mouseleave="stopDrag" @touchstart="startDrag" @touchmove="onDrag" @touchend="stopDrag">
