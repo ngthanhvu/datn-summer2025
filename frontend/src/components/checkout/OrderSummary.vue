@@ -16,7 +16,7 @@
             <div class="flex gap-2">
                 <input v-model="couponCode" type="text" placeholder="Nhập mã giảm giá"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81AACC]">
-                <button @click="applyCoupon"
+                <button type="button" @click="applyCoupon"
                     class="px-4 py-2 bg-[#81AACC] text-white rounded-md hover:bg-[#6387A6] cursor-pointer">
                     Áp dụng
                 </button>
@@ -26,7 +26,7 @@
                 <div class="max-h-[300px] overflow-y-auto pr-2 space-y-3">
                     <div v-for="coupon in availableCoupons" :key="coupon.id"
                         class="bg-white shadow-sm rounded-sm flex cursor-pointer hover:shadow-md transition"
-                        @click="selectCoupon(coupon)">
+                        @click.prevent="selectCoupon(coupon)">
                         <div class="flex-shrink-0 bg-[#81AACC] flex items-center justify-center p-4 rounded-l-sm">
                             <img src="https://ngthanhvu.github.io/ticket-sale-svgrepo-com.svg" alt="Coupon ticket icon"
                                 class="w-12 h-12 object-contain text-white" width="48" height="48" />
@@ -74,7 +74,7 @@
         <!-- Thông tin vận chuyển -->
         <div class="mb-6">
             <ShippingSection ref="shippingSectionRef" :cart-items="cartItems" :selected-address="selectedAddress"
-                @shipping-calculated="handleShippingCalculated" />
+                :free-shipping="freeShipping" @shipping-calculated="handleShippingCalculated" />
         </div>
 
         <div class="space-y-3 border-t border-gray-300 pt-4">
@@ -120,6 +120,10 @@ const props = defineProps({
     items: {
         type: Array,
         required: true
+    },
+    freeShipping: {
+        type: Boolean,
+        default: false
     },
     subtotal: {
         type: Number,

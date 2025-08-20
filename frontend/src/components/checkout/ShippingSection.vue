@@ -19,7 +19,7 @@
               </div>
               <div class="shipping-item">
                 <span class="shipping-label">Phí vận chuyển:</span>
-                <span class="shipping-value">{{ formatShippingFee(shippingFee.total) }}</span>
+                <span class="shipping-value">{{ formatShippingFee(props.freeShipping ? 0 : shippingFee.total) }}</span>
               </div>
             </div>
             <div class="shipping-row">
@@ -68,6 +68,10 @@ const props = defineProps({
   selectedAddress: {
     type: Object,
     default: null
+  },
+  freeShipping: {
+    type: Boolean,
+    default: false
   }
 });
 

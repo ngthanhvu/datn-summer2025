@@ -72,9 +72,11 @@
                                 'px-2 py-1 rounded text-sm',
                                 item.type === 'percent'
                                     ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-purple-100 text-purple-700'
+                                    : (item.type === 'shipping'
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-purple-100 text-purple-700')
                             ]">
-                                {{ item.type === 'percent' ? 'Giảm theo %' : 'Giảm số tiền' }}
+                                {{ item.type === 'percent' ? 'Giảm Theo %' : (item.type === 'shipping' ? 'Miễn Phí Ship' : 'Giảm Số Tiền') }}
                             </span>
                         </td>
                         <td class="px-4 py-3 font-medium">
@@ -184,9 +186,11 @@
                             'px-2 py-0.5 rounded text-[10px] inline-block',
                             item.type === 'percent'
                                 ? 'bg-blue-100 text-blue-700'
-                                : 'bg-purple-100 text-purple-700'
+                                : (item.type === 'shipping'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-purple-100 text-purple-700')
                         ]">
-                            {{ item.type === 'percent' ? 'Giảm theo %' : 'Giảm số tiền' }}
+                            {{ item.type === 'percent' ? 'Giảm theo %' : (item.type === 'shipping' ? 'Miễn ship' : 'Giảm số tiền') }}
                         </span>
                     </div>
                     <div class="text-gray-500">Giá trị</div>

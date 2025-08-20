@@ -28,9 +28,10 @@
                     v-model="formData.type" required>
                     <option value="fixed">Giảm số tiền cố định</option>
                     <option value="percent">Giảm theo phần trăm</option>
+                    <option value="shipping">Miễn phí vận chuyển</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" v-if="formData.type !== 'shipping'">
                 <label for="value">Giá trị giảm <span class="text-red-500">*</span></label>
                 <div class="input-with-suffix">
                     <input id="value"
@@ -53,7 +54,7 @@
                 <span v-if="errors.min_order_value" class="text-red-500 text-sm mt-1">{{ errors.min_order_value
                     }}</span>
             </div>
-            <div class="form-group">
+            <div class="form-group" v-if="formData.type !== 'shipping'">
                 <label for="max_discount_value">Giảm tối đa <span class="text-red-500">*</span></label>
                 <div class="input-with-suffix">
                     <input id="max_discount_value"
@@ -136,9 +137,9 @@ const validateForm = () => {
     if (!formData.value.name) err.name = 'Vui lòng nhập tên chương trình.'
     if (!formData.value.code) err.code = 'Vui lòng nhập mã giảm giá.'
     if (!formData.value.description) err.description = 'Vui lòng nhập mô tả chương trình.'
-    if (formData.value.value === '' || formData.value.value === null || formData.value.value < 0) err.value = 'Giá trị giảm phải lớn hơn hoặc bằng 0.'
+    if (formData.value.type !== 'shipping' && (formData.value.value === '' || formData.value.value === null || formData.value.value < 0)) err.value = 'Giá trị giảm phải lớn hơn hoặc bằng 0.'
     if (formData.value.min_order_value === '' || formData.value.min_order_value === null || formData.value.min_order_value < 0) err.min_order_value = 'Đơn hàng tối thiểu phải lớn hơn hoặc bằng 0.'
-    if (formData.value.type !== 'percent' && (formData.value.max_discount_value === '' || formData.value.max_discount_value === null || formData.value.max_discount_value < 0)) err.max_discount_value = 'Giảm tối đa phải lớn hơn hoặc bằng 0.'
+    if (formData.value.type !== 'percent' && formData.value.type !== 'shipping' && (formData.value.max_discount_value === '' || formData.value.max_discount_value === null || formData.value.max_discount_value < 0)) err.max_discount_value = 'Giảm tối đa phải lớn hơn hoặc bằng 0.'
     if (formData.value.usage_limit === '' || formData.value.usage_limit === null || formData.value.usage_limit < 0) err.usage_limit = 'Giới hạn sử dụng phải lớn hơn hoặc bằng 0.'
     if (!formData.value.start_date) err.start_date = 'Vui lòng chọn ngày bắt đầu.'
     if (!formData.value.end_date) err.end_date = 'Vui lòng chọn ngày kết thúc.'
@@ -180,6 +181,10 @@ onMounted(() => {
 watch(() => formData.value.type, (newType) => {
     if (newType === 'percent') {
         formData.value.max_discount_value = null
+    }
+    if (newType === 'shipping') {
+        formData.value.value = 0
+        formData.value.max_discount_value = 0
     }
 })
 </script>
