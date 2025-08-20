@@ -30,6 +30,7 @@
                     :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime"
                     :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
                     :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
+                    :cart-quantity="props.cartQuantity"
                     @variant-change="$emit('variantChange', $event)"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
@@ -228,6 +229,10 @@ const props = defineProps({
     isAddingToCart: {
         type: Boolean,
         default: false
+    },
+    cartQuantity: {
+        type: Number,
+        default: 0
     }
 })
 

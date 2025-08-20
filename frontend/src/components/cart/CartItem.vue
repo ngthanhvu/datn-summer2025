@@ -36,7 +36,12 @@
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
+                <!-- Error messages -->
                 <p v-if="error || externalError" class="text-red-500 text-xs">{{ error || externalError }}</p>
+                <!-- Stock warning -->
+                <p v-if="isOverStock" class="text-orange-600 text-xs font-semibold">
+                    ⚠️ Vượt quá tồn kho ({{ maxAvailable }})
+                </p>
             </div>
         </td>
         <td class="py-4 text-center text-base font-semibold text-black w-[15%]">
@@ -55,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
     product: { type: Object, required: true },
@@ -67,6 +72,11 @@ const props = defineProps({
 const emit = defineEmits(['remove', 'decrease', 'increase', 'update:quantity'])
 const error = ref('')
 const localQuantity = ref(String(props.quantity))
+
+// Computed property để kiểm tra xem có vượt quá tồn kho không
+const isOverStock = computed(() => {
+    return props.quantity > props.maxAvailable
+})
 
 watch(() => props.quantity, (val) => {
     localQuantity.value = String(val)
