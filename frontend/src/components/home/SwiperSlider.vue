@@ -5,7 +5,8 @@
     <!-- <SwiperSlide v-for="(image, index) in images" :key="index">
       <img :src="image" class="w-full object-cover" /> -->
     <SwiperSlide v-for="(image, index) in bannerImages" :key="index">
-      <img :src="image" :alt="`Banner ${index + 1}`" class="w-full object-cover" @error="handleImageError(index)" />
+      <img @click="redirectToProductPage" :src="image" :alt="`Banner ${index + 1}`"
+        class="w-full object-cover cursor-pointer" @error="handleImageError(index)" />
     </SwiperSlide>
   </Swiper>
 </template>
@@ -13,6 +14,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
+import { useRouter } from 'vue-router'
 import { Autoplay, Navigation, Pagination } from 'swiper/modules'
 import { useSetting } from '../../composable/useSettingsApi'
 import 'swiper/css'
@@ -20,6 +22,8 @@ import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
 const { settings, fetchSettings } = useSetting()
+
+const router = useRouter()
 
 const defaultImages = [
   'https://i.imgur.com/sz2mSUp.png',
@@ -58,6 +62,10 @@ const bannerImages = computed(() => {
 
 const handleImageError = (index) => {
   console.error(`Không thể load banner ${index + 1}`)
+}
+
+const redirectToProductPage = () => {
+  router.push('/san-pham')
 }
 </script>
 
