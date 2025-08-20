@@ -39,7 +39,9 @@ const shippingZone = ref('')
 const shippingLoading = ref(false)
 const shippingCalculated = ref(false)
 const discount = ref(0)
-const appliedCoupon = ref(null)
+const appliedDiscountCoupon = ref(null)
+const appliedShippingCoupon = ref(null)
+const appliedCoupon = ref(null) 
 const orderSummaryRef = ref(null)
 
 const subtotal = computed(() => {
@@ -201,15 +203,20 @@ const applyCoupon = async (code) => {
         isLoading.value = true
         const result = await couponService.validateCoupon(code, subtotal.value)
 
-        if (result.discount !== undefined) {
+        if (result.free_shipping) {
+            // Apply/replace shipping coupon
+            appliedShippingCoupon.value = result.coupon
+            isFreeShipping.value = true
+            shippingCalculated.value = true
+            error.value = null
+            push.success('Áp dụng mã freeship thành công')
+        } else if (result.discount !== undefined) {
+            // Apply/replace percentage/fixed coupon
+            appliedDiscountCoupon.value = result.coupon
             appliedCoupon.value = result.coupon
             discount.value = Math.round(result.discount)
-            isFreeShipping.value = !!result.free_shipping
-            if (isFreeShipping.value) {
-                shippingCalculated.value = true
-            }
             error.value = null
-            push.success(isFreeShipping.value ? 'Áp dụng mã freeship thành công' : 'Áp dụng mã giảm giá thành công')
+            push.success('Áp dụng mã giảm giá thành công')
         } else {
             error.value = 'Mã giảm giá không hợp lệ'
         }
@@ -217,10 +224,22 @@ const applyCoupon = async (code) => {
         error.value = err.message || 'Mã giảm giá không hợp lệ'
         push.error(error.value)
         discount.value = 0
+        appliedDiscountCoupon.value = null
+        appliedShippingCoupon.value = null
         appliedCoupon.value = null
         isFreeShipping.value = false
     } finally {
         isLoading.value = false
+    }
+}
+
+// Apply list of codes (e.g., from modal) in order. Supports 1 shipping + 1 discount
+const applyMultipleCoupons = async (codes) => {
+    if (!Array.isArray(codes)) return
+    for (const c of codes) {
+        try {
+            await applyCoupon(c)
+        } catch (_e) {}
     }
 }
 
@@ -327,7 +346,8 @@ const placeOrder = async () => {
         const orderData = {
             address_id: addresses.value[selectedAddress.value].id,
             payment_method: paymentMethods.value[selectedPaymentMethod.value]?.code || 'cod',
-            coupon_id: appliedCoupon.value?.id || null,
+            // Prefer saving discount coupon id; fallback to shipping coupon id if no discount
+            coupon_id: appliedDiscountCoupon.value?.id || appliedShippingCoupon.value?.id || null,
             items: items,
             note: '',
             total_price: subtotal.value,
@@ -469,10 +489,12 @@ onMounted(async () => {
             <div class="space-y-8">
                 <OrderSummary ref="orderSummaryRef" :items="cartItems" :subtotal="subtotal" :shipping="shippingForTotal"
                     :free-shipping="isFreeShipping"
+                    :applied-shipping-coupon="appliedShippingCoupon"
+                    :applied-discount-coupon="appliedDiscountCoupon"
                     :discount="discount" :shipping-zone="shippingZone" :shipping-loading="shippingLoading"
                     :selected-address="currentSelectedAddress" :cart-items="cartItems"
                     :is-placing-order="isPlacingOrder" @place-order="placeOrder" @apply-coupon="applyCoupon"
-                    @shipping-calculated="handleShippingCalculated" />
+                    @apply-coupons="applyMultipleCoupons" @shipping-calculated="handleShippingCalculated" />
             </div>
         </div>
 

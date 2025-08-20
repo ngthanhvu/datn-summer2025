@@ -91,11 +91,14 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <span class="text-lg font-bold text-blue-600">
-                                        {{ coupon.type === 'percent' ? `${coupon.value}%` : formatCurrency(coupon.value)
+                                        {{
+                                            coupon.type === 'percent'
+                                                ? `${coupon.value}%`
+                                                : (coupon.type === 'shipping' ? 'Miễn ship' : formatCurrency(coupon.value))
                                         }}
                                     </span>
                                     <span class="text-sm text-gray-600 ml-2">
-                                        {{ coupon.type === 'percent' ? 'giảm giá' : 'giảm cố định' }}
+                                        {{ coupon.type === 'percent' ? 'giảm giá' : (coupon.type === 'shipping' ? '' : 'giảm cố định') }}
                                     </span>
                                 </div>
                                 <div class="text-right">
