@@ -1,8 +1,12 @@
 <template>
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <!-- <img src="https://i.imgur.com/1X6hF8g.png" alt="Logo" /> -->
-            <span class="logo-text">Admin Panel</span>
+            <!-- <img src="https://assets.market-storefront.envato-static.com/storefront/assets/favicons/favicon-683776860a73328fbfb90221f38228ae31fd55217f17b0fdba2daa1727c47dbd.ico"
+                alt="Logo" /> -->
+            <router-link to="/admin" class="flex items-center">
+                <i class="fa-solid fa-chart-column text-[30px] font-bold text-[#3bb77e] mr-2"></i>
+                <span class="text-[#3bb77e] font-bold text-lg">DEVGANG ADMIN</span>
+            </router-link>
         </div>
         <nav class="sidebar-nav">
             <!-- Tổng quan -->
@@ -239,13 +243,6 @@ onUnmounted(() => {
     gap: 0.5rem;
     margin-bottom: 2rem;
     position: relative;
-}
-
-.logo-text {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #3bb77e;
-    letter-spacing: 1px;
 }
 
 .sidebar-nav {

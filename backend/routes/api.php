@@ -231,6 +231,7 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/inventory', [DashboardController::class, 'getInventoryStats']);
     Route::get('/user-growth', [DashboardController::class, 'getUserGrowthStats']);
 });
+Route::get('/dashboard/revenue-by-date-range', [DashboardController::class, 'getRevenueByDateRange']);
 
 Route::get('/stock-movement', [StockMovementController::class, 'index']);
 Route::get('/stock-movement/{id}', [StockMovementController::class, 'show']);

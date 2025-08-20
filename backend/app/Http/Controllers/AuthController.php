@@ -648,6 +648,13 @@ class AuthController extends Controller
 
             $userToDelete = User::findOrFail($id);
 
+            $hasOrders = $userToDelete->orders()->exists();
+            if ($hasOrders) {
+                return response()->json([
+                    'error' => 'Không thể xóa người dùng này vì đã có đơn hàng trong hệ thống. Vui lòng xử lý đơn hàng trước khi xóa.'
+                ], 422);
+            }
+
             Log::info('Delete user attempt', [
                 'current_user_id' => $currentUser->id,
                 'current_user_role' => $currentUser->role,
@@ -675,6 +682,7 @@ class AuthController extends Controller
                     Storage::delete('public/avatars/' . basename($userToDelete->avatar));
                 }
 
+                // Chỉ xóa các dữ liệu không liên quan đến đơn hàng
                 $userToDelete->stockMovements()->delete();
                 $userToDelete->coupons()->detach();
                 $userToDelete->addresses()->delete();
@@ -682,7 +690,8 @@ class AuthController extends Controller
                 $userToDelete->favoriteProducts()->delete();
                 $userToDelete->productReviews()->delete();
 
-                $userToDelete->orders()->update(['user_id' => null]);
+                // Không cần update orders vì đã kiểm tra không có đơn hàng
+                // $userToDelete->orders()->update(['user_id' => null]);
 
                 $userToDelete->delete();
             });

@@ -1,28 +1,21 @@
 <template>
-    <div class="flex w-full lg:w-auto flex-col gap-4 justify-center p-5 h-full bg-white">
+    <div class="flex w-full lg:w-auto flex-col gap-4 justify-center p-5 h-full">
         <!-- Main Image -->
-        <div class="relative bg-white rounded-xl border border-gray-100 p-4 sm:p-6 lg:p-10 flex items-center justify-center w-full aspect-square max-w-[500px] sm:max-w-[500px] lg:max-w-[600px] mx-auto main-image-container">
-            <transition name="image-fade" mode="out-in">
-                <img :key="currentMainImage" :src="currentMainImage" :alt="productName" class="w-full h-full object-contain rounded-lg cursor-pointer" @click="openModal" />
-            </transition>
-            
-            <!-- Loading overlay khi chuyển ảnh -->
-            <div v-if="isNavigating" class="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
-                <div class="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-500"></div>
-            </div>
+        <div
+            class="relative bg-white rounded-xl border border-gray-100 p-4 sm:p-6 lg:p-10 flex items-center justify-center w-full aspect-square max-w-[500px] sm:max-w-[500px] lg:max-w-[600px] mx-auto">
+            <img :src="currentMainImage" :alt="productName"
+                class="w-full h-full object-contain rounded-lg cursor-pointer" @click="openModal" />
 
-
-            
             <button v-if="displayImages && displayImages.length > 1" @click.stop="previousImage"
-                class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-white hover:shadow-xl transition-all duration-300 ease-in-out z-20 pointer-events-auto navigation-btn">
-                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600 transition-transform duration-200 ease-in-out" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </button>
 
             <button v-if="displayImages && displayImages.length > 1" @click.stop="nextImage"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-white hover:shadow-xl transition-all duration-300 ease-in-out z-20 pointer-events-auto navigation-btn">
-                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600 transition-transform duration-200 ease-in-out" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
             </button>
@@ -151,13 +144,7 @@ const filteredImagesByColor = computed(() => {
 })
 
 const displayImages = computed(() => {
-    const images = filteredImagesByColor.value
-    console.log('Display images computed:', { 
-        imagesCount: images.length, 
-        images: images.map(img => getImgSrc(img)),
-        mainImage: props.mainImage 
-    })
-    return images
+    return filteredImagesByColor.value
 })
 
 watch(displayImages, (newImages, oldImages) => {
@@ -167,7 +154,6 @@ watch(displayImages, (newImages, oldImages) => {
 }, { deep: true })
 
 watch(currentMainImage, (newMainImage) => {
-    console.log('Current main image changed:', { newMainImage, oldMainImage: props.mainImage })
     if (newMainImage && newMainImage !== props.mainImage) {
         emit('update:mainImage', newMainImage)
     }
@@ -188,21 +174,6 @@ watch(() => props.selectedColor, (newColor, oldColor) => {
     }
 }, { deep: true })
 
-// Thêm watcher để theo dõi mainImage
-watch(() => props.mainImage, (newMainImage, oldMainImage) => {
-    console.log('Main image prop changed:', { newMainImage, oldMainImage })
-}, { deep: true })
-
-// Thêm watcher để theo dõi productImages
-watch(() => props.productImages, (newImages, oldImages) => {
-    console.log('Product images prop changed:', { 
-        newCount: newImages?.length || 0, 
-        oldCount: oldImages?.length || 0,
-        newImages: newImages?.map(img => getImgSrc(img)) || [],
-        oldImages: oldImages?.map(img => getImgSrc(img)) || []
-    })
-}, { deep: true })
-
 const isModalOpen = ref(false)
 const modalIndex = ref(0)
 const zoomLevel = ref(1)
@@ -211,7 +182,6 @@ const panY = ref(0)
 const isPanning = ref(false)
 const lastPanX = ref(0)
 const lastPanY = ref(0)
-const isNavigating = ref(false)
 
 const imageLoading = ref({})
 const imageError = ref({})
@@ -251,45 +221,14 @@ function getImgSrc(img) {
     return ''
 }
 
-// Hàm helper để so sánh đường dẫn ảnh
-function normalizeImagePath(path) {
-    if (!path) return ''
-    // Loại bỏ protocol và domain nếu có
-    return path.replace(/^https?:\/\/[^\/]+/, '').replace(/^\//, '')
-}
-
 const currentIndex = computed(() => {
     if (!displayImages.value || displayImages.value.length === 0) return -1
 
-    // Tìm index của ảnh hiện tại bằng cách so sánh đường dẫn đã chuẩn hóa
-    const normalizedMainImage = normalizeImagePath(props.mainImage)
-    const index = displayImages.value.findIndex(img => {
-        const imgSrc = normalizeImagePath(getImgSrc(img))
-        return imgSrc === normalizedMainImage
-    })
-    
-    console.log('Current index computed:', {
-        mainImage: props.mainImage,
-        normalizedMainImage,
-        displayImages: displayImages.value.map(img => ({
-            original: getImgSrc(img),
-            normalized: normalizeImagePath(getImgSrc(img))
-        })),
-        foundIndex: index,
-        totalImages: displayImages.value.length
-    })
-    
-    // Nếu không tìm thấy, trả về 0
-    return index !== -1 ? index : 0
+    const index = displayImages.value.findIndex(img => getImgSrc(img) === props.mainImage)
+    return index
 })
 
 function openModal() {
-    // Không mở modal nếu đang chuyển ảnh
-    if (isNavigating.value) {
-        console.log('Modal not opened - navigating images')
-        return
-    }
-    
     if (displayImages.value && displayImages.value.length > 0) {
         modalIndex.value = currentIndex.value !== -1 ? currentIndex.value : 0
         modalIndex.value = Math.min(modalIndex.value, displayImages.value.length - 1)
@@ -356,97 +295,23 @@ function nextModalImage() {
 }
 
 function previousImage() {
-    console.log('Previous image function called')
-    if (!displayImages.value || displayImages.value.length <= 1) {
-        console.log('Cannot navigate: not enough images', { 
-            displayImages: displayImages.value?.length || 0 
-        })
-        return
-    }
+    if (!displayImages.value || displayImages.value.length === 0) return
 
-    // Đánh dấu đang chuyển ảnh để tránh mở modal
-    isNavigating.value = true
-    
-    // Thêm hiệu ứng loading cho ảnh
-    const mainImage = document.querySelector('.main-image-container img')
-    if (mainImage) {
-        mainImage.style.opacity = '0.6'
-        mainImage.style.transform = 'scale(0.95)'
-        mainImage.style.filter = 'blur(1px)'
-    }
-    
     const newIndex =
         currentIndex.value <= 0
             ? displayImages.value.length - 1
             : currentIndex.value - 1
-    
-    const newImageSrc = getImgSrc(displayImages.value[newIndex])
-    console.log('Previous image clicked:', { 
-        currentIndex: currentIndex.value, 
-        newIndex, 
-        newImageSrc,
-        totalImages: displayImages.value.length 
-    })
-    
-    // Cập nhật ảnh chính với hiệu ứng mượt mà
-    emit('update:mainImage', newImageSrc)
-    
-    // Khôi phục hiệu ứng ảnh sau khi chuyển
-    setTimeout(() => {
-        if (mainImage) {
-            mainImage.style.opacity = '1'
-            mainImage.style.transform = 'scale(1)'
-            mainImage.style.filter = 'blur(0px)'
-        }
-        isNavigating.value = false
-    }, 600)
+    emit('update:mainImage', getImgSrc(displayImages.value[newIndex]))
 }
 
 function nextImage() {
-    console.log('Next image function called')
-    if (!displayImages.value || displayImages.value.length <= 1) {
-        console.log('Cannot navigate: not enough images', { 
-            displayImages: displayImages.value?.length || 0 
-        })
-        return
-    }
+    if (!displayImages.value || displayImages.value.length === 0) return
 
-    // Đánh dấu đang chuyển ảnh để tránh mở modal
-    isNavigating.value = true
-    
-    // Thêm hiệu ứng loading cho ảnh
-    const mainImage = document.querySelector('.main-image-container img')
-    if (mainImage) {
-        mainImage.style.opacity = '0.6'
-        mainImage.style.transform = 'scale(0.95)'
-        mainImage.style.filter = 'blur(1px)'
-    }
-    
     const newIndex =
         currentIndex.value >= displayImages.value.length - 1
             ? 0
             : currentIndex.value + 1
-    
-    const newImageSrc = getImgSrc(displayImages.value[newIndex])
-    console.log('Next image clicked:', { 
-        currentIndex: currentIndex.value, 
-        newIndex, 
-        newImageSrc,
-        totalImages: displayImages.value.length 
-    })
-    
-    // Cập nhật ảnh chính với hiệu ứng mượt mà
-    emit('update:mainImage', newImageSrc)
-    
-    // Khôi phục hiệu ứng ảnh sau khi chuyển
-    setTimeout(() => {
-        if (mainImage) {
-            mainImage.style.opacity = '1'
-            mainImage.style.transform = 'scale(1)'
-            mainImage.style.filter = 'blur(0px)'
-        }
-        isNavigating.value = false
-    }, 600)
+    emit('update:mainImage', getImgSrc(displayImages.value[newIndex]))
 }
 
 const selectImage = (imagePath) => {
@@ -512,126 +377,10 @@ img {
     max-height: 100%;
 }
 
-/* Đảm bảo nút chuyển ảnh hoạt động đúng */
-button[class*="absolute"] {
-    pointer-events: auto !important;
-    z-index: 20 !important;
-}
-
-/* Tránh xung đột với container ảnh chính */
-.main-image-container {
-    pointer-events: none;
-}
-
-.main-image-container img {
-    pointer-events: auto;
-}
-
-/* Hiệu ứng mượt mà cho nút chuyển ảnh */
-.navigation-btn {
-    transform: scale(1);
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    will-change: transform, box-shadow, background-color;
-}
-
-.navigation-btn:hover {
-    transform: scale(1.15);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-    background-color: rgba(255, 255, 255, 0.98);
-}
-
-.navigation-btn:active {
-    transform: scale(0.9);
-    transition: all 0.15s ease-out;
-}
-
-.navigation-btn:hover svg {
-    transform: scale(1.2);
-    color: #1f2937;
-    transition: all 0.3s ease-in-out;
-}
-
-/* Hiệu ứng ripple khi click */
-.navigation-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(59, 130, 246, 0.4);
-    transform: translate(-50%, -50%);
-    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    pointer-events: none;
-}
-
-.navigation-btn:active::before {
-    width: 120%;
-    height: 120%;
-    transition: width 0.2s ease-out, height 0.2s ease-out;
-}
-
-/* Hiệu ứng fade in/out cho nút */
-.navigation-btn {
-    opacity: 0.85;
-    animation: fadeInScale 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.navigation-btn:hover {
-    opacity: 1;
-}
-
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.7) translateY(-50%);
-    }
-    to {
-        opacity: 0.85;
-        transform: scale(1) translateY(-50%);
-    }
-}
-
-/* Hiệu ứng smooth cho ảnh chính */
-.main-image-container img {
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.main-image-container img:hover {
-    transform: scale(1.03);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-/* Transition cho ảnh chính - Hiệu ứng mượt mà hơn */
-.image-fade-enter-active,
-.image-fade-leave-active {
-    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.image-fade-enter-from {
-    opacity: 0;
-    transform: scale(0.9) translateX(-30px);
-    filter: blur(2px);
-}
-
-.image-fade-leave-to {
-    opacity: 0;
-    transform: scale(0.9) translateX(30px);
-    filter: blur(2px);
-}
-
-.image-fade-enter-to,
-.image-fade-leave-from {
-    opacity: 1;
-    transform: scale(1) translateX(0);
-    filter: blur(0px);
-}
-
 /* Container ảnh chính */
 .main-image-container {
     min-height: 400px;
-
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
 /* Thumbnail container */

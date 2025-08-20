@@ -31,6 +31,10 @@ export const useDashboard = () => {
     const getYearlyRevenue = (params = {}) =>
         API.get("/dashboard/revenue/yearly", { params }).then((r) => r.data).catch((e) => handleError(e, "Không thể lấy thống kê doanh thu năm"));
 
+    // Thêm function mới cho lọc theo khoảng thời gian
+    const getRevenueByDateRange = (params = {}) =>
+        API.get("/dashboard/revenue-by-date-range", { params }).then((r) => r.data).catch((e) => handleError(e, "Không thể lấy thống kê doanh thu theo khoảng thời gian"));
+
     const getMonthlyOrders = (params = {}) =>
         API.get("/dashboard/orders", { params }).then((r) => r.data).catch((e) => handleError(e, "Không thể lấy thống kê đơn hàng"));
 
@@ -186,6 +190,7 @@ export const useDashboard = () => {
         getStats,
         getMonthlyRevenue,
         getYearlyRevenue,
+        getRevenueByDateRange, // Thêm vào return
         getMonthlyOrders,
         getOrdersByStatus,
         getCustomersStats,
