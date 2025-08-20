@@ -19,7 +19,7 @@
             @removeImage="removeImage" @handleImageUpload="handleImageUpload" @add-to-cart="handleAddToCart"
             @cancelEdit="cancelEdit" @editReview="editReview" @removeReview="removeReview"
             @handleReviewPageChange="handleReviewPageChange" :related-products="relatedProducts"
-            @variantChange="handleVariantChange" @update:mainImage="val => mainImage = val" />
+            @variantChange="handleVariantChange" @update:mainImage="handleMainImageUpdate" />
         <div class="max-w-7xl mx-auto">
             <RecentlyViewed variant="detail" />
         </div>
@@ -393,8 +393,17 @@ const handleAddToCart = async () => {
     }
 }
 
+const handleMainImageUpdate = (newImagePath) => {
+    console.log('Main image update triggered:', { 
+        oldImage: mainImage.value, 
+        newImage: newImagePath 
+    })
+    mainImage.value = newImagePath
+}
+
 const handleVariantChange = (variantData) => {
     const { size, color } = variantData
+    console.log('Variant change triggered:', { size, color })
 
     selectedSize.value = size
     selectedColor.value = { name: color }
@@ -512,6 +521,11 @@ async function loadProduct(slug) {
         }
 
         allProductImages.value = generateAllProductImages()
+        console.log('Generated product images:', {
+            count: allProductImages.value.length,
+            images: allProductImages.value.map(img => img.image_path || img),
+            mainImage: mainImage.value
+        })
 
         if (route.query.flashsale) {
             flashSaleName.value = route.query.flashsale

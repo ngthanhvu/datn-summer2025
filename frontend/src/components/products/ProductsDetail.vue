@@ -19,7 +19,7 @@
                 <div class="w-full lg:w-auto lg:flex-shrink-0">
                     <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product?.name"
                         :selected-size="props.selectedSize" :selected-color="props.selectedColor" :product="product"
-                        @update:main-image="$emit('update:mainImage', $event)" />
+                        @update:mainImage="$emit('update:mainImage', $event)" />
                 </div>
 
                 <!-- Product Info -->
