@@ -26,9 +26,9 @@ export const useProducts = () => {
         })
     }
 
-    const getProducts = async (filters = {}, page = 1) => {
+    const getProducts = async (filters = {}, page = 1, perPage = 8) => {
         try {
-            const cacheKey = `products_${JSON.stringify(filters)}_page_${page}`
+            const cacheKey = `products_${JSON.stringify(filters)}_page_${page}_perPage_${perPage}`
             const cached = getCachedData(cacheKey)
             if (cached) {
                 return cached
@@ -37,6 +37,7 @@ export const useProducts = () => {
             const params = new URLSearchParams()
 
             params.append('page', page)
+            params.append('per_page', perPage)
 
             if (filters.color) {
                 params.append('color', filters.color)
