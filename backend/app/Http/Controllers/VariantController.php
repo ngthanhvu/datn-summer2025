@@ -11,7 +11,8 @@ class VariantController extends Controller
     {
         $variants = Variants::with([
             'product:id,name',
-            'images',
+            'images:id,image_path,is_main,product_id,variant_id',
+            'inventory:id,variant_id,quantity',
         ])->get();
 
         $variants = $variants->map(function ($variant) {

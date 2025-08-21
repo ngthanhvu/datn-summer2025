@@ -28,7 +28,7 @@ class Variants extends Model
 
     public function inventoryMovements()
     {
-        return $this->hasMany(InventoryMovement::class);
+        return $this->hasMany(StockMovementItem::class);
     }
 
     public function images()
