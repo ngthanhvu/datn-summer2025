@@ -144,12 +144,15 @@ const isLoggedIn = computed(() => {
 })
 
 onMounted(async () => {
+    isLoading.value = true
     try {
         await couponStore.fetchCoupons()
         const myCouponsData = await getMyCoupons()
         myCoupons.value = Array.isArray(myCouponsData) ? myCouponsData : (myCouponsData?.data || myCouponsData?.coupons || [])
     } catch (error) {
         console.error('Error loading coupons:', error)
+    } finally {
+        isLoading.value = false
     }
 })
 
@@ -226,7 +229,6 @@ const claimVoucherCode = async (couponId) => {
     }
 }
 </script>
-
 
 <style scoped>
 .left-edge {

@@ -9,7 +9,7 @@
                 <button @click="handleReload" :disabled="isLoading"
                     class="w-full sm:w-auto inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200">
                     <i class="fas fa-sync-alt me-2" :class="{ 'animate-spin': isLoading }"></i>
-                    {{ isLoading ? 'Đang tải...' : 'Làm mới' }}
+                    {{ isLoading ? 'Đang tải...' : 'Tải lại' }}
                 </button>
             </div>
         </div>

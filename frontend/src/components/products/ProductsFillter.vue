@@ -51,13 +51,30 @@
         <!-- Kích thước -->
         <div class="mb-6">
             <h4 class="font-medium mb-2 text-sm">Kích thước</h4>
-            <div class="flex flex-wrap gap-2">
-                <button v-for="size in filterOptions.sizes" :key="size" @click="toggleFilter('size', size)" :class="[
-                    'w-8 h-8 text-sm font-medium border rounded flex items-center justify-center cursor-pointer transition-colors',
-                    filters.size.includes(size) ? 'bg-[#81aacc] text-white' : 'bg-white text-black hover:bg-gray-50'
-                ]">
-                    {{ size }}
-                </button>
+            <div v-if="groupedSizes.alpha.length" class="mb-3">
+                <p class="text-xs text-gray-500 mb-1">Chữ</p>
+                <div class="flex flex-wrap gap-2">
+                    <button v-for="size in groupedSizes.alpha" :key="'alpha-' + size"
+                        @click="toggleFilter('size', size)" :class="[
+                            'w-8 h-8 text-sm font-medium border rounded flex items-center justify-center cursor-pointer transition-colors',
+                            filters.size.includes(size) ? 'bg-[#81aacc] text-white' : 'bg-white text-black hover:bg-gray-50'
+                        ]">
+                        {{ size }}
+                    </button>
+                </div>
+            </div>
+
+            <div v-if="groupedSizes.numeric.length">
+                <p class="text-xs text-gray-500 mb-1">Số</p>
+                <div class="flex flex-wrap gap-2">
+                    <button v-for="size in groupedSizes.numeric" :key="'numeric-' + size"
+                        @click="toggleFilter('size', size)" :class="[
+                            'w-8 h-8 text-sm font-medium border rounded flex items-center justify-center cursor-pointer transition-colors',
+                            filters.size.includes(size) ? 'bg-[#81aacc] text-white' : 'bg-white text-black hover:bg-gray-50'
+                        ]">
+                        {{ size }}
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -89,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useProducts } from "../../composable/useProducts";
 
 const emit = defineEmits(["filter"]);
@@ -110,6 +127,14 @@ const filterOptions = ref({
     brands: [],
     colors: [],
     sizes: [],
+});
+
+const groupedSizes = computed(() => {
+    const allSizes = filterOptions.value.sizes || [];
+    const normalized = allSizes.map((s) => String(s));
+    const numeric = normalized.filter((s) => /^\d+$/i.test(s));
+    const alpha = normalized.filter((s) => !/^\d+$/i.test(s));
+    return { alpha, numeric };
 });
 
 const { getFilterOptions } = useProducts();

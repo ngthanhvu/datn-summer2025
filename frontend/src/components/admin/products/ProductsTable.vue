@@ -708,7 +708,7 @@ const handleBulkDelete = async () => {
 }
 
 .refresh-btn {
-    background-color: #4f46e5;
+    background-color: #364153;
     color: white;
 }
 
