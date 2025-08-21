@@ -287,7 +287,7 @@ import { useFlashsale } from '../../../composable/useFlashsale'
 import { useRouter, useRoute } from "vue-router";
 const search = ref('')
 const page = ref(1)
-const pageSize = 5
+const pageSize = 5 
 
 const totalPages = computed(() => {
     const pages = Math.ceil(filteredAllProducts.value.length / pageSize)
@@ -329,7 +329,7 @@ async function loadProducts() {
     loading.value = true
     error.value = ''
     try {
-        const data = await getProducts()
+        const data = await getProducts({}, 1, 100)
 
         if (data && data.products && Array.isArray(data.products)) {
             allProducts.value = data.products.map(p => {
@@ -379,7 +379,6 @@ onMounted(async () => {
                 console.error('Lỗi parse saved products:', e)
             }
         } else {
-            // Nếu chưa có localStorage, gọi API lấy flash sale
             try {
                 const flashSale = await getFlashSaleById(flashSaleId)
                 if (flashSale && flashSale.products) {
