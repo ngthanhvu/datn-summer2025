@@ -57,10 +57,7 @@ class FlashSaleController extends Controller
                 ->join('stock_movements as sm', 'sm.id', '=', 'smi.stock_movement_id')
                 ->where('sm.type', 'import')
                 ->where('sm.created_at', '<=', $fs->end_time)
-                ->select(
-                    'smi.variant_id',
-                    DB::raw('MAX(smi.id) as last_smi_id')
-                )
+                ->select('smi.variant_id', DB::raw('MAX(smi.id) as last_smi_id'))
                 ->groupBy('smi.variant_id');
 
             $costSub = DB::table('stock_movement_items as last_smi')
@@ -69,9 +66,10 @@ class FlashSaleController extends Controller
                 })
                 ->select('last_smi.variant_id', 'last_smi.unit_price as last_cost');
 
-            $lines = DB::table('orders_details as od')
-                ->join('orders as o', 'o.id', '=', 'od.order_id')
-                ->join('variants as v', 'v.id', '=', 'od.variant_id')
+            $lines = DB::table('stock_movement_items as smi')
+                ->join('stock_movements as sm', 'sm.id', '=', 'smi.stock_movement_id')
+                ->join('variants as v', 'v.id', '=', 'smi.variant_id')
+                ->join('products as p', 'p.id', '=', 'v.product_id')
                 ->join('flash_sale_products as fsp', function ($join) use ($fs) {
                     $join->on('fsp.product_id', '=', 'v.product_id')
                          ->where('fsp.flash_sale_id', '=', $fs->id);
@@ -79,29 +77,22 @@ class FlashSaleController extends Controller
                 ->leftJoinSub($costSub, 'costs', function ($join) {
                     $join->on('costs.variant_id', '=', 'v.id');
                 })
-                ->whereBetween('o.created_at', [$fs->start_time, $fs->end_time])
-                ->where(function ($q) {
-                    $q->where('o.payment_status', 'paid')
-                      ->orWhere('o.status', 'completed');
-                })
-                // Chỉ tính các dòng có đơn giá đúng bằng giá flash của chiến dịch này
-                ->whereColumn('od.price', '=', 'fsp.flash_price')
+                ->where('sm.type', 'export')
+                ->whereBetween('sm.created_at', [$fs->start_time, $fs->end_time])
+                ->where('sm.note', 'like', '%(sản phẩm sale)%')
+                ->whereRaw('smi.unit_price = ROUND(v.price * (fsp.flash_price / p.price))')
                 ->select(
-                    'o.id as order_id',
-                    'v.product_id',
-                    DB::raw('SUM(od.quantity) as qty'),
-                    DB::raw('SUM(od.quantity * od.price) as line_rev'),
-                    DB::raw('SUM(od.quantity * COALESCE(costs.last_cost, 0)) as line_cost')
+                    DB::raw('SUM(smi.quantity) as qty'),
+                    DB::raw('SUM(smi.quantity * smi.unit_price) as line_rev'),
+                    DB::raw('SUM(smi.quantity * COALESCE(costs.last_cost, 0)) as line_cost')
                 )
-                ->groupBy('o.id', 'v.product_id')
                 ->get();
 
             if ($lines->isNotEmpty()) {
-                foreach ($lines as $ln) {
-                    $sold += (int)($ln->qty ?? 0);
-                    $profit = (float)$ln->line_rev - (float)$ln->line_cost;
-                    $revenue += (int)round($profit);
-                }
+                $ln = $lines->first();
+                $sold += (int)($ln->qty ?? 0);
+                $profit = (float)$ln->line_rev - (float)$ln->line_cost;
+                $revenue += (int)round($profit);
             }
             $stats[] = [
                 'id' => $fs->id,
