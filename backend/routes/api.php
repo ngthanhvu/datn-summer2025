@@ -32,6 +32,7 @@ use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\AIChatController;
 use App\Http\Controllers\BlogCategoryController;
+use App\Http\Controllers\HealthCheckController;
 
 // AI Chatbot routes
 Route::post('/ai/chat', [AIChatController::class, 'chat']);
@@ -278,3 +279,6 @@ Route::get('/sitemap-data', function () {
         'pages'    => Pages::where('status', 1)->pluck('slug'),
     ]);
 });
+
+// Health check
+Route::get('/health', [HealthCheckController::class, 'index']);

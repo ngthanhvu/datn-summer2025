@@ -101,6 +101,10 @@
                     <i class="fas fa-cog"></i>
                     <span>Cài đặt</span>
                 </RouterLink>
+                <RouterLink to="/admin/health" class="nav-item">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Trạng thái</span>
+                </RouterLink>
             </div>
         </nav>
     </aside>

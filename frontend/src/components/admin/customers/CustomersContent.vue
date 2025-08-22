@@ -16,7 +16,7 @@
             </button>
         </div>
 
-        <CustomersTable :customers="customers" :isLoading="isLoading" :currentPage="currentPage"
+        <CustomersTable :customers="sortedCustomers" :isLoading="isLoading" :currentPage="currentPage"
             :itemsPerPage="itemsPerPage" :totalItems="totalItems" :currentUserRole="currentUserRole"
             @delete="handleDelete" @page-change="handlePageChange" @update-customer="handleUpdateCustomer"
             @toggle-status="handleToggleStatus" @create-customer="handleCreateCustomer" />
@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import CustomersTable from './CustomersTable.vue'
 import { useAuth } from '../../../composable/useAuth'
 import { push } from 'notivue'
@@ -39,10 +39,27 @@ const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
 
-// Get current user role
 const currentUserRole = ref('user')
 
-// Helper function to show error alerts
+const sortedCustomers = computed(() => {
+    return [...customers.value].sort((a, b) => {
+        const rolePriority = {
+            'master_admin': 3,
+            'admin': 2,
+            'user': 1
+        }
+
+        const aPriority = rolePriority[a.role] || 0
+        const bPriority = rolePriority[b.role] || 0
+
+        if (aPriority !== bPriority) {
+            return bPriority - aPriority
+        }
+
+        return a.id - b.id
+    })
+})
+
 const showErrorAlert = (errorMessage) => {
     const errorConfigs = {
         'không thể xóa chính bản thân': {
@@ -79,7 +96,6 @@ const showErrorAlert = (errorMessage) => {
         }
     }
 
-    // Tìm config phù hợp
     for (const [key, config] of Object.entries(errorConfigs)) {
         if (errorMessage.includes(key)) {
             Swal.fire({
@@ -93,7 +109,6 @@ const showErrorAlert = (errorMessage) => {
         }
     }
 
-    // Nếu không tìm thấy config, hiển thị thông báo lỗi thông thường
     push.error(errorMessage)
     return false
 }
@@ -105,7 +120,6 @@ onMounted(async () => {
         customers.value = res.users
         totalItems.value = res.users.length
 
-        // Get current user role
         if (user.value) {
             currentUserRole.value = user.value.role
         }
@@ -204,6 +218,7 @@ const handleRefresh = async () => {
         const res = await getListUser()
         customers.value = res.users
         totalItems.value = res.users.length
+        // sortedCustomers will automatically update due to computed property
     } catch (err) {
         console.error('Get list user error:', err.response?.data || err.message)
         throw err

@@ -61,8 +61,9 @@ import PagesEdit from '../pages/admin/page/edit.vue';
 
 import StatusPage from '../pages/status.vue';
 import CookieRule from '../components/CookieRule.vue';
-import NotFound from '../components/404.vue'
-import PagesContent from '../components/admin/newpage/PagesContent.vue'
+import NotFound from '../components/404.vue';
+import PagesContent from '../components/admin/newpage/PagesContent.vue';
+import HealthPage from '../pages/admin/health/index.vue';
 import { authGuard } from './middleware/auth';
 
 const routes = [
@@ -317,6 +318,10 @@ const routes = [
             {
                 path: '/admin/pages/:id/edit',
                 component: PagesEdit
+            },
+            {
+                path: '/admin/health',
+                component: HealthPage
             }
         ]
         // meta: { requiresAuth: true, requiresAdmin: true }

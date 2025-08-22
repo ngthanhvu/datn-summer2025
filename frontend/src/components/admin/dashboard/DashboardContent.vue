@@ -122,7 +122,9 @@ const ordersData = ref({})
 const inventoryData = ref({})
 const userGrowthData = ref({})
 const recentOrders = ref([])
-
+const revenueGrowth = ref(0)
+const ordersGrowth = ref(0)
+const customersGrowth = ref(0)
 const fetchDashboardData = async () => {
     try {
         loading.value = true
