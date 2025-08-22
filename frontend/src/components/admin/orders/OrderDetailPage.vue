@@ -292,7 +292,7 @@
                         <div class="flex items-center space-x-3">
                             <div class="flex-1">
                                 <p class="font-medium text-gray-900">{{ getPaymentMethod(currentOrder?.payment_method)
-                                    }}</p>
+                                }}</p>
                             </div>
                             <div class="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
                                 <i class="fab fa-cc-mastercard text-blue-600"></i>
@@ -306,7 +306,8 @@
         <!-- Cập nhật trạng thái và duyệt/từ chối hoàn hàng -->
 
         <!-- Modal nhập lý do từ chối hoàn hàng -->
-        <div v-if="showRejectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div v-if="showRejectModal"
+            class="fixed inset-0 bg-gray-900/50 bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
                 <h3 class="text-lg font-bold mb-4">Lý do từ chối hoàn hàng</h3>
                 <textarea v-model="rejectReason" placeholder="Nhập lý do..."

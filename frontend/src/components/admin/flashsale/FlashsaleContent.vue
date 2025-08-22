@@ -58,7 +58,8 @@
                             </td>
                             <td class="px-4 py-2 text-center">{{ item.start_time }} ~ {{ item.end_time }}</td>
                             <td class="px-4 py-2 text-center">{{ getSoldReal(item) }}</td>
-                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0) }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0)
+                                }}</td>
                             <td class="px-4 py-2 text-center">
                                 <button class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer"
                                     :class="item.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
@@ -76,12 +77,17 @@
                                 <div class="flex gap-2">
                                     <button
                                         class="inline-flex items-center p-1.5 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150"
-                                        @click="toggleStatus(item)" :title="item.active ? 'Tắt chiến dịch' : 'Bật chiến dịch'">
-                                        <svg v-if="item.active" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+                                        @click="toggleStatus(item)"
+                                        :title="item.active ? 'Tắt chiến dịch' : 'Bật chiến dịch'">
+                                        <svg v-if="item.active" class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M18 12H6" />
                                         </svg>
-                                        <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6" />
+                                        <svg v-else class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 6v12m6-6H6" />
                                         </svg>
                                     </button>
                                     <router-link :to="`/admin/flashsale/${item.id}/edit`"
@@ -201,6 +207,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useFlashsale } from '../../../composable/useFlashsale'
 import { push } from 'notivue'
+import Swal from 'sweetalert2'
 
 const { getFlashSales, deleteFlashSale, getFlashSaleStatistics, toggleFlashSaleStatus } = useFlashsale()
 const flashSales = ref([])
@@ -245,7 +252,7 @@ async function fetchFlashSales() {
         // Tải thống kê thật
         const stats = await getFlashSaleStatistics()
         const mapping = {}
-        ;(Array.isArray(stats) ? stats : []).forEach(s => { mapping[s.id] = s })
+            ; (Array.isArray(stats) ? stats : []).forEach(s => { mapping[s.id] = s })
         realStats.value = mapping
     } catch (e) {
         error.value = e.message || 'Lỗi tải dữ liệu flash sale'
@@ -259,7 +266,19 @@ onMounted(fetchFlashSales)
 
 async function handleDelete(id) {
     if (deleteLoading.value) return
-    if (confirm('Bạn có chắc muốn xóa flash sale này?')) {
+
+    const result = await Swal.fire({
+        title: 'Bạn có chắc chắn?',
+        text: 'Bạn có chắc muốn xóa flash sale này?',
+        icon: 'warning',
+        showCancelButton: true,
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true
+    })
+
+    if (result.isConfirmed) {
         deleteLoading.value = true
         error.value = ''
         try {

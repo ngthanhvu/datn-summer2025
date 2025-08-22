@@ -106,7 +106,7 @@
                             <span class="font-medium text-red-600 text-sm md:text-base">Lý do hủy đơn hàng:
                             </span>
                             <span class="text-red-600 text-sm md:text-base">{{ currentOrder.cancel_reason
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -240,7 +240,7 @@
                                 </svg>
                                 <span class="font-semibold mr-1">Mã tra cứu:</span>
                                 <span class="font-medium text-blue-600">{{ currentOrder?.tracking_code || 'Chưa có mã'
-                                    }}</span>
+                                }}</span>
                             </p>
                         </div>
                         <div class="space-y-1">
@@ -363,7 +363,8 @@
         </template>
 
         <!-- Modal nhập lý do từ chối hoàn hàng -->
-        <div v-if="showRejectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div v-if="showRejectModal"
+            class="fixed inset-0 bg-gray-900/50 bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
                 <h3 class="text-lg font-bold mb-4">Lý do từ chối hoàn hàng</h3>
                 <textarea v-model="rejectReason" placeholder="Nhập lý do..."

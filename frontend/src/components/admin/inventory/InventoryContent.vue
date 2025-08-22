@@ -127,13 +127,15 @@
                                         </tr>
                                     </template>
                                     <template v-else>
-                                        <tr v-for="item in paginatedInventories" :key="item.variant.id">
-                                            <td class="px-6 py-4">{{ item.variant.product.name }}</td>
-                                            <td class="px-6 py-4">{{ item.variant.color }}</td>
-                                            <td class="px-6 py-4">{{ item.variant.size }}</td>
-                                            <td class="px-6 py-4">{{ item.variant.sku }}</td>
+                                        <tr v-for="item in paginatedInventories"
+                                            :key="item.variant?.id || item.variant?.product?.id || Math.random()">
+                                            <td class="px-6 py-4">{{ item.variant?.product?.name || 'N/A' }}</td>
+                                            <td class="px-6 py-4">{{ item.variant?.color || 'N/A' }}</td>
+                                            <td class="px-6 py-4">{{ item.variant?.size || 'N/A' }}</td>
+                                            <td class="px-6 py-4">{{ item.variant?.sku || 'N/A' }}</td>
                                             <td class="px-6 py-4">{{ item.quantity }}</td>
-                                            <td class="px-6 py-4">{{ formatPrice(item.variant.price) }}</td>
+                                            <td class="px-6 py-4">{{ item.variant?.price ?
+                                                formatPrice(item.variant.price) : 'N/A' }}</td>
                                             <td class="px-6 py-4">
                                                 <span :class="{
                                                     'px-2 py-1 rounded-full text-xs font-semibold': true,
@@ -156,13 +158,15 @@
 
                         <!-- Mobile card list -->
                         <div v-if="!loading && paginatedInventories.length > 0" class="space-y-3 md:hidden">
-                            <div v-for="item in paginatedInventories" :key="'m-' + item.variant.id"
+                            <div v-for="item in paginatedInventories"
+                                :key="'m-' + (item.variant?.id || item.variant?.product?.id || Math.random())"
                                 class="rounded-lg border border-gray-200 p-3">
                                 <div class="flex items-start gap-3">
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-semibold truncate">{{ item.variant.product.name }}
+                                        <div class="text-sm font-semibold truncate">{{ item.variant?.product?.name ||
+                                            'N/A' }}
                                         </div>
-                                        <div class="text-xs text-gray-500">{{ item.variant.sku }}</div>
+                                        <div class="text-xs text-gray-500">{{ item.variant?.sku || 'N/A' }}</div>
                                     </div>
                                     <span :class="{
                                         'px-2 py-1 rounded-full text-xs font-semibold': true,
@@ -175,13 +179,15 @@
                                 </div>
                                 <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
                                     <div class="text-gray-500">Màu sắc</div>
-                                    <div class="text-right">{{ item.variant.color }}</div>
+                                    <div class="text-right">{{ item.variant?.color || 'N/A' }}</div>
                                     <div class="text-gray-500">Kích thước</div>
-                                    <div class="text-right">{{ item.variant.size }}</div>
+                                    <div class="text-right">{{ item.variant?.size || 'N/A' }}</div>
                                     <div class="text-gray-500">Tồn kho</div>
                                     <div class="text-right font-medium">{{ item.quantity }}</div>
                                     <div class="text-gray-500">Giá</div>
-                                    <div class="text-right font-medium">{{ formatPrice(item.variant.price) }}</div>
+                                    <div class="text-right font-medium">{{ item.variant?.price ?
+                                        formatPrice(item.variant.price) : 'N/A' }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -237,9 +243,10 @@ const fetchInventories = async () => {
     try {
         loading.value = true
         const data = await getInventories()
-        inventories.value = data
+        inventories.value = data.filter(item => item.variant && item.variant.product)
     } catch (error) {
         console.error('Error fetching inventories:', error)
+        inventories.value = []
     } finally {
         loading.value = false
     }
@@ -248,7 +255,7 @@ const fetchInventories = async () => {
 const fetchProducts = () => {
     const uniqueProducts = new Map()
     inventories.value.forEach(item => {
-        if (!uniqueProducts.has(item.variant.product.id)) {
+        if (item.variant && item.variant.product && !uniqueProducts.has(item.variant.product.id)) {
             uniqueProducts.set(item.variant.product.id, item.variant.product)
         }
     })
@@ -262,6 +269,9 @@ const getStockStatus = (quantity) => {
 }
 
 const formatPrice = (price) => {
+    if (price === null || price === undefined || price === '') {
+        return 'N/A'
+    }
     return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND'
@@ -272,7 +282,7 @@ const filteredInventories = computed(() => {
     let result = [...inventories.value]
 
     if (filters.value.product_id) {
-        result = result.filter(item => item.variant.product_id === parseInt(filters.value.product_id))
+        result = result.filter(item => item.variant && item.variant.product && item.variant.product_id === parseInt(filters.value.product_id))
     }
 
     if (filters.value.stock_status) {
@@ -291,10 +301,18 @@ const filteredInventories = computed(() => {
 
     switch (filters.value.sort) {
         case 'name_asc':
-            result.sort((a, b) => a.variant.product.name.localeCompare(b.variant.product.name))
+            result.sort((a, b) => {
+                const nameA = a.variant?.product?.name || ''
+                const nameB = b.variant?.product?.name || ''
+                return nameA.localeCompare(nameB)
+            })
             break
         case 'name_desc':
-            result.sort((a, b) => b.variant.product.name.localeCompare(a.variant.product.name))
+            result.sort((a, b) => {
+                const nameA = a.variant?.product?.name || ''
+                const nameB = b.variant?.product?.name || ''
+                return nameB.localeCompare(nameA)
+            })
             break
         case 'stock_asc':
             result.sort((a, b) => a.quantity - b.quantity)

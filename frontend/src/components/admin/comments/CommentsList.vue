@@ -31,7 +31,7 @@
                     <select v-model="filterUnread"
                         class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">
                         <option value="">Chưa đọc</option>
-                        <option value="yes">Chưa đọc</option>
+                        <option value="yes">Đã đọc</option>
                     </select>
                     <select v-model="filterBadwords"
                         class="border border-gray-300 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm flex-1 sm:flex-none">

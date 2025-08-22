@@ -10,7 +10,6 @@
                     Flash Sale</div>
             </div>
         </div>
-        <div v-if="error" class="text-red-500 mb-2 whitespace-pre-line">{{ error }}</div>
         <div v-if="success" class="text-green-600 mb-2">{{ success }}</div>
         <div class="flex flex-col lg:flex-row gap-4 lg:gap-8">
             <div class="bg-white rounded shadow p-4 sm:p-6 lg:w-2/5 mb-4 lg:mb-0 text-sm">
@@ -21,6 +20,7 @@
                         <input v-model="form.name"
                             class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
                             placeholder="Nhập tên chiến dịch" />
+                        <div v-if="errors.name" class="text-red-500 text-xs mt-1">{{ errors.name }}</div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <div class="flex-1">
@@ -28,12 +28,14 @@
                                     class="text-red-500">*</span></label>
                             <input type="datetime-local" v-model="form.start"
                                 class="input border-gray-300 w-full border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm" />
+                            <div v-if="errors.start" class="text-red-500 text-xs mt-1">{{ errors.start }}</div>
                         </div>
                         <div class="flex-1">
                             <label class="block text-sm font-medium mb-1">Thời gian kết thúc <span
                                     class="text-red-500">*</span></label>
                             <input type="datetime-local" v-model="form.end"
-                                class="input border-gray-300 w-full border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm" />
+                                class="input border-gray-300 w-full border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 text-sm" />
+                            <div v-if="errors.end" class="text-red-500 text-xs mt-1">{{ errors.end }}</div>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -49,7 +51,7 @@
                         <div v-if="form.repeat" class="flex items-center gap-2">
                             <label class="text-sm">Số phút lặp lại</label>
                             <input v-model="form.repeatMinutes" type="number" min="1"
-                                class="input w-20 border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                class="input w-20 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
                                 placeholder="Phút" />
                         </div>
                     </div>
@@ -58,6 +60,8 @@
                         Khi chương trình kết thúc, hệ thống sẽ tự động tạo lại chương trình mới sau {{
                             form.repeatMinutes || 60 }} phút
                     </div>
+                    <div v-if="form.repeat && errors.repeatMinutes" class="text-red-500 text-xs">{{ errors.repeatMinutes
+                    }}</div>
                     <div class="flex flex-col gap-3 mt-2">
                         <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                             <div class="flex items-center gap-2">
@@ -72,7 +76,7 @@
                             <div v-if="form.autoIncrease" class="flex items-center gap-2">
                                 <label class="text-sm">Tăng mỗi 1 giờ</label>
                                 <input v-model="form.increaseAmount" type="number" min="1"
-                                    class="input w-20 border rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
+                                    class="input w-20 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
                                     placeholder="SL" />
                             </div>
                         </div>
@@ -92,6 +96,8 @@
                         Hệ thống sẽ tự động tăng số lượng đã bán thêm {{ form.increaseAmount || 1 }} mỗi 1 giờ, không
                         vượt quá số lượng tổng
                     </div>
+                    <div v-if="form.autoIncrease && errors.increaseAmount" class="text-red-500 text-xs">{{
+                        errors.increaseAmount }}</div>
                     <div class="flex flex-col sm:flex-row gap-2 mt-6">
                         <button
                             class="px-3 py-2 bg-[#3BB77E] text-white cursor-pointer rounded hover:bg-[#74c09d] text-sm"
@@ -140,6 +146,10 @@
                                     <input v-model="item.flashPrice"
                                         class="input w-24 border border-gray-300 rounded p-1 text-sm text-center"
                                         placeholder="Giá FS" />
+                                    <div v-if="errors.products && errors.products[item.id]"
+                                        class="text-red-500 text-xs mt-1 text-center">
+                                        {{ errors.products[item.id] }}
+                                    </div>
                                 </td>
                                 <td class="px-3 py-2">
                                     <input v-model="item.sold"
@@ -173,7 +183,7 @@
                                     </button>
                                 </td>
                             </tr>
-                            
+
                             <tr v-if="paginatedProducts.length === 0">
                                 <td colspan="9" class="text-center py-4">Không có sản phẩm</td>
                             </tr>
@@ -215,6 +225,10 @@
                                 <input v-model="item.flashPrice"
                                     class="input w-full border border-gray-300 rounded p-2 text-sm"
                                     placeholder="Giá FS" />
+                                <div v-if="errors.products && errors.products[item.id]"
+                                    class="text-red-500 text-xs mt-1">
+                                    {{ errors.products[item.id] }}
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-gray-600 mb-1">Đã bán</label>
@@ -244,6 +258,10 @@
                     <button class="px-3 py-1 rounded border border-gray-300 text-sm cursor-pointer"
                         :disabled="productPage === productTotalPages"
                         @click="productPage < productTotalPages && (productPage++)">&gt;</button>
+                </div>
+                <div v-if="errors.products && typeof errors.products === 'string'"
+                    class="text-red-500 text-sm mt-3 text-center">
+                    {{ errors.products }}
                 </div>
             </div>
         </div>
@@ -289,7 +307,7 @@ const form = ref({
     active: true
 })
 const loading = ref(false)
-const error = ref('')
+const errors = ref({})
 const success = ref('')
 const { createFlashSale, updateFlashSale, getMainImage } = useFlashsale()
 const { getProducts } = useProducts()
@@ -365,6 +383,27 @@ watch(() => props.editData, (val) => {
     }
 }, { immediate: true })
 
+watch(() => form.value.name, () => {
+    if (errors.value.name) delete errors.value.name
+})
+watch(() => form.value.start, () => {
+    if (errors.value.start) delete errors.value.start
+    if (errors.value.end) delete errors.value.end
+})
+watch(() => form.value.end, () => {
+    if (errors.value.end) delete errors.value.end
+})
+watch(() => form.value.repeatMinutes, () => {
+    if (errors.value.repeatMinutes) delete errors.value.repeatMinutes
+})
+watch(() => form.value.increaseAmount, () => {
+    if (errors.value.increaseAmount) delete errors.value.increaseAmount
+})
+
+watch(() => products.value, () => {
+    if (errors.value.products) delete errors.value.products
+}, { deep: true })
+
 function addProduct(product) {
     const existingIndex = products.value.findIndex(p => p.id === product.id)
     if (existingIndex === -1) {
@@ -404,8 +443,75 @@ function sumAlloc(item) {
     return (item.variantAllocations || []).reduce((s, a) => s + (Number(a.qty) || 0), 0)
 }
 
+function validateForm() {
+    errors.value = {}
+
+    if (!form.value.name || form.value.name.trim() === '') {
+        errors.value.name = 'Tên chiến dịch không được để trống'
+    }
+
+    if (!form.value.start) {
+        errors.value.start = 'Thời gian bắt đầu không được để trống'
+    }
+
+    if (!form.value.end) {
+        errors.value.end = 'Thời gian kết thúc không được để trống'
+    }
+
+    if (form.value.start && form.value.end && new Date(form.value.start) >= new Date(form.value.end)) {
+        errors.value.end = 'Thời gian kết thúc phải sau thời gian bắt đầu'
+    }
+
+    if (form.value.repeat && (!form.value.repeatMinutes || form.value.repeatMinutes < 1)) {
+        errors.value.repeatMinutes = 'Số phút lặp lại phải lớn hơn 0'
+    }
+
+    if (form.value.autoIncrease && (!form.value.increaseAmount || form.value.increaseAmount < 1)) {
+        errors.value.increaseAmount = 'Số lượng tăng phải lớn hơn 0'
+    }
+
+    if (!products.value || products.value.length === 0) {
+        errors.value.products = 'Phải có ít nhất một sản phẩm'
+    } else {
+        products.value.forEach((product, index) => {
+            if (!product.flashPrice || product.flashPrice === '') {
+                if (!errors.value.products) errors.value.products = {}
+                errors.value.products[product.id] = 'Giá Flash Sale không được để trống'
+            } else if (isNaN(Number(product.flashPrice)) || Number(product.flashPrice) <= 0) {
+                if (!errors.value.products) errors.value.products = {}
+                errors.value.products[product.id] = 'Giá Flash Sale phải là số dương'
+            }
+
+            if (!product.quantity || product.quantity === '') {
+                if (!errors.value.products) errors.value.products = {}
+                errors.value.products[product.id] = 'Số lượng không được để trống'
+            } else if (isNaN(Number(product.quantity)) || Number(product.quantity) <= 0) {
+                if (!errors.value.products) errors.value.products = {}
+                errors.value.products[product.id] = 'Số lượng phải là số dương'
+            }
+
+            if (product.sold !== undefined && product.sold !== '') {
+                if (isNaN(Number(product.sold)) || Number(product.sold) < 0) {
+                    if (!errors.value.products) errors.value.products = {}
+                    errors.value.products[product.id] = 'Số lượng đã bán phải là số không âm'
+                }
+
+                if (Number(product.sold) > Number(product.quantity)) {
+                    if (!errors.value.products) errors.value.products = {}
+                    errors.value.products[product.id] = 'Số lượng đã bán không được vượt quá số lượng tổng'
+                }
+            }
+        })
+    }
+
+    return Object.keys(errors.value).length === 0
+}
+
 async function submit() {
-    error.value = ''
+    if (!validateForm()) {
+        return
+    }
+
     success.value = ''
     loading.value = true
     try {
@@ -439,41 +545,22 @@ async function submit() {
         localStorage.removeItem('flashsale_form_data');
     } catch (e) {
         const apiMsg = e?.response?.data?.error
-        error.value = (typeof apiMsg === 'string' && apiMsg)
-            ? apiMsg
-            : (e.message || 'Có lỗi xảy ra khi lưu flash sale')
+        const apiErrors = e?.response?.data?.errors
+
+        if (apiErrors && typeof apiErrors === 'object') {
+            errors.value = apiErrors
+        } else if (typeof apiMsg === 'string' && apiMsg) {
+            success.value = ''
+            push.error(apiMsg)
+        } else {
+            push.error(e.message || 'Có lỗi xảy ra khi lưu flash sale')
+        }
+
         if (Array.isArray(e?.response?.data?.insufficient_variants)) {
             console.warn('Insufficient variants:', e.response.data.insufficient_variants)
         }
-        push.error(error.value)
     } finally {
         loading.value = false
     }
 }
 </script>
-
-<!-- <style>
-.input {
-  @apply border rounded px-2 py-1 w-full;
-}
-
-.btn {
-  @apply px-4 py-2 rounded;
-}
-
-.btn-primary {
-  @apply bg-[#3BB77E] text-white;
-}
-
-.btn-secondary {
-  @apply bg-purple-600 text-white;
-}
-
-.btn-warning {
-  @apply bg-orange-500 text-white;
-}
-
-.btn-danger {
-  @apply bg-red-500 text-white;
-}
-</style> -->

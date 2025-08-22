@@ -1,13 +1,10 @@
-// src/composables/useDashboard.js
 import axios from "axios";
-import Swal from "sweetalert2";
 
 const API = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL + "/api",
     timeout: 10000,
 });
 
-// ✅ Gắn token cho mọi request
 API.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -17,7 +14,6 @@ API.interceptors.request.use((config) => {
 export const useDashboard = () => {
     const handleError = (err, msg) => {
         console.error(msg, err.response?.data || err.message);
-        Swal.fire({ icon: "error", title: "Lỗi", text: msg });
         throw err;
     };
 

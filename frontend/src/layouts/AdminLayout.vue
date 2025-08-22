@@ -28,25 +28,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Sound Control Button -->
-                        <button @click="toggleSound"
-                            class="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                            :title="isEnabled ? 'Tắt âm thanh' : 'Bật âm thanh'">
-                            <svg v-if="isEnabled" class="w-5 h-5 text-green-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z">
-                                </path>
-                            </svg>
-                            <svg v-else class="w-5 h-5 text-red-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z">
-                                </path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
-                            </svg>
-                        </button>
                         <RouterLink to="/admin/settings" class="p-2 hover:bg-gray-100 rounded-lg" title="Cài đặt">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -80,22 +61,11 @@ import MobileSidebar from '../components/admin/layouts/MobileSidebar.vue'
 import NotificationDropdown from '../components/common/NotificationDropdown.vue'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useNotification } from '../composable/useNotification'
-import { useNotificationSound } from '../composable/useNotificationSound'
 
-const { notifications, fetchNotifications, loading, error, testNotification } = useNotification()
-const { playSound, isEnabled, toggleSound } = useNotificationSound()
+const { notifications, fetchNotifications, loading } = useNotification()
 let intervalId = null
 
-// Mobile sidebar state
 const isMobileOpen = ref(false)
-
-// Watch for new notifications and play sound
-watch(() => notifications.value, (newNotifications, oldNotifications) => {
-    if (newNotifications && oldNotifications && newNotifications.length > oldNotifications.length) {
-        // Có thông báo mới từ API, phát âm thanh
-        playSound()
-    }
-}, { deep: true })
 
 const toggleSidebar = () => {
     isMobileOpen.value = !isMobileOpen.value
@@ -110,9 +80,6 @@ onMounted(() => {
     intervalId = setInterval(() => {
         fetchNotifications()
     }, 5000)
-
-    // Test notification khi component mount (có thể xóa sau)
-    // setTimeout(() => testNotification('success'), 2000)
 })
 
 onUnmounted(() => {

@@ -43,7 +43,8 @@
             </div>
 
             <!-- Pagination Summary -->
-            <div v-if="activeTab === 'reviews' && paginationData" class="p-3 sm:p-4 bg-gray-50 border-t border-gray-300">
+            <div v-if="activeTab === 'reviews' && paginationData"
+                class="p-3 sm:p-4 bg-gray-50 border-t border-gray-300">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs sm:text-sm">
                     <div class="text-gray-600">
                         <i class="fas fa-info-circle mr-1"></i>
@@ -55,14 +56,15 @@
                         Đánh giá mới nhất hiển thị đầu tiên
                     </div>
                 </div>
-               
+
                 <div v-if="currentFilter.badwords" class="mt-2 text-xs text-blue-600">
                     <i class="fas fa-filter mr-1"></i>
                     <strong>Đang lọc:</strong> Chỉ hiển thị đánh giá có từ ngữ tiêu cực ({{ totalItems }} đánh giá)
                 </div>
                 <div v-else-if="currentFilter.admin" class="mt-2 text-xs text-green-600">
                     <i class="fas fa-eye mr-1"></i>
-                    <strong>Đang hiển thị:</strong> Tất cả đánh giá ({{ totalItems }} đánh giá) - Bao gồm cả đánh giá bị ẩn và chờ duyệt
+                    <strong>Đang hiển thị:</strong> Tất cả đánh giá ({{ totalItems }} đánh giá) - Bao gồm cả đánh giá bị
+                    ẩn và chờ duyệt
                 </div>
             </div>
         </div>

@@ -76,7 +76,8 @@
                                         ? 'bg-green-100 text-green-700'
                                         : 'bg-purple-100 text-purple-700')
                             ]">
-                                {{ item.type === 'percent' ? 'Giảm Theo %' : (item.type === 'shipping' ? 'Miễn Phí Ship' : 'Giảm Số Tiền') }}
+                                {{ item.type === 'percent' ? 'Giảm Theo %' : (item.type === 'shipping' ? 'Miễn Phí Ship'
+                                    : 'Giảm Số Tiền') }}
                             </span>
                         </td>
                         <td class="px-4 py-3 font-medium">
@@ -196,7 +197,11 @@
                                     ? 'bg-green-100 text-green-700'
                                     : 'bg-purple-100 text-purple-700')
                         ]">
-                            {{ item.type === 'percent' ? 'Giảm theo %' : (item.type === 'shipping' ? 'Miễn ship' : 'Giảm số tiền') }}
+                            {{
+                                item.type === 'percent' ? 'Giảm theo %' : (
+                                    item.type === 'shipping' ? 'Miễn ship' : 'Giảm số tiền'
+                                )
+                            }}
                         </span>
                     </div>
                     <div class="text-gray-500">Giá trị</div>
@@ -270,7 +275,8 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useCoupon } from '../../../composable/useCoupon'
-
+import Swal from 'sweetalert2'
+import { push } from 'notivue'
 const emit = defineEmits(['delete', 'filter-change'])
 
 const { getCoupons, deleteCoupon } = useCoupon()
@@ -391,12 +397,31 @@ const sortBy = (key) => {
 }
 
 const handleDelete = async (promotion) => {
-    if (confirm('Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?')) {
+    // if (confirm('Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?')) {
+    //     try {
+    //         await deleteCoupon(promotion.id)
+    //         await loadPromotions()
+    //     } catch (err) {
+    //         error.value = 'Không thể xóa chương trình khuyến mãi. Vui lòng thử lại.'
+    //         console.error('Error deleting promotion:', err)
+    //     }
+    // }
+    const result = await Swal.fire({
+        title: 'Bạn có chắc chắn muốn xóa khuyến mái?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Xóa',
+    })
+
+    if (result.isConfirmed) {
         try {
             await deleteCoupon(promotion.id)
             await loadPromotions()
+            push.success('Đã xóa khuyến mái.')
         } catch (err) {
-            error.value = 'Không thể xóa chương trình khuyến mãi. Vui lòng thử lại.'
+            error.value = 'Không thể xóa khuyến mái. Vui lòng thử lại.'
             console.error('Error deleting promotion:', err)
         }
     }

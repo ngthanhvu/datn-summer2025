@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('ip_user')->nullable();
             $table->string('note')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

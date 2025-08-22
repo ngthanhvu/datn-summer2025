@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->boolean('auto_increase')->default(false);
             $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

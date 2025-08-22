@@ -80,7 +80,7 @@
                                             </div>
                                             <span class="text-sm mt-2 text-gray-700">Đặt hàng</span>
                                             <span class="text-xs text-gray-500">{{ formatDate(order.created_at)
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                         <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
                                         <!-- Xác nhận -->
@@ -160,9 +160,9 @@
                                             </div>
                                             <div class="text-right flex-shrink-0">
                                                 <p class="font-medium text-gray-900 text-sm">{{ formatPrice(item.price)
-                                                }}đ</p>
+                                                    }}đ</p>
                                                 <p class="text-gray-600 text-xs">Tổng: {{ formatPrice(item.total_price)
-                                                }}đ
+                                                    }}đ
                                                 </p>
                                             </div>
                                         </div>
@@ -440,9 +440,9 @@
                                 </div>
                                 <div class="text-right flex-shrink-0">
                                     <p class="font-medium text-gray-900 text-sm">{{ formatPrice(item.price)
-                                    }}đ</p>
+                                        }}đ</p>
                                     <p class="text-gray-600 text-xs">Tổng: {{ formatPrice(item.total_price)
-                                    }}đ</p>
+                                        }}đ</p>
                                 </div>
                             </div>
                         </div>
@@ -583,7 +583,7 @@
             <p class="text-gray-500">Bạn chưa có đơn hàng nào.</p>
         </div>
 
-        <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div v-if="showModal" class="fixed inset-0 bg-gray-900/50 bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-lg">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold">Chi tiết đơn hàng #{{ selectedOrder?.id }}</h3>
@@ -640,7 +640,7 @@
                                 </div>
                                 <span class="text-sm mt-2">Đặt hàng</span>
                                 <span class="text-xs text-gray-500">{{ formatDate(selectedOrder.created_at)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
                             <div class="flex flex-col items-center relative">
@@ -911,7 +911,7 @@
 
         <!-- Chọn lý do hủy đơn hàng -->
         <div v-if="showCancelReasonModal"
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            class="fixed inset-0 bg-gray-900/60 bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
                 <h3 class="text-lg font-bold mb-4">Lý Do Hủy</h3>
                 <div class="mb-4 text-sm bg-yellow-50 p-3 rounded text-yellow-800">
@@ -924,7 +924,7 @@
                         <input type="radio" :id="'cancel-reason-' + reason.value" v-model="cancelReason"
                             :value="reason.value" class="mr-2" />
                         <label :for="'cancel-reason-' + reason.value" class="cursor-pointer">{{ reason.label
-                        }}</label>
+                            }}</label>
                     </div>
                     <input v-if="cancelReason === 'other'" v-model="cancelReasonOther" type="text"
                         class="mt-2 w-full p-2 border border-gray-300 rounded" placeholder="Vui lòng ghi rõ lý do..." />
