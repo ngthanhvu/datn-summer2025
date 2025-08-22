@@ -2,6 +2,11 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+use App\Models\Products;
+use App\Models\Blogs;
+use App\Models\Pages;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrandsController;
 use App\Http\Controllers\CategoriesController;
@@ -27,6 +32,7 @@ use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\AIChatController;
 use App\Http\Controllers\BlogCategoryController;
+use App\Http\Controllers\HealthCheckController;
 
 // AI Chatbot routes
 Route::post('/ai/chat', [AIChatController::class, 'chat']);
@@ -154,6 +160,7 @@ Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
 Route::get('/products/search', [ProductsController::class, 'search']);
 Route::get('/products/filter-options', [ProductsController::class, 'getFilterOptions']);
 Route::get('/products', [ProductsController::class, 'index']);
+Route::get('/products/bestsellers', [ProductsController::class, 'bestsellers']);
 Route::post('/products', [ProductsController::class, 'store']);
 Route::put('/products/{id}', [ProductsController::class, 'update']);
 Route::get('/products/recommend', [ProductsController::class, 'recommend']);
@@ -225,6 +232,7 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/inventory', [DashboardController::class, 'getInventoryStats']);
     Route::get('/user-growth', [DashboardController::class, 'getUserGrowthStats']);
 });
+Route::get('/dashboard/revenue-by-date-range', [DashboardController::class, 'getRevenueByDateRange']);
 
 Route::get('/stock-movement', [StockMovementController::class, 'index']);
 Route::get('/stock-movement/{id}', [StockMovementController::class, 'show']);
@@ -233,9 +241,13 @@ Route::delete('/stock-movement/{id}', [StockMovementController::class, 'destroy'
 
 Route::get('flash-sales', [FlashSaleController::class, 'index']);
 Route::post('flash-sales', [FlashSaleController::class, 'store']);
-Route::put('flash-sales/{id}', [FlashSaleController::class, 'update']);
-Route::delete('flash-sales/{id}', [FlashSaleController::class, 'destroy']);
-Route::get('flash-sales/{id}', [FlashSaleController::class, 'show']);
+// Specific routes must come before parameterized routes to avoid conflicts
+Route::get('flash-sales/statistics', [FlashSaleController::class, 'statistics']);
+Route::get('flash-sales/{id}/statistics', [FlashSaleController::class, 'statistics'])->whereNumber('id');
+Route::patch('flash-sales/{id}/status', [FlashSaleController::class, 'updateStatus'])->whereNumber('id');
+Route::put('flash-sales/{id}', [FlashSaleController::class, 'update'])->whereNumber('id');
+Route::delete('flash-sales/{id}', [FlashSaleController::class, 'destroy'])->whereNumber('id');
+Route::get('flash-sales/{id}', [FlashSaleController::class, 'show'])->whereNumber('id');
 
 // Contact
 Route::get('/contacts', [ContactController::class, 'index']);
@@ -259,3 +271,14 @@ Route::get('/pages/type/{type}', [PagesController::class, 'getByType']);
 Route::get('/pages/slug/{slug}', [PagesController::class, 'getBySlug']);
 
 Route::apiResource('blog-categories', BlogCategoryController::class);
+
+Route::get('/sitemap-data', function () {
+    return response()->json([
+        'products' => Products::where('is_active', 1)->pluck('slug'),
+        'blogs'    => Blogs::where('status', 'published')->pluck('slug'),
+        'pages'    => Pages::where('status', 1)->pluck('slug'),
+    ]);
+});
+
+// Health check
+Route::get('/health', [HealthCheckController::class, 'index']);

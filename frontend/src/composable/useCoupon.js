@@ -1,12 +1,5 @@
-// src/composables/useCoupon.js
-import axios from 'axios'
 import Cookies from 'js-cookie'
 import api from '../utils/api'
-
-// const API = axios.create({
-//     baseURL: import.meta.env.VITE_API_BASE_URL,
-//     timeout: 10000
-// })
 
 const API = api;
 
@@ -180,7 +173,7 @@ export const useCoupon = () => {
     const claimCoupon = async (couponId) => {
         try {
             const token = getTokenFromCookie()
-            if (!token) throw new Error('Bạn chưa đăng nhập')
+            if (!token) throw new Error('Vui lòng đăng nhập / đăng ký để nhận coupon')
 
             const response = await API.post(`/api/coupons/${couponId}/claim`, {}, {
                 headers: {

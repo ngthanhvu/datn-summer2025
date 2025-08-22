@@ -202,7 +202,7 @@ const isAuthenticated = computed(() => {
   if (props.isAuthenticated !== undefined) {
     return props.isAuthenticated
   }
-  
+
   // Nếu không có props, tự kiểm tra từ localStorage và cookies
   const localToken = localStorage.getItem('token')
   const cookieToken = document.cookie.includes('token=')
@@ -441,7 +441,6 @@ chatChannel.onmessage = (event) => {
 
 .chat-header {
   background-color: #81AACC;
-  border-radius: 16px 16px 0 0;
 }
 
 .btn-primary {
@@ -788,7 +787,8 @@ chatChannel.onmessage = (event) => {
 }
 
 /* High DPI screens */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
   .chat-button {
     border-width: 1px;
   }
@@ -835,16 +835,16 @@ chatChannel.onmessage = (event) => {
 }
 
 /* Hide ChatWidget when AIChatbot is open */
-:root.ai-chatbot-open .chat-button { 
-  display: none; 
+:root.ai-chatbot-open .chat-button {
+  display: none;
 }
 
-:root.ai-chatbot-open .support-hint { 
-  display: none; 
+:root.ai-chatbot-open .support-hint {
+  display: none;
 }
 
-:root.ai-chatbot-open .chat-panel { 
-  display: none; 
+:root.ai-chatbot-open .chat-panel {
+  display: none;
 }
 
 /* Ensure chat button is always visible when not in ai-chatbot-open state */

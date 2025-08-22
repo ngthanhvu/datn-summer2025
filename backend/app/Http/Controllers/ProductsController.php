@@ -14,6 +14,55 @@ use Illuminate\Support\Facades\Cache;
 
 class ProductsController extends Controller
 {
+    public function bestsellers(Request $request)
+    {
+        $limit = (int) $request->input('limit', 10);
+        $limit = max(1, min($limit, 50));
+
+        $cacheKey = 'products_bestsellers_' . $limit;
+        $cacheTTL = 3600; // giây
+
+        $products = Cache::tags(['products'])->remember($cacheKey, $cacheTTL, function () use ($limit) {
+            $items = Products::with([
+                'images' => function ($query) {
+                    $query->select('id', 'image_path', 'is_main', 'product_id');
+                },
+                'variants' => function ($query) {
+                    $query->select('id', 'color', 'size', 'price', 'sku', 'product_id');
+                }
+            ])
+                ->select(
+                    'id',
+                    'name',
+                    'description',
+                    'price',
+                    'discount_price',
+                    'slug',
+                    'categories_id',
+                    'brand_id',
+                    'is_active',
+                    'sold_count'
+                )
+                ->where('is_active', true)
+                ->orderByDesc('sold_count')
+                ->limit($limit)
+                ->get();
+
+            $items->transform(function ($product) {
+                if ($product->images) {
+                    $product->images->transform(function ($image) {
+                        $image->image_path = url('storage/' . $image->image_path);
+                        return $image;
+                    });
+                }
+                return $product;
+            });
+
+            return $items;
+        });
+
+        return response()->json($products);
+    }
     public function index(Request $request)
     {
         $cacheKey = 'products_index_' . md5(json_encode($request->query()));

@@ -108,6 +108,9 @@
                                                 <div class="text-xs">Giá: <span class="font-semibold">{{
                                                     formatCurrency(getVariantInfo(item.variant_id).price) }}</span>
                                                 </div>
+                                                <div class="text-xs">Số lượng kho: <span class="font-semibold">{{
+                                                    getVariantInfo(item.variant_id)?.inventory?.quantity ?? 0
+                                                        }}</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -265,7 +268,6 @@ const removeProductItem = (index) => {
 
 // Xử lý khi thay đổi sản phẩm
 const onProductChange = (index) => {
-    // Reset variant_id khi thay đổi sản phẩm
     formData.value.items[index].variant_id = ''
 }
 

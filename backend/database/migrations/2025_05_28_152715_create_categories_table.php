@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

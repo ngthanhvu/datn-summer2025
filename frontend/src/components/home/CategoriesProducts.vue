@@ -43,7 +43,7 @@
         <div v-else
             class="flex gap-4 overflow-x-auto scroll-smooth md:grid md:grid-cols-1 md:sm:grid-cols-2 md:lg:grid-cols-4 md:xl:grid-cols-5 md:gap-4">
             <div v-for="product in filteredProducts.slice(0, 5)" :key="product.id" class="flex-shrink-0 w-64 md:w-auto">
-                <Card :product="product" />
+                <Card :product="product" @quick-view="onQuickView" />
             </div>
         </div>
 
@@ -51,12 +51,17 @@
         <div v-if="!isLoading && filteredProducts.length === 0" class="text-center py-8">
             <p class="text-gray-500">Không có sản phẩm nào trong danh mục này</p>
         </div>
+
+        <!-- Quick View Modal -->
+        <QuickView :show="showQuickView" :product="selectedProduct" @close="showQuickView = false"
+            @add-to-cart="handleAddToCart" />
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import Card from '../ui/Card.vue'
+import QuickView from '../products/Quick-view.vue'
 import { useProductStore } from '../../stores/products'
 import { useCategoryStore } from '../../stores/categories'
 
@@ -68,6 +73,8 @@ const products = computed(() => productStore.products)
 
 const selectedCategory = ref(null)
 const isLoading = ref(false)
+const showQuickView = ref(false)
+const selectedProduct = ref(null)
 
 const filteredProducts = computed(() => {
     if (!selectedCategory.value) return products.value
@@ -76,5 +83,15 @@ const filteredProducts = computed(() => {
 
 const selectCategory = (id) => {
     selectedCategory.value = id
+}
+
+const onQuickView = (product) => {
+    selectedProduct.value = product
+    showQuickView.value = true
+}
+
+const handleAddToCart = () => {
+    // Xử lý sau khi thêm vào giỏ hàng
+    showQuickView.value = false
 }
 </script>

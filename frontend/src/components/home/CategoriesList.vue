@@ -27,13 +27,14 @@
                 }" class="categories-swiper">
                 <swiper-slide v-for="category in categoryStore.categories" :key="category.id">
                     <div
-                        class="flex flex-col items-center space-y-3 transition-transform duration-300 hover:scale-90 pb-3">
+                        class="flex flex-col items-center space-y-3 transition-transform duration-300 hover:scale-90 pb-3 cursor-pointer"
+                        @click="goToCategory(category)">
                         <div
                             class="w-36 h-36 rounded-full border border-gray-200 flex items-center justify-center overflow-hidden">
                             <img :src="category.image" :alt="category.name" class="w-28 h-28 object-contain" />
                         </div>
                         <p class="text-base font-medium">{{ category.name }}</p>
-                        <p class="text-sm text-gray-500">{{ category.products_count }} sản phẩm</p>
+                        <p class="text-sm text-gray-500">{{ productCounts[category.id] ?? category.products_count ?? 0 }} sản phẩm</p>
                     </div>
                 </swiper-slide>
             </swiper>
@@ -42,26 +43,50 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination as SwiperPagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import { useCategoryStore } from '../../stores/categories'
+import { useProducts } from '../../composable/useProducts'
 
 const categoryStore = useCategoryStore()
+const router = useRouter()
+const { getProducts } = useProducts()
 
-onMounted(() => {
-    categoryStore.fetchCategories()
+const productCounts = ref({})
+
+onMounted(async () => {
+    await categoryStore.fetchCategories()
+    try {
+        const cats = categoryStore.categories || []
+        await Promise.all(
+            cats.map(async (c) => {
+                try {
+                    const res = await getProducts({ category: c.id })
+                    productCounts.value[c.id] = res?.pagination?.total ?? (res?.products?.length ?? 0)
+                } catch (e) {
+                    productCounts.value[c.id] = c.products_count ?? 0
+                }
+            })
+        )
+    } catch {}
 })
+
+const goToCategory = (category) => {
+    if (!category) return
+    router.push({ path: `/danh-muc/${category.slug || category.id}` })
+}
 </script>
 
 <style scoped>
-:deep(.swiper-pagination) {
+::deep(.swiper-pagination) {
     margin-bottom: -10px;
 }
 
-:deep(.swiper-pagination-bullet) {
+::deep(.swiper-pagination-bullet) {
     width: 24px !important;
     height: 6px !important;
     border-radius: 3px !important;
@@ -69,7 +94,7 @@ onMounted(() => {
     transition: background 0.2s;
 }
 
-:deep(.swiper-pagination-bullet-active) {
+::deep(.swiper-pagination-bullet-active) {
     background: #81aacc !important;
 }
 </style>

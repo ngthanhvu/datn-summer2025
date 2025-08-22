@@ -29,7 +29,7 @@ class CouponsController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
             'code' => 'required|unique:coupons',
-            'type' => 'required|in:percent,fixed',
+            'type' => 'required|in:percent,fixed,shipping',
             'value' => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'min_order_value' => 'nullable|numeric|min:0',
@@ -56,7 +56,7 @@ class CouponsController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
             'code' => 'required|unique:coupons,code,' . $id,
-            'type' => 'required|in:percent,fixed',
+            'type' => 'required|in:percent,fixed,shipping',
             'value' => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'min_order_value' => 'nullable|numeric|min:0',
@@ -115,14 +115,20 @@ class CouponsController extends Controller
             ], 400);
         }
 
-        $discount = $coupon->type === 'percent'
-            ? min(($request->total_amount * $coupon->value / 100), $coupon->max_discount_value ?? PHP_FLOAT_MAX)
-            : $coupon->value;
+        if ($coupon->type === 'shipping') {
+            $discount = 0;
+        } else {
+            $discount = $coupon->type === 'percent'
+                ? min(($request->total_amount * $coupon->value / 100), $coupon->max_discount_value ?? PHP_FLOAT_MAX)
+                : $coupon->value;
+        }
         Cache::tags(['coupons'])->flush();
 
         return response()->json([
             'discount' => $discount,
-            'message' => 'Mã giảm giá hợp lệ'
+            'message' => 'Mã giảm giá hợp lệ',
+            'free_shipping' => $coupon->type === 'shipping',
+            'coupon' => $coupon
         ]);
     }
 

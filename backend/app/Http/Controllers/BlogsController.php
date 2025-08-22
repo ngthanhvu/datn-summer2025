@@ -27,7 +27,7 @@ class BlogsController extends Controller
                 $query->where('blog_category_id', $request->category_id);
             }
 
-            $blogs = $query->paginate(10);
+            $blogs = $query->paginate(6);
             return response()->json([
                 'success' => true,
                 'data' => $blogs,

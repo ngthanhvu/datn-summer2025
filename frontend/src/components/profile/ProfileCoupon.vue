@@ -44,9 +44,9 @@
         <div v-else-if="!loading && myCoupons.length === 0" class="bg-white rounded-lg shadow-sm p-8 text-center">
             <i class="fa-solid fa-ticket text-4xl text-gray-400 mb-4"></i>
             <p class="text-gray-500 mb-2">Bạn chưa lưu voucher nào</p>
-            <NuxtLink to="/kho-voucher" class="text-blue-600 hover:underline">
+            <router-link to="/kho-voucher" class="text-blue-600 hover:underline cursor-pointer">
                 Khám phá voucher mới →
-            </NuxtLink>
+            </router-link>
         </div>
 
         <!-- Coupons List -->
@@ -91,11 +91,14 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <span class="text-lg font-bold text-blue-600">
-                                        {{ coupon.type === 'percent' ? `${coupon.value}%` : formatCurrency(coupon.value)
+                                        {{
+                                            coupon.type === 'percent'
+                                                ? `${coupon.value}%`
+                                                : (coupon.type === 'shipping' ? 'Miễn ship' : formatCurrency(coupon.value))
                                         }}
                                     </span>
                                     <span class="text-sm text-gray-600 ml-2">
-                                        {{ coupon.type === 'percent' ? 'giảm giá' : 'giảm cố định' }}
+                                        {{ coupon.type === 'percent' ? 'giảm giá' : (coupon.type === 'shipping' ? '' : 'giảm cố định') }}
                                     </span>
                                 </div>
                                 <div class="text-right">

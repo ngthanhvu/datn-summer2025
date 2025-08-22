@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white rounded-lg shadow px-8 py-7.5">
+    <div class="bg-white rounded-lg shadow px-8 py-9.5">
         <div class="flex justify-between items-center mb-4">
             <h3 class="font-semibold">Đơn hàng theo trạng thái</h3>
             <select v-model="selectedPeriod" @change="handlePeriodChange"
@@ -45,7 +45,6 @@ let chart = null
 const handlePeriodChange = async () => {
     loading.value = true
     try {
-        // Emit event để parent component có thể cập nhật data
         emit('period-change', selectedPeriod.value)
     } catch (error) {
         console.error('Lỗi khi thay đổi thời gian:', error)
@@ -65,7 +64,6 @@ const initChart = async () => {
 
     const options = createOrdersStatusChartOptions(props.data)
 
-    // Destroy existing chart if any
     if (chart) {
         chart.destroy()
     }
@@ -74,7 +72,6 @@ const initChart = async () => {
     chart.render()
 }
 
-// Watch for data changes
 watch(() => props.data, () => {
     nextTick(() => {
         initChart()

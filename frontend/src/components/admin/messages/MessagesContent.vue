@@ -65,8 +65,7 @@
                     </div>
 
                     <!-- Debug: Always visible input area -->
-                    <div class="flex gap-2 sm:gap-4 items-center"
-                        style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 8px;">
+                    <div class="flex gap-2 sm:gap-4 items-center">
                         <input type="text" v-model="newMessage" @keyup.enter="handleSend" placeholder="Nhập tin nhắn..."
                             class="flex-1 border border-gray-300 rounded-full px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base focus:ring-1 focus:ring-[#3BB77E] focus:border-[#3BB77E] focus:outline-none"
                             style="min-height: 40px;" :disabled="false">

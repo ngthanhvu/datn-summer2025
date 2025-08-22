@@ -1,8 +1,12 @@
 <template>
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <!-- <img src="https://i.imgur.com/1X6hF8g.png" alt="Logo" /> -->
-            <span class="logo-text">Admin Panel</span>
+            <!-- <img src="https://assets.market-storefront.envato-static.com/storefront/assets/favicons/favicon-683776860a73328fbfb90221f38228ae31fd55217f17b0fdba2daa1727c47dbd.ico"
+                alt="Logo" /> -->
+            <router-link to="/admin" class="flex items-center">
+                <i class="fa-solid fa-chart-column text-[30px] font-bold text-[#3bb77e] mr-2"></i>
+                <span class="text-[#3bb77e] font-bold text-lg">DEVGANG ADMIN</span>
+            </router-link>
         </div>
         <nav class="sidebar-nav">
             <!-- Tổng quan -->
@@ -75,17 +79,14 @@
                 <RouterLink to="/admin/messages" class="nav-item">
                     <i class="fas fa-envelope"></i>
                     <span>Tin nhắn</span>
-                    <span v-if="unreadMessages > 0" class="badge">{{ unreadMessages }}</span>
                 </RouterLink>
                 <RouterLink to="/admin/comments" class="nav-item">
                     <i class="fas fa-comments"></i>
                     <span>Đánh giá</span>
-                    <span v-if="unapprovedReviews > 0" class="badge">{{ unapprovedReviews }}</span>
                 </RouterLink>
                 <RouterLink to="/admin/contacts" class="nav-item">
                     <i class="fas fa-address-book"></i>
                     <span>Liên hệ</span>
-                    <span v-if="contactStats.unreplied > 0" class="badge">{{ contactStats.unreplied }}</span>
                 </RouterLink>
                 <RouterLink to="/admin/pages" class="nav-item">
                     <i class="fas fa-file-alt"></i>
@@ -100,6 +101,10 @@
                     <i class="fas fa-cog"></i>
                     <span>Cài đặt</span>
                 </RouterLink>
+                <RouterLink to="/admin/health" class="nav-item">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Trạng thái</span>
+                </RouterLink>
             </div>
         </nav>
     </aside>
@@ -111,8 +116,6 @@ import { useContact } from '../../../composable/useContact'
 
 const showProductsMenu = ref(false)
 const showInventoryMenu = ref(false)
-const unreadMessages = ref(0)
-const unapprovedReviews = ref(0)
 
 const { getContactStats } = useContact()
 const contactStats = ref({
@@ -150,9 +153,6 @@ onUnmounted(() => {
         clearInterval(statsInterval)
     }
 })
-
-unreadMessages.value = 3
-unapprovedReviews.value = 2
 </script>
 
 <style scoped>
@@ -247,13 +247,6 @@ unapprovedReviews.value = 2
     gap: 0.5rem;
     margin-bottom: 2rem;
     position: relative;
-}
-
-.logo-text {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #3bb77e;
-    letter-spacing: 1px;
 }
 
 .sidebar-nav {

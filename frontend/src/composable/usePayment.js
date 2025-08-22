@@ -13,14 +13,14 @@ export function usePayment() {
     const API = api
 
     const generateVnpayUrl = async (orderData) => {
-        const response = await API.post(`/payment/vnpay`, {
+        const response = await API.post(`/api/payment/vnpay`, {
             order_data: orderData
         })
         return response.data
     }
 
     const generateMomoUrl = async (orderData) => {
-        const response = await API.post(`/payment/momo`, {
+        const response = await API.post(`/api/payment/momo`, {
             order_data: orderData
         })
         return response.data

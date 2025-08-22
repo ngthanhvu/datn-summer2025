@@ -157,8 +157,10 @@ class MessengerController extends Controller
     public function getAdmins()
     {
         $admins = User::where('role', 'admin')
+            ->orWhere('role', 'master_admin')
             ->select('id', 'username', 'email', 'avatar', 'role')
             ->get();
+
         return response()->json($admins);
     }
 }

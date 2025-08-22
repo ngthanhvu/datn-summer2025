@@ -138,29 +138,51 @@
             <h3 class="font-medium mb-1 text-base sm:text-[17px]">Số lượng</h3>
             <div class="flex items-center gap-4">
                 <div class="flex items-center border border-gray-300 rounded-md">
-                    <button @click="$emit('update:quantity', Math.max(1, quantity - 1))"
+                    <button @click="decreaseQuantity"
                         class="px-2 sm:px-3 py-2 hover:bg-gray-100 cursor-pointer">-</button>
                     <input type="number" :value="quantity"
-                        @input="$emit('update:quantity', Math.max(1, parseInt($event.target.value) || 1))" min="1"
+                        @input="handleQuantityInput" min="1"
                         class="w-16 sm:w-20 text-center border-x border-gray-300 py-3 text-sm sm:text-[16px]" />
-                    <button @click="$emit('update:quantity', quantity + 1)"
+                    <button @click="increaseQuantity"
                         class="px-2 sm:px-3 py-2 hover:bg-gray-100 cursor-pointer">+</button>
                 </div>
-                <span class="text-xs sm:text-sm text-gray-500">
-                    Còn lại: {{ flashSalePrice ? flashSaleQuantity : selectedVariantInventory }} sản phẩm
-                </span>
+            </div>
+
+        </div>
+        <div class="text-xs sm:text-sm text-gray-500">
+            <div v-if="!selectedSize || !selectedColor" class="text-gray-400 italic">
+                Vui lòng chọn kích thước và màu sắc
+            </div>
+            <div v-else>
+                <div class="space-y-1.5">
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold">Tồn kho:</span> 
+                        <span class="text-gray-700 font-medium">
+                            {{ flashSalePrice ? flashSaleQuantity : selectedVariantInventory }} sản phẩm
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div v-if="productInventory && productInventory.length > 0" class="mb-3 text-xs sm:text-sm text-gray-600">
-            Số lượng tồn kho: <b>{{productInventory.reduce((sum, inv) => sum + (inv.quantity || 0), 0)}}</b>
-        </div>
+      
 
         <!-- Actions -->
         <div class="flex gap-4">
-            <button
-                class="flex-1 bg-[#81AACC] text-white py-2 text-base sm:text-[18px] rounded-md hover:bg-[#6B8BA3] transition-colors cursor-pointer"
-                @click="$emit('addToCart')">
-                Thêm vào giỏ hàng
+            <button :disabled="isAddingToCart || selectedVariantInventory === 0 || !selectedSize || !selectedColor"
+                class="flex-1 py-2 text-base sm:text-[18px] rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="[
+                    isAddingToCart || selectedVariantInventory === 0 || !selectedSize || !selectedColor
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        : 'bg-[#81AACC] text-white hover:bg-[#6B8BA3]'
+                ]"
+                @click="handleAddToCart">
+                <div v-if="isAddingToCart" class="flex items-center justify-center gap-2">
+                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Đang thêm...</span>
+                </div>
+                <span v-else-if="!selectedSize || !selectedColor">Chọn kích thước và màu sắc</span>
+                <span v-else-if="selectedVariantInventory === 0">Hết hàng</span>
+                <span v-else>Thêm vào giỏ hàng</span>
             </button>
         </div>
 
@@ -243,6 +265,14 @@ const props = defineProps({
     productInventory: {
         type: Array,
         default: () => []
+    },
+    isAddingToCart: {
+        type: Boolean,
+        default: false
+    },
+    cartQuantity: {
+        type: Number,
+        default: 0
     },
 })
 
@@ -365,10 +395,58 @@ const selectedVariantInventory = computed(() => {
 })
 
 const maxQuantity = computed(() => {
-    const max = props.flashSalePrice ? props.flashSaleQuantity : props.selectedVariantStock
-    return max > 0 ? max : Infinity
+    let availableStock = 0
+    
+    if (props.flashSalePrice && props.flashSaleQuantity > 0) {
+        availableStock = props.flashSaleQuantity
+    } else if (props.selectedSize && props.selectedColor) {
+        availableStock = selectedVariantInventory.value
+    } else {
+        availableStock = 0
+    }
+    
+    return availableStock > 0 ? availableStock : 0
 })
-const canIncrease = computed(() => props.quantity < maxQuantity.value)
+
+const canIncrease = computed(() => {
+    if (!props.selectedSize || !props.selectedColor) return false
+    const variantStock = selectedVariantInventory.value
+    if (variantStock === 0) return false
+    
+    const totalQuantity = props.cartQuantity + props.quantity
+    return totalQuantity < variantStock
+})
+
+const remainingQuantity = computed(() => {
+    if (!props.selectedSize || !props.selectedColor) return 0
+    const variantStock = selectedVariantInventory.value
+    return Math.max(0, variantStock - props.cartQuantity)
+})
+
+const canAddToCart = computed(() => {
+    if (!props.selectedSize || !props.selectedColor) return false
+    if (props.quantity <= 0) return false
+    
+    const variantStock = selectedVariantInventory.value
+    if (variantStock === 0) return false
+    
+    const totalQuantity = props.cartQuantity + props.quantity
+    return totalQuantity <= variantStock
+})
+
+const isQuantityValid = computed(() => {
+    if (!props.selectedSize || !props.selectedColor) {
+        return false
+    }
+    
+    const variantStock = selectedVariantInventory.value
+    if (variantStock === 0) return false
+    
+    if (props.quantity <= 0) return false
+    
+    const totalQuantity = props.cartQuantity + props.quantity
+    return totalQuantity <= variantStock
+})
 
 const handleSizeChange = (size) => {
     emit('update:selectedSize', size)
@@ -382,27 +460,152 @@ const handleColorChange = (color) => {
     emit('variant-change', variantData)
 }
 
+const validateQuantity = (newQuantity) => {
+    if (newQuantity < 0) {
+        push.error('Số lượng không được nhỏ hơn 0')
+        return false
+    }
+    if (newQuantity === 0) {
+        push.error('Số lượng không được bằng 0')
+        return false
+    }
+    
+    const variantStock = selectedVariantInventory.value
+    if (variantStock === 0) {
+        push.warning('Biến thể này hiện tại hết hàng')
+        return false
+    }
+    
+    const totalQuantity = props.cartQuantity + newQuantity
+    
+    if (totalQuantity > variantStock) {
+        const remainingAfterCart = variantStock - props.cartQuantity
+        if (remainingAfterCart <= 0) {
+            push.warning(`Bạn đã có ${props.cartQuantity} sản phẩm trong giỏ hàng. Không thể thêm thêm.`)
+        } else {
+            push.warning(`Bạn đã có ${props.cartQuantity} sản phẩm trong giỏ hàng. Chỉ có thể thêm tối đa ${remainingAfterCart} sản phẩm nữa.`)
+        }
+        return false
+    }
+    
+    return true
+}
+
+const decreaseQuantity = () => {
+    const newQuantity = props.quantity - 1
+    if (newQuantity < 1) {
+        push.warning('Số lượng tối thiểu là 1')
+        return
+    }
+    if (validateQuantity(newQuantity)) {
+        emit('update:quantity', newQuantity)
+    }
+}
+
+const increaseQuantity = () => {
+    const newQuantity = props.quantity + 1
+    
+    const variantStock = selectedVariantInventory.value
+    
+    const totalQuantity = props.cartQuantity + newQuantity
+    
+    if (totalQuantity > variantStock) {
+        const remainingAfterCart = variantStock - props.cartQuantity
+        if (remainingAfterCart <= 0) {
+            push.warning(`Bạn đã có ${props.cartQuantity} sản phẩm trong giỏ hàng. Không thể thêm thêm.`)
+        } else {
+            push.warning(`Bạn đã có ${props.cartQuantity} sản phẩm trong giỏ hàng. Chỉ có thể thêm tối đa ${remainingAfterCart} sản phẩm nữa.`)
+        }
+        return
+    }
+    
+    if (validateQuantity(newQuantity)) {
+        emit('update:quantity', newQuantity)
+    }
+}
+
+const handleQuantityInput = (event) => {
+    const inputValue = event.target.value
+    
+    if (inputValue === '') {
+        push.warning('Vui lòng nhập số lượng sản phẩm')
+        return
+    }
+    
+    const newQuantity = parseInt(inputValue)
+    
+    if (isNaN(newQuantity)) {
+        push.error('Vui lòng nhập số hợp lệ')
+        event.target.value = props.quantity
+        return
+    }
+    
+    if (newQuantity > 0) {
+        const variantStock = selectedVariantInventory.value
+        const totalQuantity = props.cartQuantity + newQuantity
+        
+        if (totalQuantity > variantStock) {
+            const maxCanAdd = Math.max(0, variantStock - props.cartQuantity)
+            if (maxCanAdd > 0) {
+                push.info(`Số lượng sản phẩm tối đa có thể thêm vào giỏ hàng là ${maxCanAdd}.`)
+                emit('update:quantity', maxCanAdd)
+                return
+            } else {
+                push.warning('Không thể thêm sản phẩm. Đã có đủ trong giỏ hàng.')
+                emit('update:quantity', 1)
+                return
+            }
+        }
+    }
+    
+    if (validateQuantity(newQuantity)) {
+        emit('update:quantity', newQuantity)
+    }
+}
+
+
+
+const handleAddToCart = () => {
+    if (!props.selectedSize || !props.selectedColor) {
+        push.warning('Vui lòng chọn kích thước và màu sắc trước khi thêm vào giỏ hàng')
+        return
+    }
+    
+    if (props.quantity <= 0) {
+        push.error('Vui lòng chọn số lượng hợp lệ')
+        return
+    }
+    
+    const variantStock = selectedVariantInventory.value
+    
+    if (variantStock === 0) {
+        push.warning('Biến thể này hiện tại hết hàng')
+        return
+    }
+    
+    const totalQuantity = props.cartQuantity + props.quantity
+    
+    if (totalQuantity > variantStock) {
+        if (props.cartQuantity >= variantStock) {
+            push.error(` Giỏ hàng đã có ${props.cartQuantity} sản phẩm, vượt quá số lượng tồn kho (${variantStock}). Không thể thêm thêm sản phẩm.`)
+        } else {
+            const remainingAfterCart = variantStock - props.cartQuantity
+            push.warning(`Sản phẩm bạn thêm vào giỏ hàng vượt quá số lượng tồn kho của biến thể này. Chỉ có thể thêm tối đa ${remainingAfterCart} sản phẩm nữa.`)
+        }
+        return
+    }
+    
+    emit('addToCart')
+}
+
 watch(() => [props.selectedSize, props.selectedColor], ([newSize, newColor]) => {
 }, { deep: true })
 
-const addToCart = async () => {
-    try {
-        if (!selectedVariant.value) {
-            push.error('Vui lòng chọn size và màu sắc')
-            return
-        }
-        if (props.quantity > (flashSalePercent.value > 0 ? props.flashSaleQuantity : selectedVariantInventory.value)) {
-            push.error('Số lượng vượt quá số lượng còn lại')
-            return
-        }
-        await addToCartComposable(selectedVariant.value.id, props.quantity, selectedVariantSalePrice.value)
-        push.success('Đã thêm vào giỏ hàng')
-        emit('addToCart')
-    } catch (error) {
-        console.error('Error adding to cart:', error)
-        push.error('Có lỗi xảy ra khi thêm vào giỏ hàng')
-    }
-}
+watch(() => props.quantity, (newQuantity) => {
+    const variantStock = selectedVariantInventory.value
+    const totalQuantity = props.cartQuantity + newQuantity
+    
+})
 
 const { getCoupons, getNearestCoupons } = useCoupon()
 const isCouponPanelOpen = ref(false)

@@ -14,14 +14,14 @@
                         <!-- Main Image with Border -->
                         <div class="relative mb-4">
                             <img :src="mainImage || '/images/placeholder.jpg'" :alt="props.product?.name || 'Product'"
-                                class="w-full h-80 object-cover rounded-lg" />
+                                class="w-full object-cover rounded-lg" />
                         </div>
 
                         <!-- Thumbnail Images -->
                         <div class="flex gap-2 justify-center">
                             <div v-for="(image, index) in props.product?.images?.slice(0, 4) || []" :key="index"
                                 @click="mainImage = image.image_path" :class="[
-                                    'w-16 h-16 border-2 rounded cursor-pointer overflow-hidden',
+                                    'w-16 h-16 border-2 border-gray-300 rounded cursor-pointer overflow-hidden',
                                     mainImage === image.image_path ? 'border-black' : 'border-gray-300'
                                 ]">
                                 <img :src="image.image_path" :alt="`${props.product?.name || 'Product'} - ${index + 1}`"
@@ -129,12 +129,6 @@
                                 <span class="font-semibold text-blue-600">KHUYẾN MÃI - ƯU ĐÃI</span>
                             </div>
                             <ul class="space-y-2 text-sm text-gray-700">
-                                <li class="flex items-center justify-between">
-                                    <span>Nhập mã <span class="font-semibold">EGAFREESHIP</span> miễn phí vận chuyển đơn
-                                        hàng</span>
-                                    <button @click="copyCouponCode('EGAFREESHIP')"
-                                        class="text-red-600 hover:underline text-xs">Sao chép</button>
-                                </li>
                                 <li>Đồng giá ship toàn quốc 25k</li>
                                 <li>Hỗ trợ 20k phí ship cho đơn hàng từ 200.000₫</li>
                                 <li>Miễn phí ship cho đơn hàng từ 500.000₫</li>

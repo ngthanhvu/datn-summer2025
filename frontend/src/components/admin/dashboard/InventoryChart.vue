@@ -32,14 +32,6 @@
                     ]">
                         7 ngày
                     </button>
-                    <button @click="handlePeriodChange('30')" :class="[
-                        'px-2 text-sm font-medium rounded-md transition-all duration-200',
-                        selectedPeriod === '30'
-                            ? 'bg-primary text-white shadow-md'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
-                    ]">
-                        30 ngày
-                    </button>
                 </div>
             </div>
         </div>
@@ -145,7 +137,6 @@ const renderChart = async () => {
         const ApexCharts = await getApexCharts()
         if (!ApexCharts) return
 
-        // Destroy existing chart if any
         if (chart) {
             chart.destroy()
         }
@@ -166,8 +157,8 @@ const handlePeriodChange = (period) => {
 const createInventoryChartOptions = (data) => {
     const isYearly = selectedPeriod.value === 'yearly'
     const monthNames = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
     ]
 
     return {
@@ -271,7 +262,12 @@ const createInventoryChartOptions = (data) => {
             shared: true,
             intersect: false,
             x: {
-                formatter: (value) => isYearly ? monthNames[value - 1] || value : value
+                formatter: (value) => {
+                    if (isYearly) {
+                        return value
+                    }
+                    return value
+                }
             },
             y: [
                 {
@@ -353,7 +349,6 @@ watch(() => props.data, (newData) => {
     }
 }, { deep: true })
 
-// Cleanup chart on unmount
 onUnmounted(() => {
     if (chart) {
         chart.destroy()

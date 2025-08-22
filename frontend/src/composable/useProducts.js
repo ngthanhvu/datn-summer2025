@@ -26,9 +26,9 @@ export const useProducts = () => {
         })
     }
 
-    const getProducts = async (filters = {}, page = 1) => {
+    const getProducts = async (filters = {}, page = 1, perPage = 8) => {
         try {
-            const cacheKey = `products_${JSON.stringify(filters)}_page_${page}`
+            const cacheKey = `products_${JSON.stringify(filters)}_page_${page}_perPage_${perPage}`
             const cached = getCachedData(cacheKey)
             if (cached) {
                 return cached
@@ -37,16 +37,23 @@ export const useProducts = () => {
             const params = new URLSearchParams()
 
             params.append('page', page)
+            params.append('per_page', perPage)
 
-            if (filters.color) {
+            // Colors
+            if (filters.color && Array.isArray(filters.color) && filters.color.length > 0) {
+                filters.color.forEach(c => params.append('color[]', c))
+            } else if (filters.color && !Array.isArray(filters.color)) {
                 params.append('color', filters.color)
             }
+
             if (filters.min_price) {
                 params.append('min_price', filters.min_price)
             }
             if (filters.max_price) {
                 params.append('max_price', filters.max_price)
             }
+
+            // Categories
             if (filters.category) {
                 if (Array.isArray(filters.category)) {
                     filters.category.forEach(id => params.append('category[]', id))
@@ -54,6 +61,8 @@ export const useProducts = () => {
                     params.append('category', filters.category)
                 }
             }
+
+            // Brands
             if (filters.brand) {
                 if (Array.isArray(filters.brand)) {
                     filters.brand.forEach(id => params.append('brand[]', id))
@@ -61,6 +70,14 @@ export const useProducts = () => {
                     params.append('brand', filters.brand)
                 }
             }
+
+            // Sizes
+            if (filters.size && Array.isArray(filters.size) && filters.size.length > 0) {
+                filters.size.forEach(s => params.append('size[]', s))
+            } else if (filters.size && !Array.isArray(filters.size)) {
+                params.append('size', filters.size)
+            }
+
             if (filters.sort_by) {
                 params.append('sort_by', filters.sort_by)
                 params.append('sort_direction', filters.sort_direction || 'asc')
@@ -485,6 +502,25 @@ export const useProducts = () => {
         }
     }
 
+    const getBestSellerProducts = async (limit = 10) => {
+        try {
+            const cacheKey = `bestseller_products_${limit}`
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+                return cached
+            }
+
+            const response = await API.get('/api/products/bestsellers', {
+                params: { limit }
+            })
+            setCachedData(cacheKey, response.data)
+            return response.data
+        } catch (error) {
+            console.error('Error getting bestseller products:', error)
+            return []
+        }
+    }
+
     return {
         getProducts,
         getProductById,
@@ -505,5 +541,6 @@ export const useProducts = () => {
         getVariant,
         getNewProducts,
         getRecommendedProducts
+        , getBestSellerProducts
     }
 }

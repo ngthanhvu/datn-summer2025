@@ -61,16 +61,26 @@
 
                 <!-- Auth Section -->
                 <div v-if="!isLoggedIn" class="flex items-center gap-3">
-                    <!-- Login Button -->
-                    <router-link to="/login" class="p-2 text-gray-700 hover:text-[#81aacc] transition-colors"
-                        title="Đăng nhập">
-                        <i class="bi bi-box-arrow-in-right text-xl"></i>
-                    </router-link>
-                    <!-- Register Button -->
-                    <router-link to="/register" class="p-2 text-gray-700 hover:text-[#81aacc] transition-colors"
-                        title="Đăng ký">
-                        <i class="bi bi-person-plus text-xl"></i>
-                    </router-link>
+                    <div class="relative group">
+                        <router-link to="/login"
+                            class="p-2 text-gray-700 hover:text-[#81aacc] transition-colors flex items-center">
+                            <i class="bi bi-box-arrow-in-right text-xl"></i>
+                        </router-link>
+                        <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs rounded bg-black text-white opacity-0 
+                    group-hover:opacity-100 transition duration-200 whitespace-nowrap">
+                            Đăng nhập
+                        </span>
+                    </div>
+                    <div class="relative group">
+                        <router-link to="/register"
+                            class="p-2 text-gray-700 hover:text-[#81aacc] transition-colors flex items-center">
+                            <i class="bi bi-person-plus text-xl"></i>
+                        </router-link>
+                        <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs rounded bg-black text-white opacity-0 
+                    group-hover:opacity-100 transition duration-200 whitespace-nowrap">
+                            Đăng ký
+                        </span>
+                    </div>
                 </div>
 
                 <!-- User Menu (if logged in) -->

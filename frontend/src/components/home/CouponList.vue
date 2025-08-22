@@ -10,6 +10,30 @@
             </router-link>
         </div>
 
+        <!-- Login Prompt for non-logged users -->
+        <div v-if="!isLoggedIn" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-info-circle text-blue-600 text-lg"></i>
+                    <div>
+                        <p class="text-blue-800 font-medium">Đăng nhập để nhận mã giảm giá</p>
+                        <p class="text-blue-600 text-sm">Bạn cần đăng nhập hoặc đăng ký để có thể lưu và sử dụng các mã
+                            giảm giá</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <router-link to="/login"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition text-sm font-medium">
+                        Đăng nhập
+                    </router-link>
+                    <router-link to="/register"
+                        class="bg-white text-blue-600 border border-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition text-sm font-medium">
+                        Đăng ký
+                    </router-link>
+                </div>
+            </div>
+        </div>
+
         <!-- Loading -->
         <div v-if="isLoading"
             class="flex gap-4 overflow-x-auto scroll-smooth md:grid md:grid-cols-1 md:sm:grid-cols-2 md:lg:grid-cols-4 md:gap-6">
@@ -49,6 +73,7 @@
                                 tối đa {{ formatCurrency(coupon.max_discount_value) }}
                             </span>
                         </div>
+                        <div v-else-if="coupon.type === 'shipping'">Miễn ship</div>
                         <div v-else>Giảm {{ formatCurrency(coupon.value) }}</div>
                         <div v-if="coupon.min_order_value > 0">
                             Đơn tối thiểu: {{ formatCurrency(coupon.min_order_value) }}
@@ -56,13 +81,18 @@
                     </div>
 
                     <div class="mt-3 flex items-center justify-between">
-                        <button v-if="getCouponStatus(coupon) === 'active' && !coupon.is_claimed"
+                        <button v-if="getCouponStatus(coupon) === 'active' && !coupon.is_claimed && isLoggedIn"
                             @click="claimVoucherCode(coupon.id)" :disabled="claimingCouponId === coupon.id"
                             class="bg-blue-600 text-white text-xs px-3 py-1 rounded-sm hover:bg-blue-700 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             <span v-if="claimingCouponId === coupon.id">
                                 <i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang lưu...
                             </span>
                             <span v-else>Lấy ngay</span>
+                        </button>
+                        <button v-else-if="getCouponStatus(coupon) === 'active' && !coupon.is_claimed && !isLoggedIn"
+                            @click="claimVoucherCode(coupon.id)"
+                            class="bg-orange-500 text-white text-xs px-3 py-1 rounded-sm hover:bg-orange-600 transition cursor-pointer">
+                            Đăng nhập để lấy
                         </button>
                         <button v-else-if="getCouponStatus(coupon) === 'active' && coupon.is_claimed" disabled
                             class="bg-gray-300 text-white text-xs px-3 py-1 rounded-sm cursor-not-allowed">
@@ -100,6 +130,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useCouponStore } from '../../stores/coupons'
 import { useCoupon } from '../../composable/useCoupon'
 import { push } from 'notivue'
+import Cookies from 'js-cookie'
+
 const { getMyCoupons, claimCoupon } = useCoupon();
 
 const couponStore = useCouponStore()
@@ -107,13 +139,20 @@ const isLoading = ref(false)
 const claimingCouponId = ref(null)
 const myCoupons = ref([])
 
+const isLoggedIn = computed(() => {
+    return !!Cookies.get('token')
+})
+
 onMounted(async () => {
+    isLoading.value = true
     try {
         await couponStore.fetchCoupons()
         const myCouponsData = await getMyCoupons()
         myCoupons.value = Array.isArray(myCouponsData) ? myCouponsData : (myCouponsData?.data || myCouponsData?.coupons || [])
     } catch (error) {
         console.error('Error loading coupons:', error)
+    } finally {
+        isLoading.value = false
     }
 })
 
@@ -180,13 +219,16 @@ const claimVoucherCode = async (couponId) => {
         push.success("Lưu mã giảm giá thành công!")
     } catch (error) {
         console.log(error)
-        push.error("Có lỗi xảy ra khi lưu mã giảm giá!")
+        if (error.message === 'Vui lòng đăng nhập / đăng ký để nhận coupon') {
+            push.error("Vui lòng đăng nhập / đăng ký để nhận coupon")
+        } else {
+            push.error("Có lỗi xảy ra khi lưu mã giảm giá!")
+        }
     } finally {
         claimingCouponId.value = null
     }
 }
 </script>
-
 
 <style scoped>
 .left-edge {

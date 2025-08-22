@@ -287,7 +287,7 @@ import { useFlashsale } from '../../../composable/useFlashsale'
 import { useRouter, useRoute } from "vue-router";
 const search = ref('')
 const page = ref(1)
-const pageSize = 5
+const pageSize = 5 
 
 const totalPages = computed(() => {
     const pages = Math.ceil(filteredAllProducts.value.length / pageSize)
@@ -329,9 +329,8 @@ async function loadProducts() {
     loading.value = true
     error.value = ''
     try {
-        const data = await getProducts()
+        const data = await getProducts({}, 1, 100)
 
-        // Kiểm tra cấu trúc dữ liệu trả về
         if (data && data.products && Array.isArray(data.products)) {
             allProducts.value = data.products.map(p => {
                 let img = '/default-product.png';
@@ -345,7 +344,6 @@ async function loadProducts() {
                 }
             })
         } else if (Array.isArray(data)) {
-            // Nếu data là array trực tiếp
             allProducts.value = data.map(p => {
                 let img = '/default-product.png';
                 if (p.images && Array.isArray(p.images) && p.images.length > 0) {
@@ -371,10 +369,8 @@ async function loadProducts() {
 onMounted(async () => {
     await loadProducts()
 
-    // Kiểm tra xem có phải đang edit flash sale không
     const flashSaleId = route.query.flashSaleId
     if (flashSaleId) {
-        // Nếu có flashSaleId trong query, load sản phẩm từ localStorage hoặc API
         const savedProducts = localStorage.getItem(`flashsale_edit_${flashSaleId}`)
         if (savedProducts) {
             try {
@@ -383,7 +379,6 @@ onMounted(async () => {
                 console.error('Lỗi parse saved products:', e)
             }
         } else {
-            // Nếu chưa có localStorage, gọi API lấy flash sale
             try {
                 const flashSale = await getFlashSaleById(flashSaleId)
                 if (flashSale && flashSale.products) {
@@ -434,16 +429,13 @@ function remove(idx) {
     const removed = selectedProducts.value.splice(idx, 1)
 }
 function apply() {
-    // Lưu danh sách sản phẩm đã chọn vào localStorage
     localStorage.setItem('flashsale_selected_products', JSON.stringify(selectedProducts.value))
 
-    // Nếu đang edit, lưu thêm vào localStorage với key riêng
     const flashSaleId = route.query.flashSaleId
     if (flashSaleId) {
         localStorage.setItem(`flashsale_edit_${flashSaleId}`, JSON.stringify(selectedProducts.value))
     }
 
-    // Quay lại trang form flash sale
     if (flashSaleId) {
         router.push(`/admin/flashsale/${flashSaleId}/edit`)
     } else {

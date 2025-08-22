@@ -31,27 +31,27 @@ api.interceptors.response.use(
             const isAuthEndpoint = error.config?.url?.includes('/login') ||
                 error.config?.url?.includes('/register') ||
                 error.config?.url?.includes('/forgot-password') ||
-                error.config?.url?.includes('/reset-password')
+                error.config?.url?.includes('/reset-password') ||
+                error.config?.url?.includes('/google') ||
+                error.config?.url?.includes('/check-oauth-status')
 
             if (!isAuthEndpoint) {
+                // Xóa token và user từ localStorage và Cookies
                 localStorage.removeItem('token')
                 localStorage.removeItem('user')
-
                 document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
                 document.cookie = 'user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
 
-                // alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+                // Hiển thị thông báo và chuyển hướng
                 await Swal.fire({
                     icon: 'warning',
-                    title: 'Phiên đăng nhập hàng tại hết hạn.',
-                    text: 'Vui lòng đăng nhập lâi.',
+                    title: 'Phiên đăng nhập đã hết hạn.',
+                    text: 'Vui lòng đăng nhập lại.',
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = '/login'
                     }
                 })
-
-
             }
         }
         return Promise.reject(error)

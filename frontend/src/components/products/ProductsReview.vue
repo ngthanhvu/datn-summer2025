@@ -39,7 +39,7 @@
                 <i class="bi bi-pencil-square text-[#81AACC]"></i>
                 {{ editingReviewId ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá' }}
             </h3>
-
+            
             <div v-if="!isAuthenticated" class="text-center py-4 sm:py-6 bg-gray-50 rounded-lg">
                 <i class="bi bi-person-lock text-2xl sm:text-3xl text-gray-400 mb-2 block"></i>
                 <p class="mb-3 sm:mb-4 text-gray-600 text-sm sm:text-base">Vui lòng đăng nhập để đánh giá sản phẩm</p>
@@ -146,6 +146,7 @@
             class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 mb-6 sm:mb-8 text-center">
             <i class="bi bi-check-circle text-2xl sm:text-3xl text-green-500 mb-3 block"></i>
             <p class="mb-3 sm:mb-4 text-gray-600 text-sm sm:text-base">Bạn đã đánh giá sản phẩm này rồi</p>
+            
             <button @click="$emit('editReview', userReview)"
                 class="bg-[#81AACC] text-white px-3 sm:px-4 py-1.5 rounded-md font-medium transition-colors hover:bg-[#6B8BA3] inline-flex items-center gap-2 text-xs sm:text-sm">
                 <i class="bi bi-pencil"></i> Chỉnh sửa đánh giá của bạn
@@ -193,11 +194,14 @@
                                     </span>
                                     <span v-if="user && review.user_id === user.id">
                                         <span v-if="review.is_hidden"
-                                            class="bg-red-100 text-red-600 text-xs font-semibold rounded-full px-2 sm:px-3 py-1 ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block">Vi
-                                            phạm ngôn từ</span>
+                                            class="bg-red-100 text-red-600 text-xs font-semibold rounded-full px-2 sm:px-3 py-1 ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block">Có
+                                            từ ngữ tiêu cực - chờ duyệt</span>
                                         <span v-else-if="!review.is_approved"
                                             class="bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full px-2 sm:px-3 py-1 ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block">Đang
                                             chờ duyệt</span>
+                                        <span v-else-if="review.is_approved && !review.is_hidden"
+                                            class="bg-green-100 text-green-700 text-xs font-semibold rounded-full px-2 sm:px-3 py-1 ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block">Đã
+                                            được hiển thị</span>
                                     </span>
                                 </div>
                             </div>

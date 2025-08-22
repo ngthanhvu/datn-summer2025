@@ -12,6 +12,10 @@
                     class="inline-flex items-center px-3 sm:px-4 py-2 bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200">
                     <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>Tải lại
                 </button>
+                <button @click="viewNegativeReviews"
+                    class="inline-flex items-center px-3 sm:px-4 py-2 bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200">
+                    <i class="fas fa-exclamation-triangle mr-1 sm:mr-2"></i>Xem đánh giá tiêu cực
+                </button>
             </div>
         </div>
 
@@ -39,7 +43,8 @@
             </div>
 
             <!-- Pagination Summary -->
-            <div v-if="activeTab === 'reviews' && paginationData" class="p-3 sm:p-4 bg-gray-50 border-t border-gray-300">
+            <div v-if="activeTab === 'reviews' && paginationData"
+                class="p-3 sm:p-4 bg-gray-50 border-t border-gray-300">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs sm:text-sm">
                     <div class="text-gray-600">
                         <i class="fas fa-info-circle mr-1"></i>
@@ -51,10 +56,15 @@
                         Đánh giá mới nhất hiển thị đầu tiên
                     </div>
                 </div>
-                <div class="mt-2 text-xs text-red-500">
-                    <i class="fas fa-exclamation-triangle mr-1"></i>
-                    <strong>Lưu ý:</strong> Đánh giá chứa từ khóa tiêu cực sẽ tự động bị ẩn (rejected).
-                    Đánh giá chưa được duyệt sẽ hiển thị trạng thái "pending".
+
+                <div v-if="currentFilter.badwords" class="mt-2 text-xs text-blue-600">
+                    <i class="fas fa-filter mr-1"></i>
+                    <strong>Đang lọc:</strong> Chỉ hiển thị đánh giá có từ ngữ tiêu cực ({{ totalItems }} đánh giá)
+                </div>
+                <div v-else-if="currentFilter.admin" class="mt-2 text-xs text-green-600">
+                    <i class="fas fa-eye mr-1"></i>
+                    <strong>Đang hiển thị:</strong> Tất cả đánh giá ({{ totalItems }} đánh giá) - Bao gồm cả đánh giá bị
+                    ẩn và chờ duyệt
                 </div>
             </div>
         </div>
@@ -143,7 +153,6 @@ const currentFilter = ref({});
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // thay useRuntimeConfig
 
-// ✅ Lấy user từ cookie (nếu có)
 const user = ref(null);
 const getUserFromCookie = () => {
     const userData = Cookies.get("user");
@@ -204,7 +213,7 @@ const fetchReviews = async (page = 1, filter = {}) => {
         } else if (filterBrand.value) {
             data = await getReviewsByBrand(filterBrand.value, page, perPage.value);
         } else {
-            data = await getAllReviews(page, perPage.value);
+            data = await getAllReviews(page, perPage.value, { admin: 1 });
         }
 
         paginationData.value = {
@@ -414,6 +423,12 @@ const getVisiblePages = () => {
     if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
     for (let i = start; i <= end; i++) pages.push(i);
     return pages;
+};
+
+const viewNegativeReviews = () => {
+    currentFilter.value = { admin: 1, badwords: 1 };
+    currentPage.value = 1;
+    fetchReviews(1, { admin: 1, badwords: 1 });
 };
 
 onMounted(() => {

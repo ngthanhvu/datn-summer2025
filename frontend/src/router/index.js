@@ -23,6 +23,7 @@ import FavoriteProductPage from '../pages/favorite.vue';
 import ShippingCalculatorPage from '../pages/shipping-calculator.vue';
 import FlashSalePage from '../pages/flash-sale.vue';
 import PageView from '../pages/page.vue';
+import CategoryPage from '../pages/category.vue';
 
 import Admin from '../pages/admin/index.vue';
 import ProductsPageAdmin from '../pages/admin/products/index.vue';
@@ -60,8 +61,9 @@ import PagesEdit from '../pages/admin/page/edit.vue';
 
 import StatusPage from '../pages/status.vue';
 import CookieRule from '../components/CookieRule.vue';
-import NotFound from '../components/404.vue'
-import PagesContent from '../components/admin/newpage/PagesContent.vue'
+import NotFound from '../components/404.vue';
+import PagesContent from '../components/admin/newpage/PagesContent.vue';
+import HealthPage from '../pages/admin/health/index.vue';
 import { authGuard } from './middleware/auth';
 
 const routes = [
@@ -91,6 +93,10 @@ const routes = [
             {
                 path: '/san-pham',
                 component: ProductsPage,
+            },
+            {
+                path: '/danh-muc/:slug',
+                component: CategoryPage,
             },
             {
                 path: '/san-pham/:slug',
@@ -312,6 +318,10 @@ const routes = [
             {
                 path: '/admin/pages/:id/edit',
                 component: PagesEdit
+            },
+            {
+                path: '/admin/health',
+                component: HealthPage
             }
         ]
         // meta: { requiresAuth: true, requiresAdmin: true }
@@ -320,7 +330,10 @@ const routes = [
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        return { top: 0 }
+    }
 })
 
 router.beforeEach(authGuard)

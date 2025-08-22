@@ -1,0 +1,12 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /reset
+Disallow: /forgot-password
+
+# Cho phép crawl tất cả phần còn lại
+Allow: /
+
+# Chỉ đường dẫn tới sitemap
+Sitemap: https://devgang.online/sitemap.xml

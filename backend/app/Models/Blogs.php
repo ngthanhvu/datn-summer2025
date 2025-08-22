@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use App\Models\User;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Blogs extends Model
 {
     use HasFactory;
-
+    use SoftDeletes;
+    protected $dates = ['deleted_at'];
     protected $table = 'blogs';
-
     protected $fillable = [
         'title',
         'description',

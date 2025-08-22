@@ -16,10 +16,56 @@ use App\Models\StockMovementItem;
 use App\Models\User;
 use App\Mail\ReturnRejected;
 use App\Models\Products;
+use App\Models\FlashSale;
+use App\Models\FlashSaleProduct;
+use Illuminate\Support\Facades\Cache;
 use App\Notifications\NewOrderNotification;
+use App\Models\Coupons;
 
 class OrdersController extends Controller
 {
+    private static function applyFlashSaleDeduction(int $variantId, int $unitPrice, int $quantity): void
+    {
+        try {
+            $variant = Variants::find($variantId);
+            if (!$variant) return;
+            $productId = $variant->product_id;
+            if (!$productId) return;
+
+            $activeFlashSale = FlashSale::whereHas('products', function ($q) use ($productId) {
+                $q->where('product_id', $productId);
+            })
+                ->where('active', true)
+                ->where('start_time', '<=', now())
+                ->where('end_time', '>=', now())
+                ->first();
+            if (!$activeFlashSale) return;
+
+            $fsp = FlashSaleProduct::where('flash_sale_id', $activeFlashSale->id)
+                ->where('product_id', $productId)
+                ->first();
+            if (!$fsp) return;
+
+            $expected = null;
+            if ($variant && $variant->product && $variant->product->price) {
+                $percent = round(100 - ((int)$fsp->flash_price / $variant->product->price) * 100);
+                if ($percent > 0) {
+                    $expected = (int) round($variant->price * (1 - $percent / 100));
+                }
+            }
+            if (!is_null($expected) && $unitPrice == $expected) {
+                $deduct = min((int)$quantity, max(0, (int)$fsp->quantity));
+                if ($deduct > 0) {
+                    $fsp->quantity = max(0, (int)$fsp->quantity - $deduct);
+                }
+                $fsp->sold = (int)$fsp->sold + (int)$quantity;
+                $fsp->save();
+                Cache::tags(['flash_sales'])->flush();
+            }
+        } catch (\Throwable $e) {
+
+        }
+    }
     public function index()
     {
         if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
@@ -135,6 +181,20 @@ class OrdersController extends Controller
             'user_id' => 'nullable|exists:users,id',
         ]);
 
+        $allowsZeroShipping = false;
+        if (!empty($validated['coupon_id'])) {
+            $coupon = Coupons::find($validated['coupon_id']);
+            if ($coupon && $coupon->type === 'shipping') {
+                $allowsZeroShipping = true;
+            }
+        }
+
+        if (($validated['shipping_fee'] ?? 0) <= 0 && !$allowsZeroShipping) {
+            return response()->json([
+                'message' => 'Vui lòng tính phí vận chuyển trước khi thanh toán',
+            ], 422);
+        }
+
         if ($validated['payment_method'] === 'cod') {
             DB::beginTransaction();
             try {
@@ -144,11 +204,37 @@ class OrdersController extends Controller
                     'user_id' => Auth::id(),
                     'note' => 'Xuất kho khi đặt hàng #' . $order->id,
                 ]);
+                $hasFlashSale = false;
                 foreach ($validated['items'] as $item) {
-                    $variant = Variants::find($item['variant_id']);
+                    $variant = Variants::with('product')->find($item['variant_id']);
                     $finalPrice = ($variant && $variant->discount_price && $variant->discount_price > 0)
                         ? $variant->discount_price
                         : ($variant ? $variant->price : $item['price']);
+
+                    if ($variant && $variant->product) {
+                        $activeFlashSale = FlashSale::whereHas('products', function ($q) use ($variant) {
+                            $q->where('product_id', $variant->product_id);
+                        })
+                            ->where('active', true)
+                            ->where('start_time', '<=', now())
+                            ->where('end_time', '>=', now())
+                            ->first();
+                        if ($activeFlashSale) {
+                            $fsp = FlashSaleProduct::where('flash_sale_id', $activeFlashSale->id)
+                                ->where('product_id', $variant->product_id)
+                                ->first();
+                            if ($fsp && $variant->product->price) {
+                                $percent = round(100 - ((int)$fsp->flash_price / $variant->product->price) * 100);
+                                if ($percent > 0) {
+                                    $expected = (int) round($variant->price * (1 - $percent / 100));
+                                    if ($item['price'] == $expected) {
+                                        $finalPrice = $expected;
+                                        $hasFlashSale = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
                     StockMovementItem::create([
                         'stock_movement_id' => $stockMovement->id,
                         'variant_id' => $item['variant_id'],
@@ -162,14 +248,20 @@ class OrdersController extends Controller
                         }
                         $inventory->quantity -= $item['quantity'];
                         $inventory->save();
-                        // Tăng sold_count cho sản phẩm
                         if ($variant && $variant->product_id) {
                             Products::where('id', $variant->product_id)->increment('sold_count', $item['quantity']);
                         }
                     } else {
                         throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                     }
+
+                    self::applyFlashSaleDeduction($item['variant_id'], (int)$item['price'], (int)$item['quantity']);
                 }
+                if ($hasFlashSale) {
+                    $stockMovement->note = 'Xuất kho khi đặt hàng #' . $order->id . ' (sản phẩm sale)';
+                    $stockMovement->save();
+                }
+
                 DB::table('carts')
                     ->where('user_id', Auth::user()->id)
                     ->delete();
@@ -409,12 +501,38 @@ class OrdersController extends Controller
                 'user_id' => $userId,
                 'note' => 'Xuất kho khi đặt hàng #' . $order->id,
             ]);
+            $hasFlashSale = false;
 
             foreach ($data['items'] as $item) {
                 $variant = Variants::find($item['variant_id']);
                 $finalPrice = ($variant && $variant->discount_price && $variant->discount_price > 0)
                     ? $variant->discount_price
                     : ($variant ? $variant->price : $item['price']);
+
+                if ($variant) {
+                    $activeFlashSale = FlashSale::whereHas('products', function ($q) use ($variant) {
+                        $q->where('product_id', $variant->product_id);
+                    })
+                        ->where('active', true)
+                        ->where('start_time', '<=', now())
+                        ->where('end_time', '>=', now())
+                        ->first();
+                    if ($activeFlashSale) {
+                        $fsp = FlashSaleProduct::where('flash_sale_id', $activeFlashSale->id)
+                            ->where('product_id', $variant->product_id)
+                            ->first();
+                        if ($fsp && $variant->product && $variant->product->price) {
+                            $percent = round(100 - ((int)$fsp->flash_price / $variant->product->price) * 100);
+                            if ($percent > 0) {
+                                $expected = (int) round($variant->price * (1 - $percent / 100));
+                                if ($item['price'] == $expected) {
+                                    $finalPrice = $expected;
+                                    $hasFlashSale = true;
+                                }
+                            }
+                        }
+                    }
+                }
 
                 StockMovementItem::create([
                     'stock_movement_id' => $stockMovement->id,
@@ -430,13 +548,18 @@ class OrdersController extends Controller
                     }
                     $inventory->quantity -= $item['quantity'];
                     $inventory->save();
-                    // Tăng sold_count cho sản phẩm
                     if ($variant && $variant->product_id) {
                         Products::where('id', $variant->product_id)->increment('sold_count', $item['quantity']);
                     }
                 } else {
                     throw new \Exception("Không tìm thấy tồn kho cho biến thể: {$item['variant_id']}");
                 }
+                self::applyFlashSaleDeduction($item['variant_id'], (int)$item['price'], (int)$item['quantity']);
+            }
+
+            if ($hasFlashSale) {
+                $stockMovement->note = 'Xuất kho khi đặt hàng #' . $order->id . ' (sản phẩm sale)';
+                $stockMovement->save();
             }
 
             DB::table('carts')->where('user_id', $userId)->delete();
@@ -530,7 +653,7 @@ class OrdersController extends Controller
     public function approveReturn($id)
     {
         $order = Orders::findOrFail($id);
-        if (Auth::user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
             return response()->json(['message' => 'Bạn không có quyền duyệt hoàn hàng'], 403);
         }
         if ($order->return_status !== 'requested') {

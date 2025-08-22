@@ -1,13 +1,10 @@
-// src/composables/useDashboard.js
 import axios from "axios";
-import Swal from "sweetalert2";
 
 const API = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL + "/api",
     timeout: 10000,
 });
 
-// ✅ Gắn token cho mọi request
 API.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -17,7 +14,6 @@ API.interceptors.request.use((config) => {
 export const useDashboard = () => {
     const handleError = (err, msg) => {
         console.error(msg, err.response?.data || err.message);
-        Swal.fire({ icon: "error", title: "Lỗi", text: msg });
         throw err;
     };
 
@@ -30,6 +26,10 @@ export const useDashboard = () => {
 
     const getYearlyRevenue = (params = {}) =>
         API.get("/dashboard/revenue/yearly", { params }).then((r) => r.data).catch((e) => handleError(e, "Không thể lấy thống kê doanh thu năm"));
+
+    // Thêm function mới cho lọc theo khoảng thời gian
+    const getRevenueByDateRange = (params = {}) =>
+        API.get("/dashboard/revenue-by-date-range", { params }).then((r) => r.data).catch((e) => handleError(e, "Không thể lấy thống kê doanh thu theo khoảng thời gian"));
 
     const getMonthlyOrders = (params = {}) =>
         API.get("/dashboard/orders", { params }).then((r) => r.data).catch((e) => handleError(e, "Không thể lấy thống kê đơn hàng"));
@@ -186,6 +186,7 @@ export const useDashboard = () => {
         getStats,
         getMonthlyRevenue,
         getYearlyRevenue,
+        getRevenueByDateRange, // Thêm vào return
         getMonthlyOrders,
         getOrdersByStatus,
         getCustomersStats,

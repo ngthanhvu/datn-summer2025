@@ -12,6 +12,7 @@ use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
 use App\Mail\WelcomeEmail;
 use App\Mail\OtpEmail;
+use App\Mail\UserBannedMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,13 @@ class AuthController extends Controller
             'password' => 'required|min:6',
             'role' => 'required',
         ]);
+
+        $existingUser = User::where('email', $request->email)->first();
+        if ($existingUser && $existingUser->isGoogleUser() && !$existingUser->password) {
+            return response()->json([
+                'error' => 'Email này đã được sử dụng để đăng ký bằng Google. Vui lòng sử dụng đăng nhập Google.'
+            ], 422);
+        }
 
         $user = User::create([
             'username' => $request->username,
@@ -48,6 +56,14 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
+
+        $user = User::where('email', $credentials['email'])->first();
+
+        if ($user && $user->isGoogleUser() && !$user->password) {
+            return response()->json([
+                'error' => 'Tài khoản này chỉ có thể đăng nhập bằng Google. Vui lòng sử dụng đăng nhập Google.'
+            ], 401);
+        }
 
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
@@ -114,19 +130,32 @@ class AuthController extends Controller
                 ->redirectUrl(config('services.google.redirect'))
                 ->user();
 
-            $user = User::updateOrCreate(
-                ['email' => $googleUser->getEmail()],
-                [
+            $existingUser = User::where('email', $googleUser->getEmail())->first();
+
+            if ($existingUser) {
+                $existingUser->update([
+                    'oauth_provider' => 'google',
+                    'oauth_id' => $googleUser->getId(),
+                    'status' => 1,
+                    'ip_user' => $request->ip(),
+                ]);
+
+                $user = $existingUser;
+            } else {
+                $user = User::create([
                     'username' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
                     'password' => Hash::make(uniqid()),
                     'oauth_provider' => 'google',
                     'oauth_id' => $googleUser->getId(),
-                ]
-            );
+                    'status' => 1,
+                    'ip_user' => $request->ip(),
+                ]);
 
-            if ($user->wasRecentlyCreated) {
                 Mail::to($user->email)->queue(new WelcomeEmail($user));
             }
+
+            $user->refresh();
 
             $token = JWTAuth::fromUser($user);
 
@@ -247,6 +276,15 @@ class AuthController extends Controller
                 'gender' => $user->gender,
                 'dateOfBirth' => $user->dateOfBirth,
                 'note' => $user->note,
+                'auth_info' => [
+                    'can_login_with_password' => $user->canLoginWithPassword(),
+                    'is_google_user' => $user->isGoogleUser(),
+                    'is_oauth_user' => $user->isOAuthUser(),
+                    'is_hybrid_user' => $user->isHybridUser(),
+                    'is_oauth_only_user' => $user->isOAuthOnlyUser(),
+                    'has_password' => !empty($user->password),
+                    'auth_methods' => $this->getUserAuthMethods($user)
+                ]
             ];
         });
 
@@ -512,7 +550,6 @@ class AuthController extends Controller
             $user = User::findOrFail($id);
             $currentUser = Auth::user();
 
-            // Kiểm tra quyền thay đổi role
             if ($request->role === 'master_admin' && $currentUser->role !== 'master_admin') {
                 return response()->json([
                     'error' => 'Chỉ Master Admin mới có quyền thay đổi role thành Master Admin'
@@ -525,7 +562,6 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            // Kiểm tra không cho phép thay đổi role của chính mình
             if ((int) $id === (int) Auth::id()) {
                 if ($request->role !== $currentUser->role) {
                     return response()->json([
@@ -534,7 +570,6 @@ class AuthController extends Controller
                 }
             }
 
-            // Kiểm tra không cho phép thay đổi role của master admin (trừ khi là master admin khác)
             if ($user->role === 'master_admin' && $currentUser->role !== 'master_admin') {
                 return response()->json([
                     'error' => 'Không thể thay đổi thông tin của Master Admin'
@@ -551,14 +586,12 @@ class AuthController extends Controller
                 'dateOfBirth' => $request->dateOfBirth,
             ];
 
-            // Nếu ban user (status = 0) thì bắt buộc phải có lý do
             if ($request->status == 0 && empty($request->note)) {
                 return response()->json([
                     'error' => 'Vui lòng nhập lý do khi khóa tài khoản'
                 ], 422);
             }
 
-            // Nếu mở khóa user (status = 1) thì xóa lý do ban
             if ($request->status == 1) {
                 $updateData['note'] = null;
             } else {
@@ -570,6 +603,10 @@ class AuthController extends Controller
             }
 
             $user->update($updateData);
+
+            if ($request->status == 0) {
+                Mail::to($user->email)->queue(new UserBannedMail($user, $request->note));
+            }
 
             return response()->json([
                 'message' => 'Cập nhật người dùng thành công',
@@ -584,6 +621,8 @@ class AuthController extends Controller
                     'gender' => $user->gender,
                     'dateOfBirth' => $user->dateOfBirth,
                     'note' => $user->note,
+                    'oauth_provider' => $user->oauth_provider,
+                    'oauth_id' => $user->oauth_id,
                 ]
             ], 200);
         } catch (\Exception $e) {
@@ -597,20 +636,24 @@ class AuthController extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            // Kiểm tra quyền admin
             if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 
             $currentUser = Auth::user();
 
-            // Kiểm tra không cho phép tự xóa tài khoản của chính mình
             if ((int) $id === (int) Auth::id()) {
                 return response()->json(['error' => 'Bạn không thể xóa chính bản thân'], 422);
             }
 
-            // Tìm user để xóa
             $userToDelete = User::findOrFail($id);
+
+            $hasOrders = $userToDelete->orders()->exists();
+            if ($hasOrders) {
+                return response()->json([
+                    'error' => 'Không thể xóa người dùng này vì đã có đơn hàng trong hệ thống. Vui lòng xử lý đơn hàng trước khi xóa.'
+                ], 422);
+            }
 
             Log::info('Delete user attempt', [
                 'current_user_id' => $currentUser->id,
@@ -619,32 +662,27 @@ class AuthController extends Controller
                 'user_to_delete_role' => $userToDelete->role
             ]);
 
-            // Kiểm tra quyền xóa Master Admin
             if ($userToDelete->role === 'master_admin') {
                 if ($currentUser->role !== 'master_admin') {
                     return response()->json(['error' => 'Chỉ Master Admin mới có quyền xóa Master Admin khác'], 403);
                 }
 
-                // Kiểm tra không cho phép xóa master admin cuối cùng
                 $masterAdminCount = User::where('role', 'master_admin')->count();
                 if ($masterAdminCount <= 1) {
                     return response()->json(['error' => 'Không thể xóa Master Admin cuối cùng trong hệ thống'], 422);
                 }
             }
 
-            // Kiểm tra quyền xóa Admin (chỉ Master Admin mới có thể xóa Admin)
             if ($userToDelete->role === 'admin' && $currentUser->role === 'admin') {
                 return response()->json(['error' => 'Admin thường không thể xóa Admin khác'], 403);
             }
 
-            // Thực hiện xóa user
             DB::transaction(function () use ($userToDelete) {
-                // Xóa avatar nếu có
                 if ($userToDelete->avatar && Storage::exists('public/avatars/' . basename($userToDelete->avatar))) {
                     Storage::delete('public/avatars/' . basename($userToDelete->avatar));
                 }
 
-                // Xóa relationships trước khi xóa user
+                // Chỉ xóa các dữ liệu không liên quan đến đơn hàng
                 $userToDelete->stockMovements()->delete();
                 $userToDelete->coupons()->detach();
                 $userToDelete->addresses()->delete();
@@ -652,11 +690,9 @@ class AuthController extends Controller
                 $userToDelete->favoriteProducts()->delete();
                 $userToDelete->productReviews()->delete();
 
-                // Đối với orders, chỉ xóa nếu không có dữ liệu quan trọng
-                // Hoặc có thể set user_id = null thay vì xóa
-                $userToDelete->orders()->update(['user_id' => null]);
+                // Không cần update orders vì đã kiểm tra không có đơn hàng
+                // $userToDelete->orders()->update(['user_id' => null]);
 
-                // Xóa user
                 $userToDelete->delete();
             });
 
@@ -679,7 +715,6 @@ class AuthController extends Controller
         }
     }
 
-    // Test method để debug
     public function testDelete(Request $request, $id)
     {
         try {
@@ -708,23 +743,19 @@ class AuthController extends Controller
         }
     }
 
-    // Simple delete method for testing
     public function simpleDelete(Request $request, $id)
     {
         try {
-            // Kiểm tra quyền admin
             if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'master_admin') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 
-            // Kiểm tra không cho phép tự xóa
             if ((int) $id === (int) Auth::id()) {
                 return response()->json(['error' => 'Bạn không thể xóa chính bản thân'], 422);
             }
 
             $user = User::findOrFail($id);
 
-            // Xóa user đơn giản
             $user->delete();
 
             return response()->json(['message' => 'Đã xoá người dùng thành công'], 200);
@@ -732,5 +763,81 @@ class AuthController extends Controller
             Log::error('Simple delete failed: ' . $e->getMessage());
             return response()->json(['error' => 'Có lỗi khi xoá người dùng: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function checkOAuthStatus(Request $request)
+    {
+        $email = $request->input('email');
+
+        if (!$email) {
+            return response()->json(['error' => 'Email is required'], 400);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return response()->json([
+            'email' => $user->email,
+            'oauth_provider' => $user->oauth_provider,
+            'oauth_id' => $user->oauth_id,
+            'status' => $user->status,
+            'can_login_with_password' => $user->canLoginWithPassword(),
+            'is_google_user' => $user->isGoogleUser(),
+            'is_oauth_user' => $user->isOAuthUser(),
+            'is_hybrid_user' => $user->isHybridUser(),
+            'is_oauth_only_user' => $user->isOAuthOnlyUser(),
+            'has_password' => !empty($user->password),
+            'auth_methods' => $this->getUserAuthMethods($user)
+        ]);
+    }
+
+    public function testGoogleLogin(Request $request)
+    {
+        try {
+            // Test Google OAuth configuration
+            $config = [
+                'google_client_id' => config('services.google.client_id'),
+                'google_client_secret' => config('services.google.client_secret'),
+                'google_redirect' => config('services.google.redirect'),
+                'frontend_url' => config('app.frontend_url'),
+            ];
+
+            // Test database connection
+            $userCount = User::count();
+            $googleUsers = User::where('oauth_provider', 'google')->count();
+
+            return response()->json([
+                'message' => 'Google OAuth test successful',
+                'config' => $config,
+                'database' => [
+                    'total_users' => $userCount,
+                    'google_users' => $googleUsers,
+                ],
+                'timestamp' => now()->toISOString(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Google OAuth test failed: ' . $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
+    public function getUserAuthMethods($user)
+    {
+        $methods = [];
+
+        if (!empty($user->password)) {
+            $methods[] = 'email_password';
+        }
+
+        if ($user->isOAuthUser()) {
+            $methods[] = $user->oauth_provider;
+        }
+
+        return $methods;
     }
 }

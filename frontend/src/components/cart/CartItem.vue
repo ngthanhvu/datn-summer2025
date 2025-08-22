@@ -26,17 +26,22 @@
                         type="button" @click="handleDecrease" :disabled="quantity <= 1">
                         <i class="fas fa-minus"></i>
                     </button>
-                    <input type="number" :value="quantity" min="1" :max="product?.variant?.quantity || 999"
+                    <input type="text" v-model="localQuantity" inputmode="numeric" pattern="[0-9]*"
                         class="w-16 h-8 text-center border border-gray-300 mx-2 text-sm focus:outline-none focus:border-blue-500"
-                        @input="handleQuantityInput" />
+                        @keyup.enter="commitQuantity" @blur="commitQuantity" />
                     <button aria-label="Increase quantity"
                         class="text-gray-500 text-xl select-none hover:text-black transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer"
                         type="button" @click="handleIncrease"
-                        :disabled="quantity >= (product?.variant?.quantity || 999)">
+                        :disabled="quantity >= maxAvailable">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
-                <p v-if="error" class="text-red-500 text-xs">{{ error }}</p>
+                <!-- Error messages -->
+                <p v-if="error || externalError" class="text-red-500 text-xs">{{ error || externalError }}</p>
+                <!-- Stock warning -->
+                <p v-if="isOverStock" class="text-orange-600 text-xs font-semibold">
+                    ⚠️ Vượt quá tồn kho ({{ maxAvailable }})
+                </p>
             </div>
         </td>
         <td class="py-4 text-center text-base font-semibold text-black w-[15%]">
@@ -55,36 +60,60 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
     product: { type: Object, required: true },
-    quantity: { type: Number, required: true }
+    quantity: { type: Number, required: true },
+    maxAvailable: { type: Number, default: 999 },
+    externalError: { type: String, default: '' }
 })
 
 const emit = defineEmits(['remove', 'decrease', 'increase', 'update:quantity'])
 const error = ref('')
+const localQuantity = ref(String(props.quantity))
+
+// Computed property để kiểm tra xem có vượt quá tồn kho không
+const isOverStock = computed(() => {
+    return props.quantity > props.maxAvailable
+})
+
+watch(() => props.quantity, (val) => {
+    localQuantity.value = String(val)
+})
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-const handleQuantityInput = (event) => {
-    const newValue = parseInt(event.target.value) || 1
-    const maxquantity = props.product?.variant?.quantity || 999
+const commitQuantity = () => {
+    const raw = (localQuantity.value ?? '').toString().trim()
+    const maxquantity = props.maxAvailable
+    const parsed = parseInt(raw, 10)
 
-    if (newValue < 1) {
-        error.value = 'Số lượng không được nhỏ hơn 1'
-        emit('update:quantity', 1)
-    } else if (newValue > maxquantity) {
-        error.value = `Số lượng tồn kho chỉ còn ${maxquantity}`
-        emit('update:quantity', maxquantity)
-    } else {
-        error.value = ''
-        emit('update:quantity', newValue)
+    if (!raw) {
+        localQuantity.value = String(props.quantity)
+        return
     }
+
+    if (isNaN(parsed) || parsed < 1) {
+        error.value = 'Số lượng tối thiểu là 1'
+        localQuantity.value = '1'
+        emit('update:quantity', 1)
+        return
+    }
+
+    if (parsed > maxquantity) {
+        error.value = `Số lượng tối đa còn lại là ${maxquantity}`
+        localQuantity.value = String(maxquantity)
+        emit('update:quantity', maxquantity)
+        return
+    }
+
+    error.value = ''
+    emit('update:quantity', parsed)
 }
 
 const handleIncrease = () => {
-    const maxquantity = props.product?.variant?.quantity || 999
+    const maxquantity = props.maxAvailable
     if (props.quantity < maxquantity) {
         error.value = ''
         emit('increase')

@@ -25,7 +25,7 @@ return new class extends Migration
             $table->unsignedBigInteger('blog_category_id')->nullable();
 
             $table->timestamps();
-
+            $table->softDeletes();
             $table->foreign('blog_category_id')
                 ->references('id')
                 ->on('blog_categories')

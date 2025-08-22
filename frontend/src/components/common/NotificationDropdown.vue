@@ -42,8 +42,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, computed, watch } from 'vue'
-import { useNotificationSound } from '../../composable/useNotificationSound'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
     notifications: { type: Array, default: () => [] }
@@ -52,19 +51,10 @@ const show = ref(false)
 let hideTimeout = null
 
 const viewedNotifications = ref(new Set())
-const { playSound } = useNotificationSound()
 
 const hasNewNotifications = computed(() => {
     return props.notifications.some(n => !viewedNotifications.value.has(n.id))
 })
-
-// Watch for new notifications and play sound
-watch(() => props.notifications, (newNotifications, oldNotifications) => {
-    if (newNotifications.length > oldNotifications.length) {
-        // Có thông báo mới, phát âm thanh
-        playSound()
-    }
-}, { deep: true })
 
 function isNewNotification(notification) {
     return !viewedNotifications.value.has(notification.id)

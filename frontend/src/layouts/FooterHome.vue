@@ -37,10 +37,9 @@
                             <h3 class="text-lg font-semibold text-white-300 mb-4">CHÍNH SÁCH</h3>
                             <ul class="space-y-2 text-gray-100">
                                 <li v-for="page in policyPages" :key="page.id">
-                                    <RouterLink :to="`/trang/${page.slug}`"
-                                        class="hover:text-[#1E293B] transition-colors">
+                                    <a :href="`/trang/${page.slug}`" class="hover:text-[#1E293B] transition-colors">
                                         {{ page.title }}
-                                    </RouterLink>
+                                    </a>
                                 </li>
                                 <li v-if="policyPages.length === 0" class="text-gray-200 text-sm">Đang tải...</li>
                             </ul>
@@ -51,10 +50,9 @@
                             <h3 class="text-lg font-semibold text-white-300 mb-4">HỖ TRỢ KHÁCH HÀNG</h3>
                             <ul class="space-y-2 text-gray-100">
                                 <li v-for="page in supportPages" :key="page.id">
-                                    <RouterLink :to="`/trang/${page.slug}`"
-                                        class="hover:text-[#1E293B] transition-colors">
+                                    <a :href="`/trang/${page.slug}`" class="hover:text-[#1E293B] transition-colors">
                                         {{ page.title }}
-                                    </RouterLink>
+                                    </a>
                                 </li>
                                 <li v-if="supportPages.length === 0" class="text-gray-200 text-sm">Đang tải...</li>
                             </ul>

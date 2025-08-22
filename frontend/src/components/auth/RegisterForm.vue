@@ -175,8 +175,11 @@ const handleRegister = async () => {
                 window.location.href = '/'
             }, 3000)
         }
-    } catch {
-        error.register = 'Đăng ký thất bại!'
+    } catch (err) {
+        // error.register = 'Đăng ký thất bại!'
+        if (err.response && err.response.data) {
+            error.register = err.response.data.error || err.response.data.message || 'Đăng ký thất bại!'
+        }
         isLoading.value = false
     }
 }

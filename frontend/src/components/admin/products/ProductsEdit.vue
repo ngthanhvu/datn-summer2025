@@ -1,338 +1,329 @@
 <template>
     <div class="flex flex-col gap-6">
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
-            <!-- Basic Info Section -->
-            <div class="lg:col-span-2 space-y-4 p-4 lg:p-6 rounded-[10px] border border-gray-300 bg-white">
-                <div v-if="isDataLoaded">
-                    <!-- Tên sản phẩm -->
-                    <div class="mb-4">
-                        <label class="block font-medium">Tên sản phẩm <span class="text-red-500">*</span></label>
-                        <input v-model="formData.name" type="text"
-                            class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                            placeholder="Nhập tên sản phẩm" />
-                        <div v-if="formErrors.name" class="text-red-500 text-sm mt-1">{{ formErrors.name }}</div>
-                    </div>
+        <!-- Header Section -->
+        <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Chỉnh sửa sản phẩm</h1>
+            <p class="text-gray-600">Cập nhật thông tin chi tiết về sản phẩm và các biến thể</p>
+        </div>
 
-                    <!-- Giá -->
-                    <div class="mb-4">
-                        <label class="block font-medium">Giá bán <span class="text-red-500">*</span></label>
-                        <input v-model="formData.price" type="number" min="0" step="1000"
-                            class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                            placeholder="Nhập giá sản phẩm" />
-                        <div v-if="formErrors.price" class="text-red-500 text-sm mt-1">{{ formErrors.price }}</div>
-                    </div>
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <!-- Left Column - Basic Info -->
+            <div class="xl:col-span-1 space-y-6">
+                <!-- Basic Info Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                        Thông tin cơ bản
+                    </h2>
 
-                    <!-- Giá khuyến mãi -->
-                    <div class="mb-4">
-                        <label class="block font-medium">Giá khuyến mãi</label>
-                        <input v-model="formData.discount_price" type="number" min="0" step="1000"
-                            class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                            placeholder="Nhập giá khuyến mãi" />
-                        <div v-if="formErrors.discount_price" class="text-red-500 text-sm mt-1">{{
-                            formErrors.discount_price }}</div>
-                    </div>
+                    <div v-if="isDataLoaded" class="space-y-4">
+                        <!-- Tên sản phẩm -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Tên sản phẩm <span class="text-red-500">*</span>
+                            </label>
+                            <input v-model="formData.name" type="text"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                placeholder="Nhập tên sản phẩm" />
+                            <div v-if="formErrors.name" class="text-red-500 text-sm mt-1">{{ formErrors.name }}</div>
+                        </div>
 
-                    <!-- Danh mục -->
-                    <div class="mb-4">
-                        <label class="block font-medium">Danh mục <span class="text-red-500">*</span></label>
-                        <select v-model="formData.category"
-                            class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100">
-                            <option value="">Chọn danh mục</option>
-                            <option v-for="opt in basicFields.find(f => f.name === 'category').options" :key="opt.value"
-                                :value="opt.value">{{ opt.label }}</option>
-                        </select>
-                        <div v-if="formErrors.category" class="text-red-500 text-sm mt-1">{{ formErrors.category }}
+                        <!-- Giá -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Giá bán <span class="text-red-500">*</span>
+                            </label>
+                            <input v-model="formData.price" type="number" min="0" step="1000"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                placeholder="Nhập giá sản phẩm" />
+                            <div v-if="formErrors.price" class="text-red-500 text-sm mt-1">{{ formErrors.price }}</div>
+                        </div>
+
+                        <!-- Giá khuyến mãi -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Giá khuyến mãi
+                            </label>
+                            <input v-model="formData.discount_price" type="number" min="0" step="1000"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                placeholder="Nhập giá khuyến mãi" />
+                            <div v-if="formErrors.discount_price" class="text-red-500 text-sm mt-1">{{
+                                formErrors.discount_price }}</div>
+                        </div>
+
+                        <!-- Danh mục & Thương hiệu -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Danh mục <span class="text-red-500">*</span>
+                                </label>
+                                <select v-model="formData.category"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">Chọn danh mục</option>
+                                    <option v-for="opt in basicFields.find(f => f.name === 'category').options"
+                                        :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                                </select>
+                                <div v-if="formErrors.category" class="text-red-500 text-sm mt-1">{{ formErrors.category
+                                }}</div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Thương hiệu <span class="text-red-500">*</span>
+                                </label>
+                                <select v-model="formData.brand"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">Chọn thương hiệu</option>
+                                    <option v-for="opt in basicFields.find(f => f.name === 'brand').options"
+                                        :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                                </select>
+                                <div v-if="formErrors.brand" class="text-red-500 text-sm mt-1">{{ formErrors.brand }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mô tả -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Mô tả <span class="text-red-500">*</span>
+                            </label>
+                            <CKEditor v-model="formData.description" />
+                            <div v-if="formErrors.description" class="text-red-500 text-sm mt-1">{{
+                                formErrors.description }}</div>
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="flex items-center gap-3 pt-2">
+                            <div class="toggle">
+                                <input type="checkbox" id="status" v-model="formData.status" />
+                                <label for="status"></label>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">{{ formData.status ? 'Hiển thị' : 'Ẩn'
+                            }}</span>
                         </div>
                     </div>
 
-                    <!-- Thương hiệu -->
-                    <div class="mb-4">
-                        <label class="block font-medium">Thương hiệu <span class="text-red-500">*</span></label>
-                        <select v-model="formData.brand"
-                            class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100">
-                            <option value="">Chọn thương hiệu</option>
-                            <option v-for="opt in basicFields.find(f => f.name === 'brand').options" :key="opt.value"
-                                :value="opt.value">{{ opt.label }}</option>
-                        </select>
-                        <div v-if="formErrors.brand" class="text-red-500 text-sm mt-1">{{ formErrors.brand }}</div>
-                    </div>
-
-                    <!-- Mô tả -->
-                    <div class="mb-4">
-                        <label class="block font-medium">Mô tả <span class="text-red-500">*</span></label>
-                        <CKEditor v-model="formData.description" />
-                        <div v-if="formErrors.description" class="text-red-500 text-sm mt-1">{{ formErrors.description
-                            }}</div>
-                    </div>
-
-                    <!-- Trạng thái -->
-                    <div class="flex items-center gap-2">
-                        <div class="toggle">
-                            <input type="checkbox" id="status" v-model="formData.status" />
-                            <label for="status"></label>
-                        </div>
-                        <span>{{ formData.status ? "Hiển thị" : "Ẩn" }}</span>
+                    <div v-else class="text-center py-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                        <p class="text-gray-500">Đang tải danh mục và thương hiệu...</p>
                     </div>
                 </div>
-                <div v-else class="text-center text-gray-500">Đang tải danh mục và thương hiệu...</div>
             </div>
 
-            <!-- Images and Variants Section -->
-            <div class="lg:col-span-3 space-y-4">
-                <!-- Ảnh chính -->
-                <div class="mb-4 border border-gray-300 p-4 lg:p-5 rounded-[10px] bg-white">
-                    <label class="block font-medium">Ảnh chính <span class="text-red-500">*</span></label>
-                    <label
-                        class="flex flex-col items-center justify-center w-full h-32 lg:h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
-                        <div class="flex flex-col items-center justify-center">
-                            <i class="fas fa-cloud-upload-alt text-2xl lg:text-3xl text-gray-400 mb-2"></i>
-                            <span class="text-gray-500 font-semibold text-sm lg:text-base">Click để tải ảnh lên</span>
-                            <span class="text-xs text-gray-400">PNG, JPG, GIF (tối đa 2MB)</span>
+            <!-- Right Column - Images & Variants -->
+            <div class="xl:col-span-2 space-y-6">
+                <!-- Images Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Ảnh chính -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-image text-green-500"></i>
+                            Ảnh chính <span class="text-red-500">*</span>
+                        </h3>
+
+                        <div class="space-y-4">
+                            <label
+                                class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                <div class="flex flex-col items-center justify-center">
+                                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                    <span class="text-gray-600 font-medium">Click để tải ảnh lên</span>
+                                    <span class="text-xs text-gray-400 mt-1">PNG, JPG, GIF (tối đa 2MB)</span>
+                                </div>
+                                <input type="file" accept="image/*" class="hidden" @change="onMainImageChange" />
+                            </label>
+
+                            <div v-if="formErrors.mainImage" class="text-red-500 text-sm">{{ formErrors.mainImage }}
+                            </div>
+
+                            <div v-if="formData.mainImagePreview" class="relative w-full">
+                                <img :src="formData.mainImagePreview"
+                                    class="w-full h-48 object-cover rounded-lg shadow-md" />
+                                <button @click="removeMainImage"
+                                    class="absolute top-2 right-2 p-2 rounded-full bg-white shadow-lg hover:bg-gray-100 transition-colors"
+                                    title="Xóa ảnh">
+                                    <i class="fas fa-times text-red-500"></i>
+                                </button>
+                            </div>
                         </div>
-                        <input type="file" accept="image/*" class="hidden" @change="onMainImageChange" />
-                    </label>
-
-                    <div v-if="formErrors.mainImage" class="text-red-500 text-sm mt-1">{{ formErrors.mainImage }}</div>
-
-                    <div v-if="formData.mainImagePreview" class="relative w-32 h-32 lg:w-48 lg:h-48 mt-4">
-                        <img :src="formData.mainImagePreview" class="w-full h-full object-cover rounded-lg shadow" />
-                        <button @click="removeMainImage"
-                            class="absolute top-2 right-2 p-2 rounded-full bg-white shadow hover:bg-gray-100">
-                            <i class="fas fa-times text-red-500"></i>
-                        </button>
                     </div>
-                </div>
 
-                <!-- Ảnh phụ -->
-                <div class="mb-4 border border-gray-300 p-4 lg:p-5 rounded-[10px] bg-white">
-                    <label class="block font-medium">Ảnh phụ</label>
-                    <label
-                        class="flex flex-col items-center justify-center w-full h-32 lg:h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
-                        <div class="flex flex-col items-center justify-center">
-                            <i class="fas fa-cloud-upload-alt text-2xl lg:text-3xl text-gray-400 mb-2"></i>
-                            <span class="text-gray-500 font-semibold text-sm lg:text-base">Click để tải ảnh lên</span>
-                        </div>
-                        <input type="file" accept="image/*" multiple class="hidden"
-                            @change="onAdditionalImagesChange" />
-                    </label>
+                    <!-- Ảnh phụ -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-images text-purple-500"></i>
+                            Ảnh phụ
+                        </h3>
 
-                    <div v-if="formErrors.additionalImages" class="text-red-500 text-sm mt-1">{{
-                        formErrors.additionalImages }}</div>
+                        <div class="space-y-4">
+                            <label
+                                class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                <div class="flex flex-col items-center justify-center">
+                                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                    <span class="text-gray-600 font-medium">Click để tải ảnh lên</span>
+                                    <span class="text-xs text-gray-400 mt-1">PNG, JPG, GIF (tối đa 2MB)</span>
+                                </div>
+                                <input type="file" accept="image/*" multiple class="hidden"
+                                    @change="onAdditionalImagesChange" />
+                            </label>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4 mt-4"
-                        v-if="formData.additionalImagePreviews.length">
-                        <div v-for="(img, idx) in formData.additionalImagePreviews" :key="idx" class="relative group">
-                            <img :src="img" class="w-full h-24 lg:h-32 object-cover rounded-lg shadow" />
-                            <button @click="removeAdditionalImage(idx)"
-                                class="absolute top-2 right-2 p-2 rounded-full bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i class="fas fa-times text-red-500"></i>
-                            </button>
+                            <div v-if="formErrors.additionalImages" class="text-red-500 text-sm">{{
+                                formErrors.additionalImages }}</div>
+
+                            <div v-if="formData.additionalImagePreviews.length > 0" class="grid grid-cols-3 gap-3">
+                                <div v-for="(img, idx) in formData.additionalImagePreviews" :key="idx"
+                                    class="relative group">
+                                    <img :src="img" class="w-full h-24 object-cover rounded-lg shadow" />
+                                    <button @click="removeAdditionalImage(idx)"
+                                        class="absolute top-1 right-1 p-1 rounded-full bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="Xóa ảnh">
+                                        <i class="fas fa-times text-red-500 text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Variants Section -->
-                <div class="variants-section">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                        <h2 class="text-lg lg:text-xl font-semibold">Biến thể sản phẩm</h2>
-                        <div class="flex gap-2">
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-palette text-orange-500"></i>
+                            Biến thể sản phẩm
+                        </h2>
+                        <div class="flex gap-2 mt-3 sm:mt-0">
                             <button v-if="!showVariants" @click="showVariantsSection"
-                                class="bg-gray-100 text-gray-600 rounded px-3 lg:px-4 py-2 flex items-center gap-2 hover:bg-gray-200 text-sm lg:text-base">
+                                class="bg-blue-500 text-white rounded-lg px-4 py-2 flex items-center gap-2 hover:bg-blue-600 transition-colors">
                                 <i class="fas fa-plus"></i>
-                                <span class="hidden sm:inline">Thêm biến thể</span>
-                                <span class="sm:hidden">Thêm</span>
+                                <span>Thêm biến thể</span>
                             </button>
                             <button v-if="showVariants" @click="addVariant"
-                                class="bg-white border border-gray-300 text-gray-600 rounded px-3 lg:px-4 py-2 flex items-center gap-2 hover:bg-gray-200 cursor-pointer text-sm lg:text-base">
+                                class="bg-green-500 text-white rounded-lg px-4 py-2 flex items-center gap-2 hover:bg-green-600 transition-colors">
                                 <i class="fas fa-plus"></i>
-                                <span class="hidden sm:inline">Thêm biến thể</span>
-                                <span class="sm:hidden">Thêm</span>
+                                <span>Thêm biến thể</span>
                             </button>
                         </div>
                     </div>
 
-                    <div v-if="showVariants" class="w-full">
-                        <div class="space-y-4">
-                            <div v-for="(variant, vIdx) in formData.variants" :key="vIdx"
-                                class="bg-white border border-gray-300 p-3 lg:p-4 rounded-lg">
-                                <div class="flex justify-between mb-4">
-                                    <h3 class="font-medium">Biến thể {{ vIdx + 1 }}</h3>
-                                    <button @click="removeVariantColor(vIdx)" class="text-red-500 hover:text-red-700">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                    <div v-if="showVariants" class="space-y-6">
+                        <div v-for="(variant, vIdx) in formData.variants" :key="vIdx"
+                            class="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-medium text-gray-800">Biến thể {{ vIdx + 1 }}</h3>
+                                <button @click="removeVariantColor(vIdx)"
+                                    class="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"
+                                    title="Xóa biến thể">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+
+                            <!-- Variant Form -->
+                            <div class="space-y-4">
+                                <!-- Color Input -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Màu sắc <span
+                                            class="text-red-500">*</span></label>
+                                    <input v-model="variant.colorName" type="text"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        placeholder="Nhập tên màu" />
+                                    <div v-if="formErrors.variants[vIdx]?.color" class="text-red-500 text-sm mt-1">
+                                        {{ formErrors.variants[vIdx].color }}
+                                    </div>
                                 </div>
 
-                                <!-- Mobile Variant Layout -->
-                                <div class="lg:hidden">
-                                    <div v-for="(sizeObj, sIdx) in variant.sizes" :key="sIdx"
-                                        class="border border-gray-200 rounded-lg p-3 mb-3">
-                                        <div class="space-y-3">
-                                            <!-- Màu sắc -->
+                                <!-- Sizes Table -->
+                                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                        <h4 class="font-medium text-gray-700">Kích thước và giá</h4>
+                                    </div>
+
+                                    <div class="p-4">
+                                        <div v-for="(sizeObj, sIdx) in variant.sizes" :key="sIdx"
+                                            class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4 p-4 bg-gray-50 rounded-lg">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Màu
-                                                    sắc</label>
-                                                <input v-model="variant.colorName" type="text"
-                                                    class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                                                    placeholder="Nhập tên màu" />
-                                                <div v-if="formErrors.variants[vIdx]?.color"
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Kích
+                                                    thước</label>
+                                                <input v-model="sizeObj.size" type="text"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                    placeholder="Nhập kích thước" />
+                                                <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.size"
                                                     class="text-red-500 text-sm mt-1">
-                                                    {{ formErrors.variants[vIdx].color }}
+                                                    {{ formErrors.variants[vIdx].sizes[sIdx].size }}
                                                 </div>
                                             </div>
 
-                                            <!-- Kích thước -->
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Kích
-                                                    thước</label>
-                                                <input v-model="sizeObj.size" type="text"
-                                                    class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                                                    placeholder="Nhập kích thước" />
-                                                <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.size"
-                                                    class="text-red-500 text-sm mt-1">{{
-                                                        formErrors.variants[vIdx].sizes[sIdx].size }}</div>
-                                            </div>
-
-                                            <!-- Giá -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Giá</label>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Giá</label>
                                                 <input v-model="sizeObj.price" type="number" min="0" step="1000"
-                                                    class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                                     placeholder="Nhập giá" />
                                                 <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.price"
-                                                    class="text-red-500 text-sm mt-1">{{
-                                                        formErrors.variants[vIdx].sizes[sIdx].price }}</div>
+                                                    class="text-red-500 text-sm mt-1">
+                                                    {{ formErrors.variants[vIdx].sizes[sIdx].price }}
+                                                </div>
                                             </div>
 
-                                            <!-- SKU -->
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">SKU</label>
                                                 <div class="flex gap-2">
                                                     <input v-model="sizeObj.sku" type="text"
-                                                        class="input flex-1 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                                         placeholder="Nhập mã SKU" />
                                                     <button v-if="variant.sizes.length > 1"
                                                         @click="removeSizeFromVariant(vIdx, sIdx)"
-                                                        class="text-red-500 hover:text-red-700 p-2 border border-gray-300 rounded">
+                                                        class="px-3 py-2 text-red-500 hover:text-red-700 border border-gray-300 rounded-md hover:bg-red-50 transition-colors">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
                                                 <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.sku"
-                                                    class="text-red-500 text-sm mt-1">{{
-                                                        formErrors.variants[vIdx].sizes[sIdx].sku }}</div>
-                                            </div>
-
-                                            <!-- Ảnh phụ -->
-                                            <div v-if="sIdx === 0">
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh
-                                                    phụ</label>
-                                                <input type="file" multiple :id="`variant-upload-${vIdx}`"
-                                                    @change="onVariantImagesChange($event, vIdx)" class="hidden" />
-                                                <label :for="`variant-upload-${vIdx}`"
-                                                    class="inline-flex items-center bg-gray-100 hover:bg-blue-500 text-blue-600 hover:text-white font-medium px-3 py-2 rounded cursor-pointer gap-1 text-sm transition w-full justify-center">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                        stroke-width="2" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
-                                                    </svg>
-                                                    <span>Tải ảnh</span>
-                                                </label>
-                                                <div class="flex gap-1 mt-2"
-                                                    v-if="variant.imagesPreview && variant.imagesPreview.length">
-                                                    <img v-for="(img, i) in variant.imagesPreview" :key="i" :src="img"
-                                                        class="w-10 h-10 object-cover rounded border border-gray-200" />
+                                                    class="text-red-500 text-sm mt-1">
+                                                    {{ formErrors.variants[vIdx].sizes[sIdx].sku }}
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <!-- Add Size Button -->
+                                        <button @click="addSizeToVariant(vIdx)"
+                                            class="bg-blue-100 text-blue-600 rounded-lg px-4 py-2 text-sm hover:bg-blue-200 transition-colors">
+                                            <i class="fas fa-plus mr-2"></i>
+                                            Thêm kích thước
+                                        </button>
                                     </div>
                                 </div>
 
-                                <!-- Desktop Variant Layout -->
-                                <div class="hidden lg:block">
-                                    <!-- Header row for labels -->
-                                    <div class="grid grid-cols-5 gap-4 mb-2">
-                                        <div class="font-medium">Màu sắc</div>
-                                        <div class="font-medium">Kích thước</div>
-                                        <div class="font-medium">Giá</div>
-                                        <div class="font-medium">SKU</div>
-                                        <div class="font-medium">Ảnh phụ</div>
-                                    </div>
+                                <!-- Variant Images Section - Separate from size grid -->
+                                <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                    <h5 class="text-sm font-medium text-blue-800 mb-3 flex items-center gap-2">
+                                        <i class="fas fa-images"></i>
+                                        Ảnh biến thể cho màu "{{ variant.colorName || 'Chưa đặt tên' }}"
+                                    </h5>
 
-                                    <!-- Variant rows -->
-                                    <div v-for="(sizeObj, sIdx) in variant.sizes" :key="sIdx"
-                                        class="grid grid-cols-5 gap-2 items-center mb-2 p-2 bg-white rounded border-b border-gray-100 last:border-b-0">
-                                        <!-- Màu sắc -->
-                                        <div>
-                                            <input v-model="variant.colorName" type="text"
-                                                class="input w-40 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                                                placeholder="Nhập tên màu" />
-                                            <div v-if="formErrors.variants[vIdx]?.color"
-                                                class="text-red-500 text-sm mt-1">
-                                                {{ formErrors.variants[vIdx].color }}
+                                    <div class="flex items-center gap-4">
+                                        <input type="file" multiple :id="`variant-upload-${vIdx}`"
+                                            @change="onVariantImagesChange($event, vIdx)" class="hidden" />
+                                        <label :for="`variant-upload-${vIdx}`"
+                                            class="inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-md cursor-pointer gap-2 text-sm transition-colors">
+                                            <i class="fas fa-upload"></i>
+                                            <span>Tải ảnh</span>
+                                        </label>
+
+                                        <div v-if="variant.imagesPreview && variant.imagesPreview.length"
+                                            class="flex gap-2">
+                                            <div v-for="(img, i) in variant.imagesPreview" :key="i"
+                                                class="relative group">
+                                                <img :src="img" :alt="`Ảnh ${i + 1}`"
+                                                    class="w-16 h-16 object-cover rounded-lg border border-blue-200 shadow-sm" />
+                                                <button @click="removeVariantImage(vIdx, i)"
+                                                    class="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity text-xs hover:bg-red-600">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
                                             </div>
                                         </div>
-                                        <!-- Kích thước -->
-                                        <div>
-                                            <input v-model="sizeObj.size" type="text"
-                                                class="input w-40 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                                                placeholder="Nhập kích thước" />
-                                            <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.size"
-                                                class="text-red-500 text-sm mt-1">{{
-                                                    formErrors.variants[vIdx].sizes[sIdx].size }}</div>
-                                        </div>
-                                        <!-- Giá -->
-                                        <div>
-                                            <input v-model="sizeObj.price" type="number" min="0" step="1000"
-                                                class="input w-40 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                                                placeholder="Nhập giá" />
-                                            <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.price"
-                                                class="text-red-500 text-sm mt-1">{{
-                                                    formErrors.variants[vIdx].sizes[sIdx].price }}</div>
-                                        </div>
-                                        <!-- SKU -->
-                                        <div class="flex gap-2 items-center w-40">
-                                            <input v-model="sizeObj.sku" type="text"
-                                                class="input w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                                                placeholder="Nhập mã SKU" />
-                                            <button v-if="variant.sizes.length > 1"
-                                                @click="removeSizeFromVariant(vIdx, sIdx)"
-                                                class="text-red-500 hover:text-red-700 p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                            <div v-if="formErrors.variants[vIdx]?.sizes[sIdx]?.sku"
-                                                class="text-red-500 text-sm mt-1">{{
-                                                    formErrors.variants[vIdx].sizes[sIdx].sku }}</div>
-                                        </div>
-                                        <!-- Ảnh phụ -->
-                                        <div v-if="sIdx === 0" class="flex items-center gap-3" style="min-width:110px;">
-                                            <input type="file" multiple :id="`variant-upload-${vIdx}`"
-                                                @change="onVariantImagesChange($event, vIdx)" class="hidden" />
-                                            <label :for="`variant-upload-${vIdx}`"
-                                                class="inline-flex items-center bg-gray-100 hover:bg-blue-500 text-blue-600 hover:text-white font-medium px-3 py-1 rounded cursor-pointer gap-1 text-sm transition"
-                                                style="user-select: none; min-width: 90px; justify-content: center;">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
-                                                </svg>
-                                                <span> Tải ảnh </span>
-                                            </label>
-                                            <div class="flex gap-1"
-                                                v-if="variant.imagesPreview && variant.imagesPreview.length">
-                                                <img v-for="(img, i) in variant.imagesPreview" :key="i" :src="img"
-                                                    class="w-10 border-gray-100 border h-10 object-cover rounded" />
-                                            </div>
-                                        </div>
-                                        <div v-else style="min-width:110px;"></div>
                                     </div>
-                                </div>
 
-                                <!-- Add size button -->
-                                <div class="mt-2">
-                                    <button @click="addSizeToVariant(vIdx)"
-                                        class="bg-blue-100 text-blue-600 rounded px-3 py-1 text-sm hover:bg-blue-200">
-                                        <i class="fas fa-plus mr-1"></i>
-                                        Thêm kích thước
-                                    </button>
+                                    <p class="text-xs text-blue-600 mt-2">
+                                        Ảnh này sẽ được áp dụng cho tất cả kích thước của màu sắc này
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -342,10 +333,11 @@
         </div>
 
         <!-- Submit Button -->
-        <div class="flex justify-end gap-4 mt-6">
+        <div class="flex justify-end gap-4 mt-8">
             <button @click="handleSubmit" :disabled="isSubmitting"
-                class="bg-primary text-white rounded px-4 py-2 hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer w-full sm:w-auto">
-                {{ isSubmitting ? "Đang cập nhật..." : "Cập nhật sản phẩm" }}
+                class="bg-blue-500 text-white rounded-lg px-8 py-3 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium">
+                <i v-if="isSubmitting" class="fas fa-spinner fa-spin mr-2"></i>
+                {{ isSubmitting ? 'Đang cập nhật...' : 'Cập nhật sản phẩm' }}
             </button>
         </div>
     </div>
@@ -703,7 +695,9 @@ const addVariant = () => {
             size: '',
             price: formData.value.price || 0,
             sku: generateSKU(formData.value.name)
-        }]
+        }],
+        images: [],
+        imagesPreview: []
     });
     formErrors.value.variants.push({
         color: '',
@@ -808,6 +802,16 @@ const handleSubmit = async () => {
         push.error("Có lỗi xảy ra");
     } finally {
         isSubmitting.value = false;
+    }
+};
+
+// Thêm function removeVariantImage
+const removeVariantImage = (vIdx, i) => {
+    if (formData.value.variants[vIdx].imagesPreview) {
+        formData.value.variants[vIdx].imagesPreview.splice(i, 1);
+    }
+    if (formData.value.variants[vIdx].images) {
+        formData.value.variants[vIdx].images.splice(i, 1);
     }
 };
 </script>

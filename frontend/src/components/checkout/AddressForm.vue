@@ -151,7 +151,6 @@ const fetchProvinces = async () => {
         isLoading.value = true
         provinces.value = await addressService.getProvinces()
     } catch (error) {
-        // Handle error silently
     } finally {
         isLoading.value = false
     }
@@ -163,7 +162,6 @@ const onProvinceChange = async () => {
     districts.value = []
     wards.value = []
 
-    // GHN API trả về ProvinceName, không phải name
     const selectedProvince = provinces.value.find(p => p.ProvinceName === form.value.province)
     selectedProvinceCode.value = selectedProvince?.ProvinceID
 
@@ -172,7 +170,6 @@ const onProvinceChange = async () => {
             isLoading.value = true
             districts.value = await addressService.getDistricts(selectedProvinceCode.value)
         } catch (error) {
-            // Handle error silently
         } finally {
             isLoading.value = false
         }
@@ -183,7 +180,6 @@ const onDistrictChange = async () => {
     form.value.ward = ''
     wards.value = []
 
-    // GHN API trả về DistrictName, không phải name
     const selectedDistrict = districts.value.find(d => d.DistrictName === form.value.district)
     selectedDistrictCode.value = selectedDistrict?.DistrictID
 
@@ -192,7 +188,6 @@ const onDistrictChange = async () => {
             isLoading.value = true
             wards.value = await addressService.getWards(selectedDistrictCode.value)
         } catch (error) {
-            // Handle error silently
         } finally {
             isLoading.value = false
         }

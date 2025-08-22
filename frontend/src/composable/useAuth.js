@@ -1,19 +1,55 @@
 import { ref } from 'vue'
-import axios from 'axios'
 import Cookies from 'js-cookie'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import api from '../utils/api'
 
-// Khởi tạo token từ cả Cookies và localStorage
 const token = ref(Cookies.get('token') || localStorage.getItem('token') || null)
 const userInfo = ref(Cookies.get('user') ? JSON.parse(Cookies.get('user')) : null)
 const user = ref(userInfo.value || null)
 const isAuthenticated = ref(!!user.value)
 const isAdmin = ref(user.value?.role === 'admin')
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL // cấu hình qua .env
 
-// Sử dụng instance axios chung từ utility
+const syncStorage = () => {
+    const cookieToken = Cookies.get('token')
+    const localToken = localStorage.getItem('token')
+    const cookieUser = Cookies.get('user')
+    const localUser = localStorage.getItem('user')
+
+    if (localToken && !cookieToken) {
+        Cookies.set('token', localToken, { expires: 1 })
+        token.value = localToken
+    }
+    else if (cookieToken && !localToken) {
+        localStorage.setItem('token', cookieToken)
+        token.value = cookieToken
+    }
+
+    if (localUser && !cookieUser) {
+        Cookies.set('user', localUser, { expires: 1 })
+        try {
+            userInfo.value = JSON.parse(localUser)
+            user.value = userInfo.value
+        } catch (e) {
+            console.error('Error parsing user from localStorage:', e)
+        }
+    }
+    else if (cookieUser && !localUser) {
+        localStorage.setItem('user', cookieUser)
+        try {
+            userInfo.value = JSON.parse(cookieUser)
+            user.value = userInfo.value
+        } catch (e) {
+            console.error('Error parsing user from Cookies:', e)
+        }
+    }
+
+    isAuthenticated.value = !!token.value
+    isAdmin.value = user.value?.role === 'admin'
+}
+
+syncStorage()
+
 const API = api
 
 const login = async (credentials) => {
@@ -22,7 +58,6 @@ const login = async (credentials) => {
         if (res.data.token) {
             token.value = res.data.token
             Cookies.set('token', token.value, { expires: 1 })
-            // Lưu token vào localStorage để interceptor có thể đọc
             localStorage.setItem('token', token.value)
             await getUser()
             if (user.value) {
@@ -45,7 +80,6 @@ const register = async (data) => {
         if (res.data.token) {
             token.value = res.data.token
             Cookies.set('token', token.value, { expires: 1 })
-            // Lưu token vào localStorage để interceptor có thể đọc
             localStorage.setItem('token', token.value)
             if (res.data.user) {
                 userInfo.value = res.data.user
@@ -74,14 +108,12 @@ const logout = (redirectToLogin = false) => {
     isAuthenticated.value = false
     isAdmin.value = false
 
-    // Chuyển hướng về trang login nếu cần
     if (redirectToLogin) {
         const router = useRouter()
         router.push('/login')
     }
 }
 
-// Function để force logout khi token hết hạn (401)
 const forceLogout = () => {
     Cookies.remove('token')
     Cookies.remove('user')
@@ -101,12 +133,23 @@ const getUser = async () => {
         user.value = res.data
         userInfo.value = res.data
         Cookies.set('user', JSON.stringify(res.data), { expires: 1 })
+        localStorage.setItem('user', JSON.stringify(res.data))
         isAuthenticated.value = true
         isAdmin.value = user.value?.role === 'admin'
     } catch (err) {
         console.error('Get user error:', err.response?.data || err.message)
-        // Chỉ logout khi không phải lỗi 401 hoặc khi đã có token hợp lệ
         if (err.response?.status === 401 && token.value) {
+            forceLogout()
+        }
+    }
+}
+
+const initializeAuth = async () => {
+    if (token.value) {
+        try {
+            await getUser()
+        } catch (error) {
+            console.log('Token không hợp lệ, đăng xuất...')
             forceLogout()
         }
     }
@@ -274,11 +317,13 @@ const handleGoogleCallback = async (tokenFromQuery, userFromQuery, error) => {
 
         token.value = tokenFromQuery
         Cookies.set('token', token.value, { expires: 1 })
+        localStorage.setItem('token', token.value)
 
         const parsedUser = JSON.parse(decodeURIComponent(userFromQuery))
         userInfo.value = parsedUser
         user.value = parsedUser
         Cookies.set('user', JSON.stringify(parsedUser), { expires: 1 })
+        localStorage.setItem('user', JSON.stringify(parsedUser))
 
         isAuthenticated.value = true
         isAdmin.value = user.value?.role === 'admin'
@@ -301,6 +346,9 @@ const handleGoogleCallback = async (tokenFromQuery, userFromQuery, error) => {
 }
 
 const getToken = () => token.value
+
+// Initialize auth after all functions are declared
+initializeAuth()
 
 export const useAuth = () => {
     return {
@@ -327,6 +375,8 @@ export const useAuth = () => {
         updateCustomerStatus,
         deleteUser,
         googleLogin,
-        handleGoogleCallback
+        handleGoogleCallback,
+        syncStorage,
+        initializeAuth
     }
 }

@@ -19,18 +19,22 @@
         <div v-else class="mb-3">
           <i class="fas fa-file-alt text-gray-400 text-5xl drop-shadow"></i>
         </div>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 text-center mb-3 tracking-tight bg-gradient-to-r from-blue-700 via-green-600 to-blue-400 bg-clip-text text-transparent">
+        <h1
+          class="text-4xl md:text-5xl font-extrabold text-gray-900 text-center mb-3 tracking-tight bg-gradient-to-r from-blue-700 via-green-600 to-blue-400 bg-clip-text">
           {{ page.title }}
         </h1>
         <!-- Meta info -->
         <div class="flex flex-wrap justify-center items-center gap-3 text-sm mb-2">
-          <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/80 border border-gray-200 shadow-sm text-gray-700 text-xs font-medium">
+          <span
+            class="inline-flex items-center px-3 py-1 rounded-full bg-white/80 border border-gray-200 shadow-sm text-gray-700 text-xs font-medium">
             <i class="fas fa-calendar-alt mr-1 text-blue-400"></i> {{ formatDate(page.updated_at) }}
           </span>
-          <span :class="['inline-flex items-center px-3 py-1 rounded-full border shadow-sm text-xs font-medium', typeBadgeClass(page.type)]">
+          <span
+            :class="['inline-flex items-center px-3 py-1 rounded-full border shadow-sm text-xs font-medium', typeBadgeClass(page.type)]">
             <i class="fas fa-tag mr-1"></i> {{ typeLabel(page.type) }}
           </span>
-          <span :class="['inline-flex items-center px-3 py-1 rounded-full border shadow-sm text-xs font-medium', page.status ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700']">
+          <span
+            :class="['inline-flex items-center px-3 py-1 rounded-full border shadow-sm text-xs font-medium', page.status ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700']">
             <i :class="page.status ? 'fas fa-check-circle mr-1' : 'fas fa-times-circle mr-1'"></i>
             {{ page.status ? 'Hoạt động' : 'Không hoạt động' }}
           </span>
@@ -46,12 +50,16 @@
     <div v-else class="flex flex-col items-center justify-center py-16">
       <div class="bg-white rounded-full shadow-lg p-6 mb-4">
         <svg class="h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+          </path>
         </svg>
       </div>
       <h3 class="text-xl font-semibold text-gray-800 mb-2">Không tìm thấy trang</h3>
       <p class="text-gray-500 mb-4">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
-      <a href="/" class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">Về trang chủ</a>
+      <a href="/"
+        class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">Về trang
+        chủ</a>
     </div>
   </div>
 </template>
@@ -131,19 +139,50 @@ onMounted(() => {
   line-height: 1.7;
   font-size: 1.1rem;
 }
-.prose strong { font-weight: 700; }
-.prose em { font-style: italic; }
-.prose u { text-decoration: underline; }
-.prose ul, .prose ol {
+
+.prose strong {
+  font-weight: 700;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose u {
+  text-decoration: underline;
+}
+
+.prose ul,
+.prose ol {
   margin-bottom: 1em;
   padding-left: 1.5em;
 }
-.prose li { margin-bottom: 0.5em; }
-.prose a { color: #2563eb; text-decoration: underline; }
-.prose a:hover { color: #1d4ed8; }
-.prose p { margin-bottom: 1em; }
-@media (max-width: 640px) {
-  .prose { font-size: 1rem; padding: 0; }
-  .container { padding: 0 0.5rem; }
+
+.prose li {
+  margin-bottom: 0.5em;
 }
-</style> 
+
+.prose a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.prose a:hover {
+  color: #1d4ed8;
+}
+
+.prose p {
+  margin-bottom: 1em;
+}
+
+@media (max-width: 640px) {
+  .prose {
+    font-size: 1rem;
+    padding: 0;
+  }
+
+  .container {
+    padding: 0 0.5rem;
+  }
+}
+</style>

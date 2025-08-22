@@ -7,14 +7,6 @@
             </div>
             <div class="chart-actions">
                 <div class="flex space-x-1">
-                    <button @click="handlePeriodChange('yearly')" :class="[
-                        'px-2 py-1 text-xs font-medium rounded-md transition-all duration-200',
-                        selectedPeriod === 'yearly'
-                            ? 'bg-primary text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
-                    ]">
-                        12T
-                    </button>
                     <button @click="handlePeriodChange('0')" :class="[
                         'px-2 py-1 text-xs font-medium rounded-md transition-all duration-200',
                         selectedPeriod === '0'
@@ -53,18 +45,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="stat-item bg-purple-50 p-2 rounded-lg">
-                    <div class="flex items-center">
-                        <div class="stat-icon bg-purple-100 p-1.5 rounded-full mr-2">
-                            <i class="fas fa-chart-line text-purple-600 text-sm"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-600">Tăng trưởng</p>
-                            <p class="text-sm font-semibold text-purple-700">{{ userData.growth_rate_this_month || 0 }}%
-                            </p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -79,10 +59,6 @@
                 <div class="flex items-center">
                     <div class="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
                     <span>Tổng</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-2 h-2 bg-purple-500 rounded-full mr-1"></div>
-                    <span>Tăng trưởng</span>
                 </div>
             </div>
         </div>
@@ -103,7 +79,7 @@ const props = defineProps({
 const { getUserGrowthStats, formatNumber, getApexCharts } = useDashboard()
 
 const chartContainer = ref(null)
-const selectedPeriod = ref('yearly')
+const selectedPeriod = ref('0')
 const userData = ref({})
 const loading = ref(false)
 let chart = null
@@ -113,10 +89,12 @@ const fetchUserData = async (period = null) => {
         loading.value = true
         let params = {}
 
-        if (period === 'yearly') {
-            params = { yearly: true }
+        if (period === '0') {
+            params = { year: new Date().getFullYear() }
         } else if (period) {
-            params = { period: parseInt(period) }
+            params = { year: parseInt(period) }
+        } else {
+            params = { year: new Date().getFullYear() }
         }
 
         const response = await getUserGrowthStats(params)
@@ -134,13 +112,22 @@ const fetchUserData = async (period = null) => {
 }
 
 const renderChart = async () => {
-    if (!chartContainer.value || !userData.value.apex_chart_data) return
+    if (!chartContainer.value || !userData.value.apex_chart_data) {
+        console.log('Cannot render chart:', {
+            chartContainer: !!chartContainer.value,
+            apexChartData: !!userData.value.apex_chart_data,
+            userData: userData.value
+        })
+        return
+    }
 
     try {
         const ApexCharts = await getApexCharts()
-        if (!ApexCharts) return
+        if (!ApexCharts) {
+            console.error('ApexCharts not available')
+            return
+        }
 
-        // Destroy existing chart if any
         if (chart) {
             chart.destroy()
         }
@@ -159,8 +146,6 @@ const handlePeriodChange = (period) => {
 }
 
 const createUserGrowthChartOptions = (data) => {
-    const isYearly = selectedPeriod.value === 'yearly'
-
     return {
         series: data?.series || [],
         chart: {
@@ -185,9 +170,9 @@ const createUserGrowthChartOptions = (data) => {
         stroke: {
             curve: 'smooth',
             width: 2,
-            dashArray: [0, 0, 3] // Đường thứ 3 (tỷ lệ tăng trưởng) có dấu gạch ngắn hơn
+            dashArray: [0, 0]
         },
-        colors: ['#3B82F6', '#10B981', '#8B5CF6'], // Blue, Green, Purple
+        colors: ['#3B82F6', '#10B981'],
         fill: {
             type: 'gradient',
             gradient: {
@@ -199,7 +184,7 @@ const createUserGrowthChartOptions = (data) => {
         },
         markers: {
             size: 3,
-            colors: ['#3B82F6', '#10B981', '#8B5CF6'],
+            colors: ['#3B82F6', '#10B981'], // Chỉ còn 2 màu
             strokeColors: '#fff',
             strokeWidth: 1,
             hover: {
@@ -210,7 +195,7 @@ const createUserGrowthChartOptions = (data) => {
             categories: data?.categories || [],
             labels: {
                 style: { colors: '#6b7280', fontSize: '10px' },
-                rotate: isYearly ? 0 : -45,
+                rotate: 0,
                 rotateAlways: false,
                 maxHeight: 40
             },
@@ -237,20 +222,6 @@ const createUserGrowthChartOptions = (data) => {
                     color: '#E5E7EB',
                     borderColor: '#E5E7EB'
                 }
-            },
-            {
-                opposite: true,
-                title: {
-                    text: 'Tỷ lệ (%)',
-                    style: { color: '#6b7280', fontSize: '10px' }
-                },
-                labels: {
-                    style: { colors: '#6b7280', fontSize: '10px' },
-                    formatter: (value) => `${value}%`
-                },
-                grid: {
-                    show: false
-                }
             }
         ],
         grid: {
@@ -272,7 +243,7 @@ const createUserGrowthChartOptions = (data) => {
             shared: true,
             intersect: false,
             x: {
-                formatter: (value) => isYearly ? value : value
+                formatter: (value) => value
             },
             y: [
                 {
@@ -285,12 +256,6 @@ const createUserGrowthChartOptions = (data) => {
                     formatter: (value) => `${formatNumber(value)} tổng người dùng`,
                     title: {
                         formatter: () => 'Tổng người dùng'
-                    }
-                },
-                {
-                    formatter: (value) => `${value}% tăng trưởng`,
-                    title: {
-                        formatter: () => 'Tỷ lệ tăng trưởng'
                     }
                 }
             ]
@@ -350,7 +315,6 @@ watch(() => props.data, (newData) => {
     }
 }, { deep: true })
 
-// Cleanup chart on unmount
 onUnmounted(() => {
     if (chart) {
         chart.destroy()

@@ -19,16 +19,18 @@
                 <div class="w-full lg:w-auto lg:flex-shrink-0">
                     <ProductImages :product-images="productImages" :main-image="mainImage" :product-name="product?.name"
                         :selected-size="props.selectedSize" :selected-color="props.selectedColor" :product="product"
-                        @update:main-image="$emit('update:mainImage', $event)" />
+                        @update:mainImage="$emit('update:mainImage', $event)" />
                 </div>
 
                 <!-- Product Info -->
-                <ProductInfo :product="product" :selected-size="props.selectedSize" :selected-color="props.selectedColor"
-                    :quantity="quantity" :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
+                <ProductInfo :product="product" :selected-size="props.selectedSize"
+                    :selected-color="props.selectedColor" :quantity="quantity"
+                    :selected-variant-stock="selectedVariantStock" :display-price="displayPrice"
                     :show-original-price="showOriginalPrice" :flash-sale-name="flashSaleName"
                     :flash-sale-price="flashSalePrice" :flash-sale-end-time="flashSaleEndTime"
                     :flash-sale-sold="flashSaleSold" :flash-sale-quantity="flashSaleQuantity" :product-raw="product"
-                    :flash-sale-percent="flashSalePercent" :product-inventory="productInventory"
+                    :product-inventory="productInventory" :is-adding-to-cart="isAddingToCart"
+                    :cart-quantity="props.cartQuantity"
                     @variant-change="$emit('variantChange', $event)"
                     @update:selected-size="$emit('update:selectedSize', $event)"
                     @update:selected-color="$emit('update:selectedColor', $event)"
@@ -36,7 +38,6 @@
             </div>
         </div>
 
-        <!-- FB: Hoài Lý -->
         <div class="max-w-7xl mx-auto mb-5">
             <div class="pt-2 bg-white p-3 sm:p-8 rounded-[10px] border border-gray-200">
                 <div class="flex flex-wrap gap-2 sm:gap-8 mb-4 sm:mb-8 justify-start">
@@ -221,12 +222,16 @@ const props = defineProps({
         type: Number,
         default: 0
     },
-    flashSalePercent: {
-        type: Number,
-        default: 0
-    },
     productInventory: {
         type: Array,
+        default: 0
+    },
+    isAddingToCart: {
+        type: Boolean,
+        default: false
+    },
+    cartQuantity: {
+        type: Number,
         default: 0
     }
 })

@@ -1,18 +1,19 @@
 <template>
     <div class="flex w-full lg:w-auto flex-col gap-4 justify-center p-5 h-full">
         <!-- Main Image -->
-        <div class="relative bg-white rounded-xl border border-gray-100 p-4 sm:p-6 lg:p-10 flex items-center justify-center w-full aspect-square max-w-[500px] sm:max-w-[500px] lg:max-w-[600px] mx-auto"
-            @click="openModal">
-            <img :src="currentMainImage" :alt="productName" class="w-full h-full object-contain rounded-lg" />
+        <div
+            class="relative bg-white rounded-xl border border-gray-100 p-4 sm:p-6 lg:p-10 flex items-center justify-center w-full aspect-square max-w-[500px] sm:max-w-[500px] lg:max-w-[600px] mx-auto">
+            <img :src="currentMainImage" :alt="productName"
+                class="w-full h-full object-contain rounded-lg cursor-pointer" @click="openModal" />
 
-            <button v-if="displayImages && displayImages.length > 1" @click="previousImage"
+            <button v-if="displayImages && displayImages.length > 1" @click.stop="previousImage"
                 class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                 <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </button>
 
-            <button v-if="displayImages && displayImages.length > 1" @click="nextImage"
+            <button v-if="displayImages && displayImages.length > 1" @click.stop="nextImage"
                 class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1.5 sm:p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                 <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -20,7 +21,7 @@
             </button>
         </div>
 
-        <!-- Thumbnails -->
+        <!-- Thumbnail -->
         <div class="flex flex-row gap-3 items-center justify-start flex-nowrap overflow-x-auto thumbnail-container pb-2"
             style="max-width: 100%;" @mousedown="startDrag" @mousemove="onDrag" @mouseup="stopDrag"
             @mouseleave="stopDrag" @touchstart="startDrag" @touchmove="onDrag" @touchend="stopDrag">
