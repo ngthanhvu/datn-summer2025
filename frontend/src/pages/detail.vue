@@ -165,6 +165,9 @@ const fetchReviews = async (page = 1) => {
             const result = await checkUserReview(user.value.id, product.value.slug)
             userHasReviewed.value = result.hasReviewed
             userReview.value = result.review || null
+            console.log('checkUserReview result:', result)
+            console.log('userHasReviewed:', userHasReviewed.value)
+            console.log('userReview:', userReview.value)
         }
     } catch (err) {
         console.error('Lỗi khi tải đánh giá:', err)
@@ -285,7 +288,8 @@ const submitReview = async () => {
 }
 
 const editReview = (review) => {
-
+    console.log('editReview called with:', review)
+    
     editingReviewId.value = review.id
     reviewForm.value = {
         rating: review.rating,
@@ -311,6 +315,10 @@ const editReview = (review) => {
     }))
 
     showReviewForm.value = true
+    console.log('After editReview setup:')
+    console.log('editingReviewId:', editingReviewId.value)
+    console.log('showReviewForm:', showReviewForm.value)
+    console.log('reviewForm:', reviewForm.value)
 }
 
 const cancelEdit = () => {

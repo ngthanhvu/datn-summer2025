@@ -197,14 +197,15 @@ Route::post('/coupons/validate', [CouponsController::class, 'validate_coupon']);
 
 // Product review routes
 Route::get('/product-reviews', [ProductReviewController::class, 'index']);
-Route::post('/product-reviews', [ProductReviewController::class, 'store']);
+Route::post('/product-reviews', [ProductReviewController::class, 'store'])->middleware('auth:api');
 Route::get('/product-reviews/{id}', [ProductReviewController::class, 'show']);
-Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update']);
-Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy']);
+Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update'])->middleware('auth:api');
+Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy'])->middleware('auth:api');
 Route::get('/product-reviews/product/{slug}', [ProductReviewController::class, 'getByProductSlug']);
-Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview']);
-Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
-Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
+Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview'])->middleware('auth:api');
+Route::get('/product-reviews/purchase-check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserPurchase'])->middleware('auth:api');
+Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply'])->middleware('auth:api');
+Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply'])->middleware('auth:api');
 Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
 Route::get('/reviews/latest', [ProductReviewController::class, 'latestReviews']);
 Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedProducts']);

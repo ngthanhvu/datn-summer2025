@@ -221,6 +221,18 @@
                                             Yêu cầu hoàn hàng
                                         </button>
                                     </div>
+                                    <div v-if="order.status === 'completed'" class="mt-4 text-right">
+                                        <button @click.stop="openReviewModal(order)"
+                                            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                                            Viết đánh giá
+                                        </button>
+                                    </div>
+                                    <div v-if="order && (order.status === 'completed' || order.status === 'cancelled')" class="mt-4 text-right">
+                                        <button @click.stop="handleReorder(order.id)"
+                                            class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
+                                            Mua lại
+                                        </button>
+                                    </div>
 
                                     <!-- Return status display in expanded view -->
                                     <div v-if="order.return_status" class="mt-4 space-y-2">
@@ -564,9 +576,13 @@
                             class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600 transition-colors">
                             Yêu cầu hoàn hàng
                         </button>
+                        <button v-if="order.status === 'completed'" @click.stop="openReviewModal(order)"
+                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors">
+                            Viết đánh giá
+                        </button>
                         <button v-if="order && (order.status === 'completed' || order.status === 'cancelled')"
                             @click.stop="handleReorder(order.id)"
-                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors">
+                            class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors">
                             Mua lại
                         </button>
                     </div>
@@ -901,6 +917,11 @@
                                     class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
                                     Yêu cầu hoàn hàng
                                 </button>
+                                <button v-if="selectedOrder.status === 'completed'"
+                                    @click="openReviewModal(selectedOrder)"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                    Viết đánh giá
+                                </button>
                             </template>
                         </div>
 
@@ -938,6 +959,102 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal đánh giá sản phẩm -->
+        <div v-if="showReviewModal"
+            class="fixed inset-0 bg-gray-900/60 bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Đánh giá sản phẩm</h3>
+                    <button @click="closeReviewModal" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div v-if="selectedOrderForReview" class="space-y-6">
+                    <!-- Thông tin sản phẩm -->
+                    <div class="border-b border-gray-200 pb-4">
+                        <h4 class="font-semibold mb-3 text-gray-900">Sản phẩm cần đánh giá</h4>
+                        <div v-if="selectedOrderForReview.order_details[0]" class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                            <img :src="selectedOrderForReview.order_details[0].variant?.product?.main_image?.image_path"
+                                class="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                :alt="selectedOrderForReview.order_details[0].variant?.product?.name" />
+                            <div class="flex-1">
+                                <h5 class="font-medium text-gray-900">{{ selectedOrderForReview.order_details[0].variant?.product?.name }}</h5>
+                                <p class="text-gray-600 text-sm">Size: {{ selectedOrderForReview.order_details[0].variant?.size }}</p>
+                                <p class="text-gray-600 text-sm">Số lượng: {{ selectedOrderForReview.order_details[0].quantity }}</p>
+                            </div>
+                        </div>
+                        <div v-if="selectedOrderForReview.order_details.length > 1" class="mt-2 text-sm text-gray-600">
+                            <p>Lưu ý: Bạn chỉ có thể đánh giá 1 sản phẩm mỗi lần. Sản phẩm đầu tiên trong đơn hàng sẽ được đánh giá.</p>
+                        </div>
+                    </div>
+
+                    <!-- Form đánh giá -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Đánh giá của bạn</label>
+                            <div class="flex items-center gap-2">
+                                <button v-for="star in 5" :key="star" @click="reviewForm.rating = star"
+                                    :class="[
+                                        'text-2xl transition-colors',
+                                        star <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'
+                                    ]">
+                                    ★
+                                </button>
+                                <span class="ml-2 text-sm text-gray-600">{{ reviewForm.rating }}/5 sao</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nội dung đánh giá</label>
+                            <textarea v-model="reviewForm.content" rows="4"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Hãy chia sẻ trải nghiệm của bạn về sản phẩm này..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Hình ảnh (tùy chọn)</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                <input type="file" ref="imageInput" @change="handleImageUpload" multiple
+                                    accept="image/*" class="hidden" />
+                                <button @click="$refs.imageInput.click()"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    Chọn hình ảnh
+                                </button>
+                                <p class="text-sm text-gray-500 mt-2">Tối đa 5 hình, mỗi hình dưới 2MB</p>
+                            </div>
+                            
+                            <!-- Preview hình ảnh -->
+                            <div v-if="previewImages.length > 0" class="mt-4 grid grid-cols-5 gap-2">
+                                <div v-for="(image, index) in previewImages" :key="index" class="relative">
+                                    <img :src="image.preview" class="w-20 h-20 object-cover rounded-lg" />
+                                    <button @click="removeImage(index)"
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600">
+                                        ×
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nút gửi -->
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                        <button @click="closeReviewModal"
+                            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                            Hủy
+                        </button>
+                        <button @click="submitReview" :disabled="isSubmittingReview"
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            {{ isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -945,6 +1062,8 @@
 import { ref, onMounted, watch } from 'vue'
 import { push } from 'notivue'
 import { useOrder } from '../../composable/useOrder'
+import { useReviews } from '../../composable/useReviews'
+import { useAuth } from '../../composable/useAuth'
 import { useHead } from '@vueuse/head'
 useHead({
     title: 'Đơn hàng của tôi | DEVGANG',
@@ -957,6 +1076,8 @@ useHead({
 })
 
 const orderService = useOrder()
+const reviewService = useReviews()
+const { user } = useAuth()
 const orders = ref([])
 const showModal = ref(false)
 const selectedOrder = ref(null)
@@ -966,6 +1087,17 @@ const expandedOrderId = ref(null)
 const showCancelReasonModal = ref(false)
 const cancelReason = ref('')
 const cancelReasonOther = ref('')
+
+// Review modal variables
+const showReviewModal = ref(false)
+const selectedOrderForReview = ref(null)
+const isSubmittingReview = ref(false)
+const previewImages = ref([])
+const reviewForm = ref({
+    rating: 0,
+    content: '',
+    images: []
+})
 
 function toggleExpand(orderId) {
     expandedOrderId.value = expandedOrderId.value === orderId ? null : orderId
@@ -1271,6 +1403,131 @@ const calculateShipping = (order) => {
     const final = Number(order.final_price) || 0
     const shipping = final - total
     return shipping > 0 ? shipping : 0
+}
+
+// Review functions
+const openReviewModal = async (order) => {
+    if (!order || !user.value) return
+    
+    // Check if user has already reviewed any product in this order
+    let hasReviewed = false
+    for (const item of order.order_details) {
+        const productSlug = item.variant?.product?.slug
+        if (!productSlug) continue
+        
+        try {
+            const reviewCheck = await reviewService.checkUserReview(user.value.id, productSlug)
+            if (reviewCheck.hasReviewed) {
+                hasReviewed = true
+                break
+            }
+        } catch (error) {
+            console.error('Error checking review status:', error)
+        }
+    }
+    
+    if (hasReviewed) {
+        push.error('Bạn đã đánh giá sản phẩm trong đơn hàng này rồi')
+        return
+    }
+    
+    selectedOrderForReview.value = order
+    showReviewModal.value = true
+    // Reset form
+    reviewForm.value = {
+        rating: 0,
+        content: '',
+        images: []
+    }
+    previewImages.value = []
+}
+
+const closeReviewModal = () => {
+    showReviewModal.value = false
+    selectedOrderForReview.value = null
+    reviewForm.value = {
+        rating: 0,
+        content: '',
+        images: []
+    }
+    previewImages.value = []
+}
+
+const handleImageUpload = (event) => {
+    const files = Array.from(event.target.files)
+    if (files.length + previewImages.value.length > 5) {
+        push.error('Chỉ được chọn tối đa 5 hình ảnh')
+        return
+    }
+    
+    files.forEach(file => {
+        if (file.size > 2 * 1024 * 1024) {
+            push.error(`Hình ảnh ${file.name} quá lớn. Kích thước tối đa là 2MB`)
+            return
+        }
+        
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            previewImages.value.push({
+                file: file,
+                preview: e.target.result
+            })
+            reviewForm.value.images.push(file)
+        }
+        reader.readAsDataURL(file)
+    })
+}
+
+const removeImage = (index) => {
+    previewImages.value.splice(index, 1)
+    reviewForm.value.images.splice(index, 1)
+}
+
+const submitReview = async () => {
+    if (!selectedOrderForReview.value || !user.value) return
+    
+    if (reviewForm.value.rating === 0) {
+        push.error('Vui lòng chọn số sao đánh giá')
+        return
+    }
+    
+    if (!reviewForm.value.content.trim()) {
+        push.error('Vui lòng nhập nội dung đánh giá')
+        return
+    }
+    
+    isSubmittingReview.value = true
+    
+    try {
+        // For now, we'll review the first product in the order
+        // In the future, we can add a product selector
+        const firstItem = selectedOrderForReview.value.order_details[0]
+        if (!firstItem?.variant?.product?.slug) {
+            throw new Error('Không tìm thấy thông tin sản phẩm')
+        }
+        
+        const reviewData = {
+            user_id: user.value.id,
+            product_slug: firstItem.variant.product.slug,
+            rating: reviewForm.value.rating,
+            content: reviewForm.value.content,
+            images: reviewForm.value.images
+        }
+        
+        await reviewService.addReview(reviewData)
+        
+        push.success('Đánh giá đã được gửi thành công!')
+        closeReviewModal()
+        
+        // Refresh orders to update review status
+        await fetchOrders()
+        
+    } catch (error) {
+        console.error('Error submitting review:', error)
+        push.error(error?.response?.data?.message || 'Có lỗi xảy ra khi gửi đánh giá')
+    } finally {
+        isSubmittingReview.value = false
+    }
 }
 
 onMounted(() => {
