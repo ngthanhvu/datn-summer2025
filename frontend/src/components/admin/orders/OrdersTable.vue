@@ -79,7 +79,8 @@
                                         'bg-blue-100 text-blue-700 border border-blue-300': order.status === 'processing',
                                         'bg-purple-100 text-purple-700 border border-purple-300': order.status === 'shipping',
                                         'bg-green-100 text-green-700 border border-green-300': order.status === 'completed',
-                                        'bg-red-100 text-red-700 border border-red-300': order.status === 'cancelled'
+                                        'bg-red-100 text-red-700 border border-red-300': order.status === 'cancelled',
+                                        'bg-indigo-100 text-indigo-700 border border-indigo-300': order.status === 'refunded'
                                     }
                                 ]">
                                     {{ getOrderStatus(order.status) }}
@@ -157,7 +158,10 @@
                                         'bg-blue-100 text-blue-700': order.status === 'processing',
                                         'bg-purple-100 text-purple-700': order.status === 'shipping',
                                         'bg-green-100 text-green-700': order.status === 'completed',
-                                        'bg-red-100 text-red-700': order.status === 'cancelled'
+                                        'bg-red-100 text-red-700': order.status === 'cancelled',
+                                        'bg-green-100 text-green-700': order.status === 'paid',
+                                        'bg-red-100 text-red-700': order.status === 'failed' || order.status === 'canceled',
+                                        'bg-blue-100 text-blue-700': order.status === 'refunded'
                                     }
                                 ]">
                                     {{ getOrderStatus(order.status) }}
@@ -171,7 +175,7 @@
                                         'bg-yellow-100 text-yellow-700': order.payment_status === 'pending',
                                         'bg-green-100 text-green-700': order.payment_status === 'paid',
                                         'bg-red-100 text-red-700': order.payment_status === 'failed' || order.payment_status === 'canceled',
-                                        'bg-blue-100 text-blue-700': order.payment_status === 'refunded'
+                                        'bg-blue-100 text-purple-700': order.payment_status === 'refunded'
                                     }
                                 ]">
                                     {{ getPaymentStatus(order.payment_status) }}
@@ -251,7 +255,8 @@ const getOrderStatus = (status) => {
         processing: 'Đang giao',
         shipping: 'Đang vận chuyển',
         completed: 'Hoàn thành',
-        cancelled: 'Đã hủy'
+        cancelled: 'Đã hủy',
+        refunded: 'Đã hoàn tiền'
     }
     return map[status] || status
 }

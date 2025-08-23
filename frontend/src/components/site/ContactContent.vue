@@ -32,17 +32,21 @@
                         LIÊN HỆ VỚI CHÚNG TÔI
                     </h2>
                     <input v-model="form.name"
-                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
-                        placeholder="Họ tên" required type="text" />
+                        class="w-full px-3 mb-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
+                        placeholder="Họ tên" type="text" />
+                    <p v-if="errors.name" class="text-red-500 text-[12px] mb-2">{{ errors.name }}</p>
                     <input v-model="form.email"
-                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
-                        placeholder="Email" required type="email" />
+                        class="w-full px-3 mb-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
+                        placeholder="Email" type="email" />
+                    <p v-if="errors.email" class="text-red-500 text-[12px] mb-2">{{ errors.email }}</p>
                     <input v-model="form.phone"
-                        class="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
-                        placeholder="Số điện thoại" required type="tel" />
+                        class="w-full px-3 mb-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
+                        placeholder="Số điện thoại" type="tel" />
+                    <p v-if="errors.phone" class="text-red-500 text-[12px] mb-2">{{ errors.phone }}</p>
                     <textarea v-model="form.message"
-                        class="w-full mb-1 px-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 resize-y focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
-                        placeholder="Nhập nội dung" required rows="5"></textarea>
+                        class="w-full px-3 mb-3 py-2 border border-gray-300 rounded text-sm placeholder-gray-500 resize-y focus:outline-none focus:ring-1 focus:ring-[#81aacc]"
+                        placeholder="Nhập nội dung" rows="5"></textarea>
+                    <p v-if="errors.message" class="text-red-500 text-[12px] mb-2">{{ errors.message }}</p>
                     <div id="cf-turnstile" data-theme="light"></div>
                     <button :disabled="loading"
                         class="w-full bg-[#81AACC] text-white py-3 rounded transition-all duration-300 hover:bg-[#478ac0] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -96,9 +100,47 @@ const form = ref({
     message: ''
 })
 
+const errors = ref({})
+
 const loading = ref(false)
 
+const validateForm = () => {
+    errors.value = { name: '', email: '', phone: '', message: '' }
+    let valid = true
+
+    if (!form.value.name.trim()) {
+        errors.value.name = 'Vui lòng nhập họ tên'
+        valid = false
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!form.value.email.trim()) {
+        errors.value.email = 'Vui lòng nhập email'
+        valid = false
+    } else if (!emailRegex.test(form.value.email)) {
+        errors.value.email = 'Email không hợp lệ'
+        valid = false
+    }
+
+    const phoneRegex = /^0\d{9,10}$/
+    if (!form.value.phone.trim()) {
+        errors.value.phone = 'Vui lòng nhập số điện thoại'
+        valid = false
+    } else if (!phoneRegex.test(form.value.phone)) {
+        errors.value.phone = 'Số điện thoại không hợp lệ'
+        valid = false
+    }
+
+    if (!form.value.message.trim() || form.value.message.length < 10) {
+        errors.value.message = 'Nội dung phải có ít nhất 10 ký tự'
+        valid = false
+    }
+
+    return valid
+}
+
 const handleSubmit = async () => {
+    if (!validateForm()) return
     loading.value = true
     try {
         await sendContact(form.value)

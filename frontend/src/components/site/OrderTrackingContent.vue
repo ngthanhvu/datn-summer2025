@@ -91,6 +91,17 @@ const statusClasses = {
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
+const translateStatus = (status) => {
+    switch (status) {
+        case 'pending': return 'Chờ xác nhận'
+        case 'processing': return 'Đang xử lý'
+        case 'shipping': return 'Đang giao hàng'
+        case 'completed': return 'Hoàn thành'
+        case 'cancelled': return 'Đã hủy'
+        default: return status
+    }
+}
+
 const mapOrderData = (order) => {
     if (!order) return null
 
@@ -163,6 +174,10 @@ const mapOrderData = (order) => {
         orderDate: formatDate(order.created_at),
         status: order.status || 'pending',
         statusText: order.status || 'Chờ xác nhận',
+        trackingCode: order.tracking_code,
+        orderDate: new Date(order.created_at).toLocaleDateString('vi-VN'),
+        status: order.status,
+        statusText: translateStatus(order.status),
         timeline: [
             {
                 title: 'Đơn hàng đã được xác nhận',

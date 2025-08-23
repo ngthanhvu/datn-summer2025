@@ -26,10 +26,11 @@
                     <input :type="showPassword ? 'text' : 'password'" v-model="newPassword" placeholder="Mật khẩu mới"
                         class="pl-3 pr-10 py-2 w-full border rounded-md focus:outline-none focus:ring-1"
                         :class="passwordError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-[#81AACC]'" />
-                    <button type="button" @click="showPassword = !showPassword"
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <span role="button" @click="showPassword = !showPassword"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" tabindex="-1"
+                        aria-hidden="true">
                         <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-                    </button>
+                    </span>
                 </div>
                 <p v-if="passwordError" class="text-red-500 text-sm mb-3">{{ passwordError }}</p>
 
@@ -39,10 +40,10 @@
                         placeholder="Xác nhận mật khẩu mới"
                         class="pl-3 pr-10 py-2 w-full border rounded-md focus:outline-none focus:ring-1"
                         :class="confirmPasswordError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-[#81AACC]'" />
-                    <button type="button" @click="showConfirmPassword = !showConfirmPassword"
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <span role="button" @click="showConfirmPassword = !showConfirmPassword" tabindex="-1"
+                        aria-hidden="true" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                         <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-                    </button>
+                    </span>
                 </div>
                 <p v-if="confirmPasswordError" class="text-red-500 text-sm mb-4">{{ confirmPasswordError }}</p>
 
