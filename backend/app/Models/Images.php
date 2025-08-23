@@ -30,11 +30,15 @@ class Images extends Model
     public function getImageUrlAttribute()
     {
         if ($this->image_path) {
-            // Đảm bảo đường dẫn bắt đầu với storage/
+            // Database path format: "products/filename.jpg"
+            // Tạo URL đầy đủ: http://127.0.0.1:8000/storage/products/filename.jpg
             $imagePath = $this->image_path;
-            if (!str_starts_with($imagePath, 'storage/')) {
-                $imagePath = 'storage/' . ltrim($imagePath, '/');
+            
+            // Đảm bảo đường dẫn bắt đầu với /storage/
+            if (!str_starts_with($imagePath, '/storage/')) {
+                $imagePath = '/storage/' . ltrim($imagePath, '/');
             }
+            
             return url($imagePath);
         }
         return null;

@@ -262,9 +262,21 @@ class OrdersController extends Controller
                     $stockMovement->save();
                 }
 
-                DB::table('carts')
-                    ->where('user_id', Auth::user()->id)
-                    ->delete();
+                // Xóa giỏ hàng sau khi đặt hàng thành công
+                if (Auth::check()) {
+                    // Xóa giỏ hàng của user đã đăng nhập
+                    DB::table('carts')
+                        ->where('user_id', Auth::user()->id)
+                        ->delete();
+                } else {
+                    // Xóa giỏ hàng của guest user (session)
+                    $sessionId = $request->header('X-Session-Id');
+                    if ($sessionId) {
+                        DB::table('carts')
+                            ->where('session_id', $sessionId)
+                            ->delete();
+                    }
+                }
                 $user = Auth::user();
                 if ($user && !empty($user->email)) {
                     Mail::to($user->email)->queue(new PaymentConfirmation($order));
@@ -295,6 +307,39 @@ class OrdersController extends Controller
         }
     }
 
+    /**
+     * Xóa giỏ hàng sau khi thanh toán thành công
+     */
+    public function clearCartAfterPayment(Request $request)
+    {
+        try {
+            if (Auth::check()) {
+                // Xóa giỏ hàng của user đã đăng nhập
+                DB::table('carts')
+                    ->where('user_id', Auth::user()->id)
+                    ->delete();
+            } else {
+                // Xóa giỏ hàng của guest user (session)
+                $sessionId = $request->header('X-Session-Id');
+                if ($sessionId) {
+                    DB::table('carts')
+                        ->where('session_id', $sessionId)
+                        ->delete();
+                }
+            }
+            
+            return response()->json([
+                'message' => 'Giỏ hàng đã được xóa sau khi thanh toán thành công',
+                'success' => true
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Có lỗi xảy ra khi xóa giỏ hàng',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function show($id)
     {
         $order = Orders::with(['user', 'address', 'orderDetails.variant.product.mainImage'])->findOrFail($id);
@@ -322,13 +367,21 @@ class OrdersController extends Controller
             ->first();
 
         if (!$order) {
-            return response()->json(['message' => 'Order not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy đơn hàng'
+            ], 404);
         }
 
         if ($order->orderDetails) {
             foreach ($order->orderDetails as $orderDetail) {
                 if ($orderDetail->variant && $orderDetail->variant->product && $orderDetail->variant->product->mainImage) {
-                    $orderDetail->variant->product->mainImage->image_path = url('storage/' . $orderDetail->variant->product->mainImage->image_path);
+                    $imagePath = $orderDetail->variant->product->mainImage->image_path;
+                    // Đảm bảo đường dẫn bắt đầu với storage/
+                    if (!str_starts_with($imagePath, 'storage/')) {
+                        $imagePath = 'storage/' . ltrim($imagePath, '/');
+                    }
+                    $orderDetail->variant->product->mainImage->image_url = url($imagePath);
                 }
             }
         }
@@ -338,7 +391,10 @@ class OrdersController extends Controller
         $order->discount_price = (int) $order->discount_price;
         $order->final_price = (int) $order->final_price;
 
-        return response()->json($order);
+        return response()->json([
+            'success' => true,
+            'order' => $order
+        ]);
     }
 
     public function cancel(Request $request, $id)

@@ -135,8 +135,18 @@ export const useOrder = () => {
         error.value = null
         try {
             const res = await API.get(`/api/orders/track/${trackingCode}`)
-            currentOrder.value = res.data
-            return res.data
+            
+            // Handle new response format: {success: true, order: {...}}
+            if (res.data.success && res.data.order) {
+                currentOrder.value = res.data.order
+                return res.data.order
+            } else if (res.data.order) {
+                // Fallback for old format
+                currentOrder.value = res.data.order
+                return res.data.order
+            } else {
+                throw new Error(res.data.message || 'Không tìm thấy đơn hàng')
+            }
         } catch (err) {
             error.value = err.response?.data?.message || err.message
             throw err

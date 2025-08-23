@@ -6,7 +6,7 @@
         <!-- Tiêu đề + icon -->
         <div class="flex items-center gap-2 md:gap-3">
           <h1 class="text-lg md:text-2xl font-bold text-blue-700">
-            GIẢM SỐC 50%
+            GIẢM SỐC {{ maxDiscountPercent }}%
           </h1>
           <img src="https://theme.hstatic.net/200000696635/1001373943/14/flashsale-hot.png?v=6" alt="Flash Sale"
             class="h-5 md:h-10 w-auto" />
@@ -197,6 +197,7 @@ const flashSales = ref([])
 const selectedIndex = ref(0)
 const showQuickView = ref(false)
 const selectedProduct = ref(null)
+const maxDiscountPercent = ref(0)
 let countdownInterval = null
 let autoIncreaseInterval = null
 
@@ -265,6 +266,14 @@ function updateTabData() {
       category: p.product?.category,
       sku: p.product?.sku,
       slug: p.product?.slug
+    }))
+
+    // Tính phần trăm giảm giá cao nhất
+    maxDiscountPercent.value = Math.max(...flashSaleProducts.value.map(p => {
+      if (p.price && p.flash_price) {
+        return Math.round((p.price - p.flash_price) / p.price * 100)
+      }
+      return 0
     }))
 
     if (fs.end_time) {

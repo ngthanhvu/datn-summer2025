@@ -33,10 +33,13 @@ use App\Http\Controllers\PagesController;
 use App\Http\Controllers\AIChatController;
 use App\Http\Controllers\BlogCategoryController;
 use App\Http\Controllers\HealthCheckController;
+use App\Http\Controllers\CouponController;
 
 // AI Chatbot routes
 Route::post('/ai/chat', [AIChatController::class, 'chat']);
 Route::get('/ai/search-products', [AIChatController::class, 'searchProducts']);
+Route::post('/ai/search-by-price', [AIChatController::class, 'searchProductsByPrice']);
+Route::get('/ai/product-variants', [AIChatController::class, 'getProductVariants']);
 Route::get('/ai/coupons', [AIChatController::class, 'getAvailableCoupons']);
 Route::get('/ai/flash-sales', [AIChatController::class, 'getActiveFlashSales']);
 
@@ -71,18 +74,20 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/cart/{id}', [CartController::class, 'update']);
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
     Route::post('/cart/transfer-session-to-user', [CartController::class, 'transferCartFromSessionToUser']);
+    Route::post('/cart/cleanup-old-items', [CartController::class, 'cleanupOldCartItems']);
 
     Route::get('/orders', [OrdersController::class, 'index']);
     Route::get('/user/orders', [OrdersController::class, 'userOrders']);
     Route::get('/orders/{id}', [OrdersController::class, 'show']);
-    Route::post('/orders', [OrdersController::class, 'store']);
-    Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
+Route::post('/orders', [OrdersController::class, 'store']);
+Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
     Route::post('/orders/{id}/return', [OrdersController::class, 'requestReturn']);
     Route::put('/orders/{id}/status', [OrdersController::class, 'updateStatus']);
     Route::post('/orders/{id}/return/approve', [OrdersController::class, 'approveReturn']);
     Route::post('/orders/{id}/return/reject', [OrdersController::class, 'rejectReturn']);
     Route::post('/orders/{id}/cancel', [OrdersController::class, 'cancel']);
     Route::post('/orders/{id}/reorder', [OrdersController::class, 'reorder']);
+    Route::post('/orders/clear-cart-after-payment', [OrdersController::class, 'clearCartAfterPayment']);
 
     Route::get('/me/address', [AddressController::class, 'getMyAddress']);
     Route::get('/addresses', [AddressController::class, 'index']);
@@ -133,6 +138,9 @@ Route::get('/settings', [SettingController::class, 'index']);
 Route::get('/blogs', [BlogsController::class, 'index']);
 Route::get('/blogs/slug/{slug}', [BlogsController::class, 'showBySlug']);
 Route::get('/inventory', [InventoryController::class, 'index']);
+
+// Public order tracking route
+Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
 
 // Brand routes
 Route::get('/brands', [BrandsController::class, 'index']);
