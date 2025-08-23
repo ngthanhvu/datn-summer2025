@@ -138,6 +138,21 @@ export const useReviews = () => {
         }
     }
 
+    const checkUserPurchase = async (userId, productSlug) => {
+        try {
+            const token = await getToken()
+            const res = await API.get(`/api/product-reviews/purchase-check/${userId}/${productSlug}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            return res.data
+        } catch (err) {
+            console.error('Lỗi khi kiểm tra trạng thái mua hàng:', err)
+            throw err
+        }
+    }
+
     const fetchLatestReview = async () => {
         loading.value = true;
         error.value = null;
@@ -158,6 +173,7 @@ export const useReviews = () => {
         updateReview,
         deleteReview,
         checkUserReview,
+        checkUserPurchase,
         fetchLatestReview
     }
 }

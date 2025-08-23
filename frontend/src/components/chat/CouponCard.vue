@@ -28,6 +28,27 @@
           Hạn sử dụng: {{ formatDate(coupon.end_date) }}
         </div>
         <div v-if="coupon.description" class="coupon-desc">{{ coupon.description }}</div>
+        
+        <!-- Nút Lấy ngay -->
+        <button 
+          @click="saveCoupon(coupon)"
+          class="save-coupon-btn"
+          :disabled="coupon.saved"
+        >
+          <span v-if="coupon.saved">✅ Đã lưu</span>
+          <span v-else>🎯 Lấy ngay</span>
+        </button>
+        
+        <!-- Nút Sử dụng (chỉ hiện khi đã lưu) -->
+        <button 
+          v-if="coupon.saved"
+          @click="useCoupon(coupon.id)"
+          class="use-coupon-btn"
+          :disabled="coupon.used"
+        >
+          <span v-if="coupon.used">🔴 Đã sử dụng</span>
+          <span v-else>💳 Sử dụng ngay</span>
+        </button>
       </div>
       <div class="coupon-badge">HOT</div>
     </div>
@@ -45,7 +66,8 @@ export default {
       required: true
     }
   },
-  setup() {
+  emits: ['save-coupon', 'use-coupon'],
+  setup(props, { emit }) {
     const { formatPrice } = useAIChat()
     
     const formatDate = (dateString) => {
@@ -54,9 +76,29 @@ export default {
       return date.toLocaleDateString('vi-VN')
     }
     
+    const saveCoupon = (coupon) => {
+      // Đánh dấu coupon đã được lưu
+      coupon.saved = true
+      
+      // Emit event để parent component xử lý
+      emit('save-coupon', coupon)
+      
+      // Hiển thị thông báo thành công
+      console.log(`Đã lưu mã giảm giá: ${coupon.code}`)
+    }
+    
+    const useCoupon = (couponId) => {
+      // Emit event để parent component xử lý
+      emit('use-coupon', couponId)
+      
+      console.log(`Sử dụng mã giảm giá: ${couponId}`)
+    }
+    
     return {
       formatPrice,
-      formatDate
+      formatDate,
+      saveCoupon,
+      useCoupon
     }
   }
 }
@@ -223,5 +265,117 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+/* Nút Lấy ngay */
+.save-coupon-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  align-self: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+.save-coupon-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.save-coupon-btn:hover::before {
+  left: 100%;
+}
+
+.save-coupon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 184, 148, 0.6);
+  background: linear-gradient(135deg, #00a085 0%, #00916e 100%);
+}
+
+.save-coupon-btn:active {
+  transform: translateY(0);
+}
+
+.save-coupon-btn:disabled {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(149, 165, 166, 0.4);
+}
+
+.save-coupon-btn:disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(149, 165, 166, 0.4);
+}
+
+/* Nút Sử dụng */
+.use-coupon-btn {
+  margin-top: 8px;
+  margin-left: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  align-self: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+.use-coupon-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.use-coupon-btn:hover::before {
+  left: 100%;
+}
+
+.use-coupon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.6);
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+}
+
+.use-coupon-btn:active {
+  transform: translateY(0);
+}
+
+.use-coupon-btn:disabled {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(149, 165, 166, 0.4);
+}
+
+.use-coupon-btn:disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(149, 165, 166, 0.4);
+}
 
 </style>

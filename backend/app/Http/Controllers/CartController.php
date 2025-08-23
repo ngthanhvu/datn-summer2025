@@ -8,6 +8,7 @@ use App\Models\Variants;
 use App\Models\Inventory;
 use App\Models\FlashSale;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class CartController extends Controller
 {
@@ -24,6 +25,9 @@ class CartController extends Controller
                 $query->where('user_id', Auth::id());
             } else {
                 $sessionId = $request->header('X-Session-Id');
+                if (!$sessionId) {
+                    return response()->json([]);
+                }
                 $query->where('session_id', $sessionId);
             }
 
@@ -148,49 +152,36 @@ class CartController extends Controller
             $data['user_id'] = Auth::id();
             $data['session_id'] = null;
         } else {
-            $data['session_id'] = $request->header('X-Session-Id');
+            $sessionId = $request->header('X-Session-Id');
+            if (!$sessionId) {
+                return response()->json(['error' => 'Session ID là bắt buộc cho guest users'], 400);
+            }
+            $data['session_id'] = $sessionId;
             $data['user_id'] = null;
         }
 
-        // Phân biệt theo giá để tách sản phẩm sale và không sale thành 2 dòng riêng
-        $item = Cart::where('variant_id', $variant->id)
-            ->where('price', $price)
-            ->where(function ($q) use ($data) {
-                if (isset($data['user_id']) && $data['user_id']) $q->where('user_id', $data['user_id']);
-                else $q->where('session_id', $data['session_id']);
-            })
-            ->first();
-
-        if ($item) {
-            // Cùng biến thể và cùng giá: cộng dồn số lượng
-            $item->quantity += $data['quantity'];
-            if (isset($data['user_id']) && $data['user_id']) {
-                $item->user_id = $data['user_id'];
-                $item->session_id = null;
-            }
-            $item->save();
+        // Tìm item hiện có để hợp nhất
+        $existingItem = null;
+        if (Auth::check()) {
+            $existingItem = Cart::where('user_id', Auth::id())
+                ->where('variant_id', $variant->id)
+                ->where('price', $price)
+                ->first();
         } else {
-            $item = Cart::create($data);
+            $existingItem = Cart::where('session_id', $data['session_id'])
+                ->where('variant_id', $variant->id)
+                ->where('price', $price)
+                ->first();
         }
 
-        // Hợp nhất nếu có nhiều dòng trùng nhau theo cặp (variant_id, price)
-        $dups = Cart::where('variant_id', $variant->id)
-            ->where('price', $price)
-            ->where(function ($q) use ($data) {
-                if (isset($data['user_id']) && $data['user_id']) $q->where('user_id', $data['user_id']);
-                else $q->where('session_id', $data['session_id']);
-            })
-            ->orderBy('id')
-            ->get();
-        if ($dups->count() > 1) {
-            $keep = $dups->first();
-            $keep->quantity = $dups->sum('quantity');
-            $keep->save();
-            $idsToDelete = $dups->pluck('id')->filter(fn($id) => $id !== $keep->id);
-            if ($idsToDelete->isNotEmpty()) {
-                Cart::whereIn('id', $idsToDelete)->delete();
-            }
-            $item = $keep;
+        if ($existingItem) {
+            // Cập nhật số lượng cho item hiện có
+            $existingItem->quantity += $request->quantity;
+            $existingItem->save();
+            $item = $existingItem;
+        } else {
+            // Tạo item mới
+            $item = Cart::create($data);
         }
 
         return response()->json($item->fresh(), 201);
@@ -275,13 +266,17 @@ class CartController extends Controller
         if (!$sessionId || !$userId) {
             return response()->json(['error' => 'Session ID và User ID là bắt buộc'], 400);
         }
+        
         $sessionCarts = Cart::where('session_id', $sessionId)
             ->whereNull('user_id')
             ->get();
+            
         foreach ($sessionCarts as $sessionCart) {
             $existingCart = Cart::where('user_id', $userId)
                 ->where('variant_id', $sessionCart->variant_id)
+                ->where('price', $sessionCart->price) // Thêm điều kiện price để tránh trùng lặn
                 ->first();
+                
             if ($existingCart) {
                 $existingCart->quantity += $sessionCart->quantity;
                 $existingCart->save();
@@ -293,6 +288,28 @@ class CartController extends Controller
                 ]);
             }
         }
+        
         return response()->json(['message' => 'Cart items transferred successfully']);
+    }
+
+    public function cleanupOldCartItems()
+    {
+        try {
+            // Xóa các cart items cũ (older than 30 days) của guest users
+            $deletedCount = Cart::whereNotNull('session_id')
+                ->whereNull('user_id')
+                ->where('created_at', '<', Carbon::now()->subDays(30))
+                ->delete();
+                
+            return response()->json([
+                'message' => 'Old cart items cleaned up successfully',
+                'deleted_count' => $deletedCount
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to cleanup old cart items',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

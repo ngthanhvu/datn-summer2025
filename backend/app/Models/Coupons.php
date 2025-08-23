@@ -50,4 +50,9 @@ class Coupons extends Model
             ->withPivot('claimed_at', 'used_at', 'status')
             ->withTimestamps();
     }
+
+    public function couponUsers()
+    {
+        return $this->hasMany(CouponUser::class);
+    }
 }

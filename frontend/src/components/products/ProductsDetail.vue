@@ -56,7 +56,7 @@
 
                 <!-- Reviews -->
                 <ProductReviews v-if="activeTab === 'reviews'" :review-stats="reviewStats"
-                    :show-review-form="showReviewForm" :is-authenticated="isAuthenticated"
+                    :show-review-form="false" :is-authenticated="isAuthenticated"
                     :user-has-reviewed="userHasReviewed" :user-review="userReview" :review-form="reviewForm"
                     :editing-review-id="editingReviewId" :is-submitting="isSubmitting" :preview-images="previewImages"
                     :reviews-loading="reviewsLoading" :reviews="reviews" :review-pagination-data="reviewPaginationData"

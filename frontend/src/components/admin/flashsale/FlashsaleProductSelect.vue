@@ -7,7 +7,7 @@
                     class="input flex-1 sm:w-80 border border-gray-300 rounded p-2 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-sm"
                     placeholder="Gõ tên sản phẩm để tìm kiếm" />
                 <button class="bg-[#3BB77E] text-white rounded px-4 py-2 cursor-pointer text-sm whitespace-nowrap"
-                    @click="showDiscount = true"><i class="fa fa-percent"></i> Áp dụng giảm giá hàng loạt</button>
+                    @click="openDiscountModal"><i class="fa fa-percent"></i> Áp dụng giảm giá hàng loạt</button>
             </div>
             <div class="mb-6 sm:mb-8">
                 <h3 class="font-bold mb-2 text-sm sm:text-base">Tất cả sản phẩm</h3>
@@ -257,19 +257,24 @@
                         <button :class="discountType === '%' ? 'bg-blue-600 text-white' : 'bg-gray-200'"
                             class="px-3 py-1 rounded cursor-pointer text-sm flex-1"
                             @click="discountType = '%'">%</button>
-                        <button :class="discountType === '$' ? 'bg-blue-600 text-white' : 'bg-gray-200'"
-                            class="px-3 py-1 rounded cursor-pointer text-sm flex-1"
-                            @click="discountType = '$'">$</button>
                         <button :class="discountType === '₫' ? 'bg-blue-600 text-white' : 'bg-gray-200'"
                             class="px-3 py-1 rounded cursor-pointer text-sm flex-1" @click="discountType = '₫'">Đồng
                             ₫</button>
                     </div>
                     <input v-model.number="discountValue" type="number"
-                        class="border border-gray-300 w-full mb-3 p-2 text-sm" placeholder="Nhập giá trị giảm" />
+                        :class="['border w-full p-2 text-sm mb-1', validationError ? 'border-red-500' : 'border-gray-300']" 
+                        :placeholder="discountType === '%' ? 'Nhập % giảm (tối đa 99%)' : 'Nhập số tiền giảm'" />
+                    
+                    <!-- Validation message -->
+                    <div v-if="validationError" class="text-red-500 text-xs mb-2 flex items-center">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        {{ validationError }}
+                    </div>
+                    <div v-else class="mb-2"></div>
                     <div class="flex flex-col sm:flex-row justify-end gap-2">
                         <button
                             class="bg-gray-300 text-black px-4 py-2 rounded cursor-pointer text-sm order-2 sm:order-1"
-                            @click="showDiscount = false">Đóng</button>
+                            @click="closeDiscountModal">Đóng</button>
                         <button
                             class="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer text-sm order-1 sm:order-2"
                             @click="applyDiscount">Áp dụng</button>
@@ -281,7 +286,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useProducts } from '../../../composable/useProducts'
 import { useFlashsale } from '../../../composable/useFlashsale'
 import { useRouter, useRoute } from "vue-router";
@@ -311,6 +316,7 @@ const selectedProducts = ref([])
 const showDiscount = ref(false)
 const discountType = ref('%')
 const discountValue = ref(0)
+const validationError = ref('')
 
 const selectedPage = ref(1)
 const selectedPageSize = 5
@@ -406,6 +412,48 @@ onMounted(async () => {
     }
 })
 
+// Watch discount type changes to reset validation
+watch(discountType, (newType) => {
+    validationError.value = ''
+    // Re-validate current value with new type
+    if (discountValue.value <= 0) {
+        validationError.value = 'Giá trị giảm giá phải lớn hơn 0!'
+    } else if (newType === '%' && discountValue.value > 99) {
+        validationError.value = 'Giảm giá không được vượt quá 99%!'
+    } else if (newType === '₫' && selectedProducts.value.length > 0) {
+        // Check if discount would result in negative flash price
+        const hasNegativePrice = selectedProducts.value.some(p => {
+            const base = Number(p.price) || 0
+            return base - discountValue.value < 0
+        })
+        
+        if (hasNegativePrice) {
+            validationError.value = 'Giá giảm không được âm! Vui lòng giảm số tiền giảm giá.'
+        }
+    }
+})
+
+// Watch discount value to show validation
+watch(discountValue, (newValue) => {
+    validationError.value = ''
+    
+    if (newValue <= 0) {
+        validationError.value = 'Giá trị giảm giá phải lớn hơn 0!'
+    } else if (discountType.value === '%' && newValue > 99) {
+        validationError.value = 'Giảm giá không được vượt quá 99%!'
+    } else if (discountType.value === '₫' && selectedProducts.value.length > 0) {
+        // Check if discount would result in negative flash price
+        const hasNegativePrice = selectedProducts.value.some(p => {
+            const base = Number(p.price) || 0
+            return base - newValue < 0
+        })
+        
+        if (hasNegativePrice) {
+            validationError.value = 'Giá giảm không được âm! Vui lòng giảm số tiền giảm giá.'
+        }
+    }
+})
+
 const filteredAllProducts = computed(() => {
     if (!search.value) return allProducts.value
     const filtered = allProducts.value.filter(p => p.name.toLowerCase().includes(search.value.toLowerCase()))
@@ -428,6 +476,18 @@ function addProduct(product) {
 function remove(idx) {
     const removed = selectedProducts.value.splice(idx, 1)
 }
+
+function openDiscountModal() {
+    validationError.value = ''
+    discountValue.value = 0
+    showDiscount.value = true
+}
+
+function closeDiscountModal() {
+    showDiscount.value = false
+    validationError.value = ''
+    discountValue.value = 0
+}
 function apply() {
     localStorage.setItem('flashsale_selected_products', JSON.stringify(selectedProducts.value))
 
@@ -443,15 +503,49 @@ function apply() {
     }
 }
 function applyDiscount() {
+    // Clear previous validation error
+    validationError.value = ''
+    
+    // Validation: Giá trị giảm giá phải là số dương
+    if (discountValue.value <= 0) {
+        validationError.value = 'Giá trị giảm giá phải lớn hơn 0!'
+        return
+    }
+    
+    // Validation: Không cho phép giảm giá quá 99%
+    if (discountType.value === '%' && discountValue.value > 99) {
+        validationError.value = 'Giảm giá không được vượt quá 99%!'
+        return
+    }
+    
+    // Check if discount would result in negative flash price
+    if (discountType.value === '₫') {
+        const hasNegativePrice = selectedProducts.value.some(p => {
+            const base = Number(p.price) || 0
+            return base - discountValue.value < 0
+        })
+        
+        if (hasNegativePrice) {
+            validationError.value = 'Giá giảm không được âm! Vui lòng giảm số tiền giảm giá.'
+            return
+        }
+    }
+    
+    // Apply discount to all selected products
     selectedProducts.value.forEach(p => {
         let base = Number(p.price) || 0
         if (discountType.value === '%') {
-            p.flashPrice = base ? Math.round(base * (1 - discountValue.value / 100)) : ''
+            // Đảm bảo giảm giá không quá 99%
+            const finalDiscount = Math.min(discountValue.value, 99)
+            p.flashPrice = base ? Math.round(base * (1 - finalDiscount / 100)) : ''
         } else if (discountType.value === '$' || discountType.value === '₫') {
             p.flashPrice = base ? Math.max(0, base - discountValue.value) : ''
         }
     })
+    
+    // Close modal and reset
     showDiscount.value = false
+    validationError.value = ''
 }
 function goBack() {
     router.back()
