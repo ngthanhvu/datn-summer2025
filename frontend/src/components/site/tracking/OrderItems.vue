@@ -72,10 +72,14 @@ const formatPrice = (price) => {
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 const getImageUrl = (path) => {
-    if (!path) return '/default-image.jpg'
-    if (path.startsWith('http://') || path.startsWith('https://')) return path
-    if (path.startsWith('/storage/')) return apiBaseUrl.replace(/\/$/, '') + path
-    if (path.startsWith('storage/')) return apiBaseUrl.replace(/\/$/, '') + '/' + path
-    return apiBaseUrl.replace(/\/$/, '') + '/' + path
+    if (!path) return 'https://placehold.co/100x100?text=No+Image'
+    
+    // Backend đã trả về URL đầy đủ với /storage/
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path
+    }
+    
+    // Fallback nếu có vấn đề
+    return 'https://placehold.co/100x100?text=Image+Error'
 }
 </script>

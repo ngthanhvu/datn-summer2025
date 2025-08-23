@@ -127,11 +127,12 @@ export function useAIChat() {
 
       const data = await response.json()
 
-      if (data.context && data.context.products) {
+      if (data.context && data.context.products && Array.isArray(data.context.products)) {
         data.context.products.forEach(product => {
+          // Xử lý từng sản phẩm nếu cần
         })
       } else {
-        console.log('No products in context or context is empty')
+        console.log('No products in context or context is empty or products is not an array')
       }
 
       if (data.success) {
@@ -149,13 +150,18 @@ export function useAIChat() {
           return
         }
 
-        if (data.context && data.context.products && data.context.products.length > 0) {
-
+        if (data.context && data.context.products && Array.isArray(data.context.products) && data.context.products.length > 0) {
           aiMessage.products = data.context.products.slice(0, 6)
+          
+          // Truyền flag show_purchase_form từ backend
+          if (data.context.show_purchase_form !== undefined) {
+            aiMessage.show_purchase_form = data.context.show_purchase_form
+            console.log('Purchase form flag:', data.context.show_purchase_form)
+          }
         }
 
         // Xử lý context mã giảm giá
-        if (data.context && data.context.coupons && data.context.coupons.length > 0) {
+        if (data.context && data.context.coupons && Array.isArray(data.context.coupons) && data.context.coupons.length > 0) {
           const hasCouponRequest = message.toLowerCase().includes('mã giảm') ||
             message.toLowerCase().includes('coupon') ||
             message.toLowerCase().includes('khuyến mãi') ||
@@ -168,7 +174,7 @@ export function useAIChat() {
         }
 
         // Xử lý context flash sale
-        if (data.context && data.context.flash_sales && data.context.flash_sales.length > 0) {
+        if (data.context && data.context.flash_sales && Array.isArray(data.context.flash_sales) && data.context.flash_sales.length > 0) {
           const hasFlashSaleRequest = message.toLowerCase().includes('flash sale') ||
             message.toLowerCase().includes('khuyến mãi') ||
             message.toLowerCase().includes('giảm giá') ||
@@ -178,6 +184,14 @@ export function useAIChat() {
           if (hasFlashSaleRequest) {
             aiMessage.flashSales = data.context.flash_sales.slice(0, 3)
           }
+        }
+
+        // Xử lý context tra cứu đơn hàng
+        if (data.context && data.context.order_tracking) {
+          aiMessage.orderTracking = true
+          // Đảm bảo KHÔNG hiển thị sản phẩm khi tra cứu đơn hàng
+          aiMessage.products = []
+          console.log('Order tracking detected, hiding products')
         }
 
         messages.value.push(aiMessage)
@@ -197,6 +211,87 @@ export function useAIChat() {
       })
     } finally {
       isTyping.value = false
+    }
+  }
+
+  // Thêm phương thức tìm kiếm sản phẩm theo giá
+  const searchProductsByPrice = async (query) => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/ai/search-by-price`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ query })
+      })
+
+      const data = await response.json()
+      return data.success ? data : { success: false, message: data.message || 'Có lỗi xảy ra' }
+    } catch (error) {
+      console.error('Search Products By Price Error:', error)
+      return { success: false, message: 'Có lỗi xảy ra khi tìm kiếm sản phẩm' }
+    }
+  }
+
+  // Thêm phương thức lấy thông tin variant của sản phẩm
+  const getProductVariants = async (productId) => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/ai/product-variants?product_id=${productId}`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+      return data.success ? data : { success: false, message: data.message || 'Có lỗi xảy ra' }
+    } catch (error) {
+      console.error('Get Product Variants Error:', error)
+      return { success: false, message: 'Có lỗi xảy ra khi lấy thông tin sản phẩm' }
+    }
+  }
+
+  // Thêm phương thức tra cứu đơn hàng
+  const searchOrder = async (trackingCode) => {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+
+      // Thêm token nếu user đã đăng nhập
+      if (user.value && user.value.token) {
+        headers['Authorization'] = `Bearer ${user.value.token}`
+      }
+
+      console.log('Searching order with tracking code:', trackingCode)
+      console.log('API URL:', `${apiBaseUrl}/api/orders/track/${trackingCode}`)
+
+      const response = await fetch(`${apiBaseUrl}/api/orders/track/${trackingCode}`, {
+        method: 'GET',
+        headers
+      })
+
+      console.log('Response status:', response.status)
+      const data = await response.json()
+      console.log('Response data:', data)
+      
+      if (response.ok) {
+        // Kiểm tra format response mới
+        if (data.success && data.order) {
+          return { success: true, order: data.order }
+        } else if (data.order) {
+          // Fallback cho format cũ
+          return { success: true, order: data.order }
+        } else {
+          return { success: false, message: data.message || 'Không tìm thấy đơn hàng' }
+        }
+      } else {
+        return { success: false, message: data.message || 'Không tìm thấy đơn hàng' }
+      }
+    } catch (error) {
+      console.error('Search Order Error:', error)
+      return { success: false, message: 'Có lỗi xảy ra khi tra cứu đơn hàng' }
     }
   }
 
@@ -262,7 +357,7 @@ export function useAIChat() {
   const addWelcomeMessage = () => {
     if (messages.value.length === 0) {
       messages.value.push({
-        text: '👋 Xin chào! Tôi là trợ lý AI của DEVGANG Shop. Rất vui được hỗ trợ bạn hôm nay!\n\n🌟 Tôi có thể giúp bạn:\n\n🔍 Tìm kiếm và tư vấn sản phẩm\n🎫 Thông tin mã giảm giá & khuyến mãi\n💳 Hướng dẫn thanh toán\n🔥 Thông tin flash sale hot\n📂 Tư vấn danh mục sản phẩm\n\n💬 Hãy nhắn tin cho tôi hoặc chọn các gợi ý bên dưới nhé!',
+        text: '👋 Xin chào! Tôi là trợ lý AI của DEVGANG Shop. Rất vui được hỗ trợ bạn hôm nay!\n\n🌟 Tôi có thể giúp bạn:\n\n🔍 Tìm kiếm và tư vấn sản phẩm\n🎫 Thông tin mã giảm giá & khuyến mãi\n💳 Hướng dẫn thanh toán\n🔥 Thông tin flash sale hot\n📂 Tư vấn danh mục sản phẩm\n📦 Tra cứu đơn hàng\n💰 Tìm sản phẩm theo giá\n\n💬 Hãy nhắn tin cho tôi hoặc chọn các gợi ý bên dưới nhé!',
         isUser: false,
         timestamp: new Date()
       })
@@ -288,11 +383,10 @@ export function useAIChat() {
     for (let i = messages.value.length - 1; i >= 0; i--) {
       const m = messages.value[i]
       if (!m.isUser && Array.isArray(m.products) && m.products.length > 0) {
-        const ids = m.products
-          .map(p => p.id)
-          .filter(id => typeof id === 'number' || typeof id === 'string')
-        if (ids.length > 0) {
-          return { product_ids: ids }
+        // Gửi toàn bộ context thay vì chỉ product_ids
+        return { 
+          products: m.products,
+          show_purchase_form: m.show_purchase_form || false
         }
       }
     }
@@ -352,6 +446,9 @@ export function useAIChat() {
     searchProducts,
     getAvailableCoupons,
     getActiveFlashSales,
+    searchProductsByPrice,
+    getProductVariants,
+    searchOrder,
     formatMessage,
     formatTime,
     formatPrice,

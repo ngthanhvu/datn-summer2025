@@ -33,10 +33,13 @@ use App\Http\Controllers\PagesController;
 use App\Http\Controllers\AIChatController;
 use App\Http\Controllers\BlogCategoryController;
 use App\Http\Controllers\HealthCheckController;
+use App\Http\Controllers\CouponController;
 
 // AI Chatbot routes
 Route::post('/ai/chat', [AIChatController::class, 'chat']);
 Route::get('/ai/search-products', [AIChatController::class, 'searchProducts']);
+Route::post('/ai/search-by-price', [AIChatController::class, 'searchProductsByPrice']);
+Route::get('/ai/product-variants', [AIChatController::class, 'getProductVariants']);
 Route::get('/ai/coupons', [AIChatController::class, 'getAvailableCoupons']);
 Route::get('/ai/flash-sales', [AIChatController::class, 'getActiveFlashSales']);
 
@@ -71,18 +74,20 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/cart/{id}', [CartController::class, 'update']);
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
     Route::post('/cart/transfer-session-to-user', [CartController::class, 'transferCartFromSessionToUser']);
+    Route::post('/cart/cleanup-old-items', [CartController::class, 'cleanupOldCartItems']);
 
     Route::get('/orders', [OrdersController::class, 'index']);
     Route::get('/user/orders', [OrdersController::class, 'userOrders']);
     Route::get('/orders/{id}', [OrdersController::class, 'show']);
-    Route::post('/orders', [OrdersController::class, 'store']);
-    Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
+Route::post('/orders', [OrdersController::class, 'store']);
+Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
     Route::post('/orders/{id}/return', [OrdersController::class, 'requestReturn']);
     Route::put('/orders/{id}/status', [OrdersController::class, 'updateStatus']);
     Route::post('/orders/{id}/return/approve', [OrdersController::class, 'approveReturn']);
     Route::post('/orders/{id}/return/reject', [OrdersController::class, 'rejectReturn']);
     Route::post('/orders/{id}/cancel', [OrdersController::class, 'cancel']);
     Route::post('/orders/{id}/reorder', [OrdersController::class, 'reorder']);
+    Route::post('/orders/clear-cart-after-payment', [OrdersController::class, 'clearCartAfterPayment']);
 
     Route::get('/me/address', [AddressController::class, 'getMyAddress']);
     Route::get('/addresses', [AddressController::class, 'index']);
@@ -133,6 +138,9 @@ Route::get('/settings', [SettingController::class, 'index']);
 Route::get('/blogs', [BlogsController::class, 'index']);
 Route::get('/blogs/slug/{slug}', [BlogsController::class, 'showBySlug']);
 Route::get('/inventory', [InventoryController::class, 'index']);
+
+// Public order tracking route
+Route::get('/orders/track/{tracking_code}', [OrdersController::class, 'getOrderByTrackingCode']);
 
 // Brand routes
 Route::get('/brands', [BrandsController::class, 'index']);
@@ -189,14 +197,15 @@ Route::post('/coupons/validate', [CouponsController::class, 'validate_coupon']);
 
 // Product review routes
 Route::get('/product-reviews', [ProductReviewController::class, 'index']);
-Route::post('/product-reviews', [ProductReviewController::class, 'store']);
+Route::post('/product-reviews', [ProductReviewController::class, 'store'])->middleware('auth:api');
 Route::get('/product-reviews/{id}', [ProductReviewController::class, 'show']);
-Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update']);
-Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy']);
+Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update'])->middleware('auth:api');
+Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy'])->middleware('auth:api');
 Route::get('/product-reviews/product/{slug}', [ProductReviewController::class, 'getByProductSlug']);
-Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview']);
-Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
-Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
+Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview'])->middleware('auth:api');
+Route::get('/product-reviews/purchase-check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserPurchase'])->middleware('auth:api');
+Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply'])->middleware('auth:api');
+Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply'])->middleware('auth:api');
 Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
 Route::get('/reviews/latest', [ProductReviewController::class, 'latestReviews']);
 Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedProducts']);

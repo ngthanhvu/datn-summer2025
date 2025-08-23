@@ -52,16 +52,37 @@
             <div class="message-text">
               <div v-html="formatMessage(message.text)"></div>
 
-              <!-- Product Cards -->
-              <ProductCard v-if="message.products && message.products.length > 0" :products="message.products"
-                @view-product="viewProduct" />
+              <!-- Product Cards - LUÔN hiển thị khi có sản phẩm -->
+              <ProductCard v-if="message.products && message.products.length > 0" 
+                :products="message.products"
+                :show-purchase-form="message.show_purchase_form || false"
+                @view-product="viewProduct" 
+                @add-to-cart-success="handleAddToCartSuccess" />
 
               <!-- Coupon Cards -->
-              <CouponCard v-if="message.coupons && message.coupons.length > 0" :coupons="message.coupons" />
+              <CouponCard 
+                v-if="message.coupons && message.coupons.length > 0" 
+                :coupons="message.coupons" 
+                @save-coupon="handleSaveCoupon"
+                @use-coupon="useCoupon"
+              />
 
               <!-- Flash Sale Cards -->
               <FlashSaleCard v-if="message.flashSales && message.flashSales.length > 0"
                 :flash-sales="message.flashSales" />
+
+              <!-- Order Tracking Card -->
+              <OrderTrackingCard v-if="message.orderTracking" @order-found="handleOrderFound" />
+              
+              <!-- Payment Button -->
+              <div v-if="message.showPaymentButton" class="payment-button-container">
+                <button @click="goToCheckout" class="payment-button">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 4H4C2.89 4 2.01 4.89 2.01 6L2 18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8Z" fill="currentColor"/>
+                  </svg>
+                  Thanh toán ngay
+                </button>
+              </div>
             </div>
 
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
@@ -113,16 +134,19 @@
 <script>
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useAIChat } from '../composable/useAIChat'
+import { useCart } from '../composable/useCart'
 import ProductCard from './chat/ProductCard.vue'
 import CouponCard from './chat/CouponCard.vue'
 import FlashSaleCard from './chat/FlashSaleCard.vue'
+import OrderTrackingCard from './chat/OrderTrackingCard.vue'
 
 export default {
   name: 'AIChatbot',
   components: {
     ProductCard,
     CouponCard,
-    FlashSaleCard
+    FlashSaleCard,
+    OrderTrackingCard
   },
   setup() {
     const {
@@ -137,9 +161,15 @@ export default {
       addWelcomeMessage,
       formatMessage,
       formatTime,
+      formatPrice,
       viewProduct,
       cleanup
     } = useAIChat()
+
+    const {
+      cleanupOldCartItems,
+      clearCartAfterPayment
+    } = useCart()
 
     const isOnline = ref(true)
     const messagesContainer = ref(null)
@@ -164,7 +194,9 @@ export default {
       { text: 'Mã giảm giá 🎉' },
       { text: 'Flash sale 🔥' },
       { text: 'Hướng dẫn thanh toán 💳' },
-      { text: 'Danh mục sản phẩm 🛒' }
+      { text: 'Danh mục sản phẩm 🛒' },
+      { text: 'Tra cứu đơn hàng 📦' },
+      { text: 'Tìm theo giá 💰' }
     ]
 
     const toggleChat = () => {
@@ -204,6 +236,251 @@ export default {
       sendMessage()
     }
 
+    const handleAddToCartSuccess = (data) => {
+      // Thêm tin nhắn xác nhận khi thêm vào giỏ hàng thành công
+      const price = data.variant?.price || data.product?.price || 0
+      const size = data.variant?.size || 'N/A'
+      const color = data.variant?.color || 'N/A'
+      
+      // Hiển thị phản hồi tự nhiên từ AI với nút thanh toán
+      messages.value.push({
+        text: `Tôi đã thêm vào giỏ hàng cho bạn rồi! 🛒\n\n📦 **${data.product.name}**\n📏 Size: ${size} | 🎨 Màu: ${color}\n📊 Số lượng: ${data.quantity}\n💰 Giá: ${formatPrice(price)}\n\n✅ Sản phẩm đã được thêm thành công vào giỏ hàng của bạn!\n\nBạn có muốn thanh toán ngay không ạ?`,
+        isUser: false,
+        timestamp: new Date(),
+        showPaymentButton: true // Flag để hiển thị nút thanh toán
+      })
+      
+      nextTick(() => {
+        scrollToBottom()
+      })
+    }
+
+    const handleOrderFound = (order) => {
+      // Thêm tin nhắn xác nhận khi tìm thấy đơn hàng
+      const finalPrice = order.final_price || order.total_price || 0
+      
+      messages.value.push({
+        text: `✅ Đã tìm thấy đơn hàng!\n\n📦 Mã đơn hàng: ${order.tracking_code}\n📅 Ngày đặt: ${new Date(order.created_at).toLocaleDateString('vi-VN')}\n💰 Tổng tiền: ${formatPrice(finalPrice)}\n📊 Trạng thái: ${getOrderStatusText(order.status)}`,
+        isUser: false,
+        timestamp: new Date()
+      })
+      
+      nextTick(() => {
+        scrollToBottom()
+      })
+    }
+
+    const handleSaveCoupon = async (coupon) => {
+      try {
+        // Gọi API để lưu mã giảm giá vào database
+        const response = await fetch(`http://127.0.0.1:8000/api/coupons/${coupon.id}/claim`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}` // JWT token
+          }
+        })
+
+        const result = await response.json()
+
+        if (result.status) {
+          // Thêm tin nhắn xác nhận khi lưu mã giảm giá thành công
+          messages.value.push({
+            text: `🎉 **Đã lưu mã giảm giá thành công!**\n\n💎 **${coupon.name}**\n🔑 Mã: \`${coupon.code}\`\n💰 Giảm: ${coupon.type === 'percent' ? `${coupon.value}%` : formatPrice(coupon.value)}\n📦 Đơn tối thiểu: ${formatPrice(coupon.min_order_value)}\n⏰ Hạn sử dụng: ${new Date(coupon.end_date).toLocaleDateString('vi-VN')}\n\n✨ **Mã giảm giá đã được lưu vào tài khoản của bạn!**\n💡 Bạn có thể sử dụng khi thanh toán đơn hàng.\n\n🚀 **Tiết kiệm ngay hôm nay!**`,
+            isUser: false,
+            timestamp: new Date()
+          })
+          
+          console.log('Coupon saved successfully to database:', result.message)
+          
+        } else {
+          // Thêm tin nhắn lỗi từ API
+          messages.value.push({
+            text: `❌ **${result.message}**\n\nVui lòng thử lại hoặc liên hệ hỗ trợ.`,
+            isUser: false,
+            timestamp: new Date()
+          })
+          
+          console.error('API error saving coupon:', result.message)
+        }
+        
+        nextTick(() => {
+          scrollToBottom()
+        })
+        
+      } catch (error) {
+        console.error('Error saving coupon:', error)
+        
+        // Thêm tin nhắn lỗi
+        messages.value.push({
+          text: `❌ **Có lỗi xảy ra khi lưu mã giảm giá!**\n\nVui lòng thử lại hoặc liên hệ hỗ trợ.`,
+          isUser: false,
+          timestamp: new Date()
+        })
+        
+        nextTick(() => {
+          scrollToBottom()
+        })
+      }
+    }
+
+    // Method để sử dụng mã giảm giá
+    const useCoupon = async (couponId) => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/coupons/${couponId}/use`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+
+        const result = await response.json()
+
+        if (result.status) {
+          messages.value.push({
+            text: `✅ **Đã sử dụng mã giảm giá thành công!**\n\n🎉 Mã giảm giá đã được áp dụng cho đơn hàng của bạn.`,
+            isUser: false,
+            timestamp: new Date()
+          })
+          
+          console.log('Coupon used successfully:', result.message)
+          
+          // Refresh danh sách mã đã lưu
+          await showSavedCoupons()
+          
+        } else {
+          messages.value.push({
+            text: `❌ **${result.message}**\n\nVui lòng thử lại hoặc liên hệ hỗ trợ.`,
+            isUser: false,
+            timestamp: new Date()
+          })
+          
+          console.error('API error using coupon:', result.message)
+        }
+        
+        nextTick(() => {
+          scrollToBottom()
+        })
+        
+      } catch (error) {
+        console.error('Error using coupon:', error)
+        
+        messages.value.push({
+          text: `❌ **Có lỗi xảy ra khi sử dụng mã giảm giá!**\n\nVui lòng thử lại hoặc liên hệ hỗ trợ.`,
+          isUser: false,
+          timestamp: new Date()
+        })
+        
+        nextTick(() => {
+          scrollToBottom()
+        })
+      }
+    }
+
+    // Method để xem mã giảm giá đã lưu
+    const showSavedCoupons = async () => {
+      try {
+        // Gọi API để lấy mã giảm giá đã lưu từ database
+        const response = await fetch(`http://127.0.0.1:8000/api/coupons/my-coupons`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}` // JWT token
+          }
+        })
+
+        const result = await response.json()
+
+        if (result.status) {
+          const savedCoupons = result.coupons
+          
+          if (savedCoupons.length === 0) {
+            messages.value.push({
+              text: `📝 **Mã giảm giá đã lưu:**\n\n😔 Bạn chưa lưu mã giảm giá nào.\n💡 Hãy lưu mã giảm giá để tiết kiệm khi mua hàng!`,
+              isUser: false,
+              timestamp: new Date()
+            })
+          } else {
+            let messageText = `📝 **Mã giảm giá đã lưu (${savedCoupons.length} mã):**\n\n`
+            
+            savedCoupons.forEach((coupon, index) => {
+              messageText += `${index + 1}. 💎 **${coupon.name}**\n`
+              messageText += `   🔑 Mã: \`${coupon.code}\`\n`
+              messageText += `   💰 Giảm: ${coupon.type === 'percent' ? `${coupon.value}%` : formatPrice(coupon.value)}\n`
+              messageText += `   📦 Đơn tối thiểu: ${formatPrice(coupon.min_order_value)}\n`
+              messageText += `   ⏰ Hạn sử dụng: ${new Date(coupon.end_date).toLocaleDateString('vi-VN')}\n`
+              messageText += `   📅 Lưu lúc: ${new Date(coupon.pivot.claimed_at).toLocaleDateString('vi-VN')}\n`
+              messageText += `   📊 Trạng thái: ${coupon.pivot.status === 'claimed' ? '🟢 Chưa sử dụng' : '🔴 Đã sử dụng'}\n\n`
+            })
+            
+            messageText += `✨ **Tổng cộng ${savedCoupons.length} mã giảm giá đã lưu!**\n💡 Bạn có thể sử dụng các mã này khi thanh toán đơn hàng.`
+            
+            messages.value.push({
+              text: messageText,
+              isUser: false,
+              timestamp: new Date()
+            })
+          }
+          
+          console.log('Retrieved saved coupons from database:', savedCoupons)
+          
+        } else {
+          // Thêm tin nhắn lỗi từ API
+          messages.value.push({
+            text: `❌ **${result.message}**\n\nVui lòng thử lại hoặc liên hệ hỗ trợ.`,
+            isUser: false,
+            timestamp: new Date()
+          })
+          
+          console.error('API error getting saved coupons:', result.message)
+        }
+        
+        nextTick(() => {
+          scrollToBottom()
+        })
+        
+      } catch (error) {
+        console.error('Error showing saved coupons:', error)
+        
+        messages.value.push({
+          text: `❌ **Có lỗi xảy ra khi hiển thị mã giảm giá đã lưu!**\n\nVui lòng thử lại hoặc liên hệ hỗ trợ.`,
+          isUser: false,
+          timestamp: new Date()
+        })
+        
+        nextTick(() => {
+          scrollToBottom()
+        })
+      }
+    }
+
+    const goToCheckout = async () => {
+      try {
+        // Dọn dẹp cart items cũ trước
+        await cleanupOldCartItems()
+        console.log('Old cart items cleaned up')
+        
+        // Chuyển đến trang thanh toán
+        window.location.href = '/thanh-toan'
+      } catch (error) {
+        console.error('Error cleaning up cart before payment:', error)
+        // Vẫn chuyển đến trang thanh toán ngay cả khi xóa giỏ hàng thất bại
+        window.location.href = '/thanh-toan'
+      }
+    }
+
+    const getOrderStatusText = (status) => {
+      const statusTexts = {
+        'pending': 'Chờ xác nhận',
+        'confirmed': 'Đã xác nhận',
+        'processing': 'Đang xử lý',
+        'shipped': 'Đang giao hàng',
+        'delivered': 'Đã giao hàng',
+        'cancelled': 'Đã hủy',
+        'returned': 'Đã trả hàng'
+      }
+      return statusTexts[status] || 'Chờ xác nhận'
+    }
+
     const handleEnter = (event) => {
       if (event.shiftKey) {
         return
@@ -229,7 +506,7 @@ export default {
       }
     })
 
-    onMounted(() => {
+    onMounted(async () => {
       const textarea = messageInput.value
       if (textarea) {
         textarea.addEventListener('input', function () {
@@ -238,6 +515,14 @@ export default {
         })
       }
       window.addEventListener('scroll', handleScrollShowHint, { passive: true })
+      
+      // Dọn dẹp cart items cũ khi khởi tạo chatbot
+      try {
+        await cleanupOldCartItems()
+        console.log('Cart cleanup completed on chatbot mount')
+      } catch (error) {
+        console.error('Error cleaning up cart on mount:', error)
+      }
     })
 
     onUnmounted(() => {
@@ -246,27 +531,34 @@ export default {
       cleanup()
     })
 
-    return {
-      isOpen,
-      isTyping,
-      isOnline,
-      hasUnreadMessages,
-      unreadCount,
-      currentMessage,
-      messages,
-      messagesContainer,
-      messageInput,
-      showQuickActions,
-      showScrollHint,
-      quickActions,
-      toggleChat,
-      sendMessage,
-      sendQuickMessage,
-      handleEnter,
-      formatMessage,
-      formatTime,
-      viewProduct
-    }
+          return {
+        isOpen,
+        isTyping,
+        isOnline,
+        hasUnreadMessages,
+        unreadCount,
+        currentMessage,
+        messages,
+        messagesContainer,
+        messageInput,
+        showQuickActions,
+        showScrollHint,
+        quickActions,
+        toggleChat,
+        sendMessage,
+        sendQuickMessage,
+        handleEnter,
+        handleAddToCartSuccess,
+        handleOrderFound,
+        handleSaveCoupon,
+        useCoupon,
+        showSavedCoupons,
+        goToCheckout,
+        formatMessage,
+        formatTime,
+        formatPrice,
+        viewProduct
+      }
   }
 }
 </script>
@@ -737,10 +1029,48 @@ export default {
   transform: scale(0.95);
 }
 
-.message-text strong {
-  font-weight: 600;
-  color: #2d3748;
-}
+ .message-text strong {
+   font-weight: 600;
+   color: #2d3748;
+ }
+
+ .payment-button-container {
+   margin-top: 16px;
+   display: flex;
+   justify-content: center;
+ }
+
+ .payment-button {
+   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+   color: white;
+   border: none;
+   padding: 12px 24px;
+   border-radius: 12px;
+   font-size: 14px;
+   font-weight: 600;
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   transition: all 0.3s ease;
+   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+   backdrop-filter: blur(10px);
+ }
+
+ .payment-button:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+   background: linear-gradient(135deg, #059669 0%, #047857 100%);
+ }
+
+ .payment-button:active {
+   transform: translateY(0);
+ }
+
+ .payment-button svg {
+   width: 18px;
+   height: 18px;
+ }
 
 @media (max-width: 480px) {
   .ai-chatbot {
@@ -818,10 +1148,20 @@ export default {
     font-size: 13px;
   }
 
-  .send-btn {
-    width: 42px;
-    height: 42px;
-  }
+     .send-btn {
+     width: 42px;
+     height: 42px;
+   }
+
+   .payment-button {
+     padding: 10px 20px;
+     font-size: 13px;
+   }
+
+   .payment-button svg {
+     width: 16px;
+     height: 16px;
+   }
 
   .close-btn {
     min-width: 44px;

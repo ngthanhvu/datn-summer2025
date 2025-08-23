@@ -32,24 +32,19 @@
             </div>
         </div>
 
-        <!-- Review Form -->
-        <div id="review-form" v-if="showReviewForm"
+        <!-- Review Form - Show when editing an existing review -->
+        <div id="review-form" v-if="showReviewForm || editingReviewId"
             class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 mb-6 sm:mb-8 transition-all hover:shadow-md">
+            <!-- Debug info -->
+            <div v-if="editingReviewId" class="mb-4 p-2 bg-blue-100 text-blue-800 rounded text-sm">
+                Đang chỉnh sửa đánh giá ID: {{ editingReviewId }}
+            </div>
             <h3 class="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center gap-2">
                 <i class="bi bi-pencil-square text-[#81AACC]"></i>
-                {{ editingReviewId ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá' }}
+                {{ editingReviewId ? 'Chỉnh sửa đánh giá của bạn' : 'Viết đánh giá' }}
             </h3>
-            
-            <div v-if="!isAuthenticated" class="text-center py-4 sm:py-6 bg-gray-50 rounded-lg">
-                <i class="bi bi-person-lock text-2xl sm:text-3xl text-gray-400 mb-2 block"></i>
-                <p class="mb-3 sm:mb-4 text-gray-600 text-sm sm:text-base">Vui lòng đăng nhập để đánh giá sản phẩm</p>
-                <a href="/login"
-                    class="bg-[#81AACC] text-white px-4 sm:px-6 py-2 rounded-md inline-block font-medium transition-colors hover:bg-[#6B8BA3] text-sm sm:text-base">
-                    <i class="bi bi-box-arrow-in-right mr-1"></i> Đăng nhập
-                </a>
-            </div>
 
-            <form v-else @submit.prevent="$emit('submitReview')" class="space-y-4 sm:space-y-6">
+            <form @submit.prevent="$emit('submitReview')" class="space-y-4 sm:space-y-6">
                 <!-- Rating -->
                 <div>
                     <label class="block mb-2 sm:mb-3 font-medium text-gray-700 text-sm sm:text-base">Đánh giá của
@@ -130,27 +125,35 @@
             </form>
         </div>
 
-        <!-- Review Form Toggle Button -->
-        <div v-if="!showReviewForm && isAuthenticated && !userHasReviewed"
-            class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 mb-6 sm:mb-8 text-center">
-            <i class="bi bi-chat-square-text text-2xl sm:text-3xl text-gray-400 mb-3 block"></i>
-            <p class="mb-3 sm:mb-4 text-gray-600 text-sm sm:text-base">Bạn chưa đánh giá sản phẩm này</p>
-            <button @click="$emit('update:showReviewForm', true)"
-                class="bg-[#81AACC] text-white px-3 sm:px-4 py-1.5 rounded-md font-medium transition-colors hover:bg-[#6B8BA3] inline-flex items-center gap-2 text-xs sm:text-sm">
-                <i class="bi bi-pencil-square"></i> Viết đánh giá
-            </button>
-        </div>
+
 
         <!-- Edit Review Button for users who have already reviewed -->
-        <div v-if="!showReviewForm && isAuthenticated && userHasReviewed"
+        <div v-if="!showReviewForm && !editingReviewId && isAuthenticated && userHasReviewed"
             class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 mb-6 sm:mb-8 text-center">
             <i class="bi bi-check-circle text-2xl sm:text-3xl text-green-500 mb-3 block"></i>
             <p class="mb-3 sm:mb-4 text-gray-600 text-sm sm:text-base">Bạn đã đánh giá sản phẩm này rồi</p>
             
-            <button @click="$emit('editReview', userReview)"
+            <button @click="handleEditReview"
                 class="bg-[#81AACC] text-white px-3 sm:px-4 py-1.5 rounded-md font-medium transition-colors hover:bg-[#6B8BA3] inline-flex items-center gap-2 text-xs sm:text-sm">
                 <i class="bi bi-pencil"></i> Chỉnh sửa đánh giá của bạn
             </button>
+        </div>
+
+        <!-- Notice for users who haven't reviewed yet -->
+        <div v-if="isAuthenticated && !userHasReviewed && !showReviewForm"
+            class="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200 mb-6 sm:mb-8 text-center">
+            <i class="bi bi-info-circle text-2xl sm:text-3xl text-blue-500 mb-3 block"></i>
+            <h4 class="font-semibold text-blue-800 mb-2 text-sm sm:text-base">Bạn chưa đánh giá sản phẩm này</h4>
+            <p class="text-blue-700 text-xs sm:text-sm mb-3">
+                Để đánh giá sản phẩm, bạn cần mua và nhận hàng thành công trước.
+            </p>
+            <p class="text-blue-600 text-xs">
+                Vui lòng vào trang "Đơn hàng của tôi" để viết đánh giá cho các đơn hàng đã hoàn thành.
+            </p>
+            <a href="/trang-ca-nhan?tab=orders"
+                class="bg-blue-600 text-white px-4 py-2 rounded-md inline-block font-medium transition-colors hover:bg-blue-700 text-sm mt-3">
+                <i class="bi bi-box-seam mr-1"></i> Xem đơn hàng của tôi
+            </a>
         </div>
 
         <!-- Review List -->
@@ -436,6 +439,30 @@ const handleImageChange = (event) => {
         })
     }
     emit('handleImageUpload', event)
+}
+
+const handleEditReview = () => {
+    console.log('handleEditReview called, userReview:', props.userReview)
+    console.log('userHasReviewed:', props.userHasReviewed)
+    console.log('isAuthenticated:', props.isAuthenticated)
+    console.log('user:', props.user)
+    
+    if (props.userReview) {
+        console.log('Emitting editReview with:', props.userReview)
+        emit('editReview', props.userReview)
+    } else {
+        console.error('userReview is null or undefined')
+        // Fallback: try to find user's review in the reviews array
+        const userReview = props.reviews.find(review => 
+            props.user && review.user_id === props.user.id
+        )
+        if (userReview) {
+            console.log('Found user review in reviews array:', userReview)
+            emit('editReview', userReview)
+        } else {
+            console.error('No user review found in reviews array either')
+        }
+    }
 }
 
 const canModifyReview = (review) => {

@@ -103,7 +103,7 @@ import CartItem from './CartItem.vue'
 import CartSummary from './CartSummary.vue'
 import { useCart } from '../../composable/useCart'
 
-const { cart, fetchCart, updateQuantity, removeFromCart } = useCart()
+const { cart, fetchCart, updateQuantity, removeFromCart, clearCart } = useCart()
 
 const cartItems = computed(() => Array.isArray(cart.value) ? cart.value : [])
 const itemErrors = ref({})
@@ -192,9 +192,8 @@ const handleDecrease = async (itemId) => {
 
 const handleClearCart = async () => {
     try {
-        for (const item of cartItems.value) {
-            await removeFromCart(item.id)
-        }
+        await clearCart()
+        console.log('Cart cleared successfully')
     } catch (error) {
         console.error('Lỗi khi xóa giỏ hàng:', error)
     }

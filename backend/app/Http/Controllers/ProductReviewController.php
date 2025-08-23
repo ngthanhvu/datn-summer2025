@@ -101,6 +101,26 @@ class ProductReviewController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
+        // Check if user has purchased the product
+        $hasPurchased = \App\Models\Orders::where('user_id', $request->user_id)
+            ->where('status', 'completed')
+            ->whereHas('orderDetails', function($query) use ($request) {
+                $query->whereHas('variant', function($variantQuery) use ($request) {
+                    $variantQuery->whereHas('product', function($productQuery) use ($request) {
+                        $productQuery->where('slug', $request->product_slug);
+                    });
+                });
+            })
+            ->exists();
+
+        if (!$hasPurchased) {
+            return response()->json([
+                'message' => 'Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua và nhận hàng thành công.',
+                'error' => 'purchase_required'
+            ], 403);
+        }
+
+        // Check if user has already reviewed this product
         $existingReview = ProductReview::where('user_id', $request->user_id)
             ->where('product_slug', $request->product_slug)
             ->whereNull('parent_id')
@@ -108,8 +128,9 @@ class ProductReviewController extends Controller
 
         if ($existingReview) {
             return response()->json([
-                'message' => 'Bạn đã đánh giá sản phẩm này rồi. Vui lòng chỉnh sửa đánh giá hiện có thay vì tạo mới.'
-            ], 422);
+                'message' => 'Bạn đã đánh giá sản phẩm này rồi.',
+                'error' => 'already_reviewed'
+            ], 400);
         }
 
         if ($this->containsBadWords($validated['content'])) {
@@ -292,6 +313,24 @@ class ProductReviewController extends Controller
 
         return response()->json([
             'hasReviewed' => false
+        ]);
+    }
+
+    public function checkUserPurchase(Request $request, $userId, $productSlug)
+    {
+        $hasPurchased = \App\Models\Orders::where('user_id', $userId)
+            ->where('status', 'completed')
+            ->whereHas('orderDetails', function($query) use ($productSlug) {
+                $query->whereHas('variant', function($variantQuery) use ($productSlug) {
+                    $variantQuery->whereHas('product', function($productQuery) use ($productSlug) {
+                        $productQuery->where('slug', $productSlug);
+                    });
+                });
+            })
+            ->exists();
+
+        return response()->json([
+            'hasPurchased' => $hasPurchased
         ]);
     }
 
