@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('note')->nullable();
             $table->string('tracking_code')->nullable()->unique();
             $table->string('return_status')->nullable();
-            $table->string('cancel_reason')->nullable()->after('status');
+            $table->string('cancel_reason')->nullable();
             $table->text('reject_reason')->nullable();
             $table->text('return_reason')->nullable();
             $table->timestamps();
