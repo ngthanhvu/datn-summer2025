@@ -216,8 +216,8 @@
                                         </button>
                                     </div>
                                     <div v-if="canRequestReturn(order)" class="mt-4 text-right">
-                                        <button @click.stop="handleRequestReturn(order.id)"
-                                            class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors">
+                                        <button @click.stop="showReturnReasonModal = true; selectedOrder = order"
+                                            class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors cursor-pointer">
                                             Yêu cầu hoàn hàng
                                         </button>
                                     </div>
@@ -286,10 +286,26 @@
                                             </div>
                                         </div>
 
+                                        <!-- Hiển thị lý do hoàn hàng nếu có -->
+                                        <div v-if="order.return_reason && order.return_status === 'requested'"
+                                            class="flex items-start mb-2">
+                                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
+                                            </svg>
+                                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 w-full ml-2">
+                                                <div class="text-blue-700 text-sm">
+                                                    <span class="font-semibold">Lý do hoàn hàng:</span> {{
+                                                        order.return_reason }}
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Return action buttons -->
                                         <div class="flex gap-2 justify-end">
                                             <button v-if="canRequestReturn(order)"
-                                                @click.stop="handleRequestReturn(order.id)"
+                                                @click.stop="showReturnReasonModal = true; selectedOrder = order"
                                                 class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600 transition-colors">
                                                 Yêu cầu hoàn hàng
                                             </button>
@@ -551,6 +567,21 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Hiển thị lý do hoàn hàng nếu có (mobile) -->
+                        <div v-if="order.return_reason && order.return_status === 'requested'" class="flex items-start">
+                            <svg class="w-4 h-4 text-blue-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
+                            </svg>
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 w-full ml-2">
+                                <div class="text-blue-700 text-xs">
+                                    <span class="font-semibold">Lý do hoàn hàng:</span> {{
+                                        order.return_reason }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Action buttons -->
@@ -560,7 +591,8 @@
                             class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">
                             Huỷ đơn hàng
                         </button>
-                        <button v-if="canRequestReturn(order)" @click.stop="handleRequestReturn(order.id)"
+                        <button v-if="canRequestReturn(order)"
+                            @click.stop="showReturnReasonModal = true; selectedOrder = order"
                             class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600 transition-colors">
                             Yêu cầu hoàn hàng
                         </button>
@@ -861,6 +893,22 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Hiển thị lý do hoàn hàng nếu có (modal) -->
+                                <div v-if="selectedOrder.return_reason && selectedOrder.return_status === 'requested'"
+                                    class="flex items-start mb-2">
+                                    <svg class="w-6 h-6 text-blue-500 mt-1" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
+                                    </svg>
+                                    <div class="bg-blue-50 border border-blue-200 rounded p-3 w-full ml-2">
+                                        <div class="text-blue-700 text-left">
+                                            <span class="font-semibold">Lý do hoàn hàng:</span> {{
+                                                selectedOrder.return_reason }}
+                                        </div>
+                                    </div>
+                                </div>
                                 <div v-if="selectedOrder.status === 'cancelled' && selectedOrder.cancel_reason"
                                     class="mt-4 p-4 bg-red-50 rounded-lg border-l-4 border-red-400 relative">
                                     <div class="text-gray-500 text-xs absolute top-2 right-2">
@@ -938,6 +986,34 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal yêu cầu hoàn hàng -->
+        <div v-if="showReturnReasonModal"
+            class="fixed inset-0 bg-gray-900/60 bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+                <h3 class="text-lg font-bold mb-4">Lý Do Hoàn Hàng</h3>
+                <div class="mb-4 text-sm bg-blue-50 p-3 rounded text-blue-800">
+                    Vui lòng chọn lý do hoàn hàng phù hợp. Yêu cầu của bạn sẽ được xem xét trong vòng 24 giờ.
+                </div>
+                <div class="space-y-2 mb-4">
+                    <div v-for="reason in returnReasons" :key="reason.value" class="flex items-center">
+                        <input type="radio" :id="'return-reason-' + reason.value" v-model="returnReason"
+                            :value="reason.value" class="mr-2" />
+                        <label :for="'return-reason-' + reason.value" class="cursor-pointer">{{ reason.label
+                            }}</label>
+                    </div>
+                    <input v-if="returnReason === 'other'" v-model="returnReasonOther" type="text"
+                        class="mt-2 w-full p-2 border border-gray-300 rounded" placeholder="Vui lòng ghi rõ lý do..." />
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button @click="showReturnReasonModal = false" class="bg-gray-200 px-4 py-2 rounded">Không phải
+                        bây giờ</button>
+                    <button @click="confirmReturnRequest"
+                        class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">Gửi yêu cầu
+                        hoàn hàng</button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -966,6 +1042,9 @@ const expandedOrderId = ref(null)
 const showCancelReasonModal = ref(false)
 const cancelReason = ref('')
 const cancelReasonOther = ref('')
+const showReturnReasonModal = ref(false)
+const returnReason = ref('')
+const returnReasonOther = ref('')
 
 function toggleExpand(orderId) {
     expandedOrderId.value = expandedOrderId.value === orderId ? null : orderId
@@ -1013,6 +1092,14 @@ const cancelReasons = [
     { value: 'found_better', label: 'Tôi tìm được nơi mua khác tốt hơn.' },
     { value: 'no_need', label: 'Tôi không còn nhu cầu mua sản phẩm này nữa.' },
     { value: 'ordered_by_mistake', label: 'Tôi đặt nhầm đơn hàng.' },
+    { value: 'other', label: 'Lý do khác' }
+]
+
+const returnReasons = [
+    { value: 'quality_issue', label: 'Sản phẩm không đúng chất lượng' },
+    { value: 'wrong_item', label: 'Sản phẩm không đúng' },
+    { value: 'damaged_item', label: 'Sản phẩm bị hư hỏng' },
+    { value: 'missing_item', label: 'Thiếu sản phẩm' },
     { value: 'other', label: 'Lý do khác' }
 ]
 
@@ -1167,7 +1254,6 @@ const canCancelOrder = (order) => {
 }
 
 const confirmCancelOrder = async () => {
-    const push = useNuxtApp().$push
     const reasonLabel = cancelReason.value === 'other'
         ? cancelReasonOther.value.trim()
         : cancelReasons.find(r => r.value === cancelReason.value)?.label || ''
@@ -1245,18 +1331,9 @@ const handleRequestReturn = async (orderId) => {
         return;
     }
 
-    try {
-        await orderService.requestReturn(orderId)
-        const orderIndex = orders.value.findIndex(order => order.id === orderId)
-        if (orderIndex !== -1) {
-            orders.value[orderIndex].return_status = 'requested'
-            orders.value[orderIndex].return_requested_at = new Date().toISOString()
-        }
-        push.success('Yêu cầu hoàn hàng đã được gửi!')
-        fetchOrders()
-    } catch (err) {
-        push.error(err?.response?.data?.message || err.message || 'Gửi yêu cầu hoàn hàng thất bại')
-    }
+    // Nếu tất cả điều kiện đều hợp lệ, mở modal để chọn lý do
+    selectedOrder.value = order
+    showReturnReasonModal.value = true
 }
 
 const formatDateNoPrefix = (date) => {
@@ -1271,6 +1348,29 @@ const calculateShipping = (order) => {
     const final = Number(order.final_price) || 0
     const shipping = final - total
     return shipping > 0 ? shipping : 0
+}
+
+const confirmReturnRequest = async () => {
+    const reasonLabel = returnReason.value === 'other'
+        ? returnReasonOther.value.trim()
+        : returnReasons.find(r => r.value === returnReason.value)?.label || ''
+
+    if (!reasonLabel) {
+        push.error('Vui lòng chọn hoặc nhập lý do hoàn hàng')
+        return
+    }
+
+    try {
+        await orderService.requestReturn(selectedOrder.value.id, reasonLabel)
+        showReturnReasonModal.value = false
+        selectedOrder.value = null
+        fetchOrders()
+        push.success('Yêu cầu hoàn hàng đã được gửi!')
+        returnReason.value = ''
+        returnReasonOther.value = ''
+    } catch (err) {
+        push.error(err?.response?.data?.message || err.message || 'Gửi yêu cầu hoàn hàng thất bại')
+    }
 }
 
 onMounted(() => {

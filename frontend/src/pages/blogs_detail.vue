@@ -61,7 +61,7 @@
                             <div class="flex items-center gap-1 sm:gap-2">
                                 <i class="fas fa-user text-primary"></i>
                                 <span class="truncate">{{ blog.author?.username || blog.author?.name || 'Unknown'
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex items-center gap-1 sm:gap-2">
                                 <i class="fas fa-calendar text-primary"></i>
@@ -100,13 +100,13 @@
                     <div v-if="blog.author"
                         class="bg-gray-50 rounded-lg p-4 sm:p-6 flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
                         <div class="flex-shrink-0">
-                            <img :src="blog.author.avatar || '/https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
+                            <img :src="blog.author.avatar || 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg'"
                                 :alt="blog.author.username || blog.author.name"
                                 class="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover" />
                         </div>
                         <div class="flex-1 min-w-0">
                             <h3 class="text-sm sm:text-base font-semibold">{{ blog.author.username || blog.author.name
-                                }}</h3>
+                            }}</h3>
                             <p v-if="blog.author.bio" class="text-gray-600 mt-2 text-sm">{{ blog.author.bio }}</p>
                             <div v-if="blog.author.social_links" class="flex gap-3 mt-3">
                                 <a v-for="(link, platform) in blog.author.social_links" :key="platform" :href="link"
@@ -172,7 +172,7 @@
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-folder text-blue-500 group-hover:text-blue-600"></i>
                                     <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ category.name
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                                     {{ category.blogs_count || 0 }}

@@ -63,7 +63,6 @@ class OrdersController extends Controller
                 Cache::tags(['flash_sales'])->flush();
             }
         } catch (\Throwable $e) {
-
         }
     }
     public function index()
@@ -96,6 +95,7 @@ class OrdersController extends Controller
                 'tracking_code',
                 'cancel_reason',
                 'return_status',
+                'return_reason',
                 'reject_reason'
             ]);
         $orders = $query->orderBy('created_at', 'desc')->paginate(10);
@@ -142,6 +142,7 @@ class OrdersController extends Controller
                 'tracking_code',
                 'cancel_reason',
                 'return_status',
+                'return_reason',
                 'reject_reason'
             ])
             ->where('user_id', Auth::id())
@@ -376,6 +377,11 @@ class OrdersController extends Controller
                 return response()->json([
                     'message' => 'Chỉ có thể hủy đơn hàng trong vòng 24 giờ kể từ khi đặt hàng'
                 ], 400);
+            }
+
+            $cancelReason = $request->input('cancel_reason');
+            if ($cancelReason) {
+                $order->cancel_reason = $cancelReason;
             }
 
             if (in_array($order->payment_method, ['momo', 'vnpay', 'paypal'])) {
@@ -644,7 +650,13 @@ class OrdersController extends Controller
             return response()->json(['message' => 'Chỉ có thể hoàn hàng trong vòng 3 ngày kể từ khi đơn hoàn thành hoặc bị hủy'], 400);
         }
 
+        $returnReason = $request->input('return_reason');
+        if (!$returnReason) {
+            return response()->json(['message' => 'Vui lòng cung cấp lý do hoàn hàng'], 400);
+        }
+
         $order->return_status = 'requested';
+        $order->return_reason = $returnReason;
         $order->save();
 
         return response()->json(['message' => 'Yêu cầu hoàn hàng đã được gửi thành công']);
@@ -659,7 +671,15 @@ class OrdersController extends Controller
         if ($order->return_status !== 'requested') {
             return response()->json(['message' => 'Đơn hàng chưa có yêu cầu hoàn hàng'], 400);
         }
+
         $order->return_status = 'approved';
+
+        $order->status = 'refunded';
+
+        if ($order->payment_status === 'paid') {
+            $order->payment_status = 'refunded';
+        }
+
         $order->save();
 
         $order->load('orderDetails.variant.product.mainImage');

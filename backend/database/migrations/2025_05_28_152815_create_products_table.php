@@ -21,6 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->foreignId('categories_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->foreignId('brand_id')->nullable()->constrained('brands')->onDelete('set null');
+            $table->integer('sold_count')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });

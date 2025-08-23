@@ -11,11 +11,11 @@ return new class extends Migration
         Schema::create('product_reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('product_slug');  
+            $table->string('product_slug');
             $table->foreign('product_slug')
-                  ->references('slug')
-                  ->on('products')
-                  ->onDelete('cascade');
+                ->references('slug')
+                ->on('products')
+                ->onDelete('cascade');
             $table->integer('rating')->nullable();
             $table->text('content');
             $table->foreignId('parent_id')->nullable()->constrained('product_reviews')->onDelete('cascade');

@@ -159,11 +159,12 @@ export const useOrder = () => {
         }
     }
 
-    const requestReturn = async (id) => {
+    const requestReturn = async (id, return_reason) => {
         loading.value = true
         error.value = null
         try {
-            const res = await API.post(`/api/orders/${id}/return`)
+            const payload = return_reason ? { return_reason } : {}
+            const res = await API.post(`/api/orders/${id}/return`, payload)
             return res.data
         } catch (err) {
             error.value = err.response?.data?.message || err.message
