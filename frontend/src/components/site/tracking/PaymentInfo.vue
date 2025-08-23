@@ -9,7 +9,7 @@
             <p><span class="font-medium">Tổng tiền:</span> {{ formatPrice(payment.total) }}</p>
             <p>
                 <span class="font-medium">Trạng thái:</span>
-                <span :class="payment.status === 'paid' ? 'text-green-600' : 'text-red-600'">
+                <span :class="payment.status === 'paid' ? 'text-green-600' : 'text-red-600'" class="ml-2">
                     {{ payment.status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' }}
                 </span>
             </p>

@@ -24,6 +24,7 @@ class Orders extends Model
         'cancel_reason',
         'return_status',
         'reject_reason',
+        'return_reason',
     ];
 
     public function user()

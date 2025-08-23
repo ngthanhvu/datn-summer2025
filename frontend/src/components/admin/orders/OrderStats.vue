@@ -79,6 +79,7 @@ const statusLabel = (status) => {
         case 'shipping': return 'Đang giao hàng'
         case 'completed': return 'Hoàn thành'
         case 'cancelled': return 'Đã hủy'
+        case 'refunded': return 'Đã trả hàng'
         default: return status
     }
 }
@@ -90,6 +91,7 @@ const statusIcon = (status) => {
         case 'shipping': return 'fas fa-truck'
         case 'completed': return 'fas fa-check-circle'
         case 'cancelled': return 'fas fa-times-circle'
+        case 'refunded': return 'fas fa-undo-alt'
         default: return 'fas fa-question-circle'
     }
 }
@@ -101,6 +103,7 @@ const statusIconClass = (status) => {
         case 'shipping': return 'shipping'
         case 'completed': return 'completed'
         case 'cancelled': return 'cancelled'
+        case 'refunded': return 'returned'
         default: return 'unknown'
     }
 }

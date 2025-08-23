@@ -34,20 +34,11 @@
                             @click="handleUpdateStatus({ status: selectedStatus, payment_status: selectedPaymentStatus })"
                             class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 w-full md:w-auto">Gửi</button>
                     </div>
-                    <!-- Nhóm duyệt/từ chối hoàn hàng -->
+                    <!-- Thông báo yêu cầu hoàn hàng -->
                     <div v-if="currentOrder?.return_status === 'requested'"
-                        class="flex flex-col md:flex-row md:items-center gap-2 mt-2 md:mt-0 md:ml-2">
-                        <span class="text-xs text-gray-500 font-medium">Xử lý yêu cầu hoàn hàng:</span>
-                        <div class="flex gap-2">
-                            <button @click="handleApproveReturn"
-                                class="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700">
-                                Duyệt
-                            </button>
-                            <button @click="openRejectModal"
-                                class="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">
-                                Từ chối
-                            </button>
-                        </div>
+                        class="flex items-center gap-2 px-3 py-2 bg-orange-100 text-orange-800 rounded-lg text-sm font-medium">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Có yêu cầu hoàn hàng cần xử lý
                     </div>
                     <button
                         class="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 w-full md:w-auto">
@@ -203,6 +194,22 @@
                                     {{ formatDate(currentOrder?.updated_at) }}
                                 </span>
                             </div>
+                            <div v-else-if="currentOrder?.status === 'refunded'"
+                                class="flex flex-col items-center relative min-w-[72px]">
+                                <div :class="[
+                                    'w-10 h-10 rounded-full flex items-center justify-center text-white',
+                                    'bg-blue-500'
+                                ]">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm mt-2">Đã hoàn tiền</span>
+                                <span class="text-xs text-gray-500">
+                                    {{ formatDate(currentOrder?.updated_at) }}
+                                </span>
+                            </div>
                         </div>
 
                         <!-- Related Timestamps -->
@@ -223,6 +230,10 @@
                                 <span class="text-gray-600">Thời gian hoàn thành</span>
                                 <span class="text-gray-900">{{ formatDate(currentOrder?.updated_at) }}</span>
                             </div>
+                            <div v-if="currentOrder?.status === 'refunded'" class="flex justify-between text-sm">
+                                <span class="text-gray-600">Thời gian hoàn tiền</span>
+                                <span class="text-gray-900">{{ formatDate(currentOrder?.updated_at) }}</span>
+                            </div>
                         </div>
 
                         <button class="text-blue-600 text-sm mt-4 hover:text-blue-800">
@@ -233,6 +244,68 @@
 
                 <!-- Right Column -->
                 <div class="space-y-6">
+                    <!-- Return Request Card - Đặt lên đầu để admin dễ thấy -->
+                    <div v-if="currentOrder?.return_status"
+                        class="bg-white rounded-lg shadow p-4 sm:p-6 border-l-4 border-orange-400">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                <i class="fas fa-undo-alt text-orange-500 mr-2"></i>
+                                Yêu cầu hoàn hàng
+                            </h3>
+                            <span :class="[
+                                'px-3 py-1 rounded-full text-xs font-medium',
+                                currentOrder.return_status === 'requested' ? 'bg-yellow-100 text-yellow-800' :
+                                    currentOrder.return_status === 'approved' ? 'bg-green-100 text-green-800' :
+                                        'bg-red-100 text-red-800'
+                            ]">
+                                {{
+                                    currentOrder.return_status === 'requested' ? 'Chờ xử lý' :
+                                        currentOrder.return_status === 'approved' ? 'Đã duyệt' :
+                                            'Đã từ chối'
+                                }}
+                            </span>
+                        </div>
+
+                        <!-- Lý do hoàn hàng -->
+                        <div v-if="currentOrder.return_reason" class="mb-4">
+                            <p class="text-sm text-gray-600 mb-2">
+                                <span class="font-medium text-gray-900">Lý do hoàn hàng:</span>
+                            </p>
+                            <div class="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                                <p class="text-orange-900 text-sm font-medium">{{ currentOrder.return_reason }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Lý do từ chối nếu có -->
+                        <div v-if="currentOrder.reject_reason" class="mb-4">
+                            <p class="text-sm text-gray-600 mb-2">
+                                <span class="font-medium text-gray-900">Lý do từ chối:</span>
+                            </p>
+                            <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                                <p class="text-red-700 text-sm font-medium">{{ currentOrder.reject_reason }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Thời gian yêu cầu -->
+                        <div v-if="currentOrder.updated_at" class="text-xs text-gray-500 mb-4">
+                            <span class="font-medium">Thời gian yêu cầu:</span> {{ formatDate(currentOrder.updated_at)
+                            }}
+                        </div>
+
+                        <!-- Nút xử lý nếu đang chờ -->
+                        <div v-if="currentOrder.return_status === 'requested'"
+                            class="flex gap-2 pt-2 border-t border-gray-200">
+                            <button @click="handleApproveReturn"
+                                class="flex-1 bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition-colors cursor-pointer">
+                                <i class="fas fa-check mr-2"></i>Duyệt hoàn hàng
+                            </button>
+                            <button @click="openRejectModal"
+                                class="flex-1 bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors cursor-pointer">
+                                <i class="fas fa-times mr-2"></i>Từ chối
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Customer Info Card -->
                     <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                         <div class="flex justify-between items-center mb-4">
@@ -299,6 +372,8 @@
                             </div>
                         </div>
                     </div>
+
+
                 </div>
             </div>
         </div>
@@ -357,7 +432,8 @@ const statusOptions = [
     { value: 'processing', label: 'Đang giao' },
     { value: 'shipping', label: 'Đang giao hàng' },
     { value: 'completed', label: 'Hoàn thành' },
-    { value: 'cancelled', label: 'Đã hủy' }
+    { value: 'cancelled', label: 'Đã hủy' },
+    { value: 'refunded', label: 'Đã hoàn tiền' }
 ]
 
 const paymentStatusOptions = [
