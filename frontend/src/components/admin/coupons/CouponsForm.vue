@@ -21,7 +21,7 @@
                     v-model="formData.description" rows="3"
                     placeholder="Nhập mô tả chi tiết về chương trình khuyến mãi"></textarea>
                 <span v-if="errors.description" class="text-red-500 text-sm mt-1">{{ errors.description
-                    }}</span>
+                }}</span>
             </div>
             <div class="form-group">
                 <label for="type">Loại giảm giá <span class="text-red-500">*</span></label>
@@ -38,7 +38,7 @@
                     <input id="value"
                         class="focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
                         v-model.number="formData.value" type="number" required :min="0"
-                        :max="formData.type === 'percent' ? 100 : undefined"
+                        :max="formData.type === 'percent' ? 99 : undefined"
                         :step="formData.type === 'percent' ? 1 : 1000" />
                     <span class="suffix">{{ formData.type === 'percent' ? '%' : 'đ' }}</span>
                 </div>
@@ -53,7 +53,7 @@
                     <span class="suffix">đ</span>
                 </div>
                 <span v-if="errors.min_order_value" class="text-red-500 text-sm mt-1">{{ errors.min_order_value
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group" v-if="formData.type !== 'shipping'">
                 <label for="max_discount_value">Giảm tối đa <span class="text-red-500">*</span></label>
@@ -66,7 +66,7 @@
                 </div>
                 <span v-if="errors.max_discount_value" class="text-red-500 text-sm mt-1">{{
                     errors.max_discount_value
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="usage_limit">Giới hạn sử dụng <span class="text-red-500">*</span></label>
@@ -75,7 +75,7 @@
                     v-model.number="formData.usage_limit" type="number" :min="0" :step="1"
                     placeholder="0 = không giới hạn" />
                 <span v-if="errors.usage_limit" class="text-red-500 text-sm mt-1">{{ errors.usage_limit
-                }}</span>
+                    }}</span>
             </div>
             <div class="form-group">
                 <label for="start_date">Ngày bắt đầu <span class="text-red-500">*</span></label>
@@ -99,6 +99,10 @@
             </div>
         </form>
         <div class="flex justify-end gap-4 mt-6">
+            <router-link to="/admin/coupons"
+                class="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 cursor-pointer text-center">
+                Hủy
+            </router-link>
             <button @click="handleSubmit"
                 class="w-full sm:w-auto bg-primary text-white rounded px-4 py-2 hover:bg-primary-dark cursor-pointer">
                 Tạo khuyến mãi
@@ -137,15 +141,47 @@ function validateForm() {
     if (!formData.value.name) err.name = 'Vui lòng nhập tên chương trình.'
     if (!formData.value.code) err.code = 'Vui lòng nhập mã giảm giá.'
     if (!formData.value.description) err.description = 'Vui lòng nhập mô tả chương trình.'
-    if (formData.value.type !== 'shipping' && (formData.value.value === '' || formData.value.value === null || formData.value.value < 0)) err.value = 'Giá trị giảm phải lớn hơn hoặc bằng 0.'
-    if (formData.value.min_order_value === '' || formData.value.min_order_value === null || formData.value.min_order_value < 0) err.min_order_value = 'Đơn hàng tối thiểu phải lớn hơn hoặc bằng 0.'
-    if (formData.value.type !== 'percent' && formData.value.type !== 'shipping' && (formData.value.max_discount_value === '' || formData.value.max_discount_value === null || formData.value.max_discount_value < 0)) err.max_discount_value = 'Giảm tối đa phải lớn hơn hoặc bằng 0.'
-    if (formData.value.usage_limit === '' || formData.value.usage_limit === null || formData.value.usage_limit < 0) err.usage_limit = 'Giới hạn sử dụng phải lớn hơn hoặc bằng 0.'
+
+    if (formData.value.type === 'percent') {
+        if (
+            formData.value.value === '' ||
+            formData.value.value === null ||
+            formData.value.value < 1 ||
+            formData.value.value > 99
+        ) {
+            err.value = 'Phần trăm giảm giá phải từ 1 đến 99.'
+        }
+    } else if (
+        formData.value.type !== 'shipping' &&
+        (formData.value.value === '' || formData.value.value === null || formData.value.value < 0)
+    ) {
+        err.value = 'Giá trị giảm phải lớn hơn hoặc bằng 0.'
+    }
+
+    if (formData.value.min_order_value === '' || formData.value.min_order_value === null || formData.value.min_order_value < 0) {
+        err.min_order_value = 'Đơn hàng tối thiểu phải lớn hơn hoặc bằng 0.'
+    }
+
+    if (formData.value.type !== 'percent' && formData.value.type !== 'shipping' && (formData.value.max_discount_value === '' || formData.value.max_discount_value === null || formData.value.max_discount_value < 0)) {
+        err.max_discount_value = 'Giảm tối đa phải lớn hơn hoặc bằng 0.'
+    }
+
+    if (formData.value.usage_limit === '' || formData.value.usage_limit === null || formData.value.usage_limit < 0) {
+        err.usage_limit = 'Giới hạn sử dụng phải lớn hơn hoặc bằng 0.'
+    }
+
     if (!formData.value.start_date) err.start_date = 'Vui lòng chọn ngày bắt đầu.'
     if (!formData.value.end_date) err.end_date = 'Vui lòng chọn ngày kết thúc.'
-    if (formData.value.start_date && formData.value.end_date && new Date(formData.value.end_date) <= new Date(formData.value.start_date)) err.end_date = 'Ngày kết thúc phải sau ngày bắt đầu.'
+    if (formData.value.start_date && formData.value.end_date && new Date(formData.value.end_date) <= new Date(formData.value.start_date)) {
+        err.end_date = 'Ngày kết thúc phải sau ngày bắt đầu.'
+    }
+
     errors.value = err
     return Object.keys(err).length === 0
+}
+
+const errorMessagesMap = {
+    "The code has already been taken.": "Mã giảm giá đã tồn tại."
 }
 
 const handleSubmit = async () => {
@@ -153,17 +189,8 @@ const handleSubmit = async () => {
     try {
         await createCoupon(formData.value)
 
-        // Hiển thị thông báo thành công
-        // await Swal.fire({
-        //     title: 'Thành công!',
-        //     text: 'Mã giảm giá đã được tạo thành công',
-        //     icon: 'success',
-        //     confirmButtonText: 'OK',
-        //     confirmButtonColor: '#3bb77e'
-        // })
         push.success('Tạo khuyến mái thành công')
 
-        // Reset form sau khi tạo thành công
         formData.value = {
             name: '',
             code: '',
@@ -180,15 +207,16 @@ const handleSubmit = async () => {
         errors.value = {}
         router.push('/admin/coupons')
     } catch (error) {
-        // Hiển thị thông báo lỗi
-        // Swal.fire({
-        //     title: 'Lỗi!',
-        //     text: 'Có lỗi xảy ra khi tạo mã giảm giá',
-        //     icon: 'error',
-        //     confirmButtonText: 'OK',
-        //     confirmButtonColor: '#3bb77e'
-        // })
-        push.error('Lỗi tạo khuyến mái')
+        errors.value = {}
+        // push.error('Lỗi tạo khuyến mái')
+        if (error.response?.data?.errors) {
+            const backendErrors = error.response.data.errors
+            for (const key in backendErrors) {
+                errors.value[key] = errorMessagesMap[backendErrors[key][0]] || backendErrors[key][0]
+            }
+        } else {
+            push.error('Có lỗi xảy ra khi tạo khuyến mãi')
+        }
         console.error('Lỗi khi tạo coupon:', error)
     }
 }
