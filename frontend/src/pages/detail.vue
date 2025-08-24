@@ -366,25 +366,46 @@ const handleAddToCart = async () => {
         }
 
         let maxAvailable = Number(selectedVariantStock.value || 0)
+        let isFlashSale = false
+
         if (flashSalePrice.value && Number(flashSalePrice.value) > 0) {
-            const fsRemain = Number(flashSaleQuantity.value || 0)
-            if (fsRemain <= 0) {
+            isFlashSale = true
+            const fsQuantity = Number(flashSaleQuantity.value || 0)
+
+            if (fsQuantity <= 0) {
                 push.warning('Sản phẩm Flash Sale đã hết hàng')
                 return
             }
-            maxAvailable = Math.min(maxAvailable, fsRemain)
+
+            const currentCartQuantity = cartQuantity.value
+            const totalRequested = currentCartQuantity + quantity.value
+
+            if (totalRequested > fsQuantity) {
+                push.warning(`Số lượng vượt quá cho phép. Flash Sale còn lại: ${fsQuantity}, đã có trong giỏ: ${currentCartQuantity}`)
+                return
+            }
+
+            maxAvailable = Math.min(maxAvailable, fsQuantity - currentCartQuantity)
+        } else {
+            const currentCartQuantity = cartQuantity.value
+            const totalRequested = currentCartQuantity + quantity.value
+
+            if (totalRequested > maxAvailable) {
+                push.warning(`Số lượng vượt quá cho phép. Tối đa còn lại: ${maxAvailable}, đã có trong giỏ: ${currentCartQuantity}`)
+                return
+            }
+
+            maxAvailable = maxAvailable - currentCartQuantity
         }
+
         if (quantity.value > maxAvailable) {
             push.warning(`Số lượng vượt quá cho phép. Tối đa còn lại: ${maxAvailable}`)
             return
         }
 
         let price = selectedVariant.price
-        if (flashSalePrice.value && Number(flashSalePrice.value) > 0 && product.value?.price) {
-            const percent = Math.round(100 - (Number(flashSalePrice.value) / Number(product.value.price)) * 100)
-            if (percent > 0) {
-                price = Math.round(selectedVariant.price * (1 - percent / 100))
-            }
+        if (isFlashSale && product.value?.price) {
+            price = Number(flashSalePrice.value)
         }
 
         const added = await addToCart(selectedVariant.id, quantity.value, price)
