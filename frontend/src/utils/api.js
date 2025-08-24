@@ -36,22 +36,29 @@ api.interceptors.response.use(
                 error.config?.url?.includes('/check-oauth-status')
 
             if (!isAuthEndpoint) {
-                // Xóa token và user từ localStorage và Cookies
-                localStorage.removeItem('token')
-                localStorage.removeItem('user')
-                document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-                document.cookie = 'user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+                if (!error.config._retry) {
+                    error.config._retry = true
 
-                // Hiển thị thông báo và chuyển hướng
-                await Swal.fire({
-                    icon: 'warning',
-                    title: 'Phiên đăng nhập đã hết hạn.',
-                    text: 'Vui lòng đăng nhập lại.',
-                }).then((result) => {
-                    if (result.isConfirmed) {
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('user')
+                    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+                    document.cookie = 'user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+
+                    try {
+                        await Swal.fire({
+                            icon: 'warning',
+                            title: 'Phiên đăng nhập đã hết hạn.',
+                            text: 'Vui lòng đăng nhập lại.',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/login'
+                            }
+                        })
+                    } catch (swalError) {
+                        console.warn('Swal error:', swalError)
                         window.location.href = '/login'
                     }
-                })
+                }
             }
         }
         return Promise.reject(error)

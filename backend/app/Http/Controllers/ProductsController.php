@@ -152,7 +152,7 @@ class ProductsController extends Controller
                 $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'asc';
                 $query->orderBy($sortField, $sortDirection);
             } else {
-                $query->orderBy('id', 'asc');
+                $query->orderBy('id', 'desc');
             }
 
             $perPage = (int) $request->input('per_page', 8);
