@@ -2,7 +2,7 @@
     <div class="bg-[#f7f8fa] min-h-screen p-3 sm:p-6">
         <h1 class="text-2xl sm:text-3xl font-bold">Quản lý Flash Sale</h1>
         <div class="text-gray-500 mb-4 sm:mb-6">Quản lý các chương trình Flash Sale của bạn</div>
-        
+
         <!-- Thống kê tổng quan -->
         <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow p-4">
@@ -12,7 +12,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Tổng sản phẩm đã bán -->
             <div class="bg-white rounded-xl shadow p-4">
@@ -132,22 +132,26 @@
                             <td class="px-4 py-2 text-center">{{ item.start_time }} ~ {{ item.end_time }}</td>
                             <td class="px-4 py-2 text-center">{{ getSoldReal(item) }}</td>
                             <td class="px-4 py-2 text-center">{{ formatCurrency(getFlashSalePrice(item)) }}</td>
-                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0) }}</td>
-                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.cost_real ?? 0) }}</td>
-                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.shipping_fee ?? 0) }}</td>
-                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.profit_real ?? 0) }}</td>
-                            <td class="px-4 py-2 text-center">
-                                <button class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0)
+                                }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.cost_real ?? 0) }}
+                            </td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.shipping_fee ?? 0)
+                                }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.profit_real ?? 0) }}
+                            </td>
+                            <td class="px-2 py-2 text-center">
+                                <button class="px-2 py-1 rounded-full text-xs font-semibold cursor-pointer"
                                     :class="item.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
                                     @click="toggleStatus(item)">
-                                    {{ item.active ? 'Đang hoạt động' : 'Đang ẩn' }}
+                                    {{ item.active ? 'Hoạt động' : 'Đang ẩn' }}
                                 </button>
                             </td>
-                            <td class="px-4 py-2 text-center">
+                            <td class="px-2 py-2 text-center">
                                 <span v-if="item.repeat"
-                                    class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs">Lặp lại</span>
+                                    class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">Lặp lại</span>
                                 <span v-else
-                                    class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs">Không</span>
+                                    class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">Không</span>
                             </td>
                             <td class="px-4 py-2 flex justify-center items-center">
                                 <div class="flex gap-2">
@@ -231,7 +235,8 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Doanh thu thực tế:</span>
-                            <span class="text-green-600">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0) }}</span>
+                            <span class="text-green-600">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0)
+                                }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Giá nhập kho:</span>
@@ -239,11 +244,13 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Phí ship:</span>
-                            <span class="text-orange-600">{{ formatCurrency(realStats[item.id]?.shipping_fee ?? 0) }}</span>
+                            <span class="text-orange-600">{{ formatCurrency(realStats[item.id]?.shipping_fee ?? 0)
+                                }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Lợi nhuận:</span>
-                            <span class="text-blue-600 font-semibold">{{ formatCurrency(realStats[item.id]?.profit_real ?? 0) }}</span>
+                            <span class="text-blue-600 font-semibold">{{ formatCurrency(realStats[item.id]?.profit_real
+                                ?? 0) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Lặp lại:</span>
