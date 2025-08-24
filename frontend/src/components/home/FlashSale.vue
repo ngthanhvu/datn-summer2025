@@ -259,7 +259,7 @@ function updateTabData() {
       flash_price: Number(p.flash_price) || 0, // Convert to number
       sold: p.sold ?? 0,
       end_time: fs.end_time,
-      flash_sale_quantity: Number(p.quantity) || 0, 
+      flash_sale_quantity: Number(p.quantity) || 0,
       images: p.product?.images || [],
       variants: p.product?.variants || [],
       brand: p.product?.brand,
@@ -305,8 +305,6 @@ function scrollRight() {
 function addToCart(product) {
 }
 function onQuickView(product) {
-  console.log('Product data for Quick-view:', product)
-  console.log('Product images:', product.images)
 
   selectedProduct.value = {
     ...product,
@@ -320,7 +318,6 @@ function onQuickView(product) {
     flash_sale_quantity: Number(product.flash_sale_quantity) || 0
   }
 
-  console.log('Selected product for Quick-view:', selectedProduct.value)
   showQuickView.value = true
 }
 function handleAddToCart() {

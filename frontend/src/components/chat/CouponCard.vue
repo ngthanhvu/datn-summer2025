@@ -1,18 +1,14 @@
 <template>
   <div class="coupons-section">
     <div class="coupon-title">MÃ GIẢM GIÁ HOT</div>
-    <div 
-      v-for="(coupon, index) in coupons" 
-      :key="coupon.id || index"
-      class="coupon-item"
-      :class="index === 0 ? 'coupon-item-premium' : 'coupon-item-standard'"
-    >
+    <div v-for="(coupon, index) in coupons" :key="coupon.id || index" class="coupon-item"
+      :class="index === 0 ? 'coupon-item-premium' : 'coupon-item-standard'">
       <div class="coupon-details">
         <div class="coupon-name">{{ coupon.name || 'Mã giảm giá' }}</div>
         <div class="coupon-code">{{ coupon.code }}</div>
         <div class="coupon-discount">
           <span v-if="coupon.type === 'percent'">
-            Giảm {{ coupon.value }}% 
+            Giảm {{ coupon.value }}%
             <span v-if="coupon.max_discount_value && coupon.max_discount_value > 0">
               (Tối đa: {{ formatPrice(coupon.max_discount_value) }})
             </span>
@@ -28,24 +24,15 @@
           Hạn sử dụng: {{ formatDate(coupon.end_date) }}
         </div>
         <div v-if="coupon.description" class="coupon-desc">{{ coupon.description }}</div>
-        
+
         <!-- Nút Lấy ngay -->
-        <button 
-          @click="saveCoupon(coupon)"
-          class="save-coupon-btn"
-          :disabled="coupon.saved"
-        >
+        <button @click="saveCoupon(coupon)" class="save-coupon-btn" :disabled="coupon.saved">
           <span v-if="coupon.saved">✅ Đã lưu</span>
           <span v-else>🎯 Lấy ngay</span>
         </button>
-        
+
         <!-- Nút Sử dụng (chỉ hiện khi đã lưu) -->
-        <button 
-          v-if="coupon.saved"
-          @click="useCoupon(coupon.id)"
-          class="use-coupon-btn"
-          :disabled="coupon.used"
-        >
+        <button v-if="coupon.saved" @click="useCoupon(coupon.id)" class="use-coupon-btn" :disabled="coupon.used">
           <span v-if="coupon.used">🔴 Đã sử dụng</span>
           <span v-else>💳 Sử dụng ngay</span>
         </button>
@@ -69,31 +56,22 @@ export default {
   emits: ['save-coupon', 'use-coupon'],
   setup(props, { emit }) {
     const { formatPrice } = useAIChat()
-    
+
     const formatDate = (dateString) => {
       if (!dateString) return ''
       const date = new Date(dateString)
       return date.toLocaleDateString('vi-VN')
     }
-    
+
     const saveCoupon = (coupon) => {
-      // Đánh dấu coupon đã được lưu
       coupon.saved = true
-      
-      // Emit event để parent component xử lý
       emit('save-coupon', coupon)
-      
-      // Hiển thị thông báo thành công
-      console.log(`Đã lưu mã giảm giá: ${coupon.code}`)
     }
-    
+
     const useCoupon = (couponId) => {
-      // Emit event để parent component xử lý
       emit('use-coupon', couponId)
-      
-      console.log(`Sử dụng mã giảm giá: ${couponId}`)
     }
-    
+
     return {
       formatPrice,
       formatDate,
@@ -106,6 +84,7 @@ export default {
 
 <style scoped>
 @import url('../../assets/css/chat-animations.css');
+
 .coupons-section {
   margin: 12px 0;
   padding: 16px;
@@ -377,5 +356,4 @@ export default {
   transform: none;
   box-shadow: 0 2px 8px rgba(149, 165, 166, 0.4);
 }
-
 </style>

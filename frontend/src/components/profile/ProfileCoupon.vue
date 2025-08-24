@@ -3,7 +3,8 @@
         <!-- Header Section -->
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">Voucher Đã Lưu</h1>
-            <p class="text-gray-600">Danh sách các mã giảm giá bạn đã lưu</p>
+            <p class="text-gray-600">Danh sách các mã giảm giá bạn đã lưu. Hoặc có thể nhận <router-link
+                    to="/kho-voucher" class="text-blue-600 hover:underline">tại đây</router-link to="/kho-voucher"></p>
         </div>
 
         <!-- Skeleton Loading -->
@@ -98,7 +99,8 @@
                                         }}
                                     </span>
                                     <span class="text-sm text-gray-600 ml-2">
-                                        {{ coupon.type === 'percent' ? 'giảm giá' : (coupon.type === 'shipping' ? '' : 'giảm cố định') }}
+                                        {{ coupon.type === 'percent' ? 'giảm giá' : (coupon.type === 'shipping' ? '' :
+                                            'giảm cố định') }}
                                     </span>
                                 </div>
                                 <div class="text-right">

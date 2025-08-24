@@ -86,7 +86,8 @@
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900">
                                 <div class="font-medium">{{ address.street }}</div>
-                                <div class="text-gray-600">{{ address.ward }}, {{ address.district }}, {{ address.province }}</div>
+                                <div class="text-gray-600">{{ address.ward }}, {{ address.district }}, {{
+                                    address.province }}</div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -143,14 +144,13 @@
 import { ref, onMounted, watch } from "vue";
 import { useHead } from "@vueuse/head";
 import { useAddress } from "../../composable/useAddress";
-import { useNotivue } from "notivue";
+import { push } from "notivue";
 
 useHead({
     title: "Địa chỉ của tôi | DEVGANG",
     meta: [{ name: "description", content: "Địa chỉ" }],
 });
 
-const { notify } = useNotivue();
 
 const {
     form,
@@ -178,11 +178,11 @@ const fetchProvinces = async () => {
 
 const fetchDistricts = async () => {
     if (!form.value.province) return;
-    
+
     // Tìm ProvinceID từ ProvinceName
     const selectedProvince = provinces.value.find((p) => p.ProvinceName === form.value.province);
     if (!selectedProvince) return;
-    
+
     districts.value = await getDistricts(selectedProvince.ProvinceID);
     wards.value = [];
     form.value.district = "";
@@ -191,11 +191,11 @@ const fetchDistricts = async () => {
 
 const fetchWards = async () => {
     if (!form.value.district) return;
-    
+
     // Tìm DistrictID từ DistrictName
     const selectedDistrict = districts.value.find((d) => d.DistrictName === form.value.district);
     if (!selectedDistrict) return;
-    
+
     wards.value = await getWards(selectedDistrict.DistrictID);
     form.value.ward = "";
 };
@@ -206,7 +206,7 @@ const fetchAddresses = async () => {
         addresses.value = Array.isArray(res) ? res : [];
     } catch (error) {
         addresses.value = [];
-        notify.error("Không thể tải danh sách địa chỉ!");
+        push.error("Không thể tải danh sách địa chỉ!");
     }
 };
 
@@ -225,10 +225,9 @@ const handleSubmit = async () => {
         const res = await createAddress(addressData);
         addresses.value.push(res);
         resetForm();
-        notify.success("Thêm địa chỉ thành công!");
+        push.success("Thêm địa chỉ thành công!");
     } catch (error) {
         console.error(error);
-        notify.error("Có lỗi xảy ra khi thêm địa chỉ!");
     }
 };
 
@@ -237,26 +236,23 @@ const handleDeleteAddress = async (id) => {
         const result = await deleteAddress(id);
         if (result) {
             addresses.value = addresses.value.filter((addr) => addr.id !== id);
-            notify.success("Xóa địa chỉ thành công!");
+            push.success("Xóa địa chỉ thành công!");
         } else {
-            notify.error("Xóa địa chỉ thất bại!");
+            push.error("Xóa địa chỉ thất bại!");
         }
     } catch (error) {
         console.error("Error deleting address:", error);
-        notify.error("Có lỗi xảy ra khi xóa địa chỉ!");
     }
 };
 
 const editAddress = (address) => {
     setFormData(address);
-    
-    // Nếu có province, load districts
+
     if (address.province) {
         const selectedProvince = provinces.value.find((p) => p.ProvinceName === address.province);
         if (selectedProvince) {
             form.value.province = address.province;
             fetchDistricts().then(() => {
-                // Sau khi load districts, nếu có district, load wards
                 if (address.district) {
                     const selectedDistrict = districts.value.find((d) => d.DistrictName === address.district);
                     if (selectedDistrict) {

@@ -57,8 +57,8 @@
                     </div>
                     <div v-if="form.repeat" class="bg-blue-50 border border-blue-200 rounded p-3 text-xs text-blue-700">
                         <i class="fas fa-info-circle mr-1"></i>
-                        Khi chương trình kết thúc, hệ thống sẽ tự động tạo lại chương trình mới sau {{
-                            form.repeatMinutes || 60 }} phút
+                        <strong>Tính năng lặp lại:</strong> Khi chương trình kết thúc, hệ thống sẽ tự động tạo lại chương trình mới sau {{
+                            form.repeatMinutes || 60 }} phút. Tên mới sẽ có dạng "Tên cũ (Lặp lại - Ngày giờ)". Số lượng đã bán sẽ được reset về 0.
                     </div>
                     <div v-if="form.repeat && errors.repeatMinutes" class="text-red-500 text-xs">{{ errors.repeatMinutes
                     }}</div>
@@ -93,8 +93,8 @@
                     <div v-if="form.autoIncrease"
                         class="bg-green-50 border border-green-200 rounded p-3 text-xs text-green-700">
                         <i class="fas fa-clock mr-1"></i>
-                        Hệ thống sẽ tự động tăng số lượng đã bán thêm {{ form.increaseAmount || 1 }} mỗi 1 giờ, không
-                        vượt quá số lượng tổng
+                        <strong>Tính năng tăng số lượng:</strong> Hệ thống sẽ tự động tăng số lượng đã bán thêm {{ form.increaseAmount || 1 }} mỗi 1 giờ, không
+                        vượt quá số lượng tổng. Tính năng này giúp tạo cảm giác Flash Sale đang bán chạy.
                     </div>
                     <div v-if="form.autoIncrease && errors.increaseAmount" class="text-red-500 text-xs">{{
                         errors.increaseAmount }}</div>

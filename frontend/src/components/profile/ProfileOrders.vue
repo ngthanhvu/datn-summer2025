@@ -80,7 +80,7 @@
                                             </div>
                                             <span class="text-sm mt-2 text-gray-700">Đặt hàng</span>
                                             <span class="text-xs text-gray-500">{{ formatDate(order.created_at)
-                                            }}</span>
+                                                }}</span>
                                         </div>
                                         <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
                                         <!-- Xác nhận -->
@@ -149,24 +149,37 @@
                                     <div class="space-y-2">
                                         <div v-for="item in order.order_details" :key="item.id"
                                             class="flex items-center gap-4 p-3 bg-white rounded-lg border border-gray-300">
-                                            <img :src="item.variant?.product?.main_image?.image_path"
-                                                class="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                                                :alt="item.variant?.product?.name" />
+                                            <!-- Ảnh sản phẩm -->
+                                            <router-link :to="`/san-pham/${item.variant?.product?.slug}`"
+                                                class="flex-shrink-0">
+                                                <img :src="item.variant?.product?.main_image?.image_path"
+                                                    class="w-16 h-16 object-cover rounded-lg"
+                                                    :alt="item.variant?.product?.name" />
+                                            </router-link>
+
+                                            <!-- Tên + thông tin -->
                                             <div class="flex-1 min-w-0">
-                                                <h5 class="font-medium text-gray-900 text-sm">{{
-                                                    item.variant?.product?.name }}</h5>
+                                                <h5 class="font-medium text-gray-900 text-sm">
+                                                    <router-link :to="`/san-pham/${item.variant?.product?.slug}`"
+                                                        class="hover:underline">
+                                                        {{ item.variant?.product?.name }}
+                                                    </router-link>
+                                                </h5>
                                                 <p class="text-gray-600 text-xs">Size: {{ item.variant?.size }}</p>
                                                 <p class="text-gray-600 text-xs">Số lượng: {{ item.quantity }}</p>
                                             </div>
+                                            <!-- Giá -->
                                             <div class="text-right flex-shrink-0">
-                                                <p class="font-medium text-gray-900 text-sm">{{ formatPrice(item.price)
-                                                    }}đ</p>
-                                                <p class="text-gray-600 text-xs">Tổng: {{ formatPrice(item.total_price)
-                                                    }}đ
+                                                <p class="font-medium text-gray-900 text-sm">
+                                                    {{ formatPrice(item.price) }}đ
+                                                </p>
+                                                <p class="text-gray-600 text-xs">
+                                                    Tổng: {{ formatPrice(item.total_price) }}đ
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <div class="bg-white p-4 rounded-lg border border-gray-300">
                                             <h4 class="font-semibold mb-2 text-gray-900">Thông tin giao hàng</h4>
@@ -209,44 +222,44 @@
                                             </div>
                                         </div>
                                     </div>
-                                                                         <!-- Action Buttons - Horizontal Layout -->
-                                     <div class="mt-6 flex flex-wrap gap-3 justify-end">
-                                         <button v-if="canCancelOrder(order)" 
-                                             @click.stop="showCancelReasonModal = true; selectedOrder = order"
-                                             class="inline-flex items-center px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                             </svg>
-                                             Huỷ đơn hàng
-                                         </button>
-                                         
-                                         <button v-if="canRequestReturn(order)" 
-                                             @click.stop="showReturnReasonModal = true; selectedOrder = order"
-                                             class="inline-flex items-center px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 focus:ring-4 focus:ring-orange-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17l4 4 4-4m0-5V3m-8 9v6a2 2 0 002 2h4a2 2 0 002-2v-6" />
-                                             </svg>
-                                             Yêu cầu hoàn hàng
-                                         </button>
-                                         
-                                         <button v-if="order.status === 'completed'" 
-                                             @click.stop="openReviewModal(order)"
-                                             class="inline-flex items-center px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                             </svg>
-                                             Viết đánh giá
-                                         </button>
-                                         
-                                         <button v-if="order && (order.status === 'completed' || order.status === 'cancelled')" 
-                                             @click.stop="handleReorder(order.id)"
-                                             class="inline-flex items-center px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
-                                             </svg>
-                                             Mua lại
-                                         </button>
-                                     </div>
+                                    <!-- Action Buttons - Horizontal Layout -->
+                                    <div class="mt-6 flex flex-wrap gap-3 justify-end">
+                                        <button v-if="canCancelOrder(order)"
+                                            @click.stop="showCancelReasonModal = true; selectedOrder = order"
+                                            class="inline-flex items-center px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Huỷ đơn hàng
+                                        </button>
+
+                                        <button v-if="canRequestReturn(order)"
+                                            @click.stop="showReturnReasonModal = true; selectedOrder = order"
+                                            class="inline-flex items-center px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 focus:ring-4 focus:ring-orange-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                                            <i class="fa-solid fa-arrow-rotate-left mr-2"></i>
+                                            Yêu cầu hoàn hàng
+                                        </button>
+
+                                        <button v-if="order.status === 'completed'" @click.stop="openReviewModal(order)"
+                                            class="inline-flex items-center px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                            </svg>
+                                            Viết đánh giá
+                                        </button>
+
+                                        <button
+                                            v-if="order && (order.status === 'completed' || order.status === 'cancelled')"
+                                            @click.stop="handleReorder(order.id)"
+                                            class="inline-flex items-center px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                                            <i class="fa-solid fa-arrows-rotate mr-2"></i>
+                                            Mua lại
+                                        </button>
+                                    </div>
 
                                     <!-- Return status display in expanded view -->
                                     <div v-if="order.return_status" class="mt-4 space-y-2">
@@ -482,9 +495,9 @@
                                 </div>
                                 <div class="text-right flex-shrink-0">
                                     <p class="font-medium text-gray-900 text-sm">{{ formatPrice(item.price)
-                                        }}đ</p>
+                                    }}đ</p>
                                     <p class="text-gray-600 text-xs">Tổng: {{ formatPrice(item.total_price)
-                                        }}đ</p>
+                                    }}đ</p>
                                 </div>
                             </div>
                         </div>
@@ -610,40 +623,44 @@
                         </div>
                     </div>
 
-                                         <!-- Action buttons - Mobile -->
-                     <div class="flex flex-wrap gap-2 justify-end">
-                         <button v-if="canCancelOrder(order)"
-                             @click.stop="showCancelReasonModal = true; selectedOrder = order"
-                             class="inline-flex items-center px-3 py-2 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-300 transition-all duration-200 shadow-sm">
-                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                             </svg>
-                             Huỷ đơn hàng
-                         </button>
-                         <button v-if="canRequestReturn(order)"
-                             @click.stop="showReturnReasonModal = true; selectedOrder = order"
-                             class="inline-flex items-center px-3 py-2 bg-orange-500 text-white text-xs font-medium rounded-lg hover:bg-orange-600 focus:ring-2 focus:ring-orange-300 transition-all duration-200 shadow-sm">
-                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17l4 4 4-4m0-5V3m-8 9v6a2 2 0 002 2h4a2 2 0 002-2v-6" />
-                             </svg>
-                             Yêu cầu hoàn hàng
-                         </button>
-                         <button v-if="order.status === 'completed'" @click.stop="openReviewModal(order)"
-                             class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition-all duration-200 shadow-sm">
-                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                             </svg>
-                             Viết đánh giá
-                         </button>
-                         <button v-if="order && (order.status === 'completed' || order.status === 'cancelled')"
-                             @click.stop="handleReorder(order.id)"
-                             class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-300 transition-all duration-200 shadow-sm">
-                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
-                             </svg>
-                             Mua lại
-                         </button>
-                     </div>
+                    <!-- Action buttons - Mobile -->
+                    <div class="flex flex-wrap gap-2 justify-end">
+                        <button v-if="canCancelOrder(order)"
+                            @click.stop="showCancelReasonModal = true; selectedOrder = order"
+                            class="inline-flex items-center px-3 py-2 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-300 transition-all duration-200 shadow-sm">
+                            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Huỷ đơn hàng
+                        </button>
+                        <button v-if="canRequestReturn(order)"
+                            @click.stop="showReturnReasonModal = true; selectedOrder = order"
+                            class="inline-flex items-center px-3 py-2 bg-orange-500 text-white text-xs font-medium rounded-lg hover:bg-orange-600 focus:ring-2 focus:ring-orange-300 transition-all duration-200 shadow-sm">
+                            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 17l4 4 4-4m0-5V3m-8 9v6a2 2 0 002 2h4a2 2 0 002-2v-6" />
+                            </svg>
+                            Yêu cầu hoàn hàng
+                        </button>
+                        <button v-if="order.status === 'completed'" @click.stop="openReviewModal(order)"
+                            class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition-all duration-200 shadow-sm">
+                            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            Viết đánh giá
+                        </button>
+                        <button v-if="order && (order.status === 'completed' || order.status === 'cancelled')"
+                            @click.stop="handleReorder(order.id)"
+                            class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-300 transition-all duration-200 shadow-sm">
+                            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                            </svg>
+                            Mua lại
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -714,7 +731,7 @@
                                 </div>
                                 <span class="text-sm mt-2">Đặt hàng</span>
                                 <span class="text-xs text-gray-500">{{ formatDate(selectedOrder.created_at)
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
                             <div class="flex flex-col items-center relative">
@@ -1019,7 +1036,7 @@
                         <input type="radio" :id="'cancel-reason-' + reason.value" v-model="cancelReason"
                             :value="reason.value" class="mr-2" />
                         <label :for="'cancel-reason-' + reason.value" class="cursor-pointer">{{ reason.label
-                            }}</label>
+                        }}</label>
                     </div>
                     <input v-if="cancelReason === 'other'" v-model="cancelReasonOther" type="text"
                         class="mt-2 w-full p-2 border border-gray-300 rounded" placeholder="Vui lòng ghi rõ lý do..." />
@@ -1052,18 +1069,26 @@
                     <!-- Thông tin sản phẩm -->
                     <div class="border-b border-gray-200 pb-4">
                         <h4 class="font-semibold mb-3 text-gray-900">Sản phẩm cần đánh giá</h4>
-                        <div v-if="selectedOrderForReview.order_details[0]" class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                        <div v-if="selectedOrderForReview.order_details[0]"
+                            class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                             <img :src="selectedOrderForReview.order_details[0].variant?.product?.main_image?.image_path"
                                 class="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                                 :alt="selectedOrderForReview.order_details[0].variant?.product?.name" />
                             <div class="flex-1">
-                                <h5 class="font-medium text-gray-900">{{ selectedOrderForReview.order_details[0].variant?.product?.name }}</h5>
-                                <p class="text-gray-600 text-sm">Size: {{ selectedOrderForReview.order_details[0].variant?.size }}</p>
-                                <p class="text-gray-600 text-sm">Số lượng: {{ selectedOrderForReview.order_details[0].quantity }}</p>
+                                <h5 class="font-medium text-gray-900">{{
+                                    selectedOrderForReview.order_details[0].variant?.product?.name }}</h5>
+                                <p class="text-gray-600 text-sm">Size: {{
+                                    selectedOrderForReview.order_details[0].variant?.size
+                                    }}</p>
+                                <p class="text-gray-600 text-sm">Số lượng: {{
+                                    selectedOrderForReview.order_details[0].quantity
+                                    }}</p>
                             </div>
                         </div>
                         <div v-if="selectedOrderForReview.order_details.length > 1" class="mt-2 text-sm text-gray-600">
-                            <p>Lưu ý: Bạn chỉ có thể đánh giá 1 sản phẩm mỗi lần. Sản phẩm đầu tiên trong đơn hàng sẽ được đánh giá.</p>
+                            <p>Lưu ý: Bạn chỉ có thể đánh giá 1 sản phẩm mỗi lần. Sản phẩm đầu tiên trong đơn hàng sẽ
+                                được đánh
+                                giá.</p>
                         </div>
                     </div>
 
@@ -1072,11 +1097,10 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Đánh giá của bạn</label>
                             <div class="flex items-center gap-2">
-                                <button v-for="star in 5" :key="star" @click="reviewForm.rating = star"
-                                    :class="[
-                                        'text-2xl transition-colors',
-                                        star <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'
-                                    ]">
+                                <button v-for="star in 5" :key="star" @click="reviewForm.rating = star" :class="[
+                                    'text-2xl transition-colors',
+                                    star <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'
+                                ]">
                                     ★
                                 </button>
                                 <span class="ml-2 text-sm text-gray-600">{{ reviewForm.rating }}/5 sao</span>
@@ -1101,7 +1125,7 @@
                                 </button>
                                 <p class="text-sm text-gray-500 mt-2">Tối đa 5 hình, mỗi hình dưới 2MB</p>
                             </div>
-                            
+
                             <!-- Preview hình ảnh -->
                             <div v-if="previewImages.length > 0" class="mt-4 grid grid-cols-5 gap-2">
                                 <div v-for="(image, index) in previewImages" :key="index" class="relative">
@@ -1142,7 +1166,7 @@
                         <input type="radio" :id="'return-reason-' + reason.value" v-model="returnReason"
                             :value="reason.value" class="mr-2" />
                         <label :for="'return-reason-' + reason.value" class="cursor-pointer">{{ reason.label
-                            }}</label>
+                        }}</label>
                     </div>
                     <input v-if="returnReason === 'other'" v-model="returnReasonOther" type="text"
                         class="mt-2 w-full p-2 border border-gray-300 rounded" placeholder="Vui lòng ghi rõ lý do..." />
@@ -1509,13 +1533,13 @@ const calculateShipping = (order) => {
 // Review functions
 const openReviewModal = async (order) => {
     if (!order || !user.value) return
-    
+
     // Check if user has already reviewed any product in this order
     let hasReviewed = false
     for (const item of order.order_details) {
         const productSlug = item.variant?.product?.slug
         if (!productSlug) continue
-        
+
         try {
             const reviewCheck = await reviewService.checkUserReview(user.value.id, productSlug)
             if (reviewCheck.hasReviewed) {
@@ -1526,12 +1550,12 @@ const openReviewModal = async (order) => {
             console.error('Error checking review status:', error)
         }
     }
-    
+
     if (hasReviewed) {
         push.error('Bạn đã đánh giá sản phẩm trong đơn hàng này rồi')
         return
     }
-    
+
     selectedOrderForReview.value = order
     showReviewModal.value = true
     // Reset form
@@ -1560,13 +1584,13 @@ const handleImageUpload = (event) => {
         push.error('Chỉ được chọn tối đa 5 hình ảnh')
         return
     }
-    
+
     files.forEach(file => {
         if (file.size > 2 * 1024 * 1024) {
             push.error(`Hình ảnh ${file.name} quá lớn. Kích thước tối đa là 2MB`)
             return
         }
-        
+
         const reader = new FileReader()
         reader.onload = (e) => {
             previewImages.value.push({
@@ -1586,19 +1610,19 @@ const removeImage = (index) => {
 
 const submitReview = async () => {
     if (!selectedOrderForReview.value || !user.value) return
-    
+
     if (reviewForm.value.rating === 0) {
         push.error('Vui lòng chọn số sao đánh giá')
         return
     }
-    
+
     if (!reviewForm.value.content.trim()) {
         push.error('Vui lòng nhập nội dung đánh giá')
         return
     }
-    
+
     isSubmittingReview.value = true
-    
+
     try {
         // For now, we'll review the first product in the order
         // In the future, we can add a product selector
@@ -1606,7 +1630,7 @@ const submitReview = async () => {
         if (!firstItem?.variant?.product?.slug) {
             throw new Error('Không tìm thấy thông tin sản phẩm')
         }
-        
+
         const reviewData = {
             user_id: user.value.id,
             product_slug: firstItem.variant.product.slug,
@@ -1614,15 +1638,15 @@ const submitReview = async () => {
             content: reviewForm.value.content,
             images: reviewForm.value.images
         }
-        
+
         await reviewService.addReview(reviewData)
-        
+
         push.success('Đánh giá đã được gửi thành công!')
         closeReviewModal()
-        
+
         // Refresh orders to update review status
         await fetchOrders()
-        
+
     } catch (error) {
         console.error('Error submitting review:', error)
         push.error(error?.response?.data?.message || 'Có lỗi xảy ra khi gửi đánh giá')

@@ -64,7 +64,7 @@
                                         :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
                                 <div v-if="formErrors.category" class="text-red-500 text-sm mt-1">{{ formErrors.category
-                                }}</div>
+                                    }}</div>
                             </div>
 
                             <div>
@@ -99,7 +99,7 @@
                                 <label for="status"></label>
                             </div>
                             <span class="text-sm font-medium text-gray-700">{{ formData.status ? 'Hiển thị' : 'Ẩn'
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
 
@@ -441,7 +441,7 @@ onMounted(async () => {
                     name: product.name || '',
                     price: product.price || 0,
                     discount_price: product.discount_price || 0,
-                    category: product.category_id ? String(product.category_id) : (product.categories_id ? String(product.categories_id) : ''),
+                    category: product.categories_id ? String(product.categories_id) : '',
                     brand: product.brand_id ? String(product.brand_id) : '',
                     description: product.description || '',
                     status: !!product.is_active,
@@ -764,8 +764,12 @@ const handleSubmit = async () => {
         data.append("discount_price", formData.value.discount_price);
         data.append("description", formData.value.description);
         data.append("is_active", formData.value.status ? "1" : "0");
-        data.append("category_id", formData.value.category);
-        data.append("brand_id", formData.value.brand);
+        if (formData.value.category && formData.value.category.trim() !== '') {
+            data.append("categories_id", formData.value.category);
+        }
+        if (formData.value.brand && formData.value.brand.trim() !== '') {
+            data.append("brand_id", formData.value.brand);
+        }
 
         if (formData.value.mainImage) {
             data.append("is_main", formData.value.mainImage);

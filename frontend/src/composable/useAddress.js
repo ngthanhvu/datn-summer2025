@@ -160,7 +160,6 @@ export const useAddress = () => {
 
             if (confirm.isConfirmed) {
                 const res = await API.delete(`/api/addresses/${id}`);
-                Swal.fire("Đã xóa!", "Địa chỉ đã được xóa thành công", "success");
                 return res.data;
             }
             return null;

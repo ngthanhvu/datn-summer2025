@@ -1,18 +1,22 @@
 <template>
     <!-- Variant for detail page: match RelatedProducts layout (swiper on mobile, grid on desktop) -->
-    <div v-if="variant === 'detail' && recentlyViewed.length > 0" class="mt-5 mb-5 bg-white p-8 rounded-[10px] border border-gray-200">
+    <div v-if="variant === 'detail' && recentlyViewed.length > 0"
+        class="mt-5 mb-5 bg-white p-8 rounded-[10px] border border-gray-200">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold">Sản phẩm đã xem gần đây</h2>
-            <button @click="handleClearAllRecentlyViewed" class="text-red-600 hover:text-red-800 font-medium text-sm">Xóa tất cả</button>
+            <button @click="handleClearAllRecentlyViewed"
+                class="text-red-600 hover:text-red-800 font-medium text-sm cursor-pointer">Xóa tất cả</button>
         </div>
 
         <!-- Mobile Slider -->
         <div class="lg:hidden">
-            <swiper :slides-per-view="1.2" :space-between="16" :breakpoints="{ '640': { slidesPerView: 2.2 }, '768': { slidesPerView: 3.2 } }" class="w-full">
+            <swiper :slides-per-view="1.2" :space-between="16"
+                :breakpoints="{ '640': { slidesPerView: 2.2 }, '768': { slidesPerView: 3.2 } }" class="w-full">
                 <swiper-slide v-for="product in recentlyViewed" :key="product.id">
                     <div v-if="product?.slug" class="relative group">
                         <div class="absolute top-2 left-2 z-10">
-                            <span class="bg-black/70 text-white text-xs px-2 py-1 rounded-full">{{ formatViewTime(product.viewedAt) }}</span>
+                            <span class="bg-black/70 text-white text-xs px-2 py-1 rounded-full">{{
+                                formatViewTime(product.viewedAt) }}</span>
                         </div>
                         <Card :product="product" @quick-view="openQuickView" />
                     </div>
@@ -25,7 +29,8 @@
             <template v-for="product in recentlyViewed" :key="product.id">
                 <div class="relative group">
                     <div class="absolute top-2 left-2 z-10">
-                        <span class="bg-black/70 text-white text-xs px-2 py-1 rounded-full">{{ formatViewTime(product.viewedAt) }}</span>
+                        <span class="bg-black/70 text-white text-xs px-2 py-1 rounded-full">{{
+                            formatViewTime(product.viewedAt) }}</span>
                     </div>
                     <Card v-if="product?.slug" :product="product" @quick-view="openQuickView" />
                 </div>
@@ -44,23 +49,26 @@
             <div class="flex items-center gap-2">
                 <span class="text-sm text-gray-500">({{ recentlyViewed.length }} sản phẩm)</span>
                 <button @click="handleClearAllRecentlyViewed"
-                        class="text-red-600 hover:text-red-800 font-medium transition-colors text-sm md:text-base">
+                    class="text-red-600 hover:text-red-800 font-medium transition-colors text-sm md:text-base">
                     <i class="fas fa-trash-alt mr-1"></i>Xóa tất cả
                 </button>
             </div>
         </div>
 
-        <div class="flex gap-4 overflow-x-auto scroll-smooth md:grid md:grid-cols-1 md:sm:grid-cols-2 md:lg:grid-cols-4 md:xl:grid-cols-5 md:gap-4">
-            <div v-for="product in recentlyViewed" :key="product.id" class="flex-shrink-0 w-64 md:w-auto relative group">
+        <div
+            class="flex gap-4 overflow-x-auto scroll-smooth md:grid md:grid-cols-1 md:sm:grid-cols-2 md:lg:grid-cols-4 md:xl:grid-cols-5 md:gap-4">
+            <div v-for="product in recentlyViewed" :key="product.id"
+                class="flex-shrink-0 w-64 md:w-auto relative group">
                 <div class="absolute top-2 left-2 z-10">
                     <span class="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
                         {{ formatViewTime(product.viewedAt) }}
                     </span>
                 </div>
-                <div class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div
+                    class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button @click="removeFromRecentlyViewed(product.id)"
-                            class="w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-red-500 hover:bg-red-50 transition-colors duration-200"
-                            title="Xóa khỏi danh sách đã xem">
+                        class="w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-red-500 hover:bg-red-50 transition-colors duration-200"
+                        title="Xóa khỏi danh sách đã xem">
                         <i class="fas fa-times text-xs"></i>
                     </button>
                 </div>
@@ -73,12 +81,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useRecentlyViewed } from '../../composable/useRecentlyViewed';
 import Card from '../ui/Card.vue';
 import QuickView from '../products/Quick-view.vue';
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
+import Swal from 'sweetalert2';
+import { push } from 'notivue';
 
 const props = defineProps({
     variant: { type: String, default: 'home' }
@@ -90,8 +100,6 @@ const {
     addToRecentlyViewed,
     removeFromRecentlyViewed,
     clearAllRecentlyViewed,
-    clearLocalStorage,
-    enforceLimit
 } = useRecentlyViewed();
 
 const showQuickView = ref(false);
@@ -102,16 +110,16 @@ const formatViewTime = (viewedAt) => {
     const now = new Date();
     const viewed = new Date(viewedAt);
     const diffInMinutes = Math.floor((now - viewed) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Vừa xem';
     if (diffInMinutes < 60) return `${diffInMinutes}p trước`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours}h trước`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays} ngày trước`;
-    
+
     return viewed.toLocaleDateString('vi-VN');
 };
 
@@ -130,38 +138,28 @@ const addProductToRecentlyViewed = (product) => {
     addToRecentlyViewed(product);
 };
 
-const handleClearAllRecentlyViewed = () => {
-    if (confirm('Bạn có chắc chắn muốn xóa tất cả sản phẩm đã xem?')) {
+
+const handleClearAllRecentlyViewed = async () => {
+    const result = await Swal.fire({
+        title: 'Xác nhận xóa',
+        text: 'Bạn có chắc chắn muốn xóa tất cả sản phẩm đã xem?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Có, xóa hết',
+        cancelButtonText: 'Hủy'
+    })
+
+    if (result.isConfirmed) {
         try {
-            clearAllRecentlyViewed();
-            console.log('All recently viewed products cleared');
+            clearAllRecentlyViewed()
+            push.success('Xóa tất cả sản phẩm đã xem gần đây!')
         } catch (error) {
-            console.error('Lỗi khi xóa tất cả sản phẩm đã xem:', error);
-            alert('Không thể xóa tất cả sản phẩm. Vui lòng thử lại.');
+            console.error('Lỗi khi xóa tất cả sản phẩm đã xem:', error)
         }
     }
-};
-
-const handleForceLimit = () => {
-    try {
-        const wasEnforced = enforceLimit();
-        if (wasEnforced) {
-            console.log('Đã force cắt bớt sản phẩm xuống 5');
-            alert('Đã cắt bớt sản phẩm xuống 5!');
-        } else {
-            console.log('Không cần cắt bớt, đã đúng giới hạn');
-            alert('Không cần cắt bớt, đã đúng giới hạn 5 sản phẩm!');
-        }
-    } catch (error) {
-        console.error('Lỗi khi force limit:', error);
-        alert('Lỗi khi force limit!');
-    }
-};
-
-
-onMounted(() => {
-
-});
+}
 
 defineExpose({
     addProductToRecentlyViewed
@@ -204,7 +202,7 @@ defineExpose({
     .flex-shrink-0 {
         flex-shrink: 0;
     }
-    
+
     .w-64 {
         width: 16rem;
     }
