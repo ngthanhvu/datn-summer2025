@@ -39,6 +39,11 @@ export function useFlashsale() {
         return res.data;
     };
 
+    const processRepeat = async () => {
+        const res = await axios.post(`${API_BASE_URL}/api/flash-sales/process-repeat`);
+        return res.data;
+    };
+
     const getFlashSaleById = async (id) => {
         const res = await axios.get(`${API_BASE_URL}/api/flash-sales/${id}`);
         return res.data;
@@ -88,5 +93,6 @@ export function useFlashsale() {
         getMainImage,
         getFlashSaleStatistics,
         toggleFlashSaleStatus,
+        processRepeat,
     };
 }

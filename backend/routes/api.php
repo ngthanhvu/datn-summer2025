@@ -197,15 +197,14 @@ Route::post('/coupons/validate', [CouponsController::class, 'validate_coupon']);
 
 // Product review routes
 Route::get('/product-reviews', [ProductReviewController::class, 'index']);
-Route::post('/product-reviews', [ProductReviewController::class, 'store'])->middleware('auth:api');
+Route::post('/product-reviews', [ProductReviewController::class, 'store']);
 Route::get('/product-reviews/{id}', [ProductReviewController::class, 'show']);
-Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update'])->middleware('auth:api');
-Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy'])->middleware('auth:api');
+Route::put('/product-reviews/{id}', [ProductReviewController::class, 'update']);
+Route::delete('/product-reviews/{id}', [ProductReviewController::class, 'destroy']);
 Route::get('/product-reviews/product/{slug}', [ProductReviewController::class, 'getByProductSlug']);
-Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview'])->middleware('auth:api');
-Route::get('/product-reviews/purchase-check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserPurchase'])->middleware('auth:api');
-Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply'])->middleware('auth:api');
-Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply'])->middleware('auth:api');
+Route::get('/product-reviews/check/{userId}/{productSlug}', [ProductReviewController::class, 'checkUserReview']);
+Route::post('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'adminReply']);
+Route::put('/product-reviews/{id}/admin-reply', [ProductReviewController::class, 'updateAdminReply']);
 Route::get('/product-reviews/category/{categoryId}', [ProductReviewController::class, 'getByCategory']);
 Route::get('/reviews/latest', [ProductReviewController::class, 'latestReviews']);
 Route::get('/products-reviewed', [ProductReviewController::class, 'getReviewedProducts']);
@@ -252,6 +251,8 @@ Route::get('flash-sales', [FlashSaleController::class, 'index']);
 Route::post('flash-sales', [FlashSaleController::class, 'store']);
 // Specific routes must come before parameterized routes to avoid conflicts
 Route::get('flash-sales/statistics', [FlashSaleController::class, 'statistics']);
+Route::get('flash-sales/active', [FlashSaleController::class, 'getActiveFlashSales']);
+Route::post('flash-sales/process-repeat', [FlashSaleController::class, 'processRepeat']);
 Route::get('flash-sales/{id}/statistics', [FlashSaleController::class, 'statistics'])->whereNumber('id');
 Route::patch('flash-sales/{id}/status', [FlashSaleController::class, 'updateStatus'])->whereNumber('id');
 Route::put('flash-sales/{id}', [FlashSaleController::class, 'update'])->whereNumber('id');

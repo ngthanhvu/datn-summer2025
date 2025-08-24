@@ -17,91 +17,119 @@ class FlashSaleController extends Controller
 {
     public function index()
     {
-        $cacheKey = 'flash_sales_index';
-        $cacheTTL = 300; // 5 phút
+        try {
+            $cacheKey = 'flash_sales_index';
+            $cacheTTL = 300;
 
-        $flashSales = Cache::tags(['flash_sales'])->remember($cacheKey, $cacheTTL, function () {
-            $data = FlashSale::with([
-                'products.product.mainImage',
-                'products.product.categories',
-                'products.product.brand',
-                'products.product.variants',
-            ])->get();
+            $flashSales = Cache::remember($cacheKey, $cacheTTL, function () {
+                $data = FlashSale::with([
+                    'products.product.mainImage',
+                    'products.product.categories',
+                    'products.product.brand',
+                    'products.product.variants',
+                ])->get();
 
-            foreach ($data as $fs) {
-                foreach ($fs->products as $p) {
-                    if ($p->product) {
-                        $p->product->flash_sale_quantity = $p->quantity;
-                        $p->product->flash_sale_sold = $p->sold;
-                        $p->product->flash_price = $p->flash_price;
+                foreach ($data as $fs) {
+                    foreach ($fs->products as $p) {
+                        if ($p->product) {
+                            $p->product->flash_sale_quantity = $p->quantity;
+                            $p->product->flash_sale_sold = $p->sold;
+                            $p->product->flash_price = $p->flash_price;
+                        }
                     }
                 }
-            }
-            return $data;
-        });
+                return $data;
+            });
 
-        return response()->json($flashSales);
+            return response()->json($flashSales);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    public function statistics($id = null)
+        public function statistics($id = null)
     {
-        $query = FlashSale::query();
-        if ($id) $query->where('id', $id);
-        $flashSales = $query->with('products')->get();
+        try {
+            $query = FlashSale::query();
+            if ($id) $query->where('id', $id);
+            $flashSales = $query->with('products.product')->get();
 
-        $stats = [];
-        foreach ($flashSales as $fs) {
-            $sold = 0; $revenue = 0;
+            $stats = [];
+            foreach ($flashSales as $fs) {
+                $sold = 0; 
+                $totalRevenue = 0;
+                $totalCost = 0;
+                $totalShippingFee = 0;
 
-            $lastImportIds = DB::table('stock_movement_items as smi')
-                ->join('stock_movements as sm', 'sm.id', '=', 'smi.stock_movement_id')
-                ->where('sm.type', 'import')
-                ->where('sm.created_at', '<=', $fs->end_time)
-                ->select('smi.variant_id', DB::raw('MAX(smi.id) as last_smi_id'))
-                ->groupBy('smi.variant_id');
+                foreach ($fs->products as $product) {
+                    $stockOutData = DB::table('stock_movements as sm')
+                        ->join('stock_movement_items as smi', 'sm.id', '=', 'smi.stock_movement_id')
+                        ->join('variants as v', 'smi.variant_id', '=', 'v.id')
+                        ->where('v.product_id', $product->product_id)
+                        ->where('sm.type', 'export')
+                        ->where('sm.created_at', '>=', $fs->start_time)
+                        ->where('sm.created_at', '<=', $fs->end_time)
+                        ->where('sm.note', 'like', '%sale%')
+                        ->select(
+                            'smi.quantity',
+                            'smi.unit_price'
+                        )
+                        ->get();
 
-            $costSub = DB::table('stock_movement_items as last_smi')
-                ->joinSub($lastImportIds, 'latest', function ($join) {
-                    $join->on('latest.last_smi_id', '=', 'last_smi.id');
-                })
-                ->select('last_smi.variant_id', 'last_smi.unit_price as last_cost');
+                    $soldQty = $stockOutData->sum('quantity');
+                    $actualRevenue = $stockOutData->sum(function($item) {
+                        return $item->quantity * $item->unit_price;
+                    });
+                    
+                    $sold += $soldQty;
+                    $totalRevenue += $actualRevenue;
+                    
+                    $importCost = 0;
+                    $flashPrice = max(0, (float)($product->flash_price ?? 0));
+                    
+                    if ($product->product) {
+                        $latestImport = DB::table('stock_movement_items as smi')
+                            ->join('stock_movements as sm', 'sm.id', '=', 'smi.stock_movement_id')
+                            ->join('variants as v', 'v.id', '=', 'smi.variant_id')
+                            ->where('sm.type', 'import')
+                            ->where('v.product_id', $product->product_id)
+                            ->where('sm.created_at', '<=', $fs->end_time)
+                            ->orderBy('sm.created_at', 'desc')
+                            ->select('smi.unit_price')
+                            ->first();
+                        
+                        if ($latestImport) {
+                            $importCost = (float)$latestImport->unit_price;
+                        } else {
+                            $importCost = $flashPrice * 0.9;
+                        }
+                        
+                        \Log::info("Flash Sale {$fs->name} - Product {$product->product_id}: Stock Out Sold = {$soldQty}, Stock Out Revenue = {$actualRevenue}, Import Cost = {$importCost}");
+                    } else {
+                        $importCost = $flashPrice * 0.9;
+                    }
+                    
+                    $totalCost += $importCost * $soldQty;
+                }
 
-            $lines = DB::table('stock_movement_items as smi')
-                ->join('stock_movements as sm', 'sm.id', '=', 'smi.stock_movement_id')
-                ->join('variants as v', 'v.id', '=', 'smi.variant_id')
-                ->join('products as p', 'p.id', '=', 'v.product_id')
-                ->join('flash_sale_products as fsp', function ($join) use ($fs) {
-                    $join->on('fsp.product_id', '=', 'v.product_id')
-                         ->where('fsp.flash_sale_id', '=', $fs->id);
-                })
-                ->leftJoinSub($costSub, 'costs', function ($join) {
-                    $join->on('costs.variant_id', '=', 'v.id');
-                })
-                ->where('sm.type', 'export')
-                ->whereBetween('sm.created_at', [$fs->start_time, $fs->end_time])
-                ->where('sm.note', 'like', '%(sản phẩm sale)%')
-                ->whereRaw('smi.unit_price = ROUND(v.price * (fsp.flash_price / p.price))')
-                ->select(
-                    DB::raw('SUM(smi.quantity) as qty'),
-                    DB::raw('SUM(smi.quantity * smi.unit_price) as line_rev'),
-                    DB::raw('SUM(smi.quantity * COALESCE(costs.last_cost, 0)) as line_cost')
-                )
-                ->get();
+                $totalProfit = $totalRevenue - $totalCost - $totalShippingFee;
 
-            if ($lines->isNotEmpty()) {
-                $ln = $lines->first();
-                $sold += (int)($ln->qty ?? 0);
-                $profit = (float)$ln->line_rev - (float)$ln->line_cost;
-                $revenue += (int)round($profit);
+                $unitImportCost = $sold > 0 ? round($totalCost / $sold, 2) : 0;
+                
+                $stats[] = [
+                    'id' => $fs->id,
+                    'name' => $fs->name,
+                    'sold_real' => $sold,
+                    'revenue_real' => max(0, round($totalRevenue, 2)),
+                    'cost_real' => $unitImportCost,
+                    'shipping_fee' => round($totalShippingFee, 2),
+                    'profit_real' => round($totalProfit, 2),
+                ];
             }
-            $stats[] = [
-                'id' => $fs->id,
-                'name' => $fs->name,
-                'sold_real' => $sold,
-                'revenue_real' => $revenue,
-            ];
-        }
-        return response()->json($id ? ($stats[0] ?? []) : $stats);
+            return response()->json($id ? ($stats[0] ?? []) : $stats);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }   
     }
 
     public function updateStatus(Request $request, $id)
@@ -110,7 +138,7 @@ class FlashSaleController extends Controller
         $fs = FlashSale::findOrFail($id);
         $fs->active = $request->active;
         $fs->save();
-        Cache::tags(['flash_sales'])->flush();
+        Cache::forget('flash_sales_index');
         return response()->json(['success' => true, 'active' => $fs->active]);
     }
 
@@ -173,7 +201,7 @@ class FlashSaleController extends Controller
                 ]);
             }
             DB::commit();
-            Cache::tags(['flash_sales'])->flush();
+            Cache::forget('flash_sales_index');
             return response()->json(['success' => true, 'flash_sale' => $flashSale->load('products.product')]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -239,7 +267,7 @@ class FlashSaleController extends Controller
                 ]);
             }
             DB::commit();
-            Cache::tags(['flash_sales'])->flush();
+            Cache::forget('flash_sales_index');
             return response()->json(['success' => true, 'flash_sale' => $flashSale->load('products.product')]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -252,10 +280,10 @@ class FlashSaleController extends Controller
         DB::beginTransaction();
         try {
             $flashSale = FlashSale::with('products')->findOrFail($id);
-            $flashSale->products()->delete();
-            $flashSale->delete();
+            $flashSale->products()->forceDelete();
+            $flashSale->forceDelete();
             DB::commit();
-            Cache::tags(['flash_sales'])->flush();
+            Cache::forget('flash_sales_index');
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -265,17 +293,138 @@ class FlashSaleController extends Controller
 
     public function show($id)
     {
-        $cacheKey = "flash_sale_show_{$id}";
-        $cacheTTL = 300; // 5 phút
+        try {
+            $cacheKey = "flash_sale_show_{$id}";
+            $cacheTTL = 300;
 
-        $flashSale = Cache::tags(['flash_sales'])->remember($cacheKey, $cacheTTL, function () use ($id) {
-            $fs = FlashSale::with([
+            $flashSale = Cache::remember($cacheKey, $cacheTTL, function () use ($id) {
+                $fs = FlashSale::with([
+                    'products.product.mainImage',
+                    'products.product.categories',
+                    'products.product.brand',
+                    'products.product.variants',
+                ])->findOrFail($id);
+
+                foreach ($fs->products as $p) {
+                    if ($p->product) {
+                        $p->product->flash_sale_quantity = $p->quantity;
+                        $p->product->flash_sale_sold = $p->sold;
+                        $p->product->flash_price = $p->flash_price;
+                    }
+                }
+                return $fs;
+            });
+
+            return response()->json($flashSale);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function processRepeat()
+    {
+        try {
+            DB::beginTransaction();
+            
+            $now = now();
+            $processedCount = 0;
+            $autoIncreaseCount = 0;
+            
+            $expiredFlashSales = FlashSale::where('repeat', true)
+                ->where('active', true)
+                ->where('end_time', '<=', $now)
+                ->with('products')
+                ->get();
+
+            foreach ($expiredFlashSales as $flashSale) {
+                $duration = $flashSale->start_time->diffInMinutes($flashSale->end_time);
+                $newStartTime = $now;
+                $newEndTime = $now->copy()->addMinutes($duration);
+                
+                $newFlashSale = FlashSale::create([
+                    'name' => $flashSale->name . ' (Lặp lại - ' . $now->format('d/m/Y H:i') . ')',
+                    'start_time' => $newStartTime,
+                    'end_time' => $newEndTime,
+                    'repeat' => $flashSale->repeat,
+                    'repeat_minutes' => $flashSale->repeat_minutes,
+                    'auto_increase' => $flashSale->auto_increase,
+                    'active' => true,
+                ]);
+                
+                foreach ($flashSale->products as $product) {
+                    FlashSaleProduct::create([
+                        'flash_sale_id' => $newFlashSale->id,
+                        'product_id' => $product->product_id,
+                        'flash_price' => $product->flash_price,
+                        'quantity' => $product->quantity,
+                        'sold' => 0,
+                    ]);
+                }
+                
+                $flashSale->update(['active' => false]);
+                $processedCount++;
+            }
+            
+            $activeFlashSales = FlashSale::where('auto_increase', true)
+                ->where('active', true)
+                ->where('start_time', '<=', $now)
+                ->where('end_time', '>=', $now)
+                ->with('products.product')
+                ->get();
+
+            foreach ($activeFlashSales as $flashSale) {
+                $elapsedMinutes = $flashSale->start_time->diffInMinutes($now);
+                
+                foreach ($flashSale->products as $product) {
+                    $originalPrice = $product->product->price ?? 0;
+                    $currentFlashPrice = $product->flash_price;
+                    
+                    $increaseIntervals = floor($elapsedMinutes / 30);
+                    $increasePercentage = min($increaseIntervals * 5, 50);
+                    
+                    $newFlashPrice = $originalPrice * (1 - ($increasePercentage / 100));
+                    
+                    $newFlashPrice = max($newFlashPrice, $originalPrice * 0.5);
+                    
+                    if (abs($newFlashPrice - $currentFlashPrice) > 0.01) {
+                        $product->update(['flash_price' => round($newFlashPrice, 2)]);
+                        $autoIncreaseCount++;
+                    }
+                }
+            }
+            
+            DB::commit();
+            Cache::forget('flash_sales_index');
+            
+            return response()->json([
+                'success' => true, 
+                'message' => "Xử lý thành công! Đã tạo {$processedCount} Flash Sale mới và cập nhật {$autoIncreaseCount} giá sản phẩm.",
+                'processed_count' => $processedCount,
+                'auto_increase_count' => $autoIncreaseCount
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getActiveFlashSales()
+    {
+        $now = now();
+        
+        $activeFlashSales = FlashSale::where('active', true)
+            ->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->with([
                 'products.product.mainImage',
                 'products.product.categories',
                 'products.product.brand',
                 'products.product.variants',
-            ])->findOrFail($id);
+            ])
+            ->get();
 
+        foreach ($activeFlashSales as $fs) {
             foreach ($fs->products as $p) {
                 if ($p->product) {
                     $p->product->flash_sale_quantity = $p->quantity;
@@ -283,9 +432,8 @@ class FlashSaleController extends Controller
                     $p->product->flash_price = $p->flash_price;
                 }
             }
-            return $fs;
-        });
+        }
 
-        return response()->json($flashSale);
+        return response()->json($activeFlashSales);
     }
 }

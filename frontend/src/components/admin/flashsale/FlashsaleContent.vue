@@ -2,6 +2,71 @@
     <div class="bg-[#f7f8fa] min-h-screen p-3 sm:p-6">
         <h1 class="text-2xl sm:text-3xl font-bold">Quản lý Flash Sale</h1>
         <div class="text-gray-500 mb-4 sm:mb-6">Quản lý các chương trình Flash Sale của bạn</div>
+        
+        <!-- Thống kê tổng quan -->
+        <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow p-4">
+                <div class="animate-pulse">
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div class="h-8 bg-gray-200 rounded w-1/2"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Tổng sản phẩm đã bán -->
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Tổng sản phẩm đã bán</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ totalSold }}</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tổng doanh thu -->
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Tổng doanh thu</p>
+                        <p class="text-2xl font-bold text-green-600">{{ formatCurrency(totalRevenue) }}</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flash Sale đang chạy -->
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Flash Sale đang chạy</p>
+                        <p class="text-2xl font-bold text-orange-600">{{ activeFlashSales }}</p>
+                    </div>
+                    <div class="bg-orange-100 p-3 rounded-full">
+                        <i class="fas fa-fire text-orange-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lợi nhuận thực tế -->
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Lợi nhuận thực tế</p>
+                        <p class="text-2xl font-bold text-purple-600">{{ formatCurrency(totalProfit) }}</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white rounded-xl shadow p-3 sm:p-6">
             <!-- Mobile-first filter layout -->
             <div class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 mb-4 sm:flex-wrap">
@@ -21,9 +86,13 @@
                     </div>
                 </div>
                 <router-link to="/admin/flashsale/create"
-                    class="w-full sm:w-auto sm:ml-auto bg-[#3BB77E] hover:bg-green-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2 cursor-pointer text-sm">
+                    class="w-full sm:w-auto bg-[#3BB77E] hover:bg-green-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2 cursor-pointer text-sm">
                     <i class="fa fa-plus"></i> Thêm mới
                 </router-link>
+                <button @click="processRepeat"
+                    class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2 cursor-pointer text-sm">
+                    <i class="fa fa-refresh"></i> Xử lý lặp lại
+                </button>
             </div>
             <div v-if="loading" class="text-center py-8">Đang tải dữ liệu...</div>
             <div v-if="error" class="text-center text-red-500 py-4">{{ error }}</div>
@@ -38,7 +107,11 @@
                             <th class="px-4 py-3">Sản phẩm</th>
                             <th class="px-4 py-3">Thời gian</th>
                             <th class="px-4 py-3 text-center">Đã bán (thật)</th>
-                            <th class="px-4 py-3 text-center">Lợi nhuận (thật)</th>
+                            <th class="px-4 py-3 text-center">Giá Flash Sale</th>
+                            <th class="px-4 py-3 text-center">Doanh thu thực tế</th>
+                            <th class="px-4 py-3 text-center">Giá nhập kho</th>
+                            <th class="px-4 py-3 text-center">Phí ship</th>
+                            <th class="px-4 py-3 text-center">Lợi nhuận</th>
                             <th class="px-4 py-3 text-center">Trạng thái</th>
                             <th class="px-4 py-3">Lặp lại</th>
                             <th class="px-4 py-3">Thao tác</th>
@@ -58,8 +131,11 @@
                             </td>
                             <td class="px-4 py-2 text-center">{{ item.start_time }} ~ {{ item.end_time }}</td>
                             <td class="px-4 py-2 text-center">{{ getSoldReal(item) }}</td>
-                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0)
-                                }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(getFlashSalePrice(item)) }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0) }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.cost_real ?? 0) }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.shipping_fee ?? 0) }}</td>
+                            <td class="px-4 py-2 text-center">{{ formatCurrency(realStats[item.id]?.profit_real ?? 0) }}</td>
                             <td class="px-4 py-2 text-center">
                                 <button class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer"
                                     :class="item.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
@@ -146,6 +222,30 @@
                             <span class="text-gray-900 text-right">{{ item.start_time }} ~ {{ item.end_time }}</span>
                         </div>
                         <div class="flex justify-between">
+                            <span class="text-gray-600">Đã bán:</span>
+                            <span class="text-gray-900">{{ getSoldReal(item) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Giá Flash Sale:</span>
+                            <span class="text-blue-600">{{ formatCurrency(getFlashSalePrice(item)) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Doanh thu thực tế:</span>
+                            <span class="text-green-600">{{ formatCurrency(realStats[item.id]?.revenue_real ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Giá nhập kho:</span>
+                            <span class="text-red-600">{{ formatCurrency(realStats[item.id]?.cost_real ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Phí ship:</span>
+                            <span class="text-orange-600">{{ formatCurrency(realStats[item.id]?.shipping_fee ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Lợi nhuận:</span>
+                            <span class="text-blue-600 font-semibold">{{ formatCurrency(realStats[item.id]?.profit_real ?? 0) }}</span>
+                        </div>
+                        <div class="flex justify-between">
                             <span class="text-gray-600">Lặp lại:</span>
                             <span v-if="item.repeat"
                                 class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">Lặp lại</span>
@@ -209,7 +309,7 @@ import { useFlashsale } from '../../../composable/useFlashsale'
 import { push } from 'notivue'
 import Swal from 'sweetalert2'
 
-const { getFlashSales, deleteFlashSale, getFlashSaleStatistics, toggleFlashSaleStatus } = useFlashsale()
+const { getFlashSales, deleteFlashSale, getFlashSaleStatistics, toggleFlashSaleStatus, processRepeat: processRepeatAPI } = useFlashsale()
 const flashSales = ref([])
 const loading = ref(false)
 const error = ref('')
@@ -222,10 +322,14 @@ function getSoldReal(item) {
     return realStats.value[item.id]?.sold_real ?? 0
 }
 
+function getFlashSalePrice(item) {
+    return Number((item.products?.[0]?.flash_price) || 0)
+}
+
 function getFlashRevenue(item) {
     const sold = getSoldReal(item)
-    const flashPrice = Number((item.products?.[0]?.flash_price) || 0)
-    return sold * (flashPrice || 0)
+    const flashPrice = getFlashSalePrice(item)
+    return sold * flashPrice
 }
 
 // Pagination computed properties
@@ -314,6 +418,60 @@ const toggleStatus = async (item) => {
 }
 
 const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
+
+// Computed properties cho thống kê
+const totalSold = computed(() => {
+    return flashSales.value.reduce((total, fs) => {
+        return total + (realStats.value[fs.id]?.sold_real || 0)
+    }, 0)
+})
+
+const totalRevenue = computed(() => {
+    return flashSales.value.reduce((total, fs) => {
+        return total + (realStats.value[fs.id]?.revenue_real || 0)
+    }, 0)
+})
+
+const activeFlashSales = computed(() => {
+    return flashSales.value.filter(fs => fs.active).length
+})
+
+const totalProfit = computed(() => {
+    return flashSales.value.reduce((total, fs) => {
+        return total + (realStats.value[fs.id]?.profit_real || 0)
+    }, 0)
+})
+
+const averageRevenue = computed(() => {
+    const activeCount = activeFlashSales.value
+    return activeCount > 0 ? totalRevenue.value / activeCount : 0
+})
+
+async function processRepeat() {
+    try {
+        const result = await Swal.fire({
+            title: 'Xác nhận xử lý',
+            text: 'Bạn có muốn xử lý tự động lặp lại Flash Sale và tăng giá tự động?',
+            icon: 'question',
+            showCancelButton: true,
+            cancelButtonText: 'Hủy',
+            confirmButtonText: 'Xử lý',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+        })
+
+        if (result.isConfirmed) {
+            loading.value = true
+            const response = await processRepeatAPI()
+            await fetchFlashSales()
+            push.success(response.message || 'Xử lý thành công!')
+        }
+    } catch (e) {
+        push.error('Có lỗi xảy ra khi xử lý: ' + (e.message || 'Lỗi không xác định'))
+    } finally {
+        loading.value = false
+    }
+}
 </script>
 
 <style scoped>
