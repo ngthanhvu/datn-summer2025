@@ -203,7 +203,6 @@ const cleanupOldCartItems = async () => {
             headers: getHeaders()
         })
 
-        console.log('Old cart items cleaned up:', res.data)
         return res.data
     } catch (err) {
         console.error('Error cleaning up old cart items:', err)

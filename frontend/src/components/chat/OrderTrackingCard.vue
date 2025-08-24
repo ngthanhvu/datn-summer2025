@@ -3,43 +3,30 @@
     <div class="tracking-form">
       <h4>Tra cứu đơn hàng</h4>
       <p class="form-description">Nhập mã tra cứu để xem tình trạng</p>
-      
+
       <div class="input-group">
         <div class="input-wrapper">
-          <input 
-            v-model="trackingCode"
-            type="text"
-            placeholder="Nhập mã tra cứu..."
-            class="tracking-input"
-            @keyup.enter="searchOrder"
-          />
-          <button 
-            @click="searchOrder"
-            :disabled="!trackingCode.trim() || isSearching"
-            class="search-icon-btn"
-            title="Tìm kiếm"
-          >
+          <input v-model="trackingCode" type="text" placeholder="Nhập mã tra cứu..." class="tracking-input"
+            @keyup.enter="searchOrder" />
+          <button @click="searchOrder" :disabled="!trackingCode.trim() || isSearching" class="search-icon-btn"
+            title="Tìm kiếm">
             <i v-if="isSearching" class="fas fa-spinner fa-spin"></i>
             <i v-else class="fas fa-search"></i>
           </button>
         </div>
-        <button 
-          @click="searchOrder"
-          :disabled="!trackingCode.trim() || isSearching"
-          class="search-btn"
-        >
+        <button @click="searchOrder" :disabled="!trackingCode.trim() || isSearching" class="search-btn">
           <i v-if="isSearching" class="fas fa-spinner fa-spin"></i>
           <i v-else class="fas fa-search"></i>
           <span v-if="isSearching">Đang tìm...</span>
           <span v-else>Tìm kiếm</span>
         </button>
       </div>
-      
+
       <div v-if="error" class="error-message">
         {{ error }}
       </div>
     </div>
-    
+
     <!-- Order details -->
     <div v-if="order" class="order-details">
       <div class="order-header">
@@ -48,7 +35,7 @@
           {{ getStatusText(order.status) }}
         </span>
       </div>
-      
+
       <div class="order-info">
         <div class="info-row">
           <span class="label">Mã đơn hàng:</span>
@@ -73,18 +60,14 @@
           </span>
         </div>
       </div>
-      
+
       <!-- Order items -->
       <div v-if="order.order_details && order.order_details.length > 0" class="order-items">
         <h6>📦 Sản phẩm đã đặt</h6>
         <div class="item-list">
           <div v-for="item in order.order_details" :key="item.id" class="order-item">
             <div class="item-image">
-              <img 
-                :src="getItemImageUrl(item)" 
-                :alt="item.variant?.product?.name"
-                @error="handleImageError"
-              />
+              <img :src="getItemImageUrl(item)" :alt="item.variant?.product?.name" @error="handleImageError" />
             </div>
             <div class="item-info">
               <div class="item-name">{{ item.variant?.product?.name }}</div>
@@ -101,7 +84,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- No items message -->
       <div v-else-if="order.order_details && order.order_details.length === 0" class="order-items">
         <h6>📦 Sản phẩm đã đặt</h6>
@@ -109,7 +92,7 @@
           <p>Không có sản phẩm nào trong đơn hàng này</p>
         </div>
       </div>
-      
+
       <!-- Shipping address -->
       <div v-if="order.address" class="shipping-address">
         <h6>📍 Địa chỉ giao hàng</h6>
@@ -133,30 +116,25 @@ export default {
   emits: ['order-found'],
   setup(props, { emit }) {
     const { searchOrder, formatPrice, getImageUrl, handleImageError } = useAIChat()
-    
+
     const trackingCode = ref('')
     const order = ref(null)
     const error = ref('')
     const isSearching = ref(false)
-    
+
     const searchOrderHandler = async () => {
       if (!trackingCode.value.trim()) return
-      
+
       isSearching.value = true
       error.value = ''
       order.value = null
-      
+
       try {
-        console.log('Searching for order with tracking code:', trackingCode.value.trim())
         const result = await searchOrder(trackingCode.value.trim())
-        
-        console.log('Search result:', result)
-        
+
         if (result.success && result.order) {
           order.value = result.order
           emit('order-found', result.order)
-          console.log('Order found successfully:', result.order)
-          console.log('Order details:', result.order.order_details)
         } else {
           error.value = result.message || 'Không tìm thấy đơn hàng với mã tra cứu này'
           console.log('Order not found:', result.message)
@@ -168,7 +146,7 @@ export default {
         isSearching.value = false
       }
     }
-    
+
     const getStatusClass = (status) => {
       const statusClasses = {
         'pending': 'status-pending',
@@ -181,7 +159,7 @@ export default {
       }
       return statusClasses[status] || 'status-pending'
     }
-    
+
     const getStatusText = (status) => {
       const statusTexts = {
         'pending': 'Chờ xác nhận',
@@ -194,7 +172,7 @@ export default {
       }
       return statusTexts[status] || 'Chờ xác nhận'
     }
-    
+
     const getPaymentMethodText = (method) => {
       const methodTexts = {
         'cod': 'Thanh toán khi nhận hàng',
@@ -203,7 +181,7 @@ export default {
       }
       return methodTexts[method] || method
     }
-    
+
     const getPaymentStatusClass = (status) => {
       const statusClasses = {
         'pending': 'payment-pending',
@@ -212,7 +190,7 @@ export default {
       }
       return statusClasses[status] || 'payment-pending'
     }
-    
+
     const getPaymentStatusText = (status) => {
       const statusTexts = {
         'pending': 'Chờ thanh toán',
@@ -221,7 +199,7 @@ export default {
       }
       return statusTexts[status] || 'Chờ thanh toán'
     }
-    
+
     const formatDate = (dateString) => {
       return new Date(dateString).toLocaleDateString('vi-VN', {
         year: 'numeric',
@@ -231,7 +209,7 @@ export default {
         minute: '2-digit'
       })
     }
-    
+
     const getItemImageUrl = (item) => {
       // Sử dụng image_url từ backend (đã có /storage/)
       if (item.variant?.product?.mainImage?.image_url) {
@@ -242,7 +220,7 @@ export default {
       }
       return 'https://placehold.co/100x100?text=No+Image'
     }
-    
+
     return {
       trackingCode,
       order,
@@ -425,10 +403,13 @@ export default {
   transform: translateY(-50%);
   width: 26px;
   height: 26px;
-  background: #f1f5f9; /* nền sáng nhẹ, đồng bộ với input */
-  color: #64748b;      /* màu icon trung tính */
+  background: #f1f5f9;
+  /* nền sáng nhẹ, đồng bộ với input */
+  color: #64748b;
+  /* màu icon trung tính */
   border: 1px solid #e2e8f0;
-  border-radius: 50%;  /* tròn hẳn */
+  border-radius: 50%;
+  /* tròn hẳn */
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -438,8 +419,10 @@ export default {
 }
 
 .search-icon-btn:hover:not(:disabled) {
-  background: #667eea;   /* tím đậm khi hover */
-  color: #fff;           /* icon trắng */
+  background: #667eea;
+  /* tím đậm khi hover */
+  color: #fff;
+  /* icon trắng */
   border-color: #667eea;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
   transform: translateY(-50%) scale(1.1);
@@ -737,7 +720,8 @@ export default {
 /* Thông tin sản phẩm */
 .item-info {
   flex: 1;
-  min-width: 0; /* Bắt buộc để text ellipsis hoạt động */
+  min-width: 0;
+  /* Bắt buộc để text ellipsis hoạt động */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -748,9 +732,12 @@ export default {
   font-size: 14px;
   font-weight: 700;
   color: #1a202c;
-  white-space: nowrap;       /* không xuống dòng */
-  overflow: hidden;          /* ẩn phần dư */
-  text-overflow: ellipsis;   /* hiện dấu ... */
+  white-space: nowrap;
+  /* không xuống dòng */
+  overflow: hidden;
+  /* ẩn phần dư */
+  text-overflow: ellipsis;
+  /* hiện dấu ... */
 }
 
 .item-variant {
@@ -770,8 +757,10 @@ export default {
 .item-prices {
   display: flex;
   align-items: center;
-  gap: 8px; /* khoảng cách giữa giá cũ và giá mới */
-  flex-wrap: wrap; /* nếu hẹp quá thì tự xuống hàng */
+  gap: 8px;
+  /* khoảng cách giữa giá cũ và giá mới */
+  flex-wrap: wrap;
+  /* nếu hẹp quá thì tự xuống hàng */
 }
 
 .old-price {
@@ -870,44 +859,45 @@ export default {
     padding: 16px;
     margin-top: 12px;
   }
-  
+
   .input-group {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .search-btn {
     width: 100%;
     min-width: auto;
   }
-  
+
   /* Ẩn nút kính lúp bên trong input trên mobile */
   .search-icon-btn {
     display: none;
   }
-  
+
   .tracking-input {
-    padding-right: 18px; /* Reset padding khi không có icon */
+    padding-right: 18px;
+    /* Reset padding khi không có icon */
   }
-  
+
   .order-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .info-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
   }
-  
+
   .order-item {
     flex-direction: column;
     text-align: center;
     gap: 12px;
   }
-  
+
   .tracking-form h4,
   .order-header h5,
   .order-items h6,

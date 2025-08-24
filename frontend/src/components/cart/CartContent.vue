@@ -40,16 +40,18 @@
                             <span class="font-semibold">Cảnh báo tồn kho</span>
                         </div>
                         <p class="text-orange-700 text-sm mt-1">
-                            Một số sản phẩm trong giỏ hàng vượt quá số lượng tồn kho. Vui lòng kiểm tra và điều chỉnh số lượng.
+                            Một số sản phẩm trong giỏ hàng vượt quá số lượng tồn kho. Vui lòng kiểm tra và điều chỉnh số
+                            lượng.
                         </p>
-                        
+
                         <!-- List of overstock items -->
                         <div class="mt-3 pt-3 border-t border-orange-200">
                             <p class="text-orange-700 text-xs font-semibold mb-2">Sản phẩm cần điều chỉnh:</p>
                             <div class="space-y-1">
-                                <div v-for="item in overStockItems" :key="item.id" 
+                                <div v-for="item in overStockItems" :key="item.id"
                                     class="text-orange-700 text-xs flex items-center justify-between">
-                                    <span>{{ item.variant?.product?.name }} ({{ item.variant?.size }}, {{ item.variant?.color }})</span>
+                                    <span>{{ item.variant?.product?.name }} ({{ item.variant?.size }}, {{
+                                        item.variant?.color }})</span>
                                     <span class="font-semibold">
                                         {{ item.quantity }} > {{ getMaxAvailable(item) }}
                                     </span>
@@ -62,10 +64,8 @@
                         <table class="w-full min-w-[800px]">
                             <tbody>
                                 <CartItem v-for="item in cartItems" :key="item.id" :product="item"
-                                    :quantity="item.quantity"
-                                    :max-available="getMaxAvailable(item)"
-                                    :external-error="itemErrors[item.id] || ''"
-                                    @remove="handleRemove(item.id)"
+                                    :quantity="item.quantity" :max-available="getMaxAvailable(item)"
+                                    :external-error="itemErrors[item.id] || ''" @remove="handleRemove(item.id)"
                                     @decrease="handleDecrease(item.id)" @increase="handleIncrease(item.id)"
                                     @update:quantity="handleUpdateQuantity(item.id, $event)" />
                             </tbody>
@@ -86,12 +86,8 @@
                 </div>
             </section>
 
-            <CartSummary 
-                :item-count="cartItems.length" 
-                :subtotal="subtotal" 
-                :shipping="selectedShipping"
-                :has-over-stock-items="hasOverStockItems" 
-            />
+            <CartSummary :item-count="cartItems.length" :subtotal="subtotal" :shipping="selectedShipping"
+                :has-over-stock-items="hasOverStockItems" />
         </main>
     </div>
 </template>
@@ -193,17 +189,10 @@ const handleDecrease = async (itemId) => {
 const handleClearCart = async () => {
     try {
         await clearCart()
-        console.log('Cart cleared successfully')
     } catch (error) {
         console.error('Lỗi khi xóa giỏ hàng:', error)
     }
 }
-
-// onMounted(() => {
-//     if (!cartItems.value.length) {
-//         fetchCart()
-//     }
-// })
 
 onMounted(async () => {
     try {

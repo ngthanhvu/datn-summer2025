@@ -235,10 +235,9 @@ const uniqueProducts = computed(() => {
         }
     })
 
-    return products
+    return products.sort((a, b) => a.name.localeCompare(b.name))
 })
 
-// Lấy biến thể theo sản phẩm
 const getVariantsByProduct = (productId) => {
     if (!productId) return []
     return variants.value.filter(variant => variant.product && variant.product.id === productId)
