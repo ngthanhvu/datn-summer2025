@@ -111,7 +111,7 @@
             <!-- Password Input -->
             <input v-else-if="field.type === 'password'" :id="field.name" v-model="formData[field.name]" type="password"
                 :placeholder="field.placeholder"
-                class="tw-w-full tw-border tw-border-gray-300 tw-rounded-md tw-px-3 tw-py-2 tw-text-sm focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-blue-500 focus:tw-border-blue-500" />
+                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none" />
 
             <!-- Main Image Upload -->
             <div v-else-if="field.type === 'mainImage'" class="image-upload">

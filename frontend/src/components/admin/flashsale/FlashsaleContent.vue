@@ -119,7 +119,7 @@
                     </thead>
                     <tbody>
                         <tr v-if="!Array.isArray(flashSales) || !flashSales[0]">
-                            <td colspan="7" class="text-center text-gray-400 py-6">Không có dữ liệu</td>
+                            <td colspan="12" class="text-center text-gray-400 py-6">Không có dữ liệu</td>
                         </tr>
                         <tr v-for="(item, idx) in paginatedFlashSales" :key="item.id"
                             class="hover:bg-gray-50 transition-colors">

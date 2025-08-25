@@ -27,9 +27,12 @@
                             class="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100 transition-colors">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button @click.stop="$emit('delete', index)"
-                            class="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100 transition-colors">
-                            <i class="fas fa-trash"></i>
+                        <button @click.stop="$emit('delete', index)" :disabled="isLoading"
+                            class="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <div v-if="isLoading"
+                                class="animate-spin rounded-full h-4 w-4 border-2 border-red-600 border-t-transparent">
+                            </div>
+                            <i v-else class="fas fa-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -52,6 +55,10 @@ defineProps({
     selectedAddress: {
         type: Number,
         required: true
+    },
+    isLoading: {
+        type: Boolean,
+        default: false
     }
 })
 

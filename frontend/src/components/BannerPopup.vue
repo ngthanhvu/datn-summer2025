@@ -20,8 +20,8 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const images = ref([
-    'https://theme.hstatic.net/200000696635/1001373943/14/banner-popup-img.png?v=6',
-    'https://theme.hstatic.net/200000695155/1001373964/14/banner-popup-img.png?v=16'
+    'https://i.imgur.com/zEBJ8Gy.png',
+    'https://i.imgur.com/2RV2C7r.png'
 ])
 
 const show = ref(false)

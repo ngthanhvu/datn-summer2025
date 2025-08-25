@@ -28,6 +28,7 @@ const editingAddressIndex = ref(null)
 const selectedAddress = ref(null)
 const addresses = ref([])
 const isLoading = ref(false)
+const isAddressLoading = ref(false) // Separate loading state for address operations
 const error = ref(null)
 const isPlacingOrder = ref(false)
 
@@ -41,8 +42,9 @@ const shippingCalculated = ref(false)
 const discount = ref(0)
 const appliedDiscountCoupon = ref(null)
 const appliedShippingCoupon = ref(null)
-const appliedCoupon = ref(null) 
+const appliedCoupon = ref(null)
 const orderSummaryRef = ref(null)
+const isCouponLoading = ref(false) // Separate loading state for coupon
 
 const subtotal = computed(() => {
     return cartItems.value.reduce((total, item) => {
@@ -50,7 +52,12 @@ const subtotal = computed(() => {
     }, 0)
 })
 
-const shippingForTotal = computed(() => isFreeShipping.value ? 0 : shipping.value)
+const shippingForTotal = computed(() => {
+    // If free shipping is applied, return 0
+    if (isFreeShipping.value) return 0
+    // Otherwise return the calculated shipping fee
+    return shipping.value
+})
 
 const total = computed(() => {
     return Math.round(subtotal.value + shippingForTotal.value - discount.value)
@@ -81,7 +88,7 @@ const closeAddressModal = () => {
 
 const saveAddress = async (address) => {
     try {
-        isLoading.value = true
+        isAddressLoading.value = true
         if (editingAddressIndex.value === null) {
             const newAddress = await addressService.createAddress({
                 full_name: address.fullName,
@@ -93,13 +100,29 @@ const saveAddress = async (address) => {
                 hamlet: address.hamlet,
                 note: address.note
             })
-            await fetchAddresses()
-            if (addresses.value.length > 0) {
-                selectedAddress.value = addresses.value.length - 1
-                await nextTick()
-                if (orderSummaryRef.value) {
-                    orderSummaryRef.value.forceShippingCalculation()
-                }
+
+            // Add new address to local array instead of fetching all addresses
+            const addressToAdd = {
+                id: newAddress.id,
+                fullName: address.fullName,
+                phone: address.phone,
+                province: address.province,
+                district: address.district,
+                ward: address.ward,
+                hamlet: address.hamlet || '',
+                detail: address.detail,
+                note: address.note || '',
+                fullAddress: address.fullAddress,
+                district_id: newAddress.district_id || address.district,
+                ward_code: newAddress.ward_code || address.ward
+            }
+
+            addresses.value.push(addressToAdd)
+            // Select the newly added address
+            selectedAddress.value = addresses.value.length - 1
+            await nextTick()
+            if (orderSummaryRef.value) {
+                orderSummaryRef.value.forceShippingCalculation()
             }
         } else {
             const addressId = addresses.value[editingAddressIndex.value].id
@@ -113,32 +136,53 @@ const saveAddress = async (address) => {
                 hamlet: address.hamlet,
                 note: address.note
             })
-            await fetchAddresses()
+
+            // Update address in local array instead of fetching all addresses
+            addresses.value[editingAddressIndex.value] = {
+                ...addresses.value[editingAddressIndex.value],
+                fullName: address.fullName,
+                phone: address.phone,
+                province: address.province,
+                district: address.district,
+                ward: address.ward,
+                hamlet: address.hamlet || '',
+                detail: address.detail,
+                note: address.note || '',
+                fullAddress: address.fullAddress
+            }
         }
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi lưu địa chỉ'
     } finally {
-        isLoading.value = false
+        isAddressLoading.value = false
         closeAddressModal()
     }
 }
 
 const deleteAddress = async (index) => {
     try {
+        isAddressLoading.value = true
         const addressId = addresses.value[index].id
         await addressService.deleteAddress(addressId)
 
-        await fetchAddresses()
+        // Remove address from local array
+        addresses.value.splice(index, 1)
 
+        // Update selectedAddress index after deletion
         if (selectedAddress.value === index) {
             if (addresses.value.length > 0) {
                 selectedAddress.value = 0
             } else {
                 selectedAddress.value = null
             }
+        } else if (selectedAddress.value > index) {
+            // If selected address is after the deleted one, adjust the index
+            selectedAddress.value--
         }
     } catch (err) {
         error.value = err.message || 'Có lỗi xảy ra khi xóa địa chỉ'
+    } finally {
+        isAddressLoading.value = false
     }
 }
 
@@ -200,16 +244,22 @@ const fetchCart = async () => {
 
 const applyCoupon = async (code) => {
     try {
-        isLoading.value = true
+        isCouponLoading.value = true
         const result = await couponService.validateCoupon(code, subtotal.value)
 
         if (result.free_shipping) {
             // Apply/replace shipping coupon
             appliedShippingCoupon.value = result.coupon
             isFreeShipping.value = true
-            shippingCalculated.value = true
+            shipping.value = 0 // Set shipping fee to 0
+            shippingCalculated.value = true // Mark as calculated since we don't need to calculate
             error.value = null
             push.success('Áp dụng mã freeship thành công')
+
+            // Trigger shipping calculation to get zone info even though fee is 0
+            if (orderSummaryRef.value) {
+                orderSummaryRef.value.handleFreeShippingApplied(true)
+            }
         } else if (result.discount !== undefined) {
             // Apply/replace percentage/fixed coupon
             appliedDiscountCoupon.value = result.coupon
@@ -229,17 +279,61 @@ const applyCoupon = async (code) => {
         appliedCoupon.value = null
         isFreeShipping.value = false
     } finally {
-        isLoading.value = false
+        isCouponLoading.value = false
     }
 }
 
 // Apply list of codes (e.g., from modal) in order. Supports 1 shipping + 1 discount
 const applyMultipleCoupons = async (codes) => {
     if (!Array.isArray(codes)) return
-    for (const c of codes) {
-        try {
-            await applyCoupon(c)
-        } catch (_e) {}
+
+    isCouponLoading.value = true
+
+    // Reset previous coupons first
+    appliedShippingCoupon.value = null
+    appliedDiscountCoupon.value = null
+    appliedCoupon.value = null
+    isFreeShipping.value = false
+    discount.value = 0
+    shipping.value = 0 // Reset shipping fee
+    shippingCalculated.value = false // Reset shipping calculation status
+
+    try {
+        // Apply coupons in order: shipping first, then discount
+        for (const code of codes) {
+            try {
+                await applyCoupon(code)
+            } catch (_e) {
+                // Continue with next coupon if one fails
+            }
+        }
+    } finally {
+        isCouponLoading.value = false
+    }
+}
+
+// Add function to remove coupons
+const removeCoupon = (type) => {
+    if (type === 'shipping') {
+        appliedShippingCoupon.value = null
+        isFreeShipping.value = false
+        // Reset shipping calculation if no address is selected
+        if (selectedAddress.value === null || selectedAddress.value >= addresses.value.length) {
+            shipping.value = 0
+            shippingZone.value = ''
+            shippingCalculated.value = false
+        } else {
+            // If address is selected, recalculate shipping
+            shippingCalculated.value = false
+            shipping.value = 0 // Reset shipping fee to force recalculation
+            if (orderSummaryRef.value) {
+                orderSummaryRef.value.forceShippingCalculation()
+            }
+        }
+    } else if (type === 'discount') {
+        appliedDiscountCoupon.value = null
+        appliedCoupon.value = null
+        discount.value = 0
     }
 }
 
@@ -280,25 +374,37 @@ const handleShippingCalculated = (shippingData) => {
     }
 
     if (shippingData.shippingFee) {
-        shipping.value = shippingData.shippingFee?.total || 0;
+        // Only update shipping fee if free shipping is not applied
+        if (!isFreeShipping.value) {
+            shipping.value = shippingData.shippingFee?.total || 0;
+        }
         shippingZone.value = shippingData.zone || '';
-        shippingCalculated.value = true;
+        // Only set shippingCalculated to true if we're not already in free shipping mode
+        if (!isFreeShipping.value) {
+            shippingCalculated.value = true;
+        }
     }
 };
 
 watch(() => selectedAddress.value, (newValue) => {
     if (newValue === null || newValue >= addresses.value.length) {
-        shipping.value = 0;
-        shippingZone.value = '';
-        shippingLoading.value = false;
-        shippingCalculated.value = false;
+        // Only reset shipping if not in free shipping mode
+        if (!isFreeShipping.value) {
+            shipping.value = 0;
+            shippingZone.value = '';
+            shippingLoading.value = false;
+            shippingCalculated.value = false;
+        }
     }
 });
 
 watch(() => currentSelectedAddress.value, (newAddress) => {
     if (!newAddress) {
-        shippingLoading.value = false;
-        shippingCalculated.value = false;
+        // Only reset shipping if not in free shipping mode
+        if (!isFreeShipping.value) {
+            shippingLoading.value = false;
+            shippingCalculated.value = false;
+        }
     }
 });
 
@@ -343,22 +449,57 @@ const placeOrder = async () => {
             price: item.price
         }))
 
+        // Calculate final shipping fee considering free shipping
+        let finalShippingFee = shipping.value
+        let finalShippingZone = shippingZone.value
+
+        if (isFreeShipping.value) {
+            finalShippingFee = 0
+            // Keep the shipping zone for display purposes
+        }
+
         const orderData = {
             address_id: addresses.value[selectedAddress.value].id,
             payment_method: paymentMethods.value[selectedPaymentMethod.value]?.code || 'cod',
-            // Prefer saving discount coupon id; fallback to shipping coupon id if no discount
-            coupon_id: appliedDiscountCoupon.value?.id || appliedShippingCoupon.value?.id || null,
+            // Prioritize shipping coupon ID when free shipping is applied, otherwise use discount coupon
+            coupon_id: isFreeShipping.value && appliedShippingCoupon.value?.id
+                ? appliedShippingCoupon.value.id
+                : (appliedDiscountCoupon.value?.id || appliedShippingCoupon.value?.id || null),
             items: items,
             note: '',
             total_price: subtotal.value,
-            shipping_fee: shippingForTotal.value,
+            shipping_fee: finalShippingFee,
             discount_price: discount.value,
             final_price: total.value,
             user_id: authService.user.value.id,
-            shipping_zone: shippingZone.value
+            shipping_zone: finalShippingZone
         }
 
-        if (shippingLoading.value || !shippingCalculated.value) {
+        // Check if shipping calculation is needed (only if not free shipping)
+        // If free shipping is applied, we don't need to calculate shipping fee
+        if (!isFreeShipping.value && (shippingLoading.value || !shippingCalculated.value)) {
+            error.value = 'Vui lòng tính phí vận chuyển trước khi thanh toán';
+            push.warning(error.value)
+            if (orderSummaryRef.value) {
+                orderSummaryRef.value.forceShippingCalculation();
+            }
+            isPlacingOrder.value = false
+            return
+        }
+
+        // Additional validation: if no free shipping and shipping fee is 0, require calculation
+        if (!isFreeShipping.value && finalShippingFee <= 0) {
+            error.value = 'Vui lòng tính phí vận chuyển trước khi thanh toán';
+            push.warning(error.value)
+            if (orderSummaryRef.value) {
+                orderSummaryRef.value.forceShippingCalculation();
+            }
+            isPlacingOrder.value = false
+            return
+        }
+
+        // Final validation: ensure we have either free shipping OR calculated shipping
+        if (!isFreeShipping.value && !shippingCalculated.value) {
             error.value = 'Vui lòng tính phí vận chuyển trước khi thanh toán';
             push.warning(error.value)
             if (orderSummaryRef.value) {
@@ -466,8 +607,8 @@ onMounted(async () => {
                     <div class="mb-6">
                         <div v-if="addresses.length > 0">
                             <AddressList :addresses="addresses" :selected-address="selectedAddress"
-                                @select="selectedAddress = $event" @edit="openAddressModal" @delete="deleteAddress"
-                                @add="openAddressModal" />
+                                :is-loading="isAddressLoading" @select="selectedAddress = $event"
+                                @edit="openAddressModal" @delete="deleteAddress" @add="openAddressModal" />
                         </div>
 
                         <div v-else class="text-center">
@@ -488,18 +629,18 @@ onMounted(async () => {
 
             <div class="space-y-8">
                 <OrderSummary ref="orderSummaryRef" :items="cartItems" :subtotal="subtotal" :shipping="shippingForTotal"
-                    :free-shipping="isFreeShipping"
-                    :applied-shipping-coupon="appliedShippingCoupon"
-                    :applied-discount-coupon="appliedDiscountCoupon"
-                    :discount="discount" :shipping-zone="shippingZone" :shipping-loading="shippingLoading"
-                    :selected-address="currentSelectedAddress" :cart-items="cartItems"
-                    :is-placing-order="isPlacingOrder" @place-order="placeOrder" @apply-coupon="applyCoupon"
-                    @apply-coupons="applyMultipleCoupons" @shipping-calculated="handleShippingCalculated" />
+                    :free-shipping="isFreeShipping" :applied-shipping-coupon="appliedShippingCoupon"
+                    :applied-discount-coupon="appliedDiscountCoupon" :discount="discount" :shipping-zone="shippingZone"
+                    :shipping-loading="shippingLoading" :selected-address="currentSelectedAddress"
+                    :cart-items="cartItems" :is-placing-order="isPlacingOrder" :is-coupon-loading="isCouponLoading"
+                    @place-order="placeOrder" @apply-coupon="applyCoupon" @apply-coupons="applyMultipleCoupons"
+                    @shipping-calculated="handleShippingCalculated" @remove-coupon="removeCoupon" />
             </div>
         </div>
 
         <AddressForm :show="showAddressForm" :editing-index="editingAddressIndex" :address="editingAddress"
-            @close="closeAddressModal" @save="saveAddress" />
+            :is-loading="isAddressLoading" @close="closeAddressModal" @save="saveAddress"
+            @loading-change="(loading) => isAddressLoading = loading" />
     </div>
 </template>
 

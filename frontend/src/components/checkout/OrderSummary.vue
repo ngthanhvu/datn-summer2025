@@ -14,92 +14,110 @@
 
         <div class="mb-6">
             <div class="flex gap-2">
-                <input v-model="couponCode" type="text" placeholder="Nhập mã giảm giá"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81AACC]">
-                <button type="button" @click="applyCoupon"
-                    class="px-4 py-2 bg-[#81AACC] text-white rounded-md hover:bg-[#6387A6] cursor-pointer">
-                    Áp dụng
+                <input v-model="couponCode" type="text" placeholder="Nhập mã giảm giá" :disabled="isCouponLoading"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81AACC] disabled:opacity-50">
+                <button type="button" @click="applyCoupon" :disabled="isCouponLoading"
+                    class="px-4 py-2 bg-[#81AACC] text-white rounded-md hover:bg-[#6387A6] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    <div v-if="isCouponLoading" class="flex items-center gap-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        <span>Đang áp dụng...</span>
+                    </div>
+                    <span v-else>Áp dụng</span>
                 </button>
             </div>
+
+            <!-- Display applied coupons only -->
+            <div v-if="appliedShippingCoupon || appliedDiscountCoupon" class="mt-3 space-y-2">
+                <div v-if="appliedShippingCoupon" class="flex items-center justify-between bg-green-50 p-2 rounded-md">
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-600 text-sm">✓ Miễn phí vận chuyển: {{ appliedShippingCoupon.code
+                        }}</span>
+                    </div>
+                    <button @click="$emit('remove-coupon', 'shipping')" class="text-red-500 hover:text-red-700 text-sm">
+                        ✕
+                    </button>
+                </div>
+                <div v-if="appliedDiscountCoupon" class="flex items-center justify-between bg-blue-50 p-2 rounded-md">
+                    <div class="flex items-center gap-2">
+                        <span class="text-blue-600 text-sm">✓ Giảm giá: {{ appliedDiscountCoupon.code }}</span>
+                    </div>
+                    <button @click="$emit('remove-coupon', 'discount')" class="text-red-500 hover:text-red-700 text-sm">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
             <div class="mt-2 text-right">
                 <button type="button" @click="openVoucherModal"
                     class="text-[#1a73e8] text-sm hover:underline cursor-pointer">Chọn hoặc nhập mã</button>
             </div>
+
+            <!-- Display available coupons list -->
             <div v-if="availableCoupons.length > 0" class="mt-4">
                 <h3 class="text-sm font-medium mb-2">Mã giảm giá đã lưu</h3>
-                <div class="max-h-[360px] overflow-y-auto pr-2 space-y-4">
+                <div class="max-h-[200px] overflow-y-auto pr-2 space-y-2">
                     <div v-if="grouped.shipping.length > 0">
                         <div class="text-xs font-semibold text-gray-600 mb-2">Miễn phí vận chuyển</div>
                         <div v-for="coupon in grouped.shipping" :key="'s-' + coupon.id"
-                            class="bg-white rounded-lg p-3 flex items-center gap-3 border border-gray-300 hover:ring-[#81AACC]/30 transition">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 bg-[#81AACC] rounded-md flex items-center justify-center">
+                            class="bg-white rounded-lg p-2 flex items-center gap-2 border border-gray-300 hover:ring-[#81AACC]/30 transition cursor-pointer"
+                            @click="selectCoupon(coupon)">
+                            <div class="flex-shrink-0 w-8 h-8 bg-[#81AACC] rounded-md flex items-center justify-center">
                                 <img src="https://ngthanhvu.github.io/ticket-sale-svgrepo-com.svg"
-                                    alt="Coupon ticket icon" class="w-7 h-7 object-contain" width="28" height="28" />
+                                    alt="Coupon ticket icon" class="w-5 h-5 object-contain" />
                             </div>
-                            <div class="flex-1 min-w-0 cursor-pointer" @click.prevent="selectCoupon(coupon)">
-                                <div class="text-sm text-[#81AACC] font-semibold truncate">NHẬP MÃ: <span
-                                        class="font-normal">{{ coupon.code }}</span></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm text-[#81AACC] font-semibold truncate">{{ coupon.code }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ coupon.name }}</div>
-                                <div class="text-xs mt-1 text-gray-700">Miễn ship <span
-                                        v-if="coupon.min_order_value">(Đơn tối thiểu {{
+                                <div class="text-xs text-gray-700">Miễn ship <span v-if="coupon.min_order_value">(Đơn
+                                        tối thiểu {{
                                             formatPrice(coupon.min_order_value) }})</span></div>
                             </div>
-                            <div class="text-xs text-gray-500 ml-auto">Hạn: {{ formatDate(coupon.end_date) }}</div>
+                            <div class="text-xs text-gray-500">HSD: {{ formatDate(coupon.end_date) }}</div>
                         </div>
                     </div>
                     <div v-if="grouped.percent.length > 0">
                         <div class="text-xs font-semibold text-gray-600 mb-2">Giảm theo %</div>
                         <div v-for="coupon in grouped.percent" :key="'p-' + coupon.id"
-                            class="bg-white rounded-lg p-3 flex items-center gap-3 border border-gray-300 hover:ring-[#81AACC]/30 transition mb-2">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 bg-[#81AACC] rounded-md flex items-center justify-center">
+                            class="bg-white rounded-lg p-2 flex items-center gap-2 border border-gray-300 hover:ring-[#81AACC]/30 transition cursor-pointer mb-2"
+                            @click="selectCoupon(coupon)">
+                            <div class="flex-shrink-0 w-8 h-8 bg-[#81AACC] rounded-md flex items-center justify-center">
                                 <img src="https://ngthanhvu.github.io/ticket-sale-svgrepo-com.svg"
-                                    alt="Coupon ticket icon" class="w-7 h-7 object-contain" width="28" height="28" />
+                                    alt="Coupon ticket icon" class="w-5 h-5 object-contain" />
                             </div>
-                            <div class="flex-1 min-w-0 cursor-pointer" @click.prevent="selectCoupon(coupon)">
-                                <div class="text-sm text-[#81AACC] font-semibold truncate">NHẬP MÃ: <span
-                                        class="font-normal">{{ coupon.code }}</span></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm text-[#81AACC] font-semibold truncate">{{ coupon.code }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ coupon.name }}</div>
-                                <div class="text-xs mt-1 text-gray-700">Giảm {{ coupon.value }}%<span
+                                <div class="text-xs text-gray-700">Giảm {{ coupon.value }}%<span
                                         v-if="coupon.max_discount_value">, tối đa {{
-                                            formatPrice(coupon.max_discount_value) }}</span> <span
-                                        v-if="coupon.min_order_value">(Đơn tối thiểu {{
-                                            formatPrice(coupon.min_order_value) }})</span></div>
+                                            formatPrice(coupon.max_discount_value) }}</span></div>
                             </div>
-                            <div class="text-xs text-gray-500 ml-auto">Hạn: {{ formatDate(coupon.end_date) }}</div>
+                            <div class="text-xs text-gray-500">HSD: {{ formatDate(coupon.end_date) }}</div>
                         </div>
                     </div>
                     <div v-if="grouped.fixed.length > 0">
                         <div class="text-xs font-semibold text-gray-600 mb-2">Giảm số tiền</div>
                         <div v-for="coupon in grouped.fixed" :key="'f-' + coupon.id"
-                            class="bg-white rounded-lg p-3 flex items-center gap-3 border border-gray-300 hover:ring-[#81AACC]/30 transition mb-2">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 bg-[#81AACC] rounded-md flex items-center justify-center">
+                            class="bg-white rounded-lg p-2 flex items-center gap-2 border border-gray-300 hover:ring-[#81AACC]/30 transition cursor-pointer mb-2"
+                            @click="selectCoupon(coupon)">
+                            <div class="flex-shrink-0 w-8 h-8 bg-[#81AACC] rounded-md flex items-center justify-center">
                                 <img src="https://ngthanhvu.github.io/ticket-sale-svgrepo-com.svg"
-                                    alt="Coupon ticket icon" class="w-7 h-7 object-contain" width="28" height="28" />
+                                    alt="Coupon ticket icon" class="w-5 h-5 object-contain" />
                             </div>
-                            <div class="flex-1 min-w-0 cursor-pointer" @click.prevent="selectCoupon(coupon)">
-                                <div class="text-sm text-[#81AACC] font-semibold truncate">NHẬP MÃ: <span
-                                        class="font-normal">{{ coupon.code }}</span></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm text-[#81AACC] font-semibold truncate">{{ coupon.code }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ coupon.name }}</div>
-                                <div class="text-xs mt-1 text-gray-700">Giảm {{ formatPrice(coupon.value) }} <span
-                                        v-if="coupon.min_order_value">(Đơn tối thiểu {{
-                                            formatPrice(coupon.min_order_value) }})</span></div>
+                                <div class="text-xs text-gray-700">Giảm {{ formatPrice(coupon.value) }}</div>
                             </div>
-                            <div class="text-xs text-gray-500 ml-auto">Hạn: {{ formatDate(coupon.end_date) }}</div>
+                            <div class="text-xs text-gray-500">HSD: {{ formatDate(coupon.end_date) }}</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div v-else>
                 <div class="text-center">
-                    <p class="text-sm text-gray-500 text-center mt-5">Không có mã giảm giá nào.</p>
-                    <router-link to="/kho-voucher" class="text-[12px] text-gray-500 text-center hover:text-[#81aacc]">Ấn
-                        vào đây để săn
-                        mã
-                        giảm
-                        giá</router-link>
+                    <p class="text-xs text-gray-500 text-center mt-3">Không có mã giảm giá nào.</p>
+                    <router-link to="/kho-voucher" class="text-[11px] text-gray-500 text-center hover:text-[#81aacc]">Ấn
+                        vào đây để săn mã giảm giá</router-link>
                 </div>
             </div>
         </div>
@@ -113,8 +131,16 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- Loading state -->
+                    <div v-if="isModalLoading" class="col-span-2 flex items-center justify-center py-8">
+                        <div class="flex items-center gap-2">
+                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-[#81AACC]"></div>
+                            <span class="text-gray-600">Đang tải mã giảm giá...</span>
+                        </div>
+                    </div>
+
                     <!-- Shipping group -->
-                    <div>
+                    <div v-else>
                         <div class="text-sm font-semibold text-gray-700 mb-2">Miễn phí vận chuyển (chọn 1)</div>
                         <div v-if="grouped.shipping.length === 0" class="text-xs text-gray-400 mb-2">Không có mã phù hợp
                         </div>
@@ -137,7 +163,7 @@
                     </div>
 
                     <!-- Discount group (percent/fixed) -->
-                    <div>
+                    <div v-else>
                         <div class="text-sm font-semibold text-gray-700 mb-2">Giảm giá (chọn 1)</div>
                         <div v-if="grouped.percent.length + grouped.fixed.length === 0"
                             class="text-xs text-gray-400 mb-2">Không có mã phù hợp</div>
@@ -262,10 +288,22 @@ const props = defineProps({
     isPlacingOrder: {
         type: Boolean,
         default: false
+    },
+    appliedShippingCoupon: {
+        type: Object,
+        default: null
+    },
+    appliedDiscountCoupon: {
+        type: Object,
+        default: null
+    },
+    isCouponLoading: {
+        type: Boolean,
+        default: false
     }
 })
 
-const emit = defineEmits(['apply-coupon', 'apply-coupons', 'place-order', 'shipping-calculated'])
+const emit = defineEmits(['apply-coupon', 'apply-coupons', 'place-order', 'shipping-calculated', 'remove-coupon'])
 
 const couponCode = ref('')
 const availableCoupons = ref([])
@@ -286,6 +324,8 @@ const formatPrice = (price) => {
 const applyCoupon = () => {
     if (couponCode.value.trim()) {
         emit('apply-coupon', couponCode.value.trim())
+        // Clear the input after applying
+        couponCode.value = ''
     }
 }
 
@@ -304,31 +344,20 @@ const forceShippingCalculation = () => {
     }
 }
 
-defineExpose({
-    forceShippingCalculation
-})
-
-const fetchAvailableCoupons = async () => {
-    try {
-        const myCouponsData = await couponService.getMyCoupons()
-        const myCoupons = myCouponsData?.coupons || []
-
-        if (!Array.isArray(myCoupons)) {
-            return
-        }
-
-        const now = new Date()
-        availableCoupons.value = myCoupons.filter((coupon) => {
-            return (
-                coupon.is_active &&
-                coupon.pivot?.status !== 'used' &&
-                new Date(coupon.start_date) <= now &&
-                new Date(coupon.end_date) >= now
-            )
-        })
-    } catch (error) {
+// Add method to handle free shipping application
+const handleFreeShippingApplied = (isFree) => {
+    // When free shipping is applied, we should still calculate shipping
+    // but set the fee to 0 for display purposes
+    if (isFree && shippingSectionRef.value) {
+        // Force shipping calculation to get zone info, but fee will be 0
+        shippingSectionRef.value.handleShippingCalculation()
     }
 }
+
+defineExpose({
+    forceShippingCalculation,
+    handleFreeShippingApplied
+})
 
 const grouped = computed(() => {
     const s = []
@@ -346,9 +375,34 @@ const grouped = computed(() => {
 const showVoucherModal = ref(false)
 const selectedShippingId = ref(null)
 const selectedDiscountId = ref(null)
+const isModalLoading = ref(false)
 
-const openVoucherModal = () => {
-    // Preselect currently applied if any (best-effort, props may not contain it yet)
+const openVoucherModal = async () => {
+    // Only fetch coupons when modal is opened
+    if (availableCoupons.value.length === 0) {
+        isModalLoading.value = true
+        try {
+            const myCouponsData = await couponService.getMyCoupons()
+            const myCoupons = myCouponsData?.coupons || []
+
+            if (Array.isArray(myCoupons)) {
+                const now = new Date()
+                availableCoupons.value = myCoupons.filter((coupon) => {
+                    return (
+                        coupon.is_active &&
+                        coupon.pivot?.status !== 'used' &&
+                        new Date(coupon.start_date) <= now &&
+                        new Date(coupon.end_date) >= now
+                    )
+                })
+            }
+        } catch (error) {
+            // Failed to fetch coupons
+        } finally {
+            isModalLoading.value = false
+        }
+    }
+
     showVoucherModal.value = true
 }
 
@@ -399,7 +453,25 @@ const formatDate = (dateString) => {
     }
 }
 
-onMounted(() => {
-    fetchAvailableCoupons()
+onMounted(async () => {
+    // Fetch available coupons when component mounts
+    try {
+        const myCouponsData = await couponService.getMyCoupons()
+        const myCoupons = myCouponsData?.coupons || []
+
+        if (Array.isArray(myCoupons)) {
+            const now = new Date()
+            availableCoupons.value = myCoupons.filter((coupon) => {
+                return (
+                    coupon.is_active &&
+                    coupon.pivot?.status !== 'used' &&
+                    new Date(coupon.start_date) <= now &&
+                    new Date(coupon.end_date) >= now
+                )
+            })
+        }
+    } catch (error) {
+        console.error('Failed to fetch coupons:', error)
+    }
 })
 </script>

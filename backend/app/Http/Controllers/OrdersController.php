@@ -185,11 +185,13 @@ class OrdersController extends Controller
         $allowsZeroShipping = false;
         if (!empty($validated['coupon_id'])) {
             $coupon = Coupons::find($validated['coupon_id']);
+
             if ($coupon && $coupon->type === 'shipping') {
                 $allowsZeroShipping = true;
             }
         }
 
+        // Allow zero shipping fee only when a valid free shipping coupon is applied
         if (($validated['shipping_fee'] ?? 0) <= 0 && !$allowsZeroShipping) {
             return response()->json([
                 'message' => 'Vui lòng tính phí vận chuyển trước khi thanh toán',
@@ -328,7 +330,7 @@ class OrdersController extends Controller
                         ->delete();
                 }
             }
-            
+
             return response()->json([
                 'message' => 'Giỏ hàng đã được xóa sau khi thanh toán thành công',
                 'success' => true
