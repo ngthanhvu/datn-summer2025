@@ -430,10 +430,9 @@ const {
 const statusOptions = [
     { value: 'pending', label: 'Chờ xử lý' },
     { value: 'processing', label: 'Đang giao' },
-    { value: 'shipping', label: 'Đang giao hàng' },
+    { value: 'shipping', label: 'Đã giao hàng' },
     { value: 'completed', label: 'Hoàn thành' },
     { value: 'cancelled', label: 'Đã hủy' },
-    { value: 'refunded', label: 'Đã hoàn tiền' }
 ]
 
 const paymentStatusOptions = [

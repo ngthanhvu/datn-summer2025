@@ -28,44 +28,68 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-1">Tỉnh/Thành</label>
-                            <!-- Trong phần select tỉnh/thành -->
-                            <select v-model="form.province" @change="onProvinceChange"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc]"
-                                :class="{ 'border-red-500': errors.province }">
-                                <option value="">Chọn tỉnh/thành</option>
-                                <option v-for="province in provinces" :key="province.ProvinceID" :value="province.ProvinceName">
-                                    {{ province.ProvinceName }}
-                                </option>
-                            </select>
-                            <p v-if="errors.province" class="text-red-500 text-sm mt-1">{{ errors.province }}
-                            </p>
+                            <div class="relative">
+                                <select v-model="form.province" @change="onProvinceChange" :disabled="isProvinceLoading"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc] disabled:opacity-50"
+                                    :class="{ 'border-red-500': errors.province }">
+                                    <option value="">Chọn tỉnh/thành</option>
+                                    <option v-for="province in provinces" :key="province.ProvinceID"
+                                        :value="province.ProvinceName">
+                                        {{ province.ProvinceName }}
+                                    </option>
+                                </select>
+                                <div v-if="isProvinceLoading && provinces.length === 0"
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <div
+                                        class="animate-spin rounded-full h-4 w-4 border-2 border-[#81aacc] border-t-transparent">
+                                    </div>
+                                </div>
+                            </div>
+                            <p v-if="errors.province" class="text-red-500 text-sm mt-1">{{ errors.province }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">Quận/Huyện</label>
-                            <select v-model="form.district" @change="onDistrictChange"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc]"
-                                :class="{ 'border-red-500': errors.district }">
-                                <option value="">Chọn quận/huyện</option>
-                                <option v-for="district in districts" :key="district.DistrictID" :value="district.DistrictName"
-                                    :data-code="district.DistrictID">
-                                    {{ district.DistrictName }}
-                                </option>
-                            </select>
-                            <p v-if="errors.district" class="text-red-500 text-sm mt-1">{{ errors.district }}
-                            </p>
+                            <div class="relative">
+                                <select v-model="form.district" @change="onDistrictChange"
+                                    :disabled="isProvinceLoading || !form.province"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc] disabled:opacity-50"
+                                    :class="{ 'border-red-500': errors.district }">
+                                    <option value="">{{ form.province ? 'Chọn quận/huyện' : 'Chọn tỉnh trước' }}
+                                    </option>
+                                    <option v-for="district in districts" :key="district.DistrictID"
+                                        :value="district.DistrictName" :data-code="district.DistrictID">
+                                        {{ district.DistrictName }}
+                                    </option>
+                                </select>
+                                <div v-if="isProvinceLoading && form.province && districts.length === 0"
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <div
+                                        class="animate-spin rounded-full h-4 w-4 border-2 border-[#81aacc] border-t-transparent">
+                                    </div>
+                                </div>
+                            </div>
+                            <p v-if="errors.district" class="text-red-500 text-sm mt-1">{{ errors.district }}</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-1">Phường/Xã</label>
-                            <select v-model="form.ward"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc]"
-                                :class="{ 'border-red-500': errors.ward }">
-                                <option value="">Chọn phường/xã</option>
-                                <option v-for="ward in wards" :key="ward.WardCode" :value="ward.WardName">
-                                    {{ ward.WardName }}
-                                </option>
-                            </select>
+                            <div class="relative">
+                                <select v-model="form.ward" :disabled="isProvinceLoading || !form.district"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#81aacc] disabled:opacity-50"
+                                    :class="{ 'border-red-500': errors.ward }">
+                                    <option value="">{{ form.district ? 'Chọn phường/xã' : 'Chọn quận trước' }}</option>
+                                    <option v-for="ward in wards" :key="ward.WardCode" :value="ward.WardName">
+                                        {{ ward.WardName }}
+                                    </option>
+                                </select>
+                                <div v-if="isProvinceLoading && form.district && wards.length === 0"
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <div
+                                        class="animate-spin rounded-full h-4 w-4 border-2 border-[#81aacc] border-t-transparent">
+                                    </div>
+                                </div>
+                            </div>
                             <p v-if="errors.ward" class="text-red-500 text-sm mt-1">{{ errors.ward }}</p>
                         </div>
                         <div>
@@ -89,12 +113,18 @@
                             rows="3" placeholder="Ghi chú về địa chỉ giao hàng"></textarea>
                     </div>
                     <div class="flex gap-3">
-                        <button @click="handleSave"
-                            class="flex-1 px-4 py-2 bg-[#81AACC] text-white rounded-md hover:bg-[#6387A6] cursor-pointer">
-                            {{ editingIndex === null ? 'Thêm địa chỉ' : 'Cập nhật' }}
+                        <button @click="handleSave" :disabled="props.isLoading"
+                            class="flex-1 px-4 py-2 bg-[#81AACC] text-white rounded-md hover:bg-[#6387A6] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                            <div v-if="props.isLoading" class="flex items-center justify-center gap-2">
+                                <div
+                                    class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent">
+                                </div>
+                                <span>{{ editingIndex === null ? 'Đang thêm...' : 'Đang cập nhật...' }}</span>
+                            </div>
+                            <span v-else>{{ editingIndex === null ? 'Thêm địa chỉ' : 'Cập nhật' }}</span>
                         </button>
-                        <button @click="$emit('close')"
-                            class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer">
+                        <button @click="$emit('close')" :disabled="props.isLoading"
+                            class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             Hủy
                         </button>
                     </div>
@@ -107,6 +137,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useAddress } from '../../composable/useAddress'
+import { push } from 'notivue'
 
 const addressService = useAddress()
 
@@ -122,10 +153,14 @@ const props = defineProps({
     address: {
         type: Object,
         default: () => ({})
+    },
+    isLoading: {
+        type: Boolean,
+        default: false
     }
 })
 
-const emit = defineEmits(['close', 'save'])
+const emit = defineEmits(['close', 'save', 'loading-change'])
 
 const form = ref({
     fullName: '',
@@ -144,15 +179,15 @@ const districts = ref([])
 const wards = ref([])
 const selectedProvinceCode = ref(null)
 const selectedDistrictCode = ref(null)
-const isLoading = ref(false)
+const isProvinceLoading = ref(false) // Local loading for province/district/ward fetching
 
 const fetchProvinces = async () => {
     try {
-        isLoading.value = true
+        isProvinceLoading.value = true
         provinces.value = await addressService.getProvinces()
     } catch (error) {
     } finally {
-        isLoading.value = false
+        isProvinceLoading.value = false
     }
 }
 
@@ -167,11 +202,11 @@ const onProvinceChange = async () => {
 
     if (selectedProvinceCode.value) {
         try {
-            isLoading.value = true
+            isProvinceLoading.value = true
             districts.value = await addressService.getDistricts(selectedProvinceCode.value)
         } catch (error) {
         } finally {
-            isLoading.value = false
+            isProvinceLoading.value = false
         }
     }
 }
@@ -185,11 +220,11 @@ const onDistrictChange = async () => {
 
     if (selectedDistrictCode.value) {
         try {
-            isLoading.value = true
+            isProvinceLoading.value = true
             wards.value = await addressService.getWards(selectedDistrictCode.value)
         } catch (error) {
         } finally {
-            isLoading.value = false
+            isProvinceLoading.value = false
         }
     }
 }
@@ -216,23 +251,36 @@ watch(() => props.address, (newAddress) => {
     }
 }, { immediate: true })
 
-const handleSave = () => {
-    addressService.setFormData({
-        full_name: form.value.fullName,
-        phone: form.value.phone,
-        province: form.value.province,
-        district: form.value.district,
-        ward: form.value.ward,
-        street: form.value.detail
-    })
+const handleSave = async () => {
+    if (props.isLoading) return // Prevent multiple clicks
 
-    if (addressService.validateForm()) {
-        emit('save', {
-            ...form.value,
-            fullAddress: `${form.value.detail}, ${form.value.hamlet}, ${form.value.ward}, ${form.value.district}, ${form.value.province}`
+    try {
+        emit('loading-change', true)
+
+        addressService.setFormData({
+            full_name: form.value.fullName,
+            phone: form.value.phone,
+            province: form.value.province,
+            district: form.value.district,
+            ward: form.value.ward,
+            street: form.value.detail
         })
-    } else {
-        errors.value = addressService.errors.value
+
+        if (addressService.validateForm()) {
+            const addressData = {
+                ...form.value,
+                fullAddress: `${form.value.detail}, ${form.value.hamlet}, ${form.value.ward}, ${form.value.district}, ${form.value.province}`
+            }
+
+            emit('save', addressData)
+            push.success('Thêm địa chỉ giao hàng thành công!')
+        } else {
+            errors.value = addressService.errors.value
+        }
+    } catch (error) {
+        console.error('Error saving address:', error)
+    } finally {
+        emit('loading-change', false)
     }
 }
 
