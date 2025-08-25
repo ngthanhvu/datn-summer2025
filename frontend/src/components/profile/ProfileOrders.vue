@@ -80,7 +80,7 @@
                                             </div>
                                             <span class="text-sm mt-2 text-gray-700">Đặt hàng</span>
                                             <span class="text-xs text-gray-500">{{ formatDate(order.created_at)
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                         <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
                                         <!-- Xác nhận -->
@@ -348,12 +348,12 @@
                                                 class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600 transition-colors">
                                                 Yêu cầu hoàn hàng
                                             </button>
-                                            <button
+                                            <!-- <button
                                                 v-if="order && (order.status === 'completed' || order.status === 'cancelled')"
                                                 @click.stop="handleReorder(order.id)"
                                                 class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors">
                                                 Mua lại
-                                            </button>
+                                            </button> -->
                                         </div>
                                     </div>
                                 </div>
@@ -495,9 +495,9 @@
                                 </div>
                                 <div class="text-right flex-shrink-0">
                                     <p class="font-medium text-gray-900 text-sm">{{ formatPrice(item.price)
-                                    }}đ</p>
+                                        }}đ</p>
                                     <p class="text-gray-600 text-xs">Tổng: {{ formatPrice(item.total_price)
-                                    }}đ</p>
+                                        }}đ</p>
                                 </div>
                             </div>
                         </div>
@@ -731,7 +731,7 @@
                                 </div>
                                 <span class="text-sm mt-2">Đặt hàng</span>
                                 <span class="text-xs text-gray-500">{{ formatDate(selectedOrder.created_at)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
                             <div class="flex flex-col items-center relative">
@@ -1036,7 +1036,7 @@
                         <input type="radio" :id="'cancel-reason-' + reason.value" v-model="cancelReason"
                             :value="reason.value" class="mr-2" />
                         <label :for="'cancel-reason-' + reason.value" class="cursor-pointer">{{ reason.label
-                        }}</label>
+                            }}</label>
                     </div>
                     <input v-if="cancelReason === 'other'" v-model="cancelReasonOther" type="text"
                         class="mt-2 w-full p-2 border border-gray-300 rounded" placeholder="Vui lòng ghi rõ lý do..." />
@@ -1079,10 +1079,10 @@
                                     selectedOrderForReview.order_details[0].variant?.product?.name }}</h5>
                                 <p class="text-gray-600 text-sm">Size: {{
                                     selectedOrderForReview.order_details[0].variant?.size
-                                    }}</p>
+                                }}</p>
                                 <p class="text-gray-600 text-sm">Số lượng: {{
                                     selectedOrderForReview.order_details[0].quantity
-                                    }}</p>
+                                }}</p>
                             </div>
                         </div>
                         <div v-if="selectedOrderForReview.order_details.length > 1" class="mt-2 text-sm text-gray-600">
@@ -1166,7 +1166,7 @@
                         <input type="radio" :id="'return-reason-' + reason.value" v-model="returnReason"
                             :value="reason.value" class="mr-2" />
                         <label :for="'return-reason-' + reason.value" class="cursor-pointer">{{ reason.label
-                        }}</label>
+                            }}</label>
                     </div>
                     <input v-if="returnReason === 'other'" v-model="returnReasonOther" type="text"
                         class="mt-2 w-full p-2 border border-gray-300 rounded" placeholder="Vui lòng ghi rõ lý do..." />
@@ -1477,11 +1477,12 @@ const showCancelWarning = (order) => {
 
 const canRequestReturn = (order) => {
     if (!order) return false
-    if (!['cancelled', 'completed'].includes(order.status)) return false
+    // Chỉ cho phép hoàn hàng đơn hàng đã hoàn thành, không cho phép đơn hàng đã hủy
+    if (order.status !== 'completed') return false
     if (order.return_status === 'requested' || order.return_status === 'approved' || order.return_status === 'rejected') return false
-    const completedOrCancelledAt = new Date(order.updated_at)
+    const completedAt = new Date(order.updated_at)
     const now = new Date()
-    const diffDays = (now - completedOrCancelledAt) / (1000 * 60 * 60 * 24)
+    const diffDays = (now - completedAt) / (1000 * 60 * 60 * 24)
     return diffDays <= 3
 }
 
@@ -1491,8 +1492,8 @@ const handleRequestReturn = async (orderId) => {
         push.error('Không tìm thấy đơn hàng!');
         return;
     }
-    if (!['cancelled', 'completed'].includes(order.status)) {
-        push.error('Chỉ có thể hoàn hàng cho đơn đã hủy hoặc đã hoàn thành');
+    if (order.status !== 'completed') {
+        push.error('Chỉ có thể hoàn hàng cho đơn hàng đã hoàn thành');
         return;
     }
     if (order.return_requested_at) {
@@ -1503,11 +1504,11 @@ const handleRequestReturn = async (orderId) => {
         push.error('Đơn thanh toán COD không hỗ trợ hoàn hàng');
         return;
     }
-    const completedOrCancelledAt = new Date(order.updated_at);
+    const completedAt = new Date(order.updated_at);
     const now = new Date();
-    const diffDays = (now - completedOrCancelledAt) / (1000 * 60 * 60 * 24);
+    const diffDays = (now - completedAt) / (1000 * 60 * 60 * 24);
     if (diffDays > 3) {
-        push.error('Chỉ có thể hoàn hàng trong vòng 3 ngày kể từ khi đơn hoàn thành hoặc bị hủy');
+        push.error('Chỉ có thể hoàn hàng trong vòng 3 ngày kể từ khi đơn hoàn thành');
         return;
     }
 
